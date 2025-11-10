@@ -27,7 +27,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { ImageUpload } from "./ImageUpload";
 import { OperatingHoursManager } from "./OperatingHoursManager";
-import { MigrateImagesButton } from "./MigrateImagesButton";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 
@@ -353,15 +352,13 @@ export const StoreOwnerDashboard = () => {
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold">Meus Produtos</h3>
-              <div className="flex gap-2">
-                <MigrateImagesButton />
-                <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => setEditingProduct(null)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Novo Produto
-                    </Button>
-                  </DialogTrigger>
+              <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => setEditingProduct(null)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Produto
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
@@ -581,8 +578,7 @@ export const StoreOwnerDashboard = () => {
                 </div>
               </DialogContent>
             </Dialog>
-              </div>
-            </div>
+          </div>
           
           {/* Category Filter */}
           <div className="flex items-center gap-2">
