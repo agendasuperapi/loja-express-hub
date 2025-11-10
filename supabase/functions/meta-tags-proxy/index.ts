@@ -12,18 +12,56 @@ const isCrawler = (userAgent: string): boolean => {
     'Facebot',
     'Twitterbot',
     'WhatsApp',
+    'Instagram',
     'LinkedInBot',
     'Slackbot',
     'TelegramBot',
+    'Discordbot',
     'Googlebot',
     'bingbot',
   ];
-  
-  return crawlerPatterns.some(pattern => 
+  return crawlerPatterns.some((pattern) =>
     userAgent.toLowerCase().includes(pattern.toLowerCase())
   );
 };
 
+// Try to extract shortId from multiple possible sources to be robust to proxies
+const extractShortId = (url: URL, req: Request): string | null => {
+  // 1) Standard query param
+  const qp = url.searchParams.get('short_id')
+    || url.searchParams.get('id')
+    || url.searchParams.get('s');
+  if (qp) return qp;
+
+  // 2) From known proxy query parameters carrying original path/url
+  const originalUrl =
+    url.searchParams.get('url') ||
+    url.searchParams.get('original_url') ||
+    url.searchParams.get('path') ||
+    url.searchParams.get('originalPath');
+  if (originalUrl) {
+    const m = originalUrl.match(/\/p\/([A-Za-z0-9_-]+)/);
+    if (m && m[1]) return m[1];
+  }
+
+  // 3) From custom forwarded headers (if any)
+  const headerPaths = [
+    req.headers.get('x-original-path'),
+    req.headers.get('x-forwarded-uri'),
+    req.headers.get('x-lovable-original-url'),
+    req.headers.get('referer'),
+  ].filter(Boolean) as string[];
+  for (const p of headerPaths) {
+    const m = p.match(/\/p\/([A-Za-z0-9_-]+)/);
+    if (m && m[1]) return m[1];
+  }
+
+  // 4) As a last resort, try pathname in case the runtime passes it through
+  const m = url.pathname.match(/\/p\/([A-Za-z0-9_-]+)/);
+  if (m && m[1]) return m[1];
+
+  return null;
+};
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,15 +73,40 @@ Deno.serve(async (req) => {
     
     console.log('Request received:', { url: url.toString(), userAgent });
 
-    // Extract short_id from query params for /p/{shortId} route
-    const productShortId = url.searchParams.get('short_id');
+    // Extract short_id robustly (query, forwarded path, etc.)
+    const productShortId = extractShortId(url, req);
     
     console.log('Processing request:', { productShortId, userAgent, isCrawler: isCrawler(userAgent) });
 
     if (!productShortId) {
-      return new Response('Product short_id is required', { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+      const fallbackHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produto - Ofertas App</title>
+  <meta name="title" content="Produto - Ofertas App" />
+  <meta name="description" content="Faça seu pedido online" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Produto - Ofertas App" />
+  <meta property="og:description" content="Faça seu pedido online" />
+  <meta property="og:site_name" content="Ofertas App" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta http-equiv="refresh" content="0; url=https://ofertasapp.lovable.app" />
+</head>
+<body>
+  <h1>Produto não encontrado</h1>
+  <p>Redirecionando...</p>
+</body>
+</html>`;
+      
+      return new Response(fallbackHtml, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache',
+          'X-Robots-Tag': 'all',
+          ...corsHeaders
+        }
       });
     }
 
