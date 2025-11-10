@@ -78,7 +78,22 @@ Deno.serve(async (req) => {
     
     console.log('Processing request:', { productShortId, userAgent, isCrawler: isCrawler(userAgent) });
 
+    // Build the actual product URL
+    const productUrl = productShortId ? `https://ofertasapp.lovable.app/p/${productShortId}` : 'https://ofertasapp.lovable.app';
+
+    // If not a crawler and no shortId, redirect to home
     if (!productShortId) {
+      if (!isCrawler(userAgent)) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': productUrl,
+            ...corsHeaders
+          }
+        });
+      }
+      
+      // Crawler without shortId - serve fallback HTML
       const fallbackHtml = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -110,8 +125,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get product by short_id with store info
@@ -122,6 +138,18 @@ Deno.serve(async (req) => {
       .single();
 
     console.log('Product query result:', { product, error: productError });
+
+    // If not a crawler, redirect to the app immediately
+    if (!isCrawler(userAgent)) {
+      console.log('Not a crawler, redirecting to React app');
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': productUrl,
+          ...corsHeaders
+        }
+      });
+    }
 
     if (!product || productError) {
       console.error('Product not found for short_id:', productShortId);
@@ -159,10 +187,6 @@ Deno.serve(async (req) => {
     }
 
     const store = product.stores;
-
-    // Determine the app URL (where users will be redirected)
-    const appOrigin = 'https://ofertasapp.lovable.app';
-    const redirectUrl = `${appOrigin}/p/${product.short_id}`;
     
     // Product image URL - directly from bucket
     const pageImage = product.image_url;
@@ -174,12 +198,10 @@ Deno.serve(async (req) => {
     const pageTitle = product.name;
     const pageDescription = product.description || 'Pedido online';
     
-    console.log('Meta tags prepared:', { pageTitle, pageDescription, pageImage, redirectUrl });
+    console.log('Meta tags prepared:', { pageTitle, pageDescription, pageImage, productUrl });
     
-    // If it's a crawler, serve full HTML with meta tags
-    // If it's a user, redirect them to the app
-    if (isCrawler(userAgent)) {
-      console.log('Serving HTML for crawler:', userAgent);
+    // Serve HTML with meta tags for crawlers
+    console.log('Serving HTML for crawler:', userAgent);
       
       const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -193,11 +215,11 @@ Deno.serve(async (req) => {
   <meta name="description" content="${pageDescription}" />
   
   <!-- Canonical URL - A URL amigável que será mostrada -->
-  <link rel="canonical" href="${redirectUrl}" />
+  <link rel="canonical" href="${productUrl}" />
   
   <!-- Open Graph / Facebook / WhatsApp -->
   <meta property="og:type" content="product" />
-  <meta property="og:url" content="${redirectUrl}" />
+  <meta property="og:url" content="${productUrl}" />
   <meta property="og:title" content="${pageTitle}" />
   <meta property="og:description" content="${pageDescription}" />
   <meta property="og:site_name" content="${storeName}" />
@@ -216,42 +238,31 @@ Deno.serve(async (req) => {
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="${redirectUrl}" />
+  <meta name="twitter:url" content="${productUrl}" />
   <meta name="twitter:title" content="${pageTitle}" />
   <meta name="twitter:description" content="${pageDescription}" />
   ${pageImage ? `<meta name="twitter:image" content="${pageImage}" />` : ''}
   ${pageImage ? `<meta name="twitter:image:alt" content="${pageTitle}" />` : ''}
   
-  <meta http-equiv="refresh" content="0; url=${redirectUrl}" />
+  <meta http-equiv="refresh" content="0; url=${productUrl}" />
 </head>
 <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
   <h1>${pageTitle}</h1>
   ${pageImage ? `<img src="${pageImage}" alt="${pageTitle}" style="max-width: 400px; border-radius: 8px; margin: 20px 0;" />` : ''}
   <p>${pageDescription}</p>
   <p>Redirecionando para o app...</p>
-  <a href="${redirectUrl}" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #f97316; color: white; text-decoration: none; border-radius: 8px;">Ir para o App</a>
+  <a href="${productUrl}" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #f97316; color: white; text-decoration: none; border-radius: 8px;">Ir para o App</a>
 </body>
 </html>`;
 
-      return new Response(html, {
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'no-cache',
-          'X-Robots-Tag': 'all',
-          ...corsHeaders
-        }
-      });
-    } else {
-      // For regular users, redirect directly to the app
-      console.log('Redirecting user to app:', redirectUrl);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': redirectUrl,
-          'Cache-Control': 'no-cache'
-        }
-      });
-    }
+    return new Response(html, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'X-Robots-Tag': 'all',
+        ...corsHeaders
+      }
+    });
 
   } catch (error) {
     console.error('Error:', error);
