@@ -419,6 +419,7 @@ export type Database = {
           name: string
           price: number
           promotional_price: number | null
+          short_id: string | null
           stock_quantity: number | null
           store_id: string
           updated_at: string
@@ -435,6 +436,7 @@ export type Database = {
           name: string
           price: number
           promotional_price?: number | null
+          short_id?: string | null
           stock_quantity?: number | null
           store_id: string
           updated_at?: string
@@ -451,6 +453,7 @@ export type Database = {
           name?: string
           price?: number
           promotional_price?: number | null
+          short_id?: string | null
           stock_quantity?: number | null
           store_id?: string
           updated_at?: string
@@ -806,6 +809,7 @@ export type Database = {
         Returns: undefined
       }
       confirm_user_email: { Args: { user_id: string }; Returns: boolean }
+      generate_short_id: { Args: never; Returns: string }
       get_admin_users: {
         Args: never
         Returns: {
