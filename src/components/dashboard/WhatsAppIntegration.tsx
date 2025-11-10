@@ -8,6 +8,28 @@ import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2 } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 // Removed extra Supabase client to avoid multiple instances warning
+
+// Edge Function (Cloud) URL - public call, JWT not required
+const CLOUD_FUNCTION_URL = 'https://aqxgwdwuhgdxlwmbxxbi.functions.supabase.co/evolution-whatsapp';
+const CLOUD_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// Unified invoker to Evolution function (keeps same return shape as supabase.functions.invoke)
+const invokeEvolution = async (payload: any) => {
+  const res = await fetch(CLOUD_FUNCTION_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': CLOUD_ANON_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    return { data: null, error: new Error(text || 'Failed to send a request to the Edge Function') };
+  }
+  const data = await res.json();
+  return { data, error: null };
+};
 const isConnectedState = (status?: string) => {
   if (!status) return false;
   const s = String(status).toLowerCase();
@@ -71,9 +93,10 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         // Tentar detectar automaticamente instância pelo padrão de nome
         const candidate = `store_${storeId.substring(0, 8)}`;
         try {
-          const { data: statusData } = await supabase.functions.invoke('evolution-whatsapp', {
-            body: { action: 'check_status', instanceName: candidate }
-          });
+const { data: statusData } = await invokeEvolution({
+  action: 'check_status',
+  instanceName: candidate
+});
           const connected = isConnectedState(statusData?.status);
           if (connected) {
             setInstanceName(candidate);
@@ -98,11 +121,9 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
     try {
       console.log('[WhatsApp] Verificando status da instância:', instance);
       
-      const { data, error } = await supabase.functions.invoke('evolution-whatsapp', {
-        body: { 
-          action: 'check_status',
-          instanceName: instance
-        }
+const { data, error } = await invokeEvolution({ 
+        action: 'check_status',
+        instanceName: instance
       });
 
       console.log('[WhatsApp] Resposta da verificação:', { data, error });
@@ -143,12 +164,10 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
     try {
       const generatedInstanceName = `store_${storeId.substring(0, 8)}`;
       
-      const { data, error } = await supabase.functions.invoke('evolution-whatsapp', {
-        body: { 
-          action: 'create_instance',
-          instanceName: generatedInstanceName,
-          phoneNumber: phoneNumber
-        }
+const { data, error } = await invokeEvolution({ 
+        action: 'create_instance',
+        instanceName: generatedInstanceName,
+        phoneNumber: phoneNumber
       });
 
       if (error) throw error;
@@ -188,11 +207,9 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
 
   const pollConnectionStatus = (instance: string) => {
     const interval = setInterval(async () => {
-      const { data } = await supabase.functions.invoke('evolution-whatsapp', {
-        body: { 
-          action: 'check_status',
-          instanceName: instance
-        }
+const { data } = await invokeEvolution({ 
+        action: 'check_status',
+        instanceName: instance
       });
 
       const connected = isConnectedState(data?.status);
@@ -217,11 +234,9 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
 
     setIsLoading(true);
     try {
-      await supabase.functions.invoke('evolution-whatsapp', {
-        body: { 
-          action: 'disconnect',
-          instanceName: instanceName
-        }
+await invokeEvolution({ 
+        action: 'disconnect',
+        instanceName: instanceName
       });
 
       await supabase
