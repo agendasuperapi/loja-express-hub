@@ -14,6 +14,7 @@ interface ImageUploadProps {
   label: string;
   aspectRatio?: string;
   size?: 'sm' | 'md' | 'lg';
+  productId?: string; // ID do produto para usar como nome do arquivo
 }
 
 export const ImageUpload = ({
@@ -23,7 +24,8 @@ export const ImageUpload = ({
   onUploadComplete,
   label,
   aspectRatio = 'aspect-square',
-  size = 'md'
+  size = 'md',
+  productId
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
@@ -103,8 +105,14 @@ export const ImageUpload = ({
       // Redimensionar a imagem
       const resizedBlob = await resizeImage(file, maxWidth, maxHeight);
 
-      const fileExt = 'jpg';
-      const fileName = `${folder}/${Math.random()}.${fileExt}`;
+      // Para product-images, usar productId.jpg ao invés de temp/random
+      let fileName: string;
+      if (bucket === 'product-images' && productId) {
+        fileName = `${productId}.jpg`;
+      } else {
+        const fileExt = 'jpg';
+        fileName = `${folder}/${Math.random()}.${fileExt}`;
+      }
 
       const { error: uploadError, data } = await supabase.storage
         .from(bucket)
