@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
@@ -20,10 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useRef, useEffect } from "react";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function StoreDetails() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: store, isLoading: storeLoading } = useStore(slug!);
   const { data: products, isLoading: productsLoading } = useProducts(store?.id || '');
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -35,9 +37,27 @@ export default function StoreDetails() {
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   // Detect shared product from URL (for meta tags)
-  const urlParams = new URLSearchParams(window.location.search);
-  const sharedProductId = urlParams.get('product');
+  const sharedProductId = searchParams.get('product');
   const sharedProduct = products?.find(p => p.id === sharedProductId);
+
+  // Redirecionar URLs antigas ?product=id para /p/{short_id}
+  useEffect(() => {
+    const productId = searchParams.get('product');
+    if (productId && slug) {
+      const redirectToNewUrl = async () => {
+        const { data } = await supabase
+          .from('products')
+          .select('short_id')
+          .eq('id', productId)
+          .single();
+        
+        if (data?.short_id) {
+          navigate(`/p/${data.short_id}`, { replace: true });
+        }
+      };
+      redirectToNewUrl();
+    }
+  }, [searchParams, slug, navigate]);
 
   const handleAddToCart = (quantity: number, observation: string, selectedAddons: Array<{ id: string; name: string; price: number }>) => {
     if (!store || !selectedProduct) return;
@@ -60,39 +80,38 @@ export default function StoreDetails() {
   const handleShareProduct = async (product: any) => {
     if (!store) return;
     
-    // URL do proxy que serve meta tags para redes sociais
-    const proxyUrl = `https://aqxgwdwuhgdxlwmbxxbi.supabase.co/functions/v1/meta-tags-proxy?store=${store.slug}&product=${product.id}`;
+    // Nova URL limpa usando short_id
+    const shareUrl = product.short_id 
+      ? `https://ofertasapp.lovable.app/p/${product.short_id}`
+      : `https://ofertasapp.lovable.app/${store.slug}?product=${product.id}`;
+    
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 
     try {
-      // Tenta usar a API nativa de compartilhamento
       if (navigator.share && navigator.canShare) {
         await navigator.share({
           title: `${product.name} - ${store.name}`,
           text: shareText,
-          url: proxyUrl,
+          url: shareUrl,
         });
         toast({
           title: "Compartilhado com sucesso!",
           description: "O link do produto foi compartilhado.",
         });
       } else {
-        // Fallback: copia para área de transferência
-        await navigator.clipboard.writeText(`${shareText}\n\n${proxyUrl}`);
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
         toast({
           title: "Link copiado!",
           description: "O link do produto foi copiado para a área de transferência.",
         });
       }
     } catch (error) {
-      // Ignora erro de cancelamento pelo usuário
       if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
       
-      // Se falhar, tenta copiar apenas a URL como fallback final
       try {
-        await navigator.clipboard.writeText(`${shareText}\n\n${proxyUrl}`);
+        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
         toast({
           title: "Link copiado!",
           description: "O link foi copiado para a área de transferência.",

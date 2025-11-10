@@ -18,6 +18,7 @@ import LoginLojista from "./pages/LoginLojista";
 import AdminDashboard from "./pages/AdminDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ProductPage from "./pages/ProductPage";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
                 } 
               />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/p/:shortId" element={<ProductPage />} />
               <Route path="/:slug" element={<StoreDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

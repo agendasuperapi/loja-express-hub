@@ -35,11 +35,12 @@ Deno.serve(async (req) => {
     
     console.log('Request received:', { url: url.toString(), userAgent });
 
-    // Extract store slug and product ID from query params
+    // Extract store slug and product ID/short_id from query params
     const storeSlug = url.searchParams.get('store') || '';
     const productId = url.searchParams.get('product');
+    const productShortId = url.searchParams.get('short_id');
     
-    console.log('Processing request:', { storeSlug, productId, userAgent, isCrawler: isCrawler(userAgent) });
+    console.log('Processing request:', { storeSlug, productId, productShortId, userAgent, isCrawler: isCrawler(userAgent) });
 
     if (!storeSlug) {
       return new Response('Store slug is required', { 
@@ -68,11 +69,19 @@ Deno.serve(async (req) => {
 
     let product = null;
 
-    // Get product if productId is provided
-    if (productId) {
+    // Get product by short_id (preferred) or by id (fallback)
+    if (productShortId) {
       const { data: productData } = await supabase
         .from('products')
-        .select('*')
+        .select('*, stores(name, slug)')
+        .eq('short_id', productShortId)
+        .single();
+
+      product = productData;
+    } else if (productId) {
+      const { data: productData } = await supabase
+        .from('products')
+        .select('*, stores(name, slug)')
         .eq('id', productId)
         .eq('store_id', store.id)
         .single();
@@ -84,7 +93,16 @@ Deno.serve(async (req) => {
     const appOrigin = 'https://ofertasapp.lovable.app';
     
     // This is the friendly URL that will be shown in WhatsApp preview
-    const redirectUrl = `${appOrigin}/${store.slug}${product ? `?product=${product.id}` : ''}`;
+    let redirectUrl: string;
+    if (product && product.short_id) {
+      // Nova rota limpa /p/{short_id}
+      redirectUrl = `${appOrigin}/p/${product.short_id}`;
+    } else if (product) {
+      // Fallback para rota antiga se short_id não existir
+      redirectUrl = `${appOrigin}/${store.slug}?product=${product.id}`;
+    } else {
+      redirectUrl = `${appOrigin}/${store.slug}`;
+    }
     
     // Use product image with proper dimensions for social media
     // Ensure image URLs are absolute and properly formatted
@@ -108,12 +126,13 @@ Deno.serve(async (req) => {
     }
     
     // Generate meta tags
+    const storeName = product?.stores?.name || store.name;
     const pageTitle = product 
-      ? `${product.name} - ${store.name}` 
+      ? `${product.name} - ${storeName}` 
       : `${store.name} - Cardápio`;
     
     const pageDescription = product
-      ? `${product.description || product.name} - R$ ${Number(product.promotional_price || product.price).toFixed(2)} - Peça agora em ${store.name}`
+      ? `${product.description || product.name} - R$ ${Number(product.promotional_price || product.price).toFixed(2)} - Peça agora em ${storeName}`
       : store.description || `Confira o cardápio completo de ${store.name}`;
     
     console.log('Meta tags prepared:', { pageTitle, pageDescription, pageImage, redirectUrl });
