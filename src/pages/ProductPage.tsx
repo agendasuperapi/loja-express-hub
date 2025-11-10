@@ -10,7 +10,6 @@ import { ArrowLeft, Share2, ShoppingCart, Store } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { toast } from '@/hooks/use-toast';
 import { Helmet } from 'react-helmet-async';
-import { getShareableProductUrl } from '@/lib/shareUtils';
 
 interface Product {
   id: string;
@@ -91,7 +90,7 @@ export default function ProductPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    const shareUrl = getShareableProductUrl(product.short_id);
+    const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${product.stores.name}`;
 
     try {

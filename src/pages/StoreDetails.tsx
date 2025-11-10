@@ -21,7 +21,6 @@ import { useState, useRef, useEffect } from "react";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getShareableProductUrl } from "@/lib/shareUtils";
 export default function StoreDetails() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -81,7 +80,7 @@ export default function StoreDetails() {
     if (!store) return;
     
     // Nova URL limpa usando short_id
-    const shareUrl = getShareableProductUrl(product.short_id);
+    const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 

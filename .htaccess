@@ -7,10 +7,14 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Se for bot de rede social, redireciona para share.php
+  # Se for bot de rede social em URLs de produto, redireciona para share.php
   RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot [NC]
-  RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?username=$1 [QSA,L]
+  RewriteRule ^p/([a-zA-Z0-9_-]+)$ share.php?type=product&short_id=$1 [QSA,L]
 
-  # Todo o resto vai para Flutter (inclui usuários reais)
+  # Se for bot de rede social em URLs de loja, redireciona para share.php
+  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot [NC]
+  RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?type=store&username=$1 [QSA,L]
+
+  # Todo o resto vai para a aplicação React (inclui usuários reais)
   RewriteRule ^.*$ /index.html [L]
 </IfModule>
