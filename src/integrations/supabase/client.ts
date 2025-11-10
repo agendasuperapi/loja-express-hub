@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Obter valores das variáveis de ambiente
-const ENV_URL = import.meta.env.VITE_SUPABASE_URL;
-const ENV_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const ENV_URL = 'https://mgpzowiahnwcmcaelogf.supabase.co';
+const ENV_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ncHpvd2lhaG53Y21jYWVsb2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjQ2MTIsImV4cCI6MjA3ODIwMDYxMn0.sC-SMpIf8-VbZWB6BCIQG-TtROcxyzE4hK4bFocTRQE';
 
 // Valores padrão válidos para demonstração quando as variáveis não estão configuradas
 //const FALLBACK_URL = 'https://demo.supabase.co';
