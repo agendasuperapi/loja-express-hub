@@ -2,3 +2,6 @@ project_id = "aqxgwdwuhgdxlwmbxxbi"
 
 [functions.evolution-whatsapp]
 verify_jwt = false
+
+[functions.send-order-whatsapp]
+verify_jwt = false
