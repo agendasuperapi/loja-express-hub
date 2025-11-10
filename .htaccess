@@ -7,14 +7,15 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Se for bot de rede social em URLs de produto, redireciona para share.php
+  # BOT de rede social acessando produto ou loja
   RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot [NC]
-  RewriteRule ^p/([a-zA-Z0-9_-]+)$ share.php?type=product&short_id=$1 [QSA,L]
 
-  # Se for bot de rede social em URLs de loja, redireciona para share.php
-  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot [NC]
-  RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?type=store&username=$1 [QSA,L]
+  # /p/short_id  (produtos)
+  RewriteRule ^p/([a-zA-Z0-9_-]+)$ share.php?tipo=produto&id=$1 [QSA,L]
 
-  # Todo o resto vai para a aplicação React (inclui usuários reais)
+  # /nomedaloja  (lojas)
+  RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?tipo=loja&username=$1 [QSA,L]
+
+  # Todo o resto -> app web
   RewriteRule ^.*$ /index.html [L]
 </IfModule>
