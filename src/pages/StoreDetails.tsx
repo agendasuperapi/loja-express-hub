@@ -60,8 +60,8 @@ export default function StoreDetails() {
   const handleShareProduct = async (product: any) => {
     if (!store) return;
     
-    // URL amigável da loja
-    const shareUrl = `https://ofertasapp.lovable.app/${store.slug}?product=${product.id}`;
+    // URL do proxy que serve meta tags para redes sociais
+    const proxyUrl = `https://aqxgwdwuhgdxlwmbxxbi.supabase.co/functions/v1/meta-tags-proxy?store=${store.slug}&product=${product.id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 
     try {
@@ -70,7 +70,7 @@ export default function StoreDetails() {
         await navigator.share({
           title: `${product.name} - ${store.name}`,
           text: shareText,
-          url: shareUrl,
+          url: proxyUrl,
         });
         toast({
           title: "Compartilhado com sucesso!",
@@ -78,7 +78,7 @@ export default function StoreDetails() {
         });
       } else {
         // Fallback: copia para área de transferência
-        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+        await navigator.clipboard.writeText(`${shareText}\n\n${proxyUrl}`);
         toast({
           title: "Link copiado!",
           description: "O link do produto foi copiado para a área de transferência.",
@@ -92,7 +92,7 @@ export default function StoreDetails() {
       
       // Se falhar, tenta copiar apenas a URL como fallback final
       try {
-        await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+        await navigator.clipboard.writeText(`${shareText}\n\n${proxyUrl}`);
         toast({
           title: "Link copiado!",
           description: "O link foi copiado para a área de transferência.",

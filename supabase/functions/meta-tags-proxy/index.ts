@@ -81,9 +81,7 @@ Deno.serve(async (req) => {
     }
 
     // Determine the app URL (where users will be redirected)
-    const appOrigin = url.origin.includes('supabase.co') 
-      ? 'https://71c54158-3782-4007-8ca0-88679a6240e5.lovableproject.com'
-      : url.origin;
+    const appOrigin = 'https://ofertasapp.lovable.app';
     
     // This is the friendly URL that will be shown in WhatsApp preview
     const redirectUrl = `${appOrigin}/${store.slug}${product ? `?product=${product.id}` : ''}`;
