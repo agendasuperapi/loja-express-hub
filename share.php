@@ -1,120 +1,108 @@
 <?php
-$type = $_GET['type'] ?? '';
-$supabase_url = 'https://aqxgwdwuhgdxlwmbxxbi.supabase.co';
-$supabase_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxeGd3ZHd1aGdkeGx3bWJ4eGJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NzgxNzAsImV4cCI6MjA3ODM1NDE3MH0.sU1s5opuXJ7j9efhCdvNz690LuwcqxOF_GjaBTLH9qw';
 
-if ($type === 'product') {
-  // Handle product sharing
-  $short_id = rtrim($_GET['short_id'] ?? '', '/');
-  
-  if (!$short_id) {
+$tipo = $_GET['tipo'] ?? null;
+
+if ($tipo === "produto") {
+
+  // --- PRODUTO ---
+  $id = $_GET['id'] ?? null;
+  if (!$id) {
     http_response_code(400);
-    echo 'Short ID não fornecido.';
+    echo "ID do produto não fornecido.";
     exit;
   }
 
-  $api_url = "{$supabase_url}/rest/v1/products?short_id=eq.{$short_id}&select=*,stores(name,slug,logo_url)";
-  $headers = [
-    'Content-Type: application/json',
-    'apikey: ' . $supabase_key
-  ];
+  // CHAMA RPC DO PRODUTO
+  $api_url = 'https://hzmixuvrnzpypriagecv.supabase.co/rest/v1/rpc/fc_share_produto';
+  $post_data = ['param_id' => $id];
 
-  $options = [
-    'http' => [
-      'method' => 'GET',
-      'header' => implode("\r\n", $headers)
-    ]
-  ];
+} else if ($tipo === "loja") {
 
-  $context = stream_context_create($options);
-  $response = file_get_contents($api_url, false, $context);
-  $data = json_decode($response, true);
-
-  if (!$data || count($data) === 0) {
-    http_response_code(404);
-    echo 'Produto não encontrado.';
-    exit;
-  }
-
-  $product = $data[0];
-  $store = $product['stores'];
-  
-  $nome = htmlspecialchars($product['name']);
-  $descricao = htmlspecialchars($product['description'] ?? '');
-  $preco = $product['promotional_price'] ?? $product['price'];
-  $imagem = $product['image_url'] ?? $store['logo_url'] ?? '';
-  $store_name = htmlspecialchars($store['name']);
-  $url_final = "https://ofertas.app/p/{$short_id}";
-  
-  $page_title = "{$nome} - {$store_name}";
-  $og_description = $descricao ? "{$descricao} - R$ " . number_format($preco, 2, ',', '.') : "R$ " . number_format($preco, 2, ',', '.');
-  
-} else if ($type === 'store') {
-  // Handle store sharing (old behavior)
-  $username = rtrim($_GET['username'] ?? '', '/');
-  
+  // --- LOJA ---
+  $username = $_GET['username'] ?? null;
   if (!$username) {
     http_response_code(400);
-    echo 'Username não fornecido.';
+    echo "Username não fornecido.";
     exit;
   }
 
+  // CHAMA RPC DO ESTABELECIMENTO
   $api_url = 'https://hzmixuvrnzpypriagecv.supabase.co/rest/v1/rpc/fc_share_estabelecimento';
-  $headers = [
-    'Content-Type: application/json',
-    'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6bWl4dXZybnpweXByaWFnZWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ5NjkzMTQsImV4cCI6MjA0MDU0NTMxNH0.VHtjYivpM8c9RLmKimwRiLgnb8zqGrZ88Q8vpVLZcZ0'
-  ];
+  $post_data = ['param_username' => $username];
 
-  $options = [
-    'http' => [
-      'method' => 'POST',
-      'header' => implode("\r\n", $headers),
-      'content' => json_encode(['param_username' => $username])
-    ]
-  ];
-
-  $context = stream_context_create($options);
-  $response = file_get_contents($api_url, false, $context);
-  $data = json_decode($response, true);
-
-  if (!$data || $data[0]['result'] !== 'True') {
-    http_response_code(404);
-    echo 'Estabelecimento não encontrado.';
-    exit;
-  }
-
-  $estab = $data[0];
-  $page_title = htmlspecialchars($estab['nome']);
-  $descricao = htmlspecialchars($estab['descricao'] ?? '');
-  $segmento = htmlspecialchars($estab['segmento']);
-  $imagem = $estab['foto_perfil'];
-  $og_description = $descricao ? "{$descricao} - {$segmento}" : $segmento;
-  $url_final = "https://ofertas.app/{$username}";
-  $nome = $page_title;
 } else {
   http_response_code(400);
-  echo 'Tipo inválido.';
+  echo "Tipo inválido.";
   exit;
 }
+
+
+// --- CHAMADA SUPABASE ---
+
+$headers = [
+  'Content-Type: application/json',
+  'apikey: ' . 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6bWl4dXZybnpweXByaWFnZWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ5NjkzMTQsImV4cCI6MjA0MDU0NTMxNH0.VHtjYivpM8c9RLmKimwRiLgnb8zqGrZ88Q8vpVLZcZ0'
+];
+
+$options = [
+  'http' => [
+    'method' => 'POST',
+    'header' => implode("\r\n", $headers),
+    'content' => json_encode($post_data)
+  ]
+];
+
+$context = stream_context_create($options);
+$response = file_get_contents($api_url, false, $context);
+$data = json_decode($response, true);
+
+if (!$data || $data[0]['result'] !== 'True') {
+  http_response_code(404);
+  echo "Não encontrado.";
+  exit;
+}
+
+$info = $data[0];
+
+
+if ($tipo === "produto") {
+
+  $titulo = htmlspecialchars($info['nome_produto']);
+  $preco  = number_format($info['preco'], 2, ',', '.');
+  $descricao = "💰 R$ {$preco}";
+  $imagem = $info['foto_produto'];
+  $link_final = "https://ofertas.app/p/" . $info['id'];
+
+} else {
+
+  $titulo = htmlspecialchars($info['nome']);
+  $descricao = htmlspecialchars($info['descricao'] ?? $info['segmento']);
+  $imagem = $info['foto_perfil'];
+  $link_final = "https://ofertas.app/" . $info['username'];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title><?= $page_title ?></title>
-  
-  <meta property="og:title" content="<?= $page_title ?>" />
-  <meta property="og:description" content="<?= $og_description ?>" />
+  <title><?= $titulo ?></title>
+
+  <meta property="og:title" content="<?= $titulo ?>" />
+  <meta property="og:description" content="<?= $descricao ?>" />
   <meta property="og:image" content="<?= $imagem ?>" />
-  <meta property="og:url" content="<?= $url_final ?>" />
+  <meta property="og:url" content="<?= $link_final ?>" />
   <meta property="og:type" content="website" />
-  
+
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="<?= $page_title ?>">
-  <meta name="twitter:description" content="<?= $og_description ?>">
+  <meta name="twitter:title" content="<?= $titulo ?>">
+  <meta name="twitter:description" content="<?= $descricao ?>">
   <meta name="twitter:image" content="<?= $imagem ?>">
 </head>
 <body>
-  Redirecionando para <?= $nome ?>...
+  Carregando...
+  <script>
+    window.location.href = "<?= $link_final ?>";
+  </script>
 </body>
 </html>
