@@ -61,7 +61,7 @@ export default function StoreDetails() {
     if (!store) return;
     
     // URL amigável da loja
-    const shareUrl = `${window.location.origin}/${store.slug}?product=${product.id}`;
+    const shareUrl = `https://ofertasapp.lovable.app/${store.slug}?product=${product.id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 
     try {
