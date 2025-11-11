@@ -154,6 +154,8 @@ export default function Cart() {
             title: "Conta criada com sucesso!",
             description: "Agora preencha seus dados para continuar",
           });
+          // Avançar para Step 2 após signup
+          setTimeout(() => setCurrentStep(2), 500);
         }
       } else {
         if (!authEmail || !authPassword) {
@@ -179,6 +181,8 @@ export default function Cart() {
             title: "Login realizado!",
             description: "Agora preencha seus dados para continuar",
           });
+          // Avançar para Step 2 após login
+          setTimeout(() => setCurrentStep(2), 500);
         }
       }
     } catch (err: any) {
@@ -483,20 +487,30 @@ export default function Cart() {
               <CardContent className="p-6 space-y-6">
                 {/* Step Indicator */}
                 <div className="flex items-center justify-center gap-2 mb-6">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
-                    currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  <div className={`flex flex-col items-center ${
+                    currentStep === 1 ? 'text-primary' : 'text-muted-foreground'
                   }`}>
-                    1
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
+                      currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    }`}>
+                      1
+                    </div>
+                    <span className="text-xs mt-1">Login</span>
                   </div>
                   <div className={`h-1 w-12 ${currentStep === 2 ? 'bg-primary' : 'bg-muted'}`} />
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
-                    currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  <div className={`flex flex-col items-center ${
+                    currentStep === 2 ? 'text-primary' : 'text-muted-foreground'
                   }`}>
-                    2
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
+                      currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    }`}>
+                      2
+                    </div>
+                    <span className="text-xs mt-1">Finalizar</span>
                   </div>
                 </div>
 
-                {/* Step 1: Authentication & Customer Data */}
+                {/* Step 1: Authentication Only */}
                 {currentStep === 1 && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
@@ -504,138 +518,88 @@ export default function Cart() {
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-6"
                   >
-                    {!user ? (
-                      <div>
-                        <h3 className="text-xl font-bold mb-4">
-                          {authMode === 'login' ? 'Fazer Login' : 'Criar Conta'}
-                        </h3>
+                    <div>
+                      <h3 className="text-xl font-bold mb-4">
+                        {authMode === 'login' ? 'Fazer Login' : 'Criar Conta'}
+                      </h3>
+                      
+                      <form onSubmit={handleAuthSubmit} className="space-y-4">
+                        {authMode === 'signup' && (
+                          <>
+                            <div>
+                              <Label htmlFor="auth-name">Nome Completo *</Label>
+                              <Input
+                                id="auth-name"
+                                value={authFullName}
+                                onChange={(e) => setAuthFullName(e.target.value)}
+                                placeholder="Seu nome completo"
+                                required
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="auth-phone">Telefone *</Label>
+                              <PhoneInput
+                                id="auth-phone"
+                                value={authPhone}
+                                onChange={setAuthPhone}
+                              />
+                            </div>
+                          </>
+                        )}
                         
-                        <form onSubmit={handleAuthSubmit} className="space-y-4">
-                          {authMode === 'signup' && (
-                            <>
-                              <div>
-                                <Label htmlFor="auth-name">Nome Completo *</Label>
-                                <Input
-                                  id="auth-name"
-                                  value={authFullName}
-                                  onChange={(e) => setAuthFullName(e.target.value)}
-                                  placeholder="Seu nome completo"
-                                  required
-                                />
-                              </div>
-                              
-                              <div>
-                                <Label htmlFor="auth-phone">Telefone *</Label>
-                                <PhoneInput
-                                  id="auth-phone"
-                                  value={authPhone}
-                                  onChange={setAuthPhone}
-                                />
-                              </div>
-                            </>
-                          )}
-                          
-                          <div>
-                            <Label htmlFor="auth-email">Email *</Label>
-                            <Input
-                              id="auth-email"
-                              type="email"
-                              value={authEmail}
-                              onChange={(e) => setAuthEmail(e.target.value)}
-                              placeholder="seu@email.com"
-                              required
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="auth-password">Senha *</Label>
-                            <Input
-                              id="auth-password"
-                              type="password"
-                              value={authPassword}
-                              onChange={(e) => setAuthPassword(e.target.value)}
-                              placeholder="••••••••"
-                              required
-                            />
-                          </div>
-
-                          <Button
-                            type="submit"
-                            className="w-full bg-gradient-primary"
-                            size="lg"
-                            disabled={isAuthLoading}
-                          >
-                            {isAuthLoading 
-                              ? 'Aguarde...' 
-                              : authMode === 'login' 
-                                ? 'Entrar' 
-                                : 'Criar Conta'}
-                          </Button>
-
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="w-full"
-                            onClick={() => {
-                              setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                              setAuthPassword("");
-                            }}
-                          >
-                            {authMode === 'login' 
-                              ? 'Não tem conta? Cadastre-se' 
-                              : 'Já tem conta? Faça login'}
-                          </Button>
-                        </form>
-                      </div>
-                    ) : (
-                      <div>
-                        <h3 className="text-xl font-bold mb-4">Dados do Cliente</h3>
+                        <div>
+                          <Label htmlFor="auth-email">Email *</Label>
+                          <Input
+                            id="auth-email"
+                            type="email"
+                            value={authEmail}
+                            onChange={(e) => setAuthEmail(e.target.value)}
+                            placeholder="seu@email.com"
+                            required
+                          />
+                        </div>
                         
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="name">Nome Completo *</Label>
-                            <Input
-                              id="name"
-                              value={customerName}
-                              onChange={(e) => setCustomerName(e.target.value)}
-                              placeholder="Seu nome"
-                              required
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="email">Email *</Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              value={customerEmail}
-                              onChange={(e) => setCustomerEmail(e.target.value)}
-                              placeholder="seu@email.com"
-                              required
-                              disabled
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="phone">Telefone *</Label>
-                            <PhoneInput
-                              id="phone"
-                              value={customerPhone}
-                              onChange={setCustomerPhone}
-                            />
-                          </div>
+                        <div>
+                          <Label htmlFor="auth-password">Senha *</Label>
+                          <Input
+                            id="auth-password"
+                            type="password"
+                            value={authPassword}
+                            onChange={(e) => setAuthPassword(e.target.value)}
+                            placeholder="••••••••"
+                            required
+                          />
                         </div>
 
                         <Button
-                          className="w-full bg-gradient-primary mt-6"
+                          type="submit"
+                          className="w-full bg-gradient-primary"
                           size="lg"
-                          onClick={handleNextStep}
-                          disabled={!customerName || !customerEmail || !customerPhone}
+                          disabled={isAuthLoading}
                         >
-                          Avançar
+                          {isAuthLoading 
+                            ? 'Aguarde...' 
+                            : authMode === 'login' 
+                              ? 'Entrar' 
+                              : 'Criar Conta'}
                         </Button>
-                      </div>
-                    )}
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="w-full"
+                          onClick={() => {
+                            setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                            setAuthPassword("");
+                          }}
+                        >
+                          {authMode === 'login' 
+                            ? 'Não tem conta? Cadastre-se' 
+                            : 'Já tem conta? Faça login'}
+                        </Button>
+                      </form>
+                    </div>
                   </motion.div>
                 )}
 
