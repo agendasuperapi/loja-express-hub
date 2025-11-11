@@ -54,7 +54,27 @@ serve(async (req) => {
   }
 
   try {
-    const rawData = await req.json();
+    let rawData;
+    
+    try {
+      const text = await req.text();
+      console.log('Request body text:', text);
+      
+      if (!text || text.trim() === '') {
+        return new Response(
+          JSON.stringify({ error: 'Request body is empty' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      rawData = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     // Validate request data
     const validatedData = requestSchema.parse(rawData);

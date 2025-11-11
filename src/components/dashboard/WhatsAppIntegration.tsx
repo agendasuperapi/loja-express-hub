@@ -9,25 +9,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 // Removed extra Supabase client to avoid multiple instances warning
 
-// Edge Function URL - usando variável de ambiente
-const CLOUD_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/evolution-whatsapp`;
-const CLOUD_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Edge Function URL
+const SUPABASE_URL = 'https://mgpzowiahnwcmcaelogf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ncHpvd2lhaG53Y21jYWVsb2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjQ2MTIsImV4cCI6MjA3ODIwMDYxMn0.sC-SMpIf8-VbZWB6BCIQG-TtROcxyzE4hK4bFocTRQE';
+const CLOUD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/evolution-whatsapp`;
 
 // Unified invoker to Evolution function (keeps same return shape as supabase.functions.invoke)
 const invokeEvolution = async (payload: any) => {
+  console.log('[WhatsApp] Enviando para edge function:', payload);
   const res = await fetch(CLOUD_FUNCTION_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': CLOUD_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'apikey': SUPABASE_ANON_KEY,
     },
     body: JSON.stringify(payload),
   });
+  
+  console.log('[WhatsApp] Status da resposta:', res.status);
+  
   if (!res.ok) {
     const text = await res.text();
+    console.error('[WhatsApp] Erro na resposta:', text);
     return { data: null, error: new Error(text || 'Failed to send a request to the Edge Function') };
   }
   const data = await res.json();
+  console.log('[WhatsApp] Resposta da edge function:', data);
   return { data, error: null };
 };
 const isConnectedState = (status?: string) => {
