@@ -180,7 +180,34 @@ serve(async (req) => {
       });
 
       if (!statusResponse.ok) {
-        throw new Error('Failed to check status');
+        const errorText = await statusResponse.text();
+        console.error('Failed to check status:', {
+          status: statusResponse.status,
+          statusText: statusResponse.statusText,
+          error: errorText,
+          instanceName
+        });
+        
+        // If instance not found, return disconnected status instead of error
+        if (statusResponse.status === 404) {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              status: 'disconnected'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Failed to check status',
+            details: errorText,
+            statusCode: statusResponse.status
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
       const statusData = await statusResponse.json();
