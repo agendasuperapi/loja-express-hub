@@ -129,6 +129,7 @@ export const useOrders = () => {
           delivery_number: validatedData.deliveryNumber || null,
           delivery_neighborhood: validatedData.deliveryNeighborhood || null,
           delivery_complement: validatedData.deliveryComplement || null,
+          notes: validatedData.notes || null,
           order_number: orderNumber,
           subtotal,
           delivery_fee: deliveryFee,
