@@ -75,19 +75,33 @@ export const useOrders = () => {
       console.log("🧾 FINAL PAYLOAD INSERT:", orderInsertData);
       console.log("🧾 ITEMS:", validatedData.items);
 
-      // 🟢 INSERT na tabela orders
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert([orderInsertData])
-        .select()
-        .maybeSingle();
+      // 🟢 Criar pedido via RPC (evita problemas de headers do PostgREST)
+      const { data: orderJson, error: rpcError } = await supabase.rpc('create_order_rpc', {
+        p_store_id: orderInsertData.store_id,
+        p_customer_name: orderInsertData.customer_name,
+        p_customer_phone: orderInsertData.customer_phone,
+        p_delivery_type: orderInsertData.delivery_type,
+        p_order_number: orderInsertData.order_number,
+        p_subtotal: orderInsertData.subtotal,
+        p_delivery_fee: orderInsertData.delivery_fee,
+        p_total: orderInsertData.total,
+        p_payment_method: orderInsertData.payment_method,
+        p_delivery_street: orderInsertData.delivery_street,
+        p_delivery_number: orderInsertData.delivery_number,
+        p_delivery_neighborhood: orderInsertData.delivery_neighborhood,
+        p_delivery_complement: orderInsertData.delivery_complement,
+        p_change_amount: orderInsertData.change_amount,
+        p_notes: null,
+      });
 
-      if (orderError) {
-        console.error("❌ Order insert error:", orderError);
-        throw orderError;
+      if (rpcError) {
+        console.error("❌ Order RPC error:", rpcError);
+        throw rpcError;
       }
 
-      if (!order) {
+      const order = orderJson as unknown as { id: string };
+
+      if (!order || !order.id) {
         throw new Error("Falha ao criar pedido");
       }
 
