@@ -49,62 +49,71 @@ SET customer_phone = CASE
 END
 WHERE customer_phone IS NOT NULL AND customer_phone != '';
 
--- Create function to clean phone numbers on insert/update
-CREATE OR REPLACE FUNCTION clean_phone_number()
+-- Create separate functions for each table to avoid field access issues
+
+-- Function for profiles table
+CREATE OR REPLACE FUNCTION clean_phone_profiles()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Clean phone field if it exists in the table
-  IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
-    -- For profiles table
-    IF TG_TABLE_NAME = 'profiles' AND NEW.phone IS NOT NULL AND NEW.phone != '' THEN
-      NEW.phone := CASE 
-        WHEN REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g') ~ '^55' THEN 
-          REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
-        ELSE 
-          '55' || REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
-      END;
-    END IF;
-    
-    -- For stores table
-    IF TG_TABLE_NAME = 'stores' AND NEW.phone IS NOT NULL AND NEW.phone != '' THEN
-      NEW.phone := CASE 
-        WHEN REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g') ~ '^55' THEN 
-          REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
-        ELSE 
-          '55' || REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
-      END;
-    END IF;
-    
-    -- For orders table
-    IF TG_TABLE_NAME = 'orders' AND NEW.customer_phone IS NOT NULL AND NEW.customer_phone != '' THEN
-      NEW.customer_phone := CASE 
-        WHEN REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g') ~ '^55' THEN 
-          REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g')
-        ELSE 
-          '55' || REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g')
-      END;
-    END IF;
+  IF NEW.phone IS NOT NULL AND NEW.phone != '' THEN
+    NEW.phone := CASE 
+      WHEN REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g') ~ '^55' THEN 
+        REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
+      ELSE 
+        '55' || REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
+    END;
   END IF;
-  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Create triggers for each table
+-- Function for stores table
+CREATE OR REPLACE FUNCTION clean_phone_stores()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.phone IS NOT NULL AND NEW.phone != '' THEN
+    NEW.phone := CASE 
+      WHEN REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g') ~ '^55' THEN 
+        REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
+      ELSE 
+        '55' || REGEXP_REPLACE(NEW.phone, '[^0-9]', '', 'g')
+    END;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for orders table
+CREATE OR REPLACE FUNCTION clean_phone_orders()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.customer_phone IS NOT NULL AND NEW.customer_phone != '' THEN
+    NEW.customer_phone := CASE 
+      WHEN REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g') ~ '^55' THEN 
+        REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g')
+      ELSE 
+        '55' || REGEXP_REPLACE(NEW.customer_phone, '[^0-9]', '', 'g')
+    END;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for each table with their specific functions
 DROP TRIGGER IF EXISTS clean_phone_on_profiles ON profiles;
 CREATE TRIGGER clean_phone_on_profiles
   BEFORE INSERT OR UPDATE ON profiles
   FOR EACH ROW
-  EXECUTE FUNCTION clean_phone_number();
+  EXECUTE FUNCTION clean_phone_profiles();
 
 DROP TRIGGER IF EXISTS clean_phone_on_stores ON stores;
 CREATE TRIGGER clean_phone_on_stores
   BEFORE INSERT OR UPDATE ON stores
   FOR EACH ROW
-  EXECUTE FUNCTION clean_phone_number();
+  EXECUTE FUNCTION clean_phone_stores();
 
 DROP TRIGGER IF EXISTS clean_phone_on_orders ON orders;
 CREATE TRIGGER clean_phone_on_orders
   BEFORE INSERT OR UPDATE ON orders
   FOR EACH ROW
-  EXECUTE FUNCTION clean_phone_number();
+  EXECUTE FUNCTION clean_phone_orders();
