@@ -75,7 +75,7 @@ export const useOrders = () => {
       console.log("🧾 FINAL PAYLOAD INSERT:", orderInsertData);
       console.log("🧾 ITEMS:", validatedData.items);
 
-      // 🟢 Criar pedido via RPC
+      // 🟢 Criar pedido via RPC (sem .single() para evitar erro de serialização)
       const { data: orderData, error: rpcError } = await supabase.rpc('create_order_rpc', {
         p_store_id: orderInsertData.store_id,
         p_customer_name: orderInsertData.customer_name,
@@ -92,18 +92,21 @@ export const useOrders = () => {
         p_delivery_complement: orderInsertData.delivery_complement,
         p_change_amount: orderInsertData.change_amount,
         p_notes: null,
-      }).single();
+      });
 
       if (rpcError) {
         console.error("❌ Order RPC error:", rpcError);
         throw rpcError;
       }
 
-      if (!orderData || typeof orderData !== 'object' || !('id' in orderData)) {
-        throw new Error("Falha ao criar pedido");
+      console.log("✅ Order RPC success - returned ID:", orderData);
+
+      if (!orderData || typeof orderData !== 'string') {
+        console.error("❌ Invalid order data:", orderData);
+        throw new Error("Falha ao criar pedido - ID inválido");
       }
 
-      const order = { id: orderData.id as string };
+      const order = { id: orderData };
 
       // 🟦 Inserir itens da ordem
       const itemsToInsert = validatedData.items.map((item) => ({
