@@ -20,7 +20,7 @@ import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Pack
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
-
+import { normalizePhone } from "@/lib/phone";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -253,7 +253,7 @@ export default function Cart() {
       .from('profiles')
       .update({
         full_name: customerName,
-        phone: customerPhone,
+        phone: normalizePhone(customerPhone),
         street: deliveryType === 'delivery' ? deliveryStreet : null,
         street_number: deliveryType === 'delivery' ? deliveryNumber : null,
         neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,

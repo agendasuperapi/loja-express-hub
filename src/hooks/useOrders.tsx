@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { orderSchema, CreateOrderData } from '@/schema/orderSchema';
+import { normalizePhone } from '@/lib/phone';
 
 export const useOrders = () => {
   const { user } = useAuth();
@@ -63,7 +64,7 @@ export const useOrders = () => {
           store_id: validatedData.storeId,
           customer_id: user.id,
           customer_name: validatedData.customerName,
-          customer_phone: validatedData.customerPhone,
+          customer_phone: normalizePhone(validatedData.customerPhone),
           delivery_type: validatedData.deliveryType,
           order_number: orderNumber,
           subtotal,
