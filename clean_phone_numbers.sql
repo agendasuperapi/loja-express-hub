@@ -2,6 +2,12 @@
 -- Remove formatting and add +55 country code where missing
 -- Execute this in Supabase SQL Editor
 
+-- FIRST: Drop old triggers and function
+DROP TRIGGER IF EXISTS clean_phone_on_profiles ON profiles;
+DROP TRIGGER IF EXISTS clean_phone_on_stores ON stores;
+DROP TRIGGER IF EXISTS clean_phone_on_orders ON orders;
+DROP FUNCTION IF EXISTS clean_phone_number();
+
 -- Update profiles table
 UPDATE profiles
 SET phone = CASE
