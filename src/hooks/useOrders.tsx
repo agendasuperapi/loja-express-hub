@@ -35,9 +35,9 @@ export const useOrders = () => {
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: async (orderData: CreateOrderData) => {
+    mutationFn: async (orderInput: CreateOrderData) => {
       // 🧾 Valida entrada com Zod
-      const validatedData = orderSchema.parse(orderData);
+      const validatedData = orderSchema.parse(orderInput);
 
       // 🧮 Calcular totais
       const subtotal = validatedData.items.reduce(
@@ -75,8 +75,8 @@ export const useOrders = () => {
       console.log("🧾 FINAL PAYLOAD INSERT:", orderInsertData);
       console.log("🧾 ITEMS:", validatedData.items);
 
-      // 🟢 Criar pedido via RPC (evita problemas de headers do PostgREST)
-      const { data: orderJson, error: rpcError } = await supabase.rpc('create_order_rpc', {
+      // 🟢 Criar pedido via RPC
+      const { data: orderData, error: rpcError } = await supabase.rpc('create_order_rpc', {
         p_store_id: orderInsertData.store_id,
         p_customer_name: orderInsertData.customer_name,
         p_customer_phone: orderInsertData.customer_phone,
@@ -92,18 +92,18 @@ export const useOrders = () => {
         p_delivery_complement: orderInsertData.delivery_complement,
         p_change_amount: orderInsertData.change_amount,
         p_notes: null,
-      });
+      }).single();
 
       if (rpcError) {
         console.error("❌ Order RPC error:", rpcError);
         throw rpcError;
       }
 
-      const order = orderJson as unknown as { id: string };
-
-      if (!order || !order.id) {
+      if (!orderData || typeof orderData !== 'object' || !('id' in orderData)) {
         throw new Error("Falha ao criar pedido");
       }
+
+      const order = { id: orderData.id as string };
 
       // 🟦 Inserir itens da ordem
       const itemsToInsert = validatedData.items.map((item) => ({
