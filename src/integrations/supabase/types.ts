@@ -809,6 +809,26 @@ export type Database = {
         Returns: undefined
       }
       confirm_user_email: { Args: { user_id: string }; Returns: boolean }
+      create_order_rpc: {
+        Args: {
+          p_change_amount?: number
+          p_customer_name: string
+          p_customer_phone: string
+          p_delivery_complement?: string
+          p_delivery_fee: number
+          p_delivery_neighborhood?: string
+          p_delivery_number?: string
+          p_delivery_street?: string
+          p_delivery_type: string
+          p_notes?: string
+          p_order_number: string
+          p_payment_method: string
+          p_store_id: string
+          p_subtotal: number
+          p_total: number
+        }
+        Returns: Json
+      }
       generate_short_id: { Args: never; Returns: string }
       get_admin_users: {
         Args: never

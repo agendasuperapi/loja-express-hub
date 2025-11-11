@@ -116,41 +116,28 @@ export const useOrders = () => {
       // Generate order number
       const orderNumber = `#${Date.now().toString().slice(-8)}`;
 
-      // Create order with validated data
-      const orderInsertData = {
-        store_id: validatedData.storeId,
-        customer_id: user!.id,
-        customer_name: validatedData.customerName,
-        customer_phone: validatedData.customerPhone,
-        delivery_type: validatedData.deliveryType,
-        order_number: orderNumber,
-        subtotal,
-        delivery_fee: deliveryFee,
-        total,
-        status: 'pending' as const,
-        payment_method: validatedData.paymentMethod,
-        ...(validatedData.deliveryStreet && { delivery_street: validatedData.deliveryStreet }),
-        ...(validatedData.deliveryNumber && { delivery_number: validatedData.deliveryNumber }),
-        ...(validatedData.deliveryNeighborhood && { delivery_neighborhood: validatedData.deliveryNeighborhood }),
-        ...(validatedData.deliveryComplement && { delivery_complement: validatedData.deliveryComplement }),
-        ...(validatedData.changeAmount && { change_amount: validatedData.changeAmount }),
-      };
-
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert(orderInsertData)
-        .select()
-        .single();
+      // Use RPC function to create order (bypasses PostgREST REST endpoint issue)
+      const { data: createdOrder, error: orderError } = await supabase.rpc('create_order_rpc', {
+        p_store_id: validatedData.storeId,
+        p_customer_name: validatedData.customerName,
+        p_customer_phone: validatedData.customerPhone,
+        p_delivery_type: validatedData.deliveryType,
+        p_order_number: orderNumber,
+        p_subtotal: subtotal,
+        p_delivery_fee: deliveryFee,
+        p_total: total,
+        p_payment_method: validatedData.paymentMethod,
+        p_delivery_street: validatedData.deliveryStreet || null,
+        p_delivery_number: validatedData.deliveryNumber || null,
+        p_delivery_neighborhood: validatedData.deliveryNeighborhood || null,
+        p_delivery_complement: validatedData.deliveryComplement || null,
+        p_change_amount: validatedData.changeAmount || null,
+        p_notes: validatedData.notes || null,
+      });
 
       if (orderError) throw orderError;
-
-      // Update order with notes field separately
-      if (validatedData.notes) {
-        await supabase
-          .from('orders')
-          .update({ notes: validatedData.notes })
-          .eq('id', order.id);
-      }
+      
+      const order = createdOrder as any;
 
       // Create order items
       const { data: createdItems, error: itemsError } = await supabase
