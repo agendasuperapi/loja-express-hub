@@ -102,155 +102,100 @@ export const useOrders = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: CreateOrderData) => {
-      try {
-        console.log('🔍 [STEP 1] Dados recebidos do Cart:', JSON.stringify(orderData, null, 2));
-        
-        // Validate input data
-        const validatedData = orderSchema.parse(orderData);
-        console.log('✅ [STEP 2] Dados validados com sucesso:', JSON.stringify(validatedData, null, 2));
-        
-        // Calculate totals
-        const subtotal = validatedData.items.reduce(
-          (sum, item) => sum + (item.unitPrice * item.quantity),
-          0
-        );
-        const deliveryFee = validatedData.deliveryType === 'pickup' ? 0 : 5;
-        const total = subtotal + deliveryFee;
+      // Validate input data
+      const validatedData = orderSchema.parse(orderData);
+      
+      // Calculate totals
+      const subtotal = validatedData.items.reduce(
+        (sum, item) => sum + (item.unitPrice * item.quantity),
+        0
+      );
+      const deliveryFee = validatedData.deliveryType === 'pickup' ? 0 : 5;
+      const total = subtotal + deliveryFee;
 
-        // Generate order number
-        const orderNumber = `#${Date.now().toString().slice(-8)}`;
-        
-        console.log('💰 [STEP 3] Totais calculados:', { subtotal, deliveryFee, total, orderNumber });
+      // Generate order number
+      const orderNumber = `#${Date.now().toString().slice(-8)}`;
 
-        // Create order with validated data (remove undefined values)
-        const orderInsertData = {
-          store_id: validatedData.storeId,
-          customer_id: user!.id,
-          customer_name: validatedData.customerName,
-          customer_phone: validatedData.customerPhone,
-          delivery_type: validatedData.deliveryType,
-          order_number: orderNumber,
-          subtotal,
-          delivery_fee: deliveryFee,
-          total,
-          status: 'pending' as const,
-          payment_method: validatedData.paymentMethod,
-          ...(validatedData.deliveryStreet && { delivery_street: validatedData.deliveryStreet }),
-          ...(validatedData.deliveryNumber && { delivery_number: validatedData.deliveryNumber }),
-          ...(validatedData.deliveryNeighborhood && { delivery_neighborhood: validatedData.deliveryNeighborhood }),
-          ...(validatedData.deliveryComplement && { delivery_complement: validatedData.deliveryComplement }),
-          ...(validatedData.changeAmount && { change_amount: validatedData.changeAmount }),
-        };
+      // Create order with validated data
+      const orderInsertData = {
+        store_id: validatedData.storeId,
+        customer_id: user!.id,
+        customer_name: validatedData.customerName,
+        customer_phone: validatedData.customerPhone,
+        delivery_type: validatedData.deliveryType,
+        order_number: orderNumber,
+        subtotal,
+        delivery_fee: deliveryFee,
+        total,
+        status: 'pending' as const,
+        payment_method: validatedData.paymentMethod,
+        ...(validatedData.deliveryStreet && { delivery_street: validatedData.deliveryStreet }),
+        ...(validatedData.deliveryNumber && { delivery_number: validatedData.deliveryNumber }),
+        ...(validatedData.deliveryNeighborhood && { delivery_neighborhood: validatedData.deliveryNeighborhood }),
+        ...(validatedData.deliveryComplement && { delivery_complement: validatedData.deliveryComplement }),
+        ...(validatedData.changeAmount && { change_amount: validatedData.changeAmount }),
+      };
 
-        console.log('📦 [STEP 4] Dados que serão inseridos na tabela orders:', JSON.stringify(orderInsertData, null, 2));
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert(orderInsertData)
+        .select()
+        .single();
 
-        const { data: order, error: orderError } = await supabase
+      if (orderError) throw orderError;
+
+      // Update order with notes field separately
+      if (validatedData.notes) {
+        await supabase
           .from('orders')
-          .insert(orderInsertData)
-          .select()
-          .single();
-
-        if (orderError) {
-          console.error('❌ [ERRO] Falha ao criar pedido:', {
-            message: orderError.message,
-            details: orderError.details,
-            hint: orderError.hint,
-            code: orderError.code
-          });
-          throw new Error(`Erro ao criar pedido: ${orderError.message}`);
-        }
-        
-        console.log('✅ [STEP 5] Pedido criado com sucesso:', order);
-
-        // Update order with notes field separately
-        if (validatedData.notes) {
-          console.log('📝 [STEP 6] Adicionando notes ao pedido:', validatedData.notes);
-          const { error: notesError } = await supabase
-            .from('orders')
-            .update({ notes: validatedData.notes })
-            .eq('id', order.id);
-          
-          if (notesError) {
-            console.error('⚠️ Erro ao atualizar notes:', notesError);
-          }
-        }
-
-        // Create order items with validated data
-        console.log('🛒 [STEP 7] Criando itens do pedido...');
-        const itemsToInsert = validatedData.items.map(item => ({
-          order_id: order.id,
-          product_id: item.productId,
-          product_name: item.productName,
-          quantity: item.quantity,
-          unit_price: item.unitPrice,
-          subtotal: item.unitPrice * item.quantity,
-          observation: item.observation || null,
-        }));
-        
-        console.log('📝 Itens a inserir:', JSON.stringify(itemsToInsert, null, 2));
-        
-        const { data: createdItems, error: itemsError } = await supabase
-          .from('order_items')
-          .insert(itemsToInsert)
-          .select();
-
-        if (itemsError) {
-          console.error('❌ [ERRO] Falha ao criar itens:', {
-            message: itemsError.message,
-            details: itemsError.details,
-            hint: itemsError.hint,
-            code: itemsError.code
-          });
-          throw new Error(`Erro ao criar itens: ${itemsError.message}`);
-        }
-        
-        console.log('✅ [STEP 8] Itens criados:', createdItems);
-
-        // Create order item addons if any
-        const addonsToInsert: Array<{
-          order_item_id: string;
-          addon_name: string;
-          addon_price: number;
-        }> = [];
-        
-        validatedData.items.forEach((item, index) => {
-          if (Array.isArray(item.addons) && item.addons.length > 0 && createdItems && createdItems[index]) {
-            item.addons.forEach(addon => {
-              if (addon && addon.name && typeof addon.price === 'number' && !isNaN(addon.price)) {
-                addonsToInsert.push({
-                  order_item_id: createdItems[index].id,
-                  addon_name: String(addon.name).trim(),
-                  addon_price: Number(addon.price),
-                });
-              }
-            });
-          }
-        });
-
-        if (addonsToInsert.length > 0) {
-          console.log('🎁 [STEP 9] Criando addons:', JSON.stringify(addonsToInsert, null, 2));
-          const { error: addonsError } = await supabase
-            .from('order_item_addons')
-            .insert(addonsToInsert);
-
-          if (addonsError) {
-            console.error('❌ [ERRO] Falha ao inserir addons:', {
-              message: addonsError.message,
-              details: addonsError.details,
-              hint: addonsError.hint,
-              code: addonsError.code
-            });
-          } else {
-            console.log('✅ [STEP 10] Addons criados com sucesso');
-          }
-        }
-
-        console.log('🎉 [SUCESSO] PEDIDO FINALIZADO COM SUCESSO!');
-        return order;
-      } catch (error) {
-        console.error('💥 [ERRO GERAL]', error);
-        throw error;
+          .update({ notes: validatedData.notes })
+          .eq('id', order.id);
       }
+
+      // Create order items
+      const { data: createdItems, error: itemsError } = await supabase
+        .from('order_items')
+        .insert(
+          validatedData.items.map(item => ({
+            order_id: order.id,
+            product_id: item.productId,
+            product_name: item.productName,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            subtotal: item.unitPrice * item.quantity,
+            observation: item.observation || null,
+          }))
+        )
+        .select();
+
+      if (itemsError) throw itemsError;
+
+      // Create order item addons if any
+      const addonsToInsert: Array<{
+        order_item_id: string;
+        addon_name: string;
+        addon_price: number;
+      }> = [];
+      
+      validatedData.items.forEach((item, index) => {
+        if (Array.isArray(item.addons) && item.addons.length > 0 && createdItems && createdItems[index]) {
+          item.addons.forEach(addon => {
+            if (addon && addon.name && typeof addon.price === 'number' && !isNaN(addon.price)) {
+              addonsToInsert.push({
+                order_item_id: createdItems[index].id,
+                addon_name: String(addon.name).trim(),
+                addon_price: Number(addon.price),
+              });
+            }
+          });
+        }
+      });
+
+      if (addonsToInsert.length > 0) {
+        await supabase.from('order_item_addons').insert(addonsToInsert);
+      }
+
+      return order;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
