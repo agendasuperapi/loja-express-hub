@@ -68,7 +68,8 @@ export const useOrders = () => {
         delivery_neighborhood: validatedData.deliveryNeighborhood || null,
         delivery_complement: validatedData.deliveryComplement || null,
         change_amount: validatedData.changeAmount || null,
-        notes: validatedData.notes || null,
+        // Temporarily removed notes until schema cache refreshes
+        // notes: validatedData.notes || null,
       };
 
       console.log("🧾 FINAL PAYLOAD INSERT:", orderInsertData);
