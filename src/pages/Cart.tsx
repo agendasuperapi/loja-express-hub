@@ -53,6 +53,7 @@ export default function Cart() {
   const [authModalMessage, setAuthModalMessage] = useState<string | undefined>(undefined);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | undefined>(undefined);
   const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   
   const [storeData, setStoreData] = useState<any>(null);
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
@@ -231,6 +232,31 @@ export default function Cart() {
     } finally {
       setIsCheckingEmail(false);
     }
+  };
+
+  const handleNextStep = () => {
+    // Validate step 1 fields
+    if (!customerName || !customerEmail || !customerPhone) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha nome, email e telefone para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerEmail.trim())) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor, digite um email válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCurrentStep(2);
   };
 
   const handleCheckout = async () => {
@@ -546,209 +572,279 @@ export default function Cart() {
           >
             <Card className="sticky top-24">
               <CardContent className="p-6 space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold mb-4">Tipo de Entrega</h3>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryType('pickup')}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        deliveryType === 'pickup'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <Store className="w-6 h-6 mx-auto mb-2" />
-                      <div className="font-semibold">Retirar na Loja</div>
-                      <div className="text-xs text-muted-foreground">Grátis</div>
-                    </button>
-                    
-                    <button
-                      type="button"
-                      onClick={() => setDeliveryType('delivery')}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        deliveryType === 'delivery'
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <Package className="w-6 h-6 mx-auto mb-2" />
-                      <div className="font-semibold">Entrega</div>
-                      <div className="text-xs text-muted-foreground">R$ 5,00</div>
-                    </button>
+                {/* Step Indicator */}
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
+                    currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    1
                   </div>
-                  
-                  <h3 className="text-xl font-bold mb-4">Dados do Cliente</h3>
-                  
-                  <div className="space-y-4">
+                  <div className={`h-1 w-12 ${currentStep === 2 ? 'bg-primary' : 'bg-muted'}`} />
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold ${
+                    currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    2
+                  </div>
+                </div>
+
+                {/* Step 1: Customer Data */}
+                {currentStep === 1 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
                     <div>
-                      <Label htmlFor="name">Nome Completo *</Label>
-                      <Input
-                        id="name"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Seu nome"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <EmailInput
-                        id="email"
-                        value={customerEmail}
-                        onChange={(value) => setCustomerEmail(value)}
-                        onBlur={handleEmailBlur}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="phone">Telefone *</Label>
-                      <PhoneInput
-                        id="phone"
-                        value={customerPhone}
-                        onChange={setCustomerPhone}
-                      />
-                    </div>
-                    
-                    {deliveryType === 'delivery' && (
-                      <>
-                        <Separator className="my-4" />
-                        <h3 className="text-lg font-semibold mb-4">Endereço de Entrega</h3>
-                        
+                      <h3 className="text-xl font-bold mb-4">Dados do Cliente</h3>
+                      
+                      <div className="space-y-4">
                         <div>
-                          <Label htmlFor="street">Rua *</Label>
+                          <Label htmlFor="name">Nome Completo *</Label>
                           <Input
-                            id="street"
-                            value={deliveryStreet}
-                            onChange={(e) => setDeliveryStreet(e.target.value)}
-                            placeholder="Nome da rua"
+                            id="name"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder="Seu nome"
                             required
                           />
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="number">Número *</Label>
-                            <Input
-                              id="number"
-                              value={deliveryNumber}
-                              onChange={(e) => setDeliveryNumber(e.target.value)}
-                              placeholder="123"
-                              required
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label htmlFor="neighborhood">Bairro *</Label>
-                            <Input
-                              id="neighborhood"
-                              value={deliveryNeighborhood}
-                              onChange={(e) => setDeliveryNeighborhood(e.target.value)}
-                              placeholder="Nome do bairro"
-                              required
-                            />
-                          </div>
+                        <div>
+                          <Label htmlFor="email">Email *</Label>
+                          <EmailInput
+                            id="email"
+                            value={customerEmail}
+                            onChange={(value) => setCustomerEmail(value)}
+                            onBlur={handleEmailBlur}
+                          />
                         </div>
                         
                         <div>
-                          <Label htmlFor="complement">Complemento (opcional)</Label>
-                          <Input
-                            id="complement"
-                            value={deliveryComplement}
-                            onChange={(e) => setDeliveryComplement(e.target.value)}
-                            placeholder="Apto, bloco, etc."
+                          <Label htmlFor="phone">Telefone *</Label>
+                          <PhoneInput
+                            id="phone"
+                            value={customerPhone}
+                            onChange={setCustomerPhone}
                           />
                         </div>
-                      </>
-                    )}
-                    
-                    {deliveryType === 'pickup' && (
-                      <Alert>
-                        <Store className="h-4 w-4" />
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full bg-gradient-primary"
+                      size="lg"
+                      onClick={handleNextStep}
+                      disabled={!customerName || !customerEmail || !customerPhone}
+                    >
+                      Avançar
+                    </Button>
+                  </motion.div>
+                )}
+
+                {/* Step 2: Delivery & Payment */}
+                {currentStep === 2 && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-6"
+                  >
+                    <div>
+                      <h3 className="text-xl font-bold mb-4">Tipo de Entrega</h3>
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        <button
+                          type="button"
+                          onClick={() => setDeliveryType('pickup')}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            deliveryType === 'pickup'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <Store className="w-6 h-6 mx-auto mb-2" />
+                          <div className="font-semibold">Retirar na Loja</div>
+                          <div className="text-xs text-muted-foreground">Grátis</div>
+                        </button>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setDeliveryType('delivery')}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            deliveryType === 'delivery'
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <Package className="w-6 h-6 mx-auto mb-2" />
+                          <div className="font-semibold">Entrega</div>
+                          <div className="text-xs text-muted-foreground">R$ 5,00</div>
+                        </button>
+                      </div>
+
+                      {deliveryType === 'delivery' && (
+                        <>
+                          <h3 className="text-lg font-semibold mb-4">Endereço de Entrega</h3>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="street">Rua *</Label>
+                              <Input
+                                id="street"
+                                value={deliveryStreet}
+                                onChange={(e) => setDeliveryStreet(e.target.value)}
+                                placeholder="Nome da rua"
+                                required
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="number">Número *</Label>
+                                <Input
+                                  id="number"
+                                  value={deliveryNumber}
+                                  onChange={(e) => setDeliveryNumber(e.target.value)}
+                                  placeholder="123"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="neighborhood">Bairro *</Label>
+                                <Input
+                                  id="neighborhood"
+                                  value={deliveryNeighborhood}
+                                  onChange={(e) => setDeliveryNeighborhood(e.target.value)}
+                                  placeholder="Nome do bairro"
+                                  required
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="complement">Complemento (opcional)</Label>
+                              <Input
+                                id="complement"
+                                value={deliveryComplement}
+                                onChange={(e) => setDeliveryComplement(e.target.value)}
+                                placeholder="Apto, bloco, etc."
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {deliveryType === 'pickup' && (
+                        <Alert className="mb-4">
+                          <Store className="h-4 w-4" />
+                          <AlertDescription>
+                            Você poderá retirar seu pedido diretamente na loja após a confirmação.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
+                      <Separator className="my-6" />
+
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="payment">Forma de Pagamento *</Label>
+                          <Select value={paymentMethod} onValueChange={(value: 'pix' | 'dinheiro' | 'cartao') => setPaymentMethod(value)}>
+                            <SelectTrigger id="payment">
+                              <SelectValue placeholder="Selecione a forma de pagamento" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pix">PIX</SelectItem>
+                              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                              <SelectItem value="cartao">Cartão</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {paymentMethod === 'dinheiro' && (
+                          <div>
+                            <Label htmlFor="change">Troco para quanto? (opcional)</Label>
+                            <Input
+                              id="change"
+                              type="number"
+                              step="0.01"
+                              value={changeAmount}
+                              onChange={(e) => setChangeAmount(e.target.value)}
+                              placeholder="R$ 50,00"
+                            />
+                          </div>
+                        )}
+
+                        <div>
+                          <Label htmlFor="notes">Observações (opcional)</Label>
+                          <Textarea
+                            id="notes"
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Alguma observação sobre seu pedido?"
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>R$ {getTotal().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>{deliveryType === 'pickup' ? 'Retirada' : 'Taxa de entrega'}</span>
+                        <span>{deliveryType === 'pickup' ? 'Grátis' : `R$ ${deliveryFee.toFixed(2)}`}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total</span>
+                        <span className="text-primary">R$ {total.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {!storeIsOpen && storeData && (
+                      <Alert variant="destructive">
+                        <Clock className="h-4 w-4" />
                         <AlertDescription>
-                          Você poderá retirar seu pedido diretamente na loja após a confirmação.
+                          <strong>{storeData.name} está fechada.</strong> {storeStatusText}. Você pode adicionar itens ao carrinho, mas não poderá finalizar o pedido até que a loja abra.
                         </AlertDescription>
                       </Alert>
                     )}
-                    
-                    <div>
-                      <Label htmlFor="payment">Forma de Pagamento *</Label>
-                      <Select value={paymentMethod} onValueChange={(value: 'pix' | 'dinheiro' | 'cartao') => setPaymentMethod(value)}>
-                        <SelectTrigger id="payment">
-                          <SelectValue placeholder="Selecione a forma de pagamento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pix">PIX</SelectItem>
-                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                          <SelectItem value="cartao">Cartão</SelectItem>
-                        </SelectContent>
-                      </Select>
+
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setCurrentStep(1)}
+                        className="flex-1"
+                      >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Voltar
+                      </Button>
+                      <Button
+                        className="flex-1 bg-gradient-primary"
+                        size="lg"
+                        onClick={handleCheckout}
+                        disabled={
+                          !storeIsOpen || 
+                          isCreating || 
+                          (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood))
+                        }
+                      >
+                        {!storeIsOpen 
+                          ? 'Loja Fechada' 
+                          : isCreating 
+                            ? 'Finalizando...' 
+                            : 'Finalizar Pedido'}
+                      </Button>
                     </div>
-
-                    {paymentMethod === 'dinheiro' && (
-                      <div>
-                        <Label htmlFor="change">Troco para quanto? (opcional)</Label>
-                        <Input
-                          id="change"
-                          type="number"
-                          step="0.01"
-                          value={changeAmount}
-                          onChange={(e) => setChangeAmount(e.target.value)}
-                          placeholder="R$ 50,00"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>R$ {getTotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{deliveryType === 'pickup' ? 'Retirada' : 'Taxa de entrega'}</span>
-                    <span>{deliveryType === 'pickup' ? 'Grátis' : `R$ ${deliveryFee.toFixed(2)}`}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total</span>
-                    <span className="text-primary">R$ {total.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {!storeIsOpen && storeData && (
-                  <Alert variant="destructive">
-                    <Clock className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>{storeData.name} está fechada.</strong> {storeStatusText}. Você pode adicionar itens ao carrinho, mas não poderá finalizar o pedido até que a loja abra.
-                    </AlertDescription>
-                  </Alert>
+                  </motion.div>
                 )}
-
-                <Button
-                  className="w-full bg-gradient-primary"
-                  size="lg"
-                  onClick={handleCheckout}
-                  disabled={
-                    !storeIsOpen || 
-                    isCreating || 
-                    !customerName || 
-                    !customerEmail ||
-                    !customerPhone || 
-                    (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood))
-                  }
-                >
-                  {!storeIsOpen 
-                    ? 'Loja Fechada - Pedido Indisponível' 
-                    : isCreating 
-                      ? 'Finalizando...' 
-                      : 'Finalizar Pedido'}
-                </Button>
               </CardContent>
             </Card>
           </motion.div>
