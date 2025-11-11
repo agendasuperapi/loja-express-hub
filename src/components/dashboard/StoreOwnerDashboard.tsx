@@ -15,7 +15,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -30,6 +30,11 @@ import { ImageUpload } from "./ImageUpload";
 import { OperatingHoursManager } from "./OperatingHoursManager";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
+import { DashboardSidebar } from "./DashboardSidebar";
+import { CircularProgress } from "./CircularProgress";
+import { DataCard } from "./DataCard";
+import { BarChartCard } from "./BarChartCard";
+import { MiniChart } from "./MiniChart";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -69,6 +74,7 @@ export const StoreOwnerDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
+  const [activeTab, setActiveTab] = useState('home');
 
   useEffect(() => {
     if (myStore) {
@@ -279,92 +285,208 @@ export const StoreOwnerDashboard = () => {
 
   const filteredOrdersByDate = filterOrdersByDate(orders);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      {/* Store Header */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className="border-primary/30 shadow-lg overflow-hidden relative bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
-          <CardContent className="p-6 relative z-10">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <motion.h2 
-                    className="text-3xl font-bold gradient-text"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {myStore.name}
-                  </motion.h2>
-                  <Badge 
-                    className={`${
-                      storeIsOpen 
-                        ? 'bg-green-500 hover:bg-green-600' 
-                        : 'bg-red-500 hover:bg-red-600'
-                    } text-white px-3 py-1`}
-                  >
-                    <Clock className="w-3 h-3 mr-1" />
-                    {storeStatusText}
-                  </Badge>
-                </div>
-                <motion.p
-                  className="text-muted-foreground text-lg"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  {myStore.category}
-                </motion.p>
-              </div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5, type: "spring" }}
-              >
-                <Badge className={`${storeStatus.color} text-white text-sm px-4 py-1.5`}>
-                  {storeStatus.label}
-                </Badge>
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+  // Mock data for charts
+  const salesData = [65, 59, 80, 81, 56, 55, 70, 75, 85, 90, 88, 92];
+  const revenueData = [28, 48, 40, 19, 86, 27, 90, 75, 60, 80, 95, 85];
+  const barChartData = [
+    { name: 'Jan', value: 45 },
+    { name: 'Feb', value: 52 },
+    { name: 'Mar', value: 38 },
+    { name: 'Apr', value: 68 },
+    { name: 'May', value: 55 },
+    { name: 'Jun', value: 72 },
+    { name: 'Jul', value: 48 },
+    { name: 'Aug', value: 85 },
+    { name: 'Sep', value: 62 },
+    { name: 'Oct', value: 70 },
+    { name: 'Nov', value: 58 },
+    { name: 'Dec', value: 78 },
+  ];
 
-      {/* Tabs */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-muted/50">
-            <TabsTrigger value="products" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-              <Package className="w-4 h-4 mr-2" />
-              Produtos
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Pedidos
-            </TabsTrigger>
-            <TabsTrigger value="whatsapp" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              WhatsApp
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
-            </TabsTrigger>
-          </TabsList>
+  return (
+    <div className="flex min-h-screen bg-background">
+      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <div className="flex-1 ml-28">
+        {/* Header */}
+        <motion.header
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="bg-card border-b border-border px-8 py-4 flex items-center justify-between shadow-sm"
+        >
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard User</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-foreground font-medium">{myStore?.name || 'Lojista'}</span>
+            <button className="p-2 hover:bg-muted rounded-lg transition-colors">
+              <Menu className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
+        </motion.header>
+
+        {activeTab === 'home' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-8 space-y-6"
+          >
+            {/* Circular Progress Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
+              <CircularProgress 
+                value={orders?.filter(o => isThisMonth(new Date(o.created_at))).length || 285} 
+                maxValue={400}
+                label="Pedidos"
+                period="Month"
+                color="text-primary"
+              />
+              <CircularProgress 
+                value={orders?.filter(o => isThisWeek(new Date(o.created_at), { weekStartsOn: 0 })).length || 197}
+                maxValue={300}
+                label="Vendas"
+                period="Day"
+                color="text-accent"
+              />
+              <CircularProgress 
+                value={orders?.filter(o => isToday(new Date(o.created_at))).length || 352}
+                maxValue={500}
+                label="Visualizações"
+                period="Year"
+                color="text-secondary"
+              />
+            </div>
+
+            {/* Data Cards and Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <DataCard 
+                  letter="A"
+                  value={68209}
+                  subtitle="Lorem ipsum dolor"
+                  trend="up"
+                  data={salesData}
+                  color="from-primary to-primary-glow"
+                />
+                <DataCard 
+                  letter="B"
+                  value={27393}
+                  subtitle="Lorem ipsum dolor"
+                  trend="up"
+                  data={revenueData}
+                  color="from-accent to-accent-glow"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <MiniChart 
+                  title="Data A"
+                  subtitle="Jan"
+                  data={[30, 40, 35, 50, 49, 60, 70, 65]}
+                  color="hsl(var(--primary))"
+                />
+                <MiniChart 
+                  title="Data B"
+                  subtitle="Feb"
+                  data={[20, 30, 25, 35, 40, 38, 45, 50]}
+                  color="hsl(var(--accent))"
+                />
+              </div>
+            </div>
+
+            {/* Bar Chart */}
+            <BarChartCard 
+              title="Vendas Mensais"
+              data={barChartData}
+            />
+          </motion.div>
+        )}
+
+        {activeTab === 'result' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-8 space-y-6"
+          >
+            {/* Store Header */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="border-primary/30 shadow-lg overflow-hidden relative bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+                <CardContent className="p-6 relative z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <motion.h2 
+                          className="text-3xl font-bold gradient-text"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          {myStore.name}
+                        </motion.h2>
+                        <Badge 
+                          className={`${
+                            storeIsOpen 
+                              ? 'bg-green-500 hover:bg-green-600' 
+                              : 'bg-red-500 hover:bg-red-600'
+                          } text-white px-3 py-1`}
+                        >
+                          <Clock className="w-3 h-3 mr-1" />
+                          {storeStatusText}
+                        </Badge>
+                      </div>
+                      <motion.p
+                        className="text-muted-foreground text-lg"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        {myStore.category}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5, type: "spring" }}
+                    >
+                      <Badge className={`${storeStatus.color} text-white text-sm px-4 py-1.5`}>
+                        {storeStatus.label}
+                      </Badge>
+                    </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Tabs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Tabs defaultValue="products" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-4 bg-muted/50">
+                  <TabsTrigger value="products" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <Package className="w-4 h-4 mr-2" />
+                    Produtos
+                  </TabsTrigger>
+                  <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    Pedidos
+                  </TabsTrigger>
+                  <TabsTrigger value="whatsapp" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    WhatsApp
+                  </TabsTrigger>
+                  <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Configurações
+                  </TabsTrigger>
+                </TabsList>
 
         {/* Products Tab */}
         <TabsContent value="products" className="space-y-4">
@@ -1070,5 +1192,8 @@ export const StoreOwnerDashboard = () => {
       </Tabs>
       </motion.div>
     </motion.div>
+  )}
+      </div>
+    </div>
   );
 };
