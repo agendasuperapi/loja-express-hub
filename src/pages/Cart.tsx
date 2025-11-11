@@ -297,7 +297,6 @@ export default function Cart() {
         deliveryNumber: deliveryType === 'delivery' ? (deliveryNumber || undefined) : undefined,
         deliveryNeighborhood: deliveryType === 'delivery' ? (deliveryNeighborhood || undefined) : undefined,
         deliveryComplement: deliveryType === 'delivery' ? (deliveryComplement || undefined) : undefined,
-        notes: notes || undefined,
         paymentMethod,
         changeAmount: paymentMethod === 'dinheiro' && changeAmount ? Number(parseFloat(changeAmount)) : undefined,
       });

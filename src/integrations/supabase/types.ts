@@ -824,7 +824,7 @@ export type Database = {
           p_subtotal: number
           p_total: number
         }
-        Returns: Json
+        Returns: string
       }
       generate_short_id: { Args: never; Returns: string }
       get_admin_users: {

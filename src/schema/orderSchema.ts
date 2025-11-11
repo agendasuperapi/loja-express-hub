@@ -26,7 +26,6 @@ export const orderSchema = z.object({
   deliveryNeighborhood: z.string().optional(),
   deliveryComplement: z.string().optional(),
   changeAmount: z.number().optional(),
-  notes: z.string().optional(),
 
   items: z.array(orderItemSchema),
 });

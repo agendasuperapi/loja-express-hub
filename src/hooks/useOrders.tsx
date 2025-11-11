@@ -68,14 +68,12 @@ export const useOrders = () => {
         delivery_neighborhood: validatedData.deliveryNeighborhood || null,
         delivery_complement: validatedData.deliveryComplement || null,
         change_amount: validatedData.changeAmount || null,
-        // Temporarily removed notes until schema cache refreshes
-        // notes: validatedData.notes || null,
       };
 
       console.log("🧾 FINAL PAYLOAD INSERT:", orderInsertData);
       console.log("🧾 ITEMS:", validatedData.items);
 
-      // 🟢 Criar pedido via RPC (sem .single() para evitar erro de serialização)
+      // 🟢 Criar pedido via RPC (retorna UUID como TEXT)
       const { data: orderData, error: rpcError } = await supabase.rpc('create_order_rpc', {
         p_store_id: orderInsertData.store_id,
         p_customer_name: orderInsertData.customer_name,
@@ -91,7 +89,6 @@ export const useOrders = () => {
         p_delivery_neighborhood: orderInsertData.delivery_neighborhood,
         p_delivery_complement: orderInsertData.delivery_complement,
         p_change_amount: orderInsertData.change_amount,
-        p_notes: null,
       });
 
       if (rpcError) {

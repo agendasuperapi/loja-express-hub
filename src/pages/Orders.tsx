@@ -326,18 +326,6 @@ export default function Orders() {
                           </p>
                         )}
                       </div>
-
-                      {order.notes && (
-                        <>
-                          <Separator className="my-4" />
-                          <div>
-                            <p className="text-sm font-medium mb-1">Observações:</p>
-                            <p className="text-sm text-muted-foreground">
-                              {order.notes}
-                            </p>
-                          </div>
-                        </>
-                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
