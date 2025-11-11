@@ -1,9 +1,6 @@
 -- Fix HTTP Extension Error
 -- Execute this SQL in your Supabase SQL Editor
 
--- Enable the http extension for making HTTP requests from the database
-CREATE EXTENSION IF NOT EXISTS http WITH SCHEMA extensions;
-
 -- Recreate the notify_order_whatsapp function with proper error handling
 CREATE OR REPLACE FUNCTION public.notify_order_whatsapp()
 RETURNS trigger
@@ -11,11 +8,11 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  payload JSONB;
+  payload TEXT;
   edge_url TEXT;
   service_role TEXT;
   url TEXT;
-  response extensions.http_response;
+  response public.http_response;
 BEGIN
   -- Get edge URL and service role from settings
   SELECT value INTO edge_url FROM app_settings WHERE key = 'edge_url';
@@ -29,22 +26,22 @@ BEGIN
         'status', NEW.status,
         'store_id', NEW.store_id
       )
-    );
+    )::text;
 
     url := edge_url || '/functions/v1/send-order-whatsapp';
 
     -- Make HTTP request using the http extension
     BEGIN
-      response := extensions.http((
+      response := public.http((
         'POST',
         url,
         ARRAY[
-          extensions.http_header('Content-Type', 'application/json'),
-          extensions.http_header('Authorization', 'Bearer ' || service_role)
+          public.http_header('Content-Type', 'application/json'),
+          public.http_header('Authorization', 'Bearer ' || service_role)
         ],
         'application/json',
-        payload::text
-      )::extensions.http_request);
+        payload
+      )::public.http_request);
       
       -- Log any non-200 responses
       IF response.status <> 200 THEN
@@ -60,6 +57,3 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
--- Verify the extension is installed
-SELECT * FROM pg_extension WHERE extname = 'http';
