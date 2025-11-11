@@ -10,22 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 // Removed extra Supabase client to avoid multiple instances warning
 
 // Edge Function (Cloud) URL - public call, JWT not required
-const CLOUD_FUNCTION_URL = 'https://aqxgwdwuhgdxlwmbxxbi.functions.supabase.co/evolution-whatsapp';
+const CLOUD_FUNCTION_URL = "https://mgpzowiahnwcmcaelogf.functions.supabase.co/evolution-whatsapp";
 const CLOUD_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Unified invoker to Evolution function (keeps same return shape as supabase.functions.invoke)
 const invokeEvolution = async (payload: any) => {
   const res = await fetch(CLOUD_FUNCTION_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'apikey': CLOUD_ANON_KEY,
+      "Content-Type": "application/json",
+      apikey: CLOUD_ANON_KEY,
     },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const text = await res.text();
-    return { data: null, error: new Error(text || 'Failed to send a request to the Edge Function') };
+    return { data: null, error: new Error(text || "Failed to send a request to the Edge Function") };
   }
   const data = await res.json();
   return { data, error: null };
@@ -34,7 +34,7 @@ const isConnectedState = (status?: string) => {
   if (!status) return false;
   const s = String(status).toLowerCase().trim();
   // Considerar conectado apenas em estados finais estáveis
-  const connectedStates = ['open', 'connected', 'authenticated', 'ready'];
+  const connectedStates = ["open", "connected", "authenticated", "ready"];
   return connectedStates.includes(s);
 };
 
@@ -69,78 +69,75 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
   const checkExistingInstance = async () => {
     try {
       const { data, error } = await supabase
-        .from('stores')
-        .select('whatsapp_instance, whatsapp_phone')
-        .eq('id', storeId)
+        .from("stores")
+        .select("whatsapp_instance, whatsapp_phone")
+        .eq("id", storeId)
         .single();
 
       if (!error && data?.whatsapp_instance) {
         setInstanceName(data.whatsapp_instance);
         setPhoneNumber(data.whatsapp_phone || "");
-        
-// Inicialmente, não marcar como conectado até confirmar
-setIsConnected(false);
-setConnectionStatus('checking...');
-        
+
+        // Inicialmente, não marcar como conectado até confirmar
+        setIsConnected(false);
+        setConnectionStatus("checking...");
+
         // Verificar status real
         await checkConnectionStatus(data.whatsapp_instance);
       } else {
         // Tentar detectar automaticamente instância pelo padrão de nome
         const candidate = `store_${storeId.substring(0, 8)}`;
         try {
-const { data: statusData } = await invokeEvolution({
-  action: 'check_status',
-  instanceName: candidate
-});
+          const { data: statusData } = await invokeEvolution({
+            action: "check_status",
+            instanceName: candidate,
+          });
           const connected = isConnectedState(statusData?.status);
           if (connected) {
             setInstanceName(candidate);
             setIsConnected(true);
-            setConnectionStatus(statusData?.status || 'connected');
+            setConnectionStatus(statusData?.status || "connected");
             // Persistir no banco
-            await supabase
-              .from('stores')
-              .update({ whatsapp_instance: candidate })
-              .eq('id', storeId);
+            await supabase.from("stores").update({ whatsapp_instance: candidate }).eq("id", storeId);
           }
         } catch (e) {
           // silencioso
         }
       }
     } catch (error) {
-      console.error('Error checking instance:', error);
+      console.error("Error checking instance:", error);
     }
   };
 
   const checkConnectionStatus = async (instance: string) => {
     try {
-      console.log('[WhatsApp] Verificando status da instância:', instance);
-      
-const { data, error } = await invokeEvolution({ 
-        action: 'check_status',
-        instanceName: instance
+      console.log("[WhatsApp] Verificando status da instância:", instance);
+
+      const { data, error } = await invokeEvolution({
+        action: "check_status",
+        instanceName: instance,
       });
 
-      console.log('[WhatsApp] Resposta da verificação:', { data, error });
+      console.log("[WhatsApp] Resposta da verificação:", { data, error });
 
       if (!error && data && data.status) {
         const connected = isConnectedState(data.status);
-        console.log('[WhatsApp] Status interpretado:', {
+        console.log("[WhatsApp] Status interpretado:", {
           rawStatus: data.status,
-          isConnected: connected
+          isConnected: connected,
         });
-        
+
         setConnectionStatus(data.status);
         setIsConnected(connected);
         if (connected) setQrCode("");
       } else {
-        console.error('[WhatsApp] Erro ao verificar status:', error);
+        console.error("[WhatsApp] Erro ao verificar status:", error);
         // Se der erro mas temos instância salva, manter conectado
         // O usuário pode clicar em "Verificar Status" manualmente
-        console.log('[WhatsApp] Mantendo status anterior por ter instância salva');
+        console.log("[WhatsApp] Mantendo status anterior por ter instância salva");
       }
     } catch (error) {
-      console.error('[WhatsApp] Exceção ao verificar status:', error);
+      console.error("[WhatsApp] Exceção ao verificar status:", error);
       // Em caso de exceção, manter o estado atual se houver instância
     }
   };
@@ -150,7 +147,7 @@ const { data, error } = await invokeEvolution({
       toast({
         title: "Número necessário",
         description: "Por favor, insira seu número de telefone",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -158,11 +155,11 @@ const { data, error } = await invokeEvolution({
     setIsLoading(true);
     try {
       const generatedInstanceName = `store_${storeId.substring(0, 8)}`;
-      
-const { data, error } = await invokeEvolution({ 
-        action: 'create_instance',
+
+      const { data, error } = await invokeEvolution({
+        action: "create_instance",
         instanceName: generatedInstanceName,
-        phoneNumber: phoneNumber
+        phoneNumber: phoneNumber,
       });
 
       if (error) throw error;
@@ -170,30 +167,30 @@ const { data, error } = await invokeEvolution({
       if (data?.qrcode) {
         setQrCode(data.qrcode.base64);
         setInstanceName(generatedInstanceName);
-        
+
         // Save instance to database
         await supabase
-          .from('stores')
-          .update({ 
+          .from("stores")
+          .update({
             whatsapp_instance: generatedInstanceName,
-            whatsapp_phone: phoneNumber
+            whatsapp_phone: phoneNumber,
           })
-          .eq('id', storeId);
+          .eq("id", storeId);
 
         toast({
           title: "Instância criada!",
-          description: "Escaneie o QR Code para conectar seu WhatsApp"
+          description: "Escaneie o QR Code para conectar seu WhatsApp",
         });
 
         // Start polling for connection status
         pollConnectionStatus(generatedInstanceName);
       }
     } catch (error: any) {
-      console.error('Error creating instance:', error);
+      console.error("Error creating instance:", error);
       toast({
         title: "Erro ao criar instância",
         description: error.message || "Tente novamente mais tarde",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -202,9 +199,9 @@ const { data, error } = await invokeEvolution({
 
   const pollConnectionStatus = (instance: string) => {
     const interval = setInterval(async () => {
-const { data } = await invokeEvolution({ 
-        action: 'check_status',
-        instanceName: instance
+      const { data } = await invokeEvolution({
+        action: "check_status",
+        instanceName: instance,
       });
 
       const connected = isConnectedState(data?.status);
@@ -215,7 +212,7 @@ const { data } = await invokeEvolution({
         clearInterval(interval);
         toast({
           title: "WhatsApp conectado!",
-          description: "Sua conta foi conectada com sucesso"
+          description: "Sua conta foi conectada com sucesso",
         });
       }
     }, 5000);
@@ -229,18 +226,18 @@ const { data } = await invokeEvolution({
 
     setIsLoading(true);
     try {
-await invokeEvolution({ 
-        action: 'disconnect',
-        instanceName: instanceName
+      await invokeEvolution({
+        action: "disconnect",
+        instanceName: instanceName,
       });
 
       await supabase
-        .from('stores')
-        .update({ 
+        .from("stores")
+        .update({
           whatsapp_instance: null,
-          whatsapp_phone: null
+          whatsapp_phone: null,
         })
-        .eq('id', storeId);
+        .eq("id", storeId);
 
       setIsConnected(false);
       setQrCode("");
@@ -250,13 +247,13 @@ await invokeEvolution({
 
       toast({
         title: "Desconectado",
-        description: "WhatsApp desconectado com sucesso"
+        description: "WhatsApp desconectado com sucesso",
       });
     } catch (error: any) {
       toast({
         title: "Erro ao desconectar",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -273,9 +270,7 @@ await invokeEvolution({
                 <MessageSquare className="w-5 h-5 text-green-600" />
                 Integração WhatsApp
               </CardTitle>
-              <CardDescription className="mt-2">
-                Conecte seu WhatsApp para receber pedidos diretamente
-              </CardDescription>
+              <CardDescription className="mt-2">Conecte seu WhatsApp para receber pedidos diretamente</CardDescription>
             </div>
             <Badge variant={isConnected ? "default" : "secondary"} className={isConnected ? "bg-green-600" : ""}>
               {isConnected ? (
@@ -303,21 +298,15 @@ await invokeEvolution({
                     id="phone"
                     placeholder="38999145788"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
                     className="rounded-l-none"
                     maxLength={11}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Digite apenas números (DDD + número)
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">Digite apenas números (DDD + número)</p>
               </div>
 
-              <Button 
-                onClick={createInstance} 
-                disabled={isLoading || !phoneNumber}
-                className="w-full"
-              >
+              <Button onClick={createInstance} disabled={isLoading || !phoneNumber} className="w-full">
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -341,15 +330,9 @@ await invokeEvolution({
                   Abra o WhatsApp no seu celular e escaneie este código
                 </p>
                 <div className="flex justify-center p-4 bg-white rounded-lg">
-                  <img 
-                    src={qrCode} 
-                    alt="QR Code WhatsApp" 
-                    className="w-64 h-64"
-                  />
+                  <img src={qrCode} alt="QR Code WhatsApp" className="w-64 h-64" />
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">
-                  O QR Code é válido por 5 minutos
-                </p>
+                <p className="text-xs text-muted-foreground mt-4">O QR Code é válido por 5 minutos</p>
               </div>
             </div>
           )}
@@ -360,12 +343,8 @@ await invokeEvolution({
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                   <div className="flex-1">
-                    <p className="font-semibold text-green-900 dark:text-green-100">
-                      WhatsApp Conectado
-                    </p>
-                    <p className="text-sm text-green-700 dark:text-green-300">
-                      Telefone: +55 {phoneNumber}
-                    </p>
+                    <p className="font-semibold text-green-900 dark:text-green-100">WhatsApp Conectado</p>
+                    <p className="text-sm text-green-700 dark:text-green-300">Telefone: +55 {phoneNumber}</p>
                   </div>
                 </div>
               </div>
@@ -383,8 +362,8 @@ await invokeEvolution({
               </div>
 
               <div className="space-y-2">
-                <Button 
-                  onClick={() => checkConnectionStatus(instanceName)} 
+                <Button
+                  onClick={() => checkConnectionStatus(instanceName)}
                   disabled={isLoading}
                   variant="outline"
                   className="w-full"
@@ -398,13 +377,8 @@ await invokeEvolution({
                     <>Verificar Status</>
                   )}
                 </Button>
-                
-                <Button 
-                  onClick={disconnectInstance} 
-                  disabled={isLoading}
-                  variant="destructive"
-                  className="w-full"
-                >
+
+                <Button onClick={disconnectInstance} disabled={isLoading} variant="destructive" className="w-full">
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
