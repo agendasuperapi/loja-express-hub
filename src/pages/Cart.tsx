@@ -284,17 +284,25 @@ export default function Cart() {
           productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.promotionalPrice || item.price,
-          observation: item.observation || '',
-          addons: Array.isArray(item.addons) ? item.addons : [],
+          observation: item.observation || undefined,
+          addons: Array.isArray(item.addons) 
+            ? item.addons
+                .filter(addon => addon && addon.id && addon.name && typeof addon.price === 'number')
+                .map(addon => ({
+                  id: String(addon.id),
+                  name: String(addon.name),
+                  price: Number(addon.price),
+                }))
+            : [],
         })),
         customerName,
         customerPhone,
         deliveryType,
-        deliveryStreet: deliveryType === 'delivery' ? deliveryStreet : '',
-        deliveryNumber: deliveryType === 'delivery' ? deliveryNumber : '',
-        deliveryNeighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : '',
-        deliveryComplement: deliveryType === 'delivery' ? deliveryComplement : '',
-        notes,
+        deliveryStreet: deliveryType === 'delivery' ? (deliveryStreet || undefined) : undefined,
+        deliveryNumber: deliveryType === 'delivery' ? (deliveryNumber || undefined) : undefined,
+        deliveryNeighborhood: deliveryType === 'delivery' ? (deliveryNeighborhood || undefined) : undefined,
+        deliveryComplement: deliveryType === 'delivery' ? (deliveryComplement || undefined) : undefined,
+        notes: notes || undefined,
         paymentMethod,
         changeAmount: paymentMethod === 'dinheiro' && changeAmount ? parseFloat(changeAmount) : undefined,
       });

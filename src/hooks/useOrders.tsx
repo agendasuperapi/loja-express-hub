@@ -16,7 +16,7 @@ const orderSchema = z.object({
     addons: z.array(z.object({
       id: z.string(),
       name: z.string().trim().min(1).max(200),
-      price: z.number().positive().max(10000),
+      price: z.number().nonnegative().max(10000),
     })).optional().default([]).transform(val => val && val.length > 0 ? val : []),
   })).min(1),
   customerName: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
@@ -102,11 +102,8 @@ export const useOrders = () => {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: CreateOrderData) => {
-      console.log('🔍 [DEBUG] Dados recebidos:', orderData);
-      
       // Validate input data
       const validatedData = orderSchema.parse(orderData);
-      console.log('✅ [DEBUG] Dados validados:', validatedData);
       
       // Calculate totals
       const subtotal = validatedData.items.reduce(
@@ -118,8 +115,6 @@ export const useOrders = () => {
 
       // Generate order number
       const orderNumber = `#${Date.now().toString().slice(-8)}`;
-      
-      console.log('💰 [DEBUG] Totais calculados:', { subtotal, deliveryFee, total, orderNumber });
 
       // Create order with validated data (remove undefined values)
       const orderInsertData = {
@@ -141,8 +136,6 @@ export const useOrders = () => {
         ...(validatedData.changeAmount && { change_amount: validatedData.changeAmount }),
       };
 
-      console.log('📦 [DEBUG] Dados que serão inseridos no banco:', JSON.stringify(orderInsertData, null, 2));
-
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert(orderInsertData)
@@ -150,30 +143,23 @@ export const useOrders = () => {
         .single();
 
       if (orderError) {
-        console.error('❌ [DEBUG] Erro ao criar pedido:', orderError);
         throw orderError;
       }
-      
-      console.log('✅ [DEBUG] Pedido criado com sucesso:', order);
 
       // Update order with notes field separately to avoid PostgREST cache issue
       if (validatedData.notes) {
-        console.log('📝 [DEBUG] Adicionando notes ao pedido:', validatedData.notes);
         const { error: notesError } = await supabase
           .from('orders')
           .update({ notes: validatedData.notes })
           .eq('id', order.id);
         
         if (notesError) {
-          console.error('⚠️ [DEBUG] Erro ao atualizar notes:', notesError);
+          console.error('Error updating order notes:', notesError);
           // Don't throw - order is already created
-        } else {
-          console.log('✅ [DEBUG] Notes adicionado com sucesso');
         }
       }
 
       // Create order items with validated data
-      console.log('🛒 [DEBUG] Criando itens do pedido...');
       const { data: createdItems, error: itemsError } = await supabase
         .from('order_items')
         .insert(
@@ -190,11 +176,8 @@ export const useOrders = () => {
         .select();
 
       if (itemsError) {
-        console.error('❌ [DEBUG] Erro ao criar itens:', itemsError);
         throw itemsError;
       }
-      
-      console.log('✅ [DEBUG] Itens criados:', createdItems);
 
       // Create order item addons if any
       const addonsToInsert: Array<{
@@ -207,7 +190,7 @@ export const useOrders = () => {
         if (Array.isArray(item.addons) && item.addons.length > 0 && createdItems && createdItems[index]) {
           item.addons.forEach(addon => {
             // Validar que o addon tem os campos necessários
-            if (addon && addon.name && typeof addon.price === 'number') {
+            if (addon && addon.name && typeof addon.price === 'number' && !isNaN(addon.price)) {
               addonsToInsert.push({
                 order_item_id: createdItems[index].id,
                 addon_name: String(addon.name).trim(),
@@ -219,20 +202,16 @@ export const useOrders = () => {
       });
 
       if (addonsToInsert.length > 0) {
-        console.log('🎁 [DEBUG] Criando addons:', addonsToInsert);
         const { error: addonsError } = await supabase
           .from('order_item_addons')
           .insert(addonsToInsert);
 
         if (addonsError) {
-          console.error('⚠️ [DEBUG] Erro ao inserir addons:', addonsError);
+          console.error('Error inserting addons:', addonsError);
           // Don't throw - the order is already created
-        } else {
-          console.log('✅ [DEBUG] Addons criados com sucesso');
         }
       }
 
-      console.log('🎉 [DEBUG] PEDIDO FINALIZADO COM SUCESSO!');
       return order;
     },
     onSuccess: () => {
