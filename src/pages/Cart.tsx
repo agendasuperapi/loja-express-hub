@@ -55,6 +55,13 @@ export default function Cart() {
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
   const storeStatusText = storeData ? getStoreStatusText(storeData.operating_hours) : '';
 
+  // Auto-advance to step 2 if user is already logged in
+  useEffect(() => {
+    if (user) {
+      setCurrentStep(2);
+    }
+  }, [user]);
+
   // Load last visited store from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('lastVisitedStore');
