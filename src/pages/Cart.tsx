@@ -346,7 +346,7 @@ export default function Cart() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 pt-4 md:pt-24 pb-12">
+        <main className="container mx-auto px-4 pt-4 pb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -376,7 +376,7 @@ export default function Cart() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 pt-4 md:pt-24 pb-12">
+      <main className="container mx-auto px-4 pt-4 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
