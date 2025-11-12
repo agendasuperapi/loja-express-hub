@@ -684,6 +684,7 @@ export type Database = {
         Returns: undefined
       }
       bytea_to_text: { Args: { data: string }; Returns: string }
+      confirm_user_email: { Args: { user_id: string }; Returns: boolean }
       create_order_rpc: {
         Args: {
           p_change_amount?: number
@@ -705,7 +706,40 @@ export type Database = {
         Returns: string
       }
       generate_short_id: { Args: never; Returns: string }
+      get_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       get_app_setting: { Args: { setting_key: string }; Returns: string }
+      get_customer_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
+      get_store_owner_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
