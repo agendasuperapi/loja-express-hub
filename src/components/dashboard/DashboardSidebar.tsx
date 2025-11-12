@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -10,6 +10,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarProps) => {
   const menuItems = [
     { id: 'home', label: 'home', icon: Home },
+    { id: 'cadastros', label: 'cadastros', icon: FolderOpen },
     { id: 'result', label: 'result', icon: BarChart3 },
     { id: 'chat', label: 'chat', icon: MessageSquare },
     { id: 'messages', label: 'messages', icon: Mail },
