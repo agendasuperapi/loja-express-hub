@@ -80,6 +80,7 @@ export const StoreOwnerDashboard = () => {
     delivery_fee: myStore?.delivery_fee || 0,
     address: myStore?.address || '',
     pickup_address: myStore?.pickup_address || '',
+    phone: myStore?.phone || '',
   });
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -114,6 +115,7 @@ export const StoreOwnerDashboard = () => {
         delivery_fee: myStore.delivery_fee || 0,
         address: myStore.address || '',
         pickup_address: myStore.pickup_address || '',
+        phone: myStore.phone || '',
       });
     }
   }, [myStore]);
@@ -456,6 +458,7 @@ export const StoreOwnerDashboard = () => {
       description: storeForm.description,
       delivery_fee: storeForm.delivery_fee,
       address: storeForm.address,
+      phone: storeForm.phone,
     });
   };
 
@@ -2132,6 +2135,15 @@ export const StoreOwnerDashboard = () => {
                   onChange={(e) => setStoreForm({ ...storeForm, description: e.target.value })}
                   placeholder="Descreva sua loja..."
                   rows={4}
+                />
+              </div>
+
+              <div>
+                <Label>Telefone da Loja</Label>
+                <Input
+                  value={storeForm.phone}
+                  onChange={(e) => setStoreForm({ ...storeForm, phone: e.target.value })}
+                  placeholder="(00) 00000-0000"
                 />
               </div>
 
