@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, User, KeyRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,6 +13,7 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
+  const [configuracoesOpen, setConfiguracoesOpen] = useState(false);
 
   const cadastrosSubItems = [
     { id: 'produtos', label: 'produtos', icon: Package },
@@ -25,12 +26,17 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
     { id: 'cupons', label: 'cupons', icon: Tag },
   ];
 
+  const configuracoesSubItems = [
+    { id: 'personal', label: 'dados pessoais', icon: User },
+    { id: 'security', label: 'segurança', icon: KeyRound },
+  ];
+
   const menuItems = [
     { id: 'home', label: 'home', icon: Home },
     { id: 'metricas', label: 'métricas', icon: TrendingUp },
     { id: 'pedidos', label: 'pedidos', icon: ShoppingCart },
     { id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true },
-    { id: 'result', label: 'Configurações', icon: BarChart3 },
+    { id: 'result', label: 'Configurações', icon: Settings, hasSubmenu: true },
   ];
 
   return (
@@ -57,9 +63,9 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
           const isActive = activeTab === item.id;
           
           if (item.hasSubmenu) {
-            const isOpen = cadastrosOpen;
-            const setOpen = setCadastrosOpen;
-            const subItems = cadastrosSubItems;
+            const isOpen = item.id === 'cadastros' ? cadastrosOpen : configuracoesOpen;
+            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : setConfiguracoesOpen;
+            const subItems = item.id === 'cadastros' ? cadastrosSubItems : configuracoesSubItems;
             
             return (
               <div key={item.id}>
