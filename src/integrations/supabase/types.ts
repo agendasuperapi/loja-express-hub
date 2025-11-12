@@ -167,6 +167,13 @@ export type Database = {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
+            referencedRelation: "order_complete_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -345,18 +352,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_active: boolean | null
           name: string
           store_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_active?: boolean | null
           name: string
           store_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_active?: boolean | null
           name?: string
           store_id?: string
         }
@@ -545,6 +555,13 @@ export type Database = {
             foreignKeyName: "reviews_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
+            referencedRelation: "order_complete_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -679,7 +696,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      order_complete_view: {
+        Row: {
+          change_amount: number | null
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          delivery_complement: string | null
+          delivery_fee: number | null
+          delivery_neighborhood: string | null
+          delivery_number: string | null
+          delivery_street: string | null
+          delivery_type: string | null
+          id: string | null
+          items: Json | null
+          notes: string | null
+          order_number: string | null
+          payment_method: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          store_id: string | null
+          subtotal: number | null
+          total: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_admin_role_by_email: {

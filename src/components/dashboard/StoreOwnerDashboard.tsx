@@ -46,7 +46,7 @@ export const StoreOwnerDashboard = () => {
   const { myStore, isLoading, updateStore } = useStoreManagement();
   const { products, createProduct, updateProduct, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus } = useStoreOrders(myStore?.id);
-  const { categories, addCategory, deleteCategory } = useCategories(myStore?.id);
+  const { categories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useCategories(myStore?.id);
   
   // Enable automatic WhatsApp notifications
   useOrderStatusNotification(myStore?.id);
@@ -80,7 +80,10 @@ export const StoreOwnerDashboard = () => {
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isHoursDialogOpen, setIsHoursDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editCategoryName, setEditCategoryName] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
@@ -1078,28 +1081,68 @@ export const StoreOwnerDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg">
+                    <Card className={cn(
+                      "hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg",
+                      !category.is_active && "opacity-60 bg-muted/20"
+                    )}>
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 flex-1">
                             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
                               <FolderTree className="w-6 h-6 text-primary" />
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-lg">{category.name}</h3>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-lg">{category.name}</h3>
+                                {!category.is_active && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Desativada
+                                  </Badge>
+                                )}
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {products?.filter(p => p.category === category.name).length || 0} produtos
                               </p>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => deleteCategory(category.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setEditingCategory(category);
+                                setEditCategoryName(category.name);
+                                setIsEditCategoryDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => deleteCategory(category.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/30 mb-4">
+                          <div>
+                            <p className="text-sm font-medium">
+                              {category.is_active ? 'Categoria ativa' : 'Categoria desativada'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {category.is_active 
+                                ? 'Visível no cardápio' 
+                                : 'Produtos ocultos do cardápio'}
+                            </p>
+                          </div>
+                          <Switch
+                            checked={category.is_active}
+                            onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
+                          />
                         </div>
                         
                         {products && products.filter(p => p.category === category.name).length > 0 && (
@@ -1128,6 +1171,38 @@ export const StoreOwnerDashboard = () => {
                 ))}
               </div>
             )}
+
+            {/* Dialog de edição de categoria */}
+            <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Editar Categoria</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Nome da Categoria</Label>
+                    <Input
+                      value={editCategoryName}
+                      onChange={(e) => setEditCategoryName(e.target.value)}
+                      placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
+                    />
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      if (editCategoryName.trim() && editingCategory) {
+                        await updateCategory(editingCategory.id, editCategoryName.trim());
+                        setIsEditCategoryDialogOpen(false);
+                        setEditingCategory(null);
+                        setEditCategoryName('');
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </motion.div>
         )}
 
