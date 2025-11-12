@@ -506,7 +506,7 @@ export const StoreOwnerDashboard = () => {
           className="bg-card border-b border-border px-8 py-4 flex items-center justify-between shadow-sm"
         >
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard User</h1>
+            <h1 className="text-2xl font-bold text-orange-500">Dashboard Lojista</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-foreground font-medium">{myStore?.name || 'Lojista'}</span>
