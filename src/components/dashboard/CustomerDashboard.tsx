@@ -5,7 +5,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag, Heart, Store, TrendingUp, Eye, X, Sparkles, Calendar, DollarSign, Package, Clock } from "lucide-react";
+import { ShoppingBag, Heart, Store, TrendingUp, Eye, X, Sparkles, Calendar as CalendarIcon, DollarSign, Package, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -21,9 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { format, subDays, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export const CustomerDashboard = () => {
   const { orders, isLoading: ordersLoading } = useOrders();
@@ -31,6 +34,11 @@ export const CustomerDashboard = () => {
   const { profile } = useProfile();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [periodFilter, setPeriodFilter] = useState<string>("all");
+  const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
 
   // Extract first name from full name
   const firstName = profile?.full_name?.split(' ')[0] || 'Visitante';
@@ -85,6 +93,14 @@ export const CustomerDashboard = () => {
       case "30days":
         startDate = subDays(now, 30);
         break;
+      case "custom":
+        if (customDateRange.from && customDateRange.to) {
+          startDate = startOfDay(customDateRange.from);
+          endDate = endOfDay(customDateRange.to);
+        } else {
+          return orders;
+        }
+        break;
       default:
         return orders;
     }
@@ -93,7 +109,7 @@ export const CustomerDashboard = () => {
       const orderDate = new Date(order.created_at);
       return isWithinInterval(orderDate, { start: startDate, end: endDate });
     });
-  }, [orders, periodFilter]);
+  }, [orders, periodFilter, customDateRange]);
 
   // Calculate metrics
   const totalOrders = filteredOrders?.length || 0;
@@ -189,27 +205,142 @@ export const CustomerDashboard = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center justify-between"
+        className="flex items-center justify-between flex-wrap gap-4"
       >
         <div>
           <h2 className="text-2xl font-bold gradient-text">Minhas Estatísticas</h2>
           <p className="text-muted-foreground">Acompanhe seus pedidos e gastos</p>
         </div>
-        <Select value={periodFilter} onValueChange={setPeriodFilter}>
-          <SelectTrigger className="w-[200px]">
-            <Calendar className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Período" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os Pedidos</SelectItem>
-            <SelectItem value="today">Hoje</SelectItem>
-            <SelectItem value="7days">Últimos 7 Dias</SelectItem>
-            <SelectItem value="week">Esta Semana</SelectItem>
-            <SelectItem value="30days">Últimos 30 Dias</SelectItem>
-            <SelectItem value="month">Este Mês</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={periodFilter} onValueChange={(value) => {
+            if (value === "custom") {
+              setShowCustomDatePicker(true);
+            } else {
+              setPeriodFilter(value);
+            }
+          }}>
+            <SelectTrigger className="w-[200px]">
+              <CalendarIcon className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Pedidos</SelectItem>
+              <SelectItem value="today">Hoje</SelectItem>
+              <SelectItem value="7days">Últimos 7 Dias</SelectItem>
+              <SelectItem value="week">Esta Semana</SelectItem>
+              <SelectItem value="30days">Últimos 30 Dias</SelectItem>
+              <SelectItem value="month">Este Mês</SelectItem>
+              <SelectItem value="custom">Data Personalizada</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {periodFilter === "custom" && customDateRange.from && customDateRange.to && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCustomDatePicker(true)}
+              className="gap-2"
+            >
+              <CalendarIcon className="h-4 w-4" />
+              {format(customDateRange.from, "dd/MM/yy")} - {format(customDateRange.to, "dd/MM/yy")}
+            </Button>
+          )}
+        </div>
       </motion.div>
+
+      {/* Custom Date Range Dialog */}
+      <Dialog open={showCustomDatePicker} onOpenChange={setShowCustomDatePicker}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Selecionar Período Personalizado</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data Inicial</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !customDateRange.from && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customDateRange.from ? format(customDateRange.from, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customDateRange.from}
+                      onSelect={(date) => setCustomDateRange(prev => ({ ...prev, from: date }))}
+                      initialFocus
+                      locale={ptBR}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data Final</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !customDateRange.to && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {customDateRange.to ? format(customDateRange.to, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customDateRange.to}
+                      onSelect={(date) => setCustomDateRange(prev => ({ ...prev, to: date }))}
+                      initialFocus
+                      locale={ptBR}
+                      disabled={(date) => customDateRange.from ? date < customDateRange.from : false}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCustomDatePicker(false);
+                  if (!customDateRange.from || !customDateRange.to) {
+                    setPeriodFilter("all");
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (customDateRange.from && customDateRange.to) {
+                    setPeriodFilter("custom");
+                    setShowCustomDatePicker(false);
+                  }
+                }}
+                disabled={!customDateRange.from || !customDateRange.to}
+              >
+                Aplicar Filtro
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
