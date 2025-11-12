@@ -77,6 +77,12 @@ export const useCategories = (storeId: string | undefined) => {
       }
 
       const oldName = oldCategory.name;
+      console.log('🔄 Atualizando categoria:', { 
+        categoryId, 
+        oldName, 
+        newName, 
+        storeId: oldCategory.store_id 
+      });
 
       // Atualizar a categoria
       const { data, error } = await supabase
@@ -86,25 +92,46 @@ export const useCategories = (storeId: string | undefined) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao atualizar categoria:', error);
+        throw error;
+      }
 
-      // Atualizar todos os produtos que usam essa categoria
-      const { error: productsError } = await supabase
+      console.log('✅ Categoria atualizada:', data);
+
+      // Buscar produtos antes da atualização
+      const { data: beforeProducts, error: beforeError } = await supabase
         .from('products')
-        .update({ category: newName })
+        .select('id, name, category')
         .eq('store_id', oldCategory.store_id)
         .eq('category', oldName);
 
+      if (beforeError) {
+        console.error('❌ Erro ao buscar produtos:', beforeError);
+      } else {
+        console.log(`📦 Encontrados ${beforeProducts?.length || 0} produtos com categoria "${oldName}"`);
+      }
+
+      // Atualizar todos os produtos que usam essa categoria
+      const { data: updatedProducts, error: productsError } = await supabase
+        .from('products')
+        .update({ category: newName })
+        .eq('store_id', oldCategory.store_id)
+        .eq('category', oldName)
+        .select('id, name, category');
+
       if (productsError) {
-        console.error('Error updating products:', productsError);
+        console.error('❌ Erro ao atualizar produtos:', productsError);
         toast.error('Categoria atualizada, mas houve erro ao atualizar os produtos');
+      } else {
+        console.log(`✅ ${updatedProducts?.length || 0} produtos atualizados para categoria "${newName}":`, updatedProducts);
       }
       
       setCategories(categories.map(c => c.id === categoryId ? data : c));
-      toast.success('Categoria e produtos atualizados com sucesso!');
+      toast.success(`Categoria e ${updatedProducts?.length || 0} produtos atualizados com sucesso!`);
       return data;
     } catch (error: any) {
-      console.error('Error updating category:', error);
+      console.error('❌ Erro geral ao atualizar categoria:', error);
       if (error.code === '23505') {
         toast.error('Já existe uma categoria com este nome');
       } else {

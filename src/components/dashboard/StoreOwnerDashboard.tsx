@@ -40,9 +40,11 @@ import { useOrderStatuses } from "@/hooks/useOrderStatuses";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { MetricsComparison } from "./MetricsComparison";
+import { useQueryClient } from '@tanstack/react-query';
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { myStore, isLoading, updateStore } = useStoreManagement();
   const { products, createProduct, updateProduct, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus } = useStoreOrders(myStore?.id);
@@ -1191,6 +1193,9 @@ export const StoreOwnerDashboard = () => {
                     onClick={async () => {
                       if (editCategoryName.trim() && editingCategory) {
                         await updateCategory(editingCategory.id, editCategoryName.trim());
+                        // Invalidar as queries de produtos para recarregar com os nomes atualizados
+                        queryClient.invalidateQueries({ queryKey: ['my-products', myStore?.id] });
+                        queryClient.invalidateQueries({ queryKey: ['products', myStore?.id] });
                         setIsEditCategoryDialogOpen(false);
                         setEditingCategory(null);
                         setEditCategoryName('');
