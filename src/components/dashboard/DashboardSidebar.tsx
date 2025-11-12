@@ -15,7 +15,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
 
   const homeSubItems = [
     { id: 'home', label: 'dashboard', icon: Home },
-    { id: 'metricas', label: 'métricas', icon: TrendingUp },
   ];
 
   const cadastrosSubItems = [
