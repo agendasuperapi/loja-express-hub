@@ -19,8 +19,8 @@ export const Navigation = () => {
   const location = useLocation();
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
 
-  // Hide navigation on dashboard page
-  if (location.pathname === '/dashboard') {
+  // Hide navigation on dashboard page only for store owners
+  if (location.pathname === '/dashboard' && hasRole('store_owner')) {
     return null;
   }
 
