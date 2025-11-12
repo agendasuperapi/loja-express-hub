@@ -505,7 +505,7 @@ export const StoreOwnerDashboard = () => {
     <div className="flex min-h-screen bg-background w-full">
       <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       
-      <div className="flex-1 ml-32 min-h-screen overflow-y-auto">{activeTab === 'home' && (
+      <div className="flex-1">{activeTab === 'home' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
