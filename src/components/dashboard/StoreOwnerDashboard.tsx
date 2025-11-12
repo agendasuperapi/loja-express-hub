@@ -1336,7 +1336,7 @@ export const StoreOwnerDashboard = () => {
                       {/* Separador grosso entre pedidos */}
                       {index < filteredOrders.length - 1 && (
                         <div className="relative py-4">
-                          <Separator className="h-[3px] bg-border" />
+                          <Separator className="h-[3px] bg-orange-500" />
                         </div>
                       )}
                     </div>
