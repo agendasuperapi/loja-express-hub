@@ -7,43 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-// Removed extra Supabase client to avoid multiple instances warning
 
-// Edge Function URL
-const SUPABASE_URL = 'https://mgpzowiahnwcmcaelogf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ncHpvd2lhaG53Y21jYWVsb2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjQ2MTIsImV4cCI6MjA3ODIwMDYxMn0.sC-SMpIf8-VbZWB6BCIQG-TtROcxyzE4hK4bFocTRQE';
-const CLOUD_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/evolution-whatsapp`;
-
-// Unified invoker to Evolution function (keeps same return shape as supabase.functions.invoke)
+// Unified invoker to Evolution function using supabase.functions.invoke
 const invokeEvolution = async (payload: any) => {
   console.log('[WhatsApp] Enviando para edge function:', payload);
   
-  // Get the authenticated session token
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    console.error('[WhatsApp] Sem sessão autenticada');
-    return { data: null, error: new Error('Authentication required') };
-  }
-  
-  const res = await fetch(CLOUD_FUNCTION_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
-      'apikey': SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify(payload),
+  // Use supabase.functions.invoke which handles authentication automatically
+  const { data, error } = await supabase.functions.invoke('evolution-whatsapp', {
+    body: payload
   });
   
-  console.log('[WhatsApp] Status da resposta:', res.status);
-  
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('[WhatsApp] Erro na resposta:', text);
-    return { data: null, error: new Error(text || 'Failed to send a request to the Edge Function') };
+  if (error) {
+    console.error('[WhatsApp] Erro na resposta:', error);
+    return { data: null, error };
   }
-  const data = await res.json();
+  
   console.log('[WhatsApp] Resposta da edge function:', data);
   return { data, error: null };
 };
