@@ -19,7 +19,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
   ];
 
   const cadastrosSubItems = [
-    { id: 'pedidos', label: 'pedidos', icon: ShoppingCart },
     { id: 'produtos', label: 'produtos', icon: Package },
     { id: 'categorias', label: 'categorias', icon: FolderTree },
     { id: 'clientes', label: 'clientes', icon: Users },
