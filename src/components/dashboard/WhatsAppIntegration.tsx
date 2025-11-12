@@ -85,31 +85,44 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
 
   const checkExistingInstance = async () => {
     try {
+      // Buscar da tabela store_instances
       const { data, error } = await supabase
-        .from('stores')
-        .select('whatsapp_instance, whatsapp_phone')
-        .eq('id', storeId)
-        .single();
+        .from('store_instances' as any)
+        .select('evolution_instance_id')
+        .eq('store_id', storeId)
+        .maybeSingle();
 
-      if (!error && data?.whatsapp_instance) {
-        setInstanceName(data.whatsapp_instance);
-        setPhoneNumber(data.whatsapp_phone || "");
+      if (!error && (data as any)?.evolution_instance_id) {
+        setInstanceName((data as any).evolution_instance_id);
         
-// Inicialmente, não marcar como conectado até confirmar
-setIsConnected(false);
-setConnectionStatus('checking...');
+        // Buscar telefone da loja
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('phone')
+          .eq('id', storeId)
+          .single();
+        
+        if (storeData?.phone) {
+          // Remover +55 e formatação do telefone
+          const cleanPhone = storeData.phone.replace(/\D/g, '').replace(/^55/, '');
+          setPhoneNumber(cleanPhone);
+        }
+        
+        // Inicialmente, não marcar como conectado até confirmar
+        setIsConnected(false);
+        setConnectionStatus('checking...');
         
         // Verificar status real
-        await checkConnectionStatus(data.whatsapp_instance);
+        await checkConnectionStatus((data as any).evolution_instance_id);
       } else {
         // Tentar detectar automaticamente instância pelo padrão de nome
         const candidate = `store_${storeId.substring(0, 8)}`;
         try {
-const { data: statusData } = await invokeEvolution({
-  action: 'check_status',
-  storeId: storeId,
-  instanceName: candidate
-});
+          const { data: statusData } = await invokeEvolution({
+            action: 'check_status',
+            storeId: storeId,
+            instanceName: candidate
+          });
           const connected = isConnectedState(statusData?.status);
           if (connected) {
             setInstanceName(candidate);
@@ -117,9 +130,11 @@ const { data: statusData } = await invokeEvolution({
             setConnectionStatus(statusData?.status || 'connected');
             // Persistir no banco
             await supabase
-              .from('stores')
-              .update({ whatsapp_instance: candidate })
-              .eq('id', storeId);
+              .from('store_instances' as any)
+              .upsert({ 
+                store_id: storeId,
+                evolution_instance_id: candidate 
+              });
           }
         } catch (e) {
           // silencioso
@@ -193,12 +208,11 @@ const { data, error } = await invokeEvolution({
         
         // Save instance to database
         await supabase
-          .from('stores')
-          .update({ 
-            whatsapp_instance: generatedInstanceName,
-            whatsapp_phone: phoneNumber
-          })
-          .eq('id', storeId);
+          .from('store_instances' as any)
+          .upsert({ 
+            store_id: storeId,
+            evolution_instance_id: generatedInstanceName
+          });
 
         toast({
           title: "Instância criada!",
@@ -257,12 +271,9 @@ await invokeEvolution({
       });
 
       await supabase
-        .from('stores')
-        .update({ 
-          whatsapp_instance: null,
-          whatsapp_phone: null
-        })
-        .eq('id', storeId);
+        .from('store_instances' as any)
+        .delete()
+        .eq('store_id', storeId);
 
       setIsConnected(false);
       setQrCode("");
