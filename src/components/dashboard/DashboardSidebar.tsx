@@ -32,7 +32,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
     { id: 'chat', label: 'chat', icon: MessageSquare },
     { id: 'messages', label: 'messages', icon: Mail },
     { id: 'notification', label: 'notification', icon: Bell },
-    { id: 'setting', label: 'setting', icon: Settings },
+    { id: 'setting', label: 'Configurações', icon: Settings },
   ];
 
   return (
