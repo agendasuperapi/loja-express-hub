@@ -63,13 +63,18 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_ANON_KEY') ?? '',
     {
       global: {
-        headers: { Authorization: req.headers.get('Authorization')! },
+        headers: { Authorization: req.headers.get('Authorization') ?? '' },
       },
     }
   );
 
   // Authenticate user
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+  const authHeader = req.headers.get('Authorization') || '';
+  const jwt = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : authHeader;
+
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
   
   if (authError || !user) {
     console.error('Authentication failed:', authError);
