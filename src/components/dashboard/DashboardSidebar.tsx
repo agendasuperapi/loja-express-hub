@@ -30,7 +30,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
     { id: 'metricas', label: 'métricas', icon: TrendingUp },
     { id: 'pedidos', label: 'pedidos', icon: ShoppingCart },
     { id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true },
-    { id: 'result', label: 'result', icon: BarChart3 },
+    { id: 'result', label: 'Configurações', icon: BarChart3 },
   ];
 
   return (
