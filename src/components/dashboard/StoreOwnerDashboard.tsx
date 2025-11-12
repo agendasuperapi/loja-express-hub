@@ -108,171 +108,13 @@ export const StoreOwnerDashboard = () => {
     }
   }, [myStore]);
 
-  const handleCreateProduct = () => {
-    if (!myStore) return;
-
-    if (!productForm.category.trim()) {
-      toast({
-        title: 'Categoria obrigatória',
-        description: 'Por favor, selecione uma categoria para o produto.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    createProduct({
-      ...productForm,
-      store_id: myStore.id,
-      promotional_price: productForm.promotional_price || undefined,
-      image_url: productForm.image_url || undefined,
-    }, {
-      onSuccess: () => {
-        setIsProductDialogOpen(false);
-        setProductForm({
-          name: '',
-          description: '',
-          category: '',
-          price: 0,
-          promotional_price: 0,
-          is_available: true,
-          image_url: '',
-          is_pizza: false,
-          max_flavors: 2,
-        });
-      },
-    });
-  };
-
-  const handleEditProduct = (product: any) => {
-    setEditingProduct(product);
-    setProductForm({
-      name: product.name,
-      description: product.description || '',
-      category: product.category,
-      price: product.price,
-      promotional_price: product.promotional_price || 0,
-      is_available: product.is_available,
-      image_url: product.image_url || '',
-      is_pizza: product.is_pizza || false,
-      max_flavors: product.max_flavors || 2,
-    });
-    setIsProductDialogOpen(true);
-  };
-
-  const handleUpdateProduct = () => {
-    if (!editingProduct) return;
-
-    if (!productForm.category.trim()) {
-      toast({
-        title: 'Categoria obrigatória',
-        description: 'Por favor, selecione uma categoria para o produto.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    updateProduct({
-      ...productForm,
-      id: editingProduct.id,
-      promotional_price: productForm.promotional_price || undefined,
-      image_url: productForm.image_url || undefined,
-    }, {
-      onSuccess: () => {
-        setIsProductDialogOpen(false);
-        setEditingProduct(null);
-        setProductForm({
-          name: '',
-          description: '',
-          category: '',
-          price: 0,
-          promotional_price: 0,
-          is_available: true,
-          image_url: '',
-          is_pizza: false,
-          max_flavors: 2,
-        });
-      },
-    });
-  };
-
-  const handleUpdateStore = () => {
-    if (!myStore) return;
-    updateStore({
-      id: myStore.id,
-      name: storeForm.name,
-      slug: myStore.slug,
-      category: myStore.category,
-      logo_url: storeForm.logo_url,
-      banner_url: storeForm.banner_url,
-      description: storeForm.description,
-      delivery_fee: storeForm.delivery_fee,
-      address: storeForm.address,
-    });
-  };
-
-  const handleSaveOperatingHours = async (hours: any) => {
-    if (!myStore?.id) return;
-    
-    await updateStore({
-      id: myStore.id,
-      name: myStore.name,
-      slug: myStore.slug,
-      category: myStore.category,
-      operating_hours: hours as any,
-    });
-    
-    setIsHoursDialogOpen(false);
-  };
-
-  const storeUrl = myStore ? `https://appofertas.lovable.app/${myStore.slug}` : '';
-
-  const handleCopyUrl = async () => {
-    if (storeUrl) {
-      await navigator.clipboard.writeText(storeUrl);
-      setCopiedUrl(true);
-      setTimeout(() => setCopiedUrl(false), 2000);
-    }
-  };
-
-  if (isLoading) {
-    return <div>Carregando...</div>;
-  }
-
-  if (!myStore) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl mx-auto text-center"
-      >
-        <Card>
-          <CardContent className="py-12">
-            <Store className="w-16 h-16 mx-auto mb-4 text-primary" />
-            <h2 className="text-2xl font-bold mb-2">Você ainda não tem uma loja</h2>
-            <p className="text-muted-foreground mb-6">
-              Crie sua loja agora e comece a vender na plataforma
-            </p>
-            <Button 
-              onClick={() => navigate('/become-partner')}
-              className="bg-gradient-primary"
-              size="lg"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Criar Minha Loja
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
-
   const statusConfig: Record<string, { label: string; color: string }> = {
     pending_approval: { label: 'Aguardando Aprovação', color: 'bg-yellow-500' },
     active: { label: 'Ativa', color: 'bg-green-500' },
     inactive: { label: 'Inativa', color: 'bg-gray-500' },
   };
 
-  const storeStatus = statusConfig[myStore.status] || statusConfig.pending_approval;
+  const storeStatus = statusConfig[myStore?.status || 'pending_approval'] || statusConfig.pending_approval;
 
   const storeIsOpen = myStore ? isStoreOpen(myStore.operating_hours) : false;
   const storeStatusText = myStore ? getStoreStatusText(myStore.operating_hours) : '';
@@ -494,6 +336,164 @@ export const StoreOwnerDashboard = () => {
   };
 
   const filteredOrdersByDate = filterOrdersByDate(orders);
+
+  const storeUrl = myStore ? `https://appofertas.lovable.app/${myStore.slug}` : '';
+
+  const handleCopyUrl = async () => {
+    if (storeUrl) {
+      await navigator.clipboard.writeText(storeUrl);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    }
+  };
+
+  const handleCreateProduct = () => {
+    if (!myStore) return;
+
+    if (!productForm.category.trim()) {
+      toast({
+        title: 'Categoria obrigatória',
+        description: 'Por favor, selecione uma categoria para o produto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    createProduct({
+      ...productForm,
+      store_id: myStore.id,
+      promotional_price: productForm.promotional_price || undefined,
+      image_url: productForm.image_url || undefined,
+    }, {
+      onSuccess: () => {
+        setIsProductDialogOpen(false);
+        setProductForm({
+          name: '',
+          description: '',
+          category: '',
+          price: 0,
+          promotional_price: 0,
+          is_available: true,
+          image_url: '',
+          is_pizza: false,
+          max_flavors: 2,
+        });
+      },
+    });
+  };
+
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setProductForm({
+      name: product.name,
+      description: product.description || '',
+      category: product.category,
+      price: product.price,
+      promotional_price: product.promotional_price || 0,
+      is_available: product.is_available,
+      image_url: product.image_url || '',
+      is_pizza: product.is_pizza || false,
+      max_flavors: product.max_flavors || 2,
+    });
+    setIsProductDialogOpen(true);
+  };
+
+  const handleUpdateProduct = () => {
+    if (!editingProduct) return;
+
+    if (!productForm.category.trim()) {
+      toast({
+        title: 'Categoria obrigatória',
+        description: 'Por favor, selecione uma categoria para o produto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    updateProduct({
+      ...productForm,
+      id: editingProduct.id,
+      promotional_price: productForm.promotional_price || undefined,
+      image_url: productForm.image_url || undefined,
+    }, {
+      onSuccess: () => {
+        setIsProductDialogOpen(false);
+        setEditingProduct(null);
+        setProductForm({
+          name: '',
+          description: '',
+          category: '',
+          price: 0,
+          promotional_price: 0,
+          is_available: true,
+          image_url: '',
+          is_pizza: false,
+          max_flavors: 2,
+        });
+      },
+    });
+  };
+
+  const handleUpdateStore = () => {
+    if (!myStore) return;
+    updateStore({
+      id: myStore.id,
+      name: storeForm.name,
+      slug: myStore.slug,
+      category: myStore.category,
+      logo_url: storeForm.logo_url,
+      banner_url: storeForm.banner_url,
+      description: storeForm.description,
+      delivery_fee: storeForm.delivery_fee,
+      address: storeForm.address,
+    });
+  };
+
+  const handleSaveOperatingHours = async (hours: any) => {
+    if (!myStore?.id) return;
+    
+    await updateStore({
+      id: myStore.id,
+      name: myStore.name,
+      slug: myStore.slug,
+      category: myStore.category,
+      operating_hours: hours as any,
+    });
+    
+    setIsHoursDialogOpen(false);
+  };
+
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
+
+  if (!myStore) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-2xl mx-auto text-center"
+      >
+        <Card>
+          <CardContent className="py-12">
+            <Store className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <h2 className="text-2xl font-bold mb-2">Você ainda não tem uma loja</h2>
+            <p className="text-muted-foreground mb-6">
+              Crie sua loja agora e comece a vender na plataforma
+            </p>
+            <Button 
+              onClick={() => navigate('/become-partner')}
+              className="bg-gradient-primary"
+              size="lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Criar Minha Loja
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
