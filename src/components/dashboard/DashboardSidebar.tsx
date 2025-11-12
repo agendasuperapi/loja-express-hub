@@ -40,7 +40,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
       animate={{ x: 0, opacity: 1 }}
       className="w-32 bg-background/95 backdrop-blur-xl border-r border-border/50 min-h-screen flex flex-col items-center py-8 shadow-lg"
     >
-      <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20 overflow-hidden">
+      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20 overflow-hidden">
         {storeLogo ? (
           <img 
             src={storeLogo} 
@@ -48,7 +48,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-primary font-bold text-2xl">U</span>
+          <span className="text-primary font-bold text-3xl">U</span>
         )}
       </div>
 
