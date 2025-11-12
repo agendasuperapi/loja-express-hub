@@ -137,6 +137,29 @@ export default function Cart() {
           return;
         }
 
+        // Verificar se o email já existe antes de tentar criar a conta
+        try {
+          const { data: checkResult } = await supabase.functions.invoke('check-email-exists', {
+            body: { email: authEmail }
+          });
+
+          if (checkResult?.exists) {
+            // Email já cadastrado - mudar para modo login
+            setAuthMode('login');
+            setAuthPassword("");
+            toast({
+              title: "Email já cadastrado",
+              description: "Esse e-mail já possui uma conta cadastrada. Digite sua senha e efetue login.",
+              variant: "default",
+            });
+            setIsAuthLoading(false);
+            return;
+          }
+        } catch (checkError) {
+          console.error('Erro ao verificar email:', checkError);
+          // Continuar com o signup mesmo se a verificação falhar
+        }
+
         const { error } = await signUp(authEmail, authPassword, authFullName, authPhone, true);
 
         if (error) {
