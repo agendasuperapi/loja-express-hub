@@ -6,9 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Rate limiting configuration
+// Rate limiting configuration (by IP)
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 5; // 5 requests per minute
+const MAX_REQUESTS_PER_WINDOW = 10; // 10 requests per minute per IP
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 // Validation schema for request body
@@ -23,62 +23,28 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Extract and verify JWT token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Create Supabase client with user's token
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader }
-        },
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Rate limiting per user ID
-    const userId = user.id;
+    // Rate limiting by IP address (since this is a public endpoint)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
     const now = Date.now();
-    const userRateLimit = rateLimitMap.get(userId);
+    const ipRateLimit = rateLimitMap.get(clientIp);
 
-    if (userRateLimit) {
-      if (now < userRateLimit.resetTime) {
-        if (userRateLimit.count >= MAX_REQUESTS_PER_WINDOW) {
+    if (ipRateLimit) {
+      if (now < ipRateLimit.resetTime) {
+        if (ipRateLimit.count >= MAX_REQUESTS_PER_WINDOW) {
           return new Response(
             JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        userRateLimit.count++;
+        ipRateLimit.count++;
       } else {
         // Reset window
-        rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+        rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
       }
     } else {
-      rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
     }
 
     // Cleanup old entries periodically
@@ -124,7 +90,7 @@ Deno.serve(async (req) => {
     const exists = users.some(u => u.email === email);
 
     // Log for audit purposes (server-side only)
-    console.log(`Email check for ${email}: ${exists ? 'exists' : 'not found'} by user ${userId}`);
+    console.log(`Email check for ${email}: ${exists ? 'exists' : 'not found'} from IP ${clientIp}`);
 
     // Always return ambiguous response to prevent enumeration
     // The client should handle all cases the same way
