@@ -51,18 +51,7 @@ const Dashboard = () => {
               </motion.div>
             </>
           ) : (
-            <>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mb-8"
-              >
-                <h1 className="text-5xl font-bold gradient-text mb-2">Minha Dashboard</h1>
-                <p className="text-muted-foreground text-lg">Acompanhe seus pedidos e favoritos</p>
-              </motion.div>
-              <CustomerDashboard />
-            </>
+            <CustomerDashboard />
           )}
         </motion.div>
       </main>
