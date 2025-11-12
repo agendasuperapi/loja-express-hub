@@ -2008,7 +2008,7 @@ export const StoreOwnerDashboard = () => {
                   </TabsTrigger>
                   <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <Menu className="w-4 h-4 mr-2" />
-                    Status
+                    Etapas do Pedido
                   </TabsTrigger>
                   <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <Settings className="w-4 h-4 mr-2" />
