@@ -15,7 +15,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -1002,6 +1002,132 @@ export const StoreOwnerDashboard = () => {
             className="p-8"
           >
             <MetricsComparison orders={orders} products={products} />
+          </motion.div>
+        )}
+
+        {activeTab === 'categorias' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-8 space-y-6"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold gradient-text">Categorias</h2>
+                <p className="text-muted-foreground">Organize os produtos da sua loja</p>
+              </div>
+              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Categoria
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nova Categoria</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Nome da Categoria</Label>
+                      <Input
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
+                      />
+                    </div>
+                    <Button
+                      onClick={async () => {
+                        if (newCategoryName.trim()) {
+                          await addCategory(newCategoryName.trim());
+                          setNewCategoryName('');
+                          setIsCategoryDialogOpen(false);
+                        }
+                      }}
+                      className="w-full"
+                    >
+                      Adicionar Categoria
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Categories Grid */}
+            {categories.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-12 text-center">
+                  <FolderTree className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Nenhuma categoria cadastrada</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Comece criando categorias para organizar seus produtos
+                  </p>
+                  <Button onClick={() => setIsCategoryDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Primeira Categoria
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categories.map((category, index) => (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card className="hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <FolderTree className="w-6 h-6 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">{category.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {products?.filter(p => p.category === category.name).length || 0} produtos
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => deleteCategory(category.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
+                        {products && products.filter(p => p.category === category.name).length > 0 && (
+                          <div className="pt-4 border-t">
+                            <p className="text-xs text-muted-foreground mb-2">Produtos nesta categoria:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {products
+                                .filter(p => p.category === category.name)
+                                .slice(0, 3)
+                                .map(product => (
+                                  <Badge key={product.id} variant="secondary" className="text-xs">
+                                    {product.name}
+                                  </Badge>
+                                ))}
+                              {products.filter(p => p.category === category.name).length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{products.filter(p => p.category === category.name).length - 3} mais
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
