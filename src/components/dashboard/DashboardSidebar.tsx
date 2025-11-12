@@ -51,7 +51,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
           if (item.hasSubmenu) {
             return (
               <div key={item.id}>
-                {index > 0 && <div className="h-px bg-border/30 my-2 mx-2" />}
+                {index > 0 && <div className="h-px bg-primary/20 my-2 mx-2" />}
                 <Collapsible 
                   open={cadastrosOpen} 
                   onOpenChange={setCadastrosOpen}
@@ -144,7 +144,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
           
           return (
             <div key={item.id}>
-              {index > 0 && <div className="h-px bg-border/30 my-2 mx-2" />}
+              {index > 0 && <div className="h-px bg-primary/20 my-2 mx-2" />}
               <motion.button
               onClick={() => onTabChange(item.id)}
               whileHover={{ scale: 1.02 }}
