@@ -15,7 +15,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
 
   const homeSubItems = [
     { id: 'home', label: 'dashboard', icon: Home },
-    { id: 'metricas', label: 'métricas', icon: TrendingUp },
   ];
 
   const cadastrosSubItems = [
@@ -32,6 +31,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
   const menuItems = [
     { id: 'home', label: 'home', icon: Home, hasSubmenu: true },
     { id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true },
+    { id: 'metricas', label: 'métricas', icon: TrendingUp },
     { id: 'result', label: 'result', icon: BarChart3 },
     { id: 'chat', label: 'chat', icon: MessageSquare },
     { id: 'messages', label: 'messages', icon: Mail },
