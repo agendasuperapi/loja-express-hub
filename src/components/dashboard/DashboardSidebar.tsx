@@ -1,8 +1,9 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -13,6 +14,7 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
+  const { signOut } = useAuth();
 
   const cadastrosSubItems = [
     { id: 'produtos', label: 'produtos', icon: Package },
@@ -191,6 +193,22 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
           );
         })}
       </nav>
+
+      {/* Logout Button */}
+      <div className="w-full px-2 pb-4 mt-auto">
+        <div className="h-0.5 bg-primary/20 my-2 mx-2" />
+        <motion.button
+          onClick={signOut}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-xs font-medium uppercase">
+            Sair
+          </span>
+        </motion.button>
+      </div>
     </motion.div>
   );
 };
