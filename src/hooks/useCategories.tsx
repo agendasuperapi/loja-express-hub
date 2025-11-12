@@ -67,19 +67,41 @@ export const useCategories = (storeId: string | undefined) => {
     }
   };
 
-  const updateCategory = async (categoryId: string, name: string) => {
+  const updateCategory = async (categoryId: string, newName: string) => {
     try {
+      // Buscar o nome antigo da categoria
+      const oldCategory = categories.find(c => c.id === categoryId);
+      if (!oldCategory) {
+        toast.error('Categoria não encontrada');
+        return;
+      }
+
+      const oldName = oldCategory.name;
+
+      // Atualizar a categoria
       const { data, error } = await supabase
         .from('product_categories')
-        .update({ name })
+        .update({ name: newName })
         .eq('id', categoryId)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Atualizar todos os produtos que usam essa categoria
+      const { error: productsError } = await supabase
+        .from('products')
+        .update({ category: newName })
+        .eq('store_id', oldCategory.store_id)
+        .eq('category', oldName);
+
+      if (productsError) {
+        console.error('Error updating products:', productsError);
+        toast.error('Categoria atualizada, mas houve erro ao atualizar os produtos');
+      }
       
       setCategories(categories.map(c => c.id === categoryId ? data : c));
-      toast.success('Categoria atualizada com sucesso!');
+      toast.success('Categoria e produtos atualizados com sucesso!');
       return data;
     } catch (error: any) {
       console.error('Error updating category:', error);
