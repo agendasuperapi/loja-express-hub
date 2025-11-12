@@ -258,8 +258,17 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                         • <code>{'{{customer_name}}'}</code> - Nome do cliente<br />
                         • <code>{'{{order_number}}'}</code> - Número do pedido<br />
                         • <code>{'{{total}}'}</code> - Valor total<br />
+                        • <code>{'{{subtotal}}'}</code> - Subtotal dos produtos<br />
+                        • <code>{'{{delivery_fee}}'}</code> - Taxa de entrega<br />
                         • <code>{'{{delivery_type}}'}</code> - Tipo de entrega<br />
-                        • <code>{'{{store_name}}'}</code> - Nome da loja
+                        • <code>{'{{store_name}}'}</code> - Nome da loja<br />
+                        • <code>{'{{store_phone}}'}</code> - Telefone da loja<br />
+                        • <code>{'{{store_address}}'}</code> - Endereço da loja<br />
+                        • <code>{'{{items}}'}</code> - Lista completa de produtos<br />
+                        • <code>{'{{delivery_address}}'}</code> - Endereço de entrega<br />
+                        • <code>{'{{payment_method}}'}</code> - Forma de pagamento<br />
+                        • <code>{'{{change_amount}}'}</code> - Troco para<br />
+                        • <code>{'{{notes}}'}</code> - Observações do pedido
                       </AlertDescription>
                     </Alert>
                   </div>
