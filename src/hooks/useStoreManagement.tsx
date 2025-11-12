@@ -9,6 +9,7 @@ export interface StoreFormData {
   description?: string;
   category: string;
   address?: string;
+  pickup_address?: string;
   phone?: string;
   email?: string;
   password?: string;

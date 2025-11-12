@@ -71,6 +71,7 @@ export const StoreOwnerDashboard = () => {
     description: myStore?.description || '',
     delivery_fee: myStore?.delivery_fee || 0,
     address: myStore?.address || '',
+    pickup_address: myStore?.pickup_address || '',
   });
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -94,6 +95,7 @@ export const StoreOwnerDashboard = () => {
         description: myStore.description || '',
         delivery_fee: myStore.delivery_fee || 0,
         address: myStore.address || '',
+        pickup_address: myStore.pickup_address || '',
       });
     }
   }, [myStore]);
@@ -1143,6 +1145,15 @@ export const StoreOwnerDashboard = () => {
                   value={storeForm.address}
                   onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
                   placeholder="Rua, número, bairro, cidade..."
+                />
+              </div>
+
+              <div>
+                <Label>Endereço para Retirada</Label>
+                <Input
+                  value={storeForm.pickup_address}
+                  onChange={(e) => setStoreForm({ ...storeForm, pickup_address: e.target.value })}
+                  placeholder="Endereço onde os clientes farão a retirada dos produtos..."
                 />
               </div>
 
