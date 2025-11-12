@@ -93,13 +93,10 @@ Deno.serve(async (req) => {
     console.log(`Email check for ${email}: ${exists ? 'exists' : 'not found'} from IP ${clientIp}`);
 
     // Always return ambiguous response to prevent enumeration
-    // The client should handle all cases the same way
+    // Never expose whether email exists to prevent account enumeration attacks
     return new Response(
       JSON.stringify({ 
-        message: 'Request processed. If this email is registered, further instructions will be sent.',
-        // Only include actual status for legitimate use cases (e.g., password reset flows)
-        // For account creation, handle validation client-side differently
-        exists // Include for now, but consider removing based on use case
+        message: 'Request processed. If this email is registered, further instructions will be sent.'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
