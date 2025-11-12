@@ -1018,50 +1018,119 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
             className="p-8 space-y-6"
           >
-            <div className="flex justify-between items-center mb-6">
-              <div>
+            <div className="mb-6">
+              <div className="mb-4">
                 <h2 className="text-2xl font-bold gradient-text">Pedidos</h2>
                 <p className="text-muted-foreground">Gerencie os pedidos da sua loja</p>
               </div>
-            </div>
 
-            {/* Filtro de Status */}
-            <div className="flex items-center gap-2 mb-4">
-              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-              <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Pedidos</SelectItem>
-                  {customStatuses.length > 0 ? (
-                    customStatuses.map((status) => (
-                      <SelectItem key={status.status_key} value={status.status_key}>
-                        {status.status_label}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="confirmed">Confirmado</SelectItem>
-                      <SelectItem value="preparing">Preparando</SelectItem>
-                      <SelectItem value="ready">Pronto</SelectItem>
-                      <SelectItem value="delivered">Entregue</SelectItem>
-                      <SelectItem value="cancelled">Cancelado</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              {orderStatusFilter !== 'all' && (
+              {/* Botões de Status */}
+              <div className="flex flex-wrap gap-2">
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant={orderStatusFilter === 'all' ? 'default' : 'outline'}
                   onClick={() => setOrderStatusFilter('all')}
+                  className="flex items-center gap-2"
                 >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
+                  <ShoppingBag className="w-4 h-4" />
+                  Todos
+                  <Badge variant="secondary" className="ml-1">
+                    {orders?.length || 0}
+                  </Badge>
                 </Button>
-              )}
+                
+                {customStatuses.length > 0 ? (
+                  customStatuses.map((status) => {
+                    const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
+                    return (
+                      <Button
+                        key={status.id}
+                        variant={orderStatusFilter === status.status_key ? 'default' : 'outline'}
+                        onClick={() => setOrderStatusFilter(status.status_key)}
+                        className="flex items-center gap-2"
+                        style={{
+                          backgroundColor: orderStatusFilter === status.status_key ? status.status_color : undefined,
+                          borderColor: orderStatusFilter === status.status_key ? status.status_color : status.status_color + '40',
+                          color: orderStatusFilter === status.status_key ? '#ffffff' : undefined,
+                        }}
+                      >
+                        {status.status_label}
+                        <Badge 
+                          variant="secondary" 
+                          className="ml-1"
+                          style={{
+                            backgroundColor: orderStatusFilter === status.status_key ? 'rgba(255,255,255,0.2)' : undefined,
+                          }}
+                        >
+                          {statusCount}
+                        </Badge>
+                      </Button>
+                    );
+                  })
+                ) : (
+                  <>
+                    <Button
+                      variant={orderStatusFilter === 'pending' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('pending')}
+                      className="flex items-center gap-2"
+                    >
+                      Pendente
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'pending').length || 0}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant={orderStatusFilter === 'confirmed' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('confirmed')}
+                      className="flex items-center gap-2"
+                    >
+                      Confirmado
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'confirmed').length || 0}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant={orderStatusFilter === 'preparing' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('preparing')}
+                      className="flex items-center gap-2"
+                    >
+                      Preparando
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'preparing').length || 0}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant={orderStatusFilter === 'ready' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('ready')}
+                      className="flex items-center gap-2"
+                    >
+                      Pronto
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'ready').length || 0}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant={orderStatusFilter === 'delivered' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('delivered')}
+                      className="flex items-center gap-2"
+                    >
+                      Entregue
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'delivered').length || 0}
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant={orderStatusFilter === 'cancelled' ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter('cancelled')}
+                      className="flex items-center gap-2"
+                    >
+                      Cancelado
+                      <Badge variant="secondary" className="ml-1">
+                        {orders?.filter(o => o.status === 'cancelled').length || 0}
+                      </Badge>
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Lista de Pedidos */}
