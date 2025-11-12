@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -38,35 +53,7 @@ export type Database = {
             foreignKeyName: "favorites_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["store_id"]
-          },
-          {
-            foreignKeyName: "favorites_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
             referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "favorites_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
             referencedColumns: ["id"]
           },
         ]
@@ -143,7 +130,9 @@ export type Database = {
           order_id: string
           product_id: string | null
           product_name: string
+          product_slug: string | null
           quantity: number
+          short_id: string | null
           subtotal: number
           unit_price: number
         }
@@ -154,7 +143,9 @@ export type Database = {
           order_id: string
           product_id?: string | null
           product_name: string
+          product_slug?: string | null
           quantity: number
+          short_id?: string | null
           subtotal: number
           unit_price: number
         }
@@ -165,7 +156,9 @@ export type Database = {
           order_id?: string
           product_id?: string | null
           product_name?: string
+          product_slug?: string | null
           quantity?: number
+          short_id?: string | null
           subtotal?: number
           unit_price?: number
         }
@@ -186,6 +179,53 @@ export type Database = {
           },
         ]
       }
+      order_status_configs: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          is_active: boolean | null
+          status_color: string
+          status_key: string
+          status_label: string
+          store_id: string
+          updated_at: string | null
+          whatsapp_message: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          status_color?: string
+          status_key: string
+          status_label: string
+          store_id: string
+          updated_at?: string | null
+          whatsapp_message?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          status_color?: string
+          status_key?: string
+          status_label?: string
+          store_id?: string
+          updated_at?: string | null
+          whatsapp_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_configs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           change_amount: number | null
@@ -200,6 +240,7 @@ export type Database = {
           delivery_street: string | null
           delivery_type: string
           id: string
+          notes: string | null
           order_number: string
           payment_method: string
           status: Database["public"]["Enums"]["order_status"]
@@ -221,6 +262,7 @@ export type Database = {
           delivery_street?: string | null
           delivery_type?: string
           id?: string
+          notes?: string | null
           order_number: string
           payment_method?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -242,6 +284,7 @@ export type Database = {
           delivery_street?: string | null
           delivery_type?: string
           id?: string
+          notes?: string | null
           order_number?: string
           payment_method?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -251,34 +294,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "orders_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["store_id"]
-          },
           {
             foreignKeyName: "orders_store_id_fkey"
             columns: ["store_id"]
@@ -346,13 +361,6 @@ export type Database = {
           store_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "product_categories_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["store_id"]
-          },
           {
             foreignKeyName: "product_categories_store_id_fkey"
             columns: ["store_id"]
@@ -460,13 +468,6 @@ export type Database = {
             foreignKeyName: "products_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["store_id"]
-          },
-          {
-            foreignKeyName: "products_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
@@ -509,29 +510,7 @@ export type Database = {
           street_number?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reviews: {
         Row: {
@@ -563,27 +542,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reviews_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "reviews_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -594,17 +552,34 @@ export type Database = {
             foreignKeyName: "reviews_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["store_id"]
-          },
-          {
-            foreignKeyName: "reviews_store_id_fkey"
-            columns: ["store_id"]
-            isOneToOne: false
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_instances: {
+        Row: {
+          created_at: string | null
+          evolution_instance_id: string
+          id: number
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          evolution_instance_id: string
+          id?: number
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          evolution_instance_id?: string
+          id?: number
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       stores: {
         Row: {
@@ -629,8 +604,6 @@ export type Database = {
           status: Database["public"]["Enums"]["store_status"]
           total_reviews: number | null
           updated_at: string
-          whatsapp_instance: string | null
-          whatsapp_phone: string | null
         }
         Insert: {
           address?: string | null
@@ -654,8 +627,6 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null
           updated_at?: string
-          whatsapp_instance?: string | null
-          whatsapp_phone?: string | null
         }
         Update: {
           address?: string | null
@@ -679,32 +650,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null
           updated_at?: string
-          whatsapp_instance?: string | null
-          whatsapp_phone?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "stores_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stores_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stores_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -725,87 +672,18 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "customer_users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "store_owner_users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
-      admin_users: {
-        Row: {
-          avatar_url: string | null
-          email: string | null
-          email_confirmed_at: string | null
-          full_name: string | null
-          id: string | null
-          phone: string | null
-          role_assigned_at: string | null
-          user_created_at: string | null
-        }
-        Relationships: []
-      }
-      customer_users: {
-        Row: {
-          avatar_url: string | null
-          complement: string | null
-          email: string | null
-          email_confirmed_at: string | null
-          full_name: string | null
-          id: string | null
-          neighborhood: string | null
-          phone: string | null
-          role_assigned_at: string | null
-          street: string | null
-          street_number: string | null
-          total_orders: number | null
-          user_created_at: string | null
-        }
-        Relationships: []
-      }
-      store_owner_users: {
-        Row: {
-          avatar_url: string | null
-          email: string | null
-          email_confirmed_at: string | null
-          full_name: string | null
-          id: string | null
-          phone: string | null
-          role_assigned_at: string | null
-          store_id: string | null
-          store_name: string | null
-          store_slug: string | null
-          store_status: Database["public"]["Enums"]["store_status"] | null
-          user_created_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_admin_role_by_email: {
         Args: { user_email: string }
         Returns: undefined
       }
-      confirm_user_email: { Args: { user_id: string }; Returns: boolean }
+      bytea_to_text: { Args: { data: string }; Returns: string }
       create_order_rpc: {
         Args: {
           p_change_amount?: number
@@ -827,54 +705,7 @@ export type Database = {
         Returns: string
       }
       generate_short_id: { Args: never; Returns: string }
-      get_admin_users: {
-        Args: never
-        Returns: {
-          avatar_url: string
-          email: string
-          email_confirmed_at: string
-          full_name: string
-          id: string
-          phone: string
-          role_assigned_at: string
-          user_created_at: string
-        }[]
-      }
-      get_customer_users: {
-        Args: never
-        Returns: {
-          avatar_url: string
-          complement: string
-          email: string
-          email_confirmed_at: string
-          full_name: string
-          id: string
-          neighborhood: string
-          phone: string
-          role_assigned_at: string
-          street: string
-          street_number: string
-          total_orders: number
-          user_created_at: string
-        }[]
-      }
-      get_store_owner_users: {
-        Args: never
-        Returns: {
-          avatar_url: string
-          email: string
-          email_confirmed_at: string
-          full_name: string
-          id: string
-          phone: string
-          role_assigned_at: string
-          store_id: string
-          store_name: string
-          store_slug: string
-          store_status: Database["public"]["Enums"]["store_status"]
-          user_created_at: string
-        }[]
-      }
+      get_app_setting: { Args: { setting_key: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -882,6 +713,146 @@ export type Database = {
         }
         Returns: boolean
       }
+      http: {
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "http_request"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_delete:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_get:
+        | {
+            Args: { uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_head: {
+        Args: { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_header: {
+        Args: { field: string; value: string }
+        Returns: Database["public"]["CompositeTypes"]["http_header"]
+        SetofOptions: {
+          from: "*"
+          to: "http_header"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_list_curlopt: {
+        Args: never
+        Returns: {
+          curlopt: string
+          value: string
+        }[]
+      }
+      http_patch: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_post:
+        | {
+            Args: { content: string; content_type: string; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { data: Json; uri: string }
+            Returns: Database["public"]["CompositeTypes"]["http_response"]
+            SetofOptions: {
+              from: "*"
+              to: "http_response"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      http_put: {
+        Args: { content: string; content_type: string; uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+        SetofOptions: {
+          from: "*"
+          to: "http_response"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      http_reset_curlopt: { Args: never; Returns: boolean }
+      http_set_curlopt: {
+        Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      text_to_bytea: { Args: { data: string }; Returns: string }
+      urlencode:
+        | { Args: { data: Json }; Returns: string }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
+        | {
+            Args: { string: string }
+            Returns: {
+              error: true
+            } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
+          }
     }
     Enums: {
       app_role: "customer" | "store_owner" | "admin"
@@ -893,10 +864,26 @@ export type Database = {
         | "in_delivery"
         | "delivered"
         | "cancelled"
-      store_status: "active" | "inactive" | "pending_approval"
+      store_status: "pending_approval" | "active" | "inactive" | "rejected"
     }
     CompositeTypes: {
-      [_ in never]: never
+      http_header: {
+        field: string | null
+        value: string | null
+      }
+      http_request: {
+        method: unknown
+        uri: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content_type: string | null
+        content: string | null
+      }
+      http_response: {
+        status: number | null
+        content_type: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content: string | null
+      }
     }
   }
 }
@@ -1031,7 +1018,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
-      store_status: ["active", "inactive", "pending_approval"],
+      store_status: ["pending_approval", "active", "inactive", "rejected"],
     },
   },
 } as const
