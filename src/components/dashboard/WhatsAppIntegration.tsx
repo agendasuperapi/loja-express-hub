@@ -50,9 +50,12 @@ const invokeEvolution = async (payload: any) => {
 const isConnectedState = (status?: string) => {
   if (!status) return false;
   const s = String(status).toLowerCase().trim();
-  // Considerar conectado apenas em estados finais estáveis
-  const connectedStates = ['open', 'connected', 'authenticated', 'ready'];
-  return connectedStates.includes(s);
+  console.log('[WhatsApp] Verificando estado de conexão:', { original: status, normalized: s });
+  // Expandir lista de estados considerados conectados
+  const connectedStates = ['open', 'connected', 'authenticated', 'ready', 'connecting', 'qr', 'online'];
+  const isConnected = connectedStates.includes(s);
+  console.log('[WhatsApp] Estado é conectado?', isConnected);
+  return isConnected;
 };
 
 interface WhatsAppIntegrationProps {
@@ -149,33 +152,36 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
     try {
       console.log('[WhatsApp] Verificando status da instância:', instance);
       
-const { data, error } = await invokeEvolution({ 
+      const { data, error } = await invokeEvolution({ 
         action: 'check_status',
         storeId: storeId,
         instanceName: instance
       });
 
-      console.log('[WhatsApp] Resposta da verificação:', { data, error });
+      console.log('[WhatsApp] Resposta completa da verificação:', JSON.stringify({ data, error }, null, 2));
 
-      if (!error && data && data.status) {
+      if (!error && data) {
+        console.log('[WhatsApp] Dados recebidos:', data);
+        console.log('[WhatsApp] Status recebido:', data.status);
+        
         const connected = isConnectedState(data.status);
         console.log('[WhatsApp] Status interpretado:', {
           rawStatus: data.status,
           isConnected: connected
         });
         
-        setConnectionStatus(data.status);
+        setConnectionStatus(data.status || 'unknown');
         setIsConnected(connected);
         if (connected) setQrCode("");
       } else {
         console.error('[WhatsApp] Erro ao verificar status:', error);
-        // Se der erro mas temos instância salva, manter conectado
-        // O usuário pode clicar em "Verificar Status" manualmente
-        console.log('[WhatsApp] Mantendo status anterior por ter instância salva');
+        setConnectionStatus('error');
+        setIsConnected(false);
       }
     } catch (error) {
       console.error('[WhatsApp] Exceção ao verificar status:', error);
-      // Em caso de exceção, manter o estado atual se houver instância
+      setConnectionStatus('error');
+      setIsConnected(false);
     }
   };
 

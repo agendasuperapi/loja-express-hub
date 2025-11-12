@@ -283,18 +283,28 @@ serve(async (req) => {
       }
 
       const statusData = await statusResponse.json();
-      console.log('Status checked:', statusData);
+      console.log('Status checked - Full response:', JSON.stringify(statusData, null, 2));
+      console.log('Status data structure:', {
+        hasState: !!statusData?.state,
+        hasInstanceState: !!statusData?.instance?.state,
+        hasConnectionState: !!statusData?.connection?.state,
+        hasResultState: !!statusData?.result?.state,
+        hasDataState: !!statusData?.data?.state,
+      });
+
+      const finalStatus = (statusData?.state ??
+        statusData?.instance?.state ??
+        statusData?.connection?.state ??
+        statusData?.result?.state ??
+        statusData?.data?.state ??
+        'disconnected');
+        
+      console.log('Final status determined:', finalStatus);
 
       return new Response(
         JSON.stringify({
           success: true,
-          status:
-            (statusData?.state ??
-              statusData?.instance?.state ??
-              statusData?.connection?.state ??
-              statusData?.result?.state ??
-              statusData?.data?.state ??
-              'disconnected')
+          status: finalStatus
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
