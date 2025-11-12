@@ -70,53 +70,52 @@ serve(async (req) => {
       );
     }
 
-    // Fetch complete order data with items (with retry logic)
+    // Fetch complete order data from view (with retry logic for items)
     let order: any = null;
     let retryCount = 0;
-    const maxRetries = 3;
+    const maxRetries = 5;
     
     while (retryCount < maxRetries && !order) {
       const { data: orderData, error: orderError } = await supabaseClient
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            id,
-            product_name,
-            quantity,
-            unit_price,
-            subtotal,
-            observation,
-            order_item_addons (
-              addon_name,
-              addon_price
-            ),
-            order_item_flavors (
-              flavor_name,
-              flavor_price
-            )
-          )
-        `)
+        .from('order_complete_view')
+        .select('*')
         .eq('id', record.id || record.order_id)
         .single();
 
-      if (orderError || !orderData) {
+      if (orderError) {
         console.error(`Order fetch attempt ${retryCount + 1} failed:`, orderError);
         retryCount++;
         if (retryCount < maxRetries) {
-          // Wait 500ms before retry
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Wait 1 second before retry to allow items to be inserted
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-      } else {
-        order = orderData;
-        console.log('Order fetched successfully with items:', orderData.order_items?.length || 0);
+      } else if (orderData && Array.isArray(orderData.items) && orderData.items.length > 0) {
+        // Successfully got order with items
+        order = {
+          ...orderData,
+          order_items: orderData.items
+        };
+        console.log('Order fetched successfully with items:', orderData.items.length);
+      } else if (orderData) {
+        // Got order but no items yet, retry
+        console.warn(`Order fetched but no items yet (attempt ${retryCount + 1})`);
+        retryCount++;
+        if (retryCount < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          // Use order data even without items on last attempt
+          order = {
+            ...orderData,
+            order_items: []
+          };
+        }
       }
     }
 
     // If still no order data after retries, use record as fallback
     if (!order) {
       console.warn('Using fallback record data (no order_items available)');
-      order = record;
+      order = { ...record, order_items: [] };
     }
 
     // Get store details
@@ -176,18 +175,18 @@ serve(async (req) => {
     // Format order items list
     let itemsList = '';
     if (order.order_items && order.order_items.length > 0) {
-      itemsList = order.order_items.map((item: OrderItem) => {
+      itemsList = order.order_items.map((item: any) => {
         let itemText = `${item.quantity}x ${item.product_name}`;
         
         // Add flavors if any
-        if (item.order_item_flavors && item.order_item_flavors.length > 0) {
-          const flavors = item.order_item_flavors.map(f => f.flavor_name).join(', ');
+        if (item.flavors && Array.isArray(item.flavors) && item.flavors.length > 0) {
+          const flavors = item.flavors.map((f: any) => f.flavor_name).join(', ');
           itemText += ` (${flavors})`;
         }
         
         // Add addons if any
-        if (item.order_item_addons && item.order_item_addons.length > 0) {
-          const addons = item.order_item_addons.map(a => 
+        if (item.addons && Array.isArray(item.addons) && item.addons.length > 0) {
+          const addons = item.addons.map((a: any) => 
             `+ ${a.addon_name} (R$ ${a.addon_price.toFixed(2)})`
           ).join('\n  ');
           itemText += `\n  ${addons}`;
