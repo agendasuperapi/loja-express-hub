@@ -37,7 +37,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
     <motion.div
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      className="w-20 bg-background/95 backdrop-blur-xl border-r border-border/50 h-screen fixed left-0 top-0 flex flex-col items-center py-8 shadow-lg z-50"
+      className="w-32 bg-background/95 backdrop-blur-xl border-r border-border/50 h-screen fixed left-0 top-0 flex flex-col items-center py-8 shadow-lg z-50"
     >
       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20">
         <span className="text-primary font-bold text-xl">U</span>
