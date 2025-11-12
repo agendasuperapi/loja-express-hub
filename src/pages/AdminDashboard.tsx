@@ -217,9 +217,9 @@ export default function AdminDashboard() {
 
       // Fetch all user types
       const [customersRes, storeOwnersRes, adminsRes] = await Promise.all([
-        supabase.rpc('get_customer_users' as any),
-        supabase.rpc('get_store_owner_users' as any),
-        supabase.rpc('get_admin_users' as any),
+        supabase.rpc('get_customer_users'),
+        supabase.rpc('get_store_owner_users'),
+        supabase.rpc('get_admin_users'),
       ]);
 
       const allUsers = [
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
     try {
       setConfirmingEmail(userId);
       
-      const { data, error } = await supabase.rpc('confirm_user_email' as any, { 
+      const { data, error } = await supabase.rpc('confirm_user_email', { 
         user_id: userId 
       });
 
