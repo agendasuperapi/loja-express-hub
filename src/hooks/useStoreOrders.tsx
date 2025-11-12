@@ -33,7 +33,7 @@ export const useStoreOrders = (storeId?: string) => {
     }) => {
       const { data, error } = await supabase
         .from('orders')
-        .update({ status: status as any })
+        .update({ status: status as any }) // Cast needed until Supabase types are regenerated
         .eq('id', orderId)
         .select()
         .single();
