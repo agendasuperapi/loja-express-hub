@@ -35,6 +35,7 @@ import { CircularProgress } from "./CircularProgress";
 import { DataCard } from "./DataCard";
 import { BarChartCard } from "./BarChartCard";
 import { MiniChart } from "./MiniChart";
+import { OrderStatusManager } from "./OrderStatusManager";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -469,7 +470,7 @@ export const StoreOwnerDashboard = () => {
               transition={{ delay: 0.3 }}
             >
               <Tabs defaultValue="products" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 bg-muted/50">
+                <TabsList className="grid w-full grid-cols-5 bg-muted/50">
                   <TabsTrigger value="products" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <Package className="w-4 h-4 mr-2" />
                     Produtos
@@ -481,6 +482,10 @@ export const StoreOwnerDashboard = () => {
                   <TabsTrigger value="whatsapp" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <MessageSquare className="w-4 h-4 mr-2" />
                     WhatsApp
+                  </TabsTrigger>
+                  <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <Menu className="w-4 h-4 mr-2" />
+                    Status
                   </TabsTrigger>
                   <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <Settings className="w-4 h-4 mr-2" />
@@ -1026,6 +1031,17 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
           >
             <WhatsAppIntegration storeId={myStore.id} />
+          </motion.div>
+        </TabsContent>
+
+        {/* Status Tab */}
+        <TabsContent value="status" className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {myStore && <OrderStatusManager storeId={myStore.id} />}
           </motion.div>
         </TabsContent>
 

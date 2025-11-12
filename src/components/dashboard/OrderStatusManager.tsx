@@ -47,13 +47,13 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const loadStatuses = async () => {
     try {
       const { data, error } = await supabase
-        .from('order_status_configs')
+        .from('order_status_configs' as any)
         .select('*')
         .eq('store_id', storeId)
         .order('display_order');
 
       if (error) throw error;
-      setStatuses(data || []);
+      setStatuses((data as any) || []);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar status",
@@ -72,7 +72,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
       if (editingStatus.id.startsWith('new_')) {
         // Insert new status
         const { error } = await supabase
-          .from('order_status_configs')
+          .from('order_status_configs' as any)
           .insert({
             store_id: storeId,
             status_key: editingStatus.status_key,
@@ -87,7 +87,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
       } else {
         // Update existing status
         const { error } = await supabase
-          .from('order_status_configs')
+          .from('order_status_configs' as any)
           .update({
             status_label: editingStatus.status_label,
             status_color: editingStatus.status_color,
@@ -119,7 +119,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const handleDeleteStatus = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('order_status_configs')
+        .from('order_status_configs' as any)
         .delete()
         .eq('id', id);
 
