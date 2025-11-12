@@ -503,7 +503,12 @@ export const StoreOwnerDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background w-full">
-      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <DashboardSidebar 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        storeLogo={myStore?.logo_url}
+        storeName={myStore?.name}
+      />
       
       <div className="flex-1">{activeTab === 'home' && (
           <motion.div

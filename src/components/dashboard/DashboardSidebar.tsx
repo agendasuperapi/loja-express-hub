@@ -7,9 +7,11 @@ import { useState } from "react";
 interface DashboardSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  storeLogo?: string;
+  storeName?: string;
 }
 
-export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarProps) => {
+export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
 
   const cadastrosSubItems = [
@@ -38,8 +40,16 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
       animate={{ x: 0, opacity: 1 }}
       className="w-32 bg-background/95 backdrop-blur-xl border-r border-border/50 min-h-screen flex flex-col items-center py-8 shadow-lg"
     >
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20">
-        <span className="text-primary font-bold text-xl">U</span>
+      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20 overflow-hidden">
+        {storeLogo ? (
+          <img 
+            src={storeLogo} 
+            alt={storeName || 'Logo da loja'} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-primary font-bold text-xl">U</span>
+        )}
       </div>
 
       <nav className="flex-1 w-full space-y-1 px-2">
