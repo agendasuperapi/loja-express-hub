@@ -43,17 +43,8 @@ serve(async (req) => {
       );
     }
 
-    // Get order details
-    const { data: order, error: orderError } = await supabaseClient
-      .from('orders')
-      .select('*')
-      .eq('id', record.id)
-      .single();
-
-    if (orderError || !order) {
-      console.error('Error fetching order:', orderError);
-      throw new Error('Order not found');
-    }
+    // Use order data from realtime payload
+    const order = record;
 
     // Get store details
     const { data: store, error: storeError } = await supabaseClient
