@@ -15,7 +15,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -41,6 +41,8 @@ import { cn } from "@/lib/utils";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { MetricsComparison } from "./MetricsComparison";
 import { useQueryClient } from '@tanstack/react-query';
+import { PersonalDataSettings } from "@/components/settings/PersonalDataSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -1988,8 +1990,16 @@ export const StoreOwnerDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Tabs defaultValue="orders" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 bg-muted/50">
+              <Tabs defaultValue="personal" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-6 bg-muted/50">
+                  <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <User className="w-4 h-4 mr-2" />
+                    Dados Pessoais
+                  </TabsTrigger>
+                  <TabsTrigger value="security" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                    <Lock className="w-4 h-4 mr-2" />
+                    Segurança
+                  </TabsTrigger>
                   <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <ShoppingBag className="w-4 h-4 mr-2" />
                     Pedidos
@@ -2004,9 +2014,31 @@ export const StoreOwnerDashboard = () => {
                   </TabsTrigger>
                   <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
                     <Settings className="w-4 h-4 mr-2" />
-                    Configurações
+                    Loja
                   </TabsTrigger>
                 </TabsList>
+
+        {/* Personal Data Tab */}
+        <TabsContent value="personal">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <PersonalDataSettings />
+          </motion.div>
+        </TabsContent>
+
+        {/* Security Tab */}
+        <TabsContent value="security">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <SecuritySettings />
+          </motion.div>
+        </TabsContent>
 
         {/* Orders Tab */}
         <TabsContent value="orders" className="space-y-4">
