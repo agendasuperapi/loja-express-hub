@@ -29,9 +29,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange }: DashboardSidebarPro
     { id: 'pedidos', label: 'pedidos', icon: ShoppingCart },
     { id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true },
     { id: 'result', label: 'result', icon: BarChart3 },
-    { id: 'chat', label: 'chat', icon: MessageSquare },
-    { id: 'messages', label: 'messages', icon: Mail },
-    { id: 'notification', label: 'notification', icon: Bell },
     { id: 'setting', label: 'Configurações', icon: Settings },
   ];
 
