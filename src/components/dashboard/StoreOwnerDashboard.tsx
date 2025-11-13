@@ -1138,99 +1138,28 @@ export const StoreOwnerDashboard = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    {(() => {
-                      const recentOrders = filteredOrders.slice(0, 50); // Pegar apenas os 50 mais recentes
-                      const totalPages = Math.ceil(recentOrders.length / homeOrdersPerPage);
-                      const startIndex = (currentHomeOrderPage - 1) * homeOrdersPerPage;
-                      const endIndex = startIndex + homeOrdersPerPage;
-                      const paginatedOrders = recentOrders.slice(startIndex, endIndex);
-
-                      return (
-                        <>
-                          <div className="space-y-4">
-                            {paginatedOrders.map((order) => (
-                              <div key={order.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <p className="font-semibold">#{order.order_number}</p>
-                                    <Badge variant="outline" className="capitalize">
-                                      {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-sm text-muted-foreground space-y-1">
-                                    <p>{order.customer_name}</p>
-                                    <p>{format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-bold text-lg text-green-500">R$ {order.total.toFixed(2)}</p>
-                                  <p className="text-sm text-muted-foreground capitalize">{order.payment_method}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Pagination for Recent Orders */}
-                          {totalPages > 1 && (
-                            <div className="mt-6">
-                              <Pagination>
-                                <PaginationContent>
-                                  <PaginationItem>
-                                    <PaginationPrevious 
-                                      onClick={() => setCurrentHomeOrderPage(prev => Math.max(prev - 1, 1))}
-                                      className={cn(
-                                        "cursor-pointer",
-                                        currentHomeOrderPage === 1 && "pointer-events-none opacity-50"
-                                      )}
-                                    />
-                                  </PaginationItem>
-                                  
-                                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                                    if (
-                                      page === 1 ||
-                                      page === totalPages ||
-                                      (page >= currentHomeOrderPage - 1 && page <= currentHomeOrderPage + 1)
-                                    ) {
-                                      return (
-                                        <PaginationItem key={page}>
-                                          <PaginationLink
-                                            onClick={() => setCurrentHomeOrderPage(page)}
-                                            isActive={currentHomeOrderPage === page}
-                                            className="cursor-pointer"
-                                          >
-                                            {page}
-                                          </PaginationLink>
-                                        </PaginationItem>
-                                      );
-                                    } else if (
-                                      page === currentHomeOrderPage - 2 ||
-                                      page === currentHomeOrderPage + 2
-                                    ) {
-                                      return (
-                                        <PaginationItem key={page}>
-                                          <PaginationEllipsis />
-                                        </PaginationItem>
-                                      );
-                                    }
-                                    return null;
-                                  })}
-
-                                  <PaginationItem>
-                                    <PaginationNext 
-                                      onClick={() => setCurrentHomeOrderPage(prev => Math.min(prev + 1, totalPages))}
-                                      className={cn(
-                                        "cursor-pointer",
-                                        currentHomeOrderPage === totalPages && "pointer-events-none opacity-50"
-                                      )}
-                                    />
-                                  </PaginationItem>
-                                </PaginationContent>
-                              </Pagination>
+                    <div className="space-y-4">
+                      {filteredOrders.slice(0, 5).map((order) => (
+                        <div key={order.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <p className="font-semibold">#{order.order_number}</p>
+                              <Badge variant="outline" className="capitalize">
+                                {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
+                              </Badge>
                             </div>
-                          )}
-                        </>
-                      );
-                    })()}
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <p>{order.customer_name}</p>
+                              <p>{format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-lg text-green-500">R$ {order.total.toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{order.payment_method}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
