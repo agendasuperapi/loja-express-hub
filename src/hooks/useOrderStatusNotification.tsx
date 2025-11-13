@@ -20,7 +20,13 @@ export const useOrderStatusNotification = (storeId: string | undefined) => {
           filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
-          // Only send WhatsApp if status changed
+          // Skip if it's a new insert (payload.old is null) - creation is handled by useOrders
+          if (!payload.old) {
+            console.log('Skipping WhatsApp for new order insert - already handled by useOrders');
+            return;
+          }
+
+          // Only send WhatsApp if status actually changed
           if (payload.old.status === payload.new.status) return;
 
           console.log('Order status changed:', payload.old.status, '->', payload.new.status);
