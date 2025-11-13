@@ -59,6 +59,11 @@ export default function Cart() {
   const [showEmailExistsAlert, setShowEmailExistsAlert] = useState(false);
   
   const [storeData, setStoreData] = useState<any>(null);
+
+  // Reset email exists alert when email changes
+  useEffect(() => {
+    setShowEmailExistsAlert(false);
+  }, [authEmail]);
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
   const storeStatusText = storeData ? getStoreStatusText(storeData.operating_hours) : '';
 
@@ -189,35 +194,11 @@ export default function Cart() {
           return;
         }
 
-        // Verificar se o email já existe antes de tentar criar a conta
-        try {
-          const { data: checkResult } = await supabase.functions.invoke('check-email-exists', {
-            body: { email: authEmail }
-          });
-
-          if (checkResult?.exists) {
-            // Email já cadastrado - mudar para modo login e mostrar alerta
-            setAuthMode('login');
-            setAuthPassword("");
-            setShowEmailExistsAlert(true);
-            setIsAuthLoading(false);
-            return;
-          }
-        } catch (checkError) {
-          console.error('Erro ao verificar email:', checkError);
-          // Continuar com o signup mesmo se a verificação falhar
-        }
-
         const { error } = await signUp(authEmail, authPassword, authFullName, authPhone, true);
 
         if (error) {
           if (error.message.includes('already') || error.message.includes('exists') || error.message.includes('registered')) {
-            setAuthMode('login');
-            setAuthPassword("");
-            toast({
-              title: "Email já cadastrado",
-              description: "Por favor, faça login",
-            });
+            setShowEmailExistsAlert(true);
             setIsAuthLoading(false);
             return;
           }
@@ -618,15 +599,6 @@ export default function Cart() {
                         {authMode === 'login' ? 'Fazer Login' : 'Criar Conta'}
                       </h3>
                       
-                      {showEmailExistsAlert && authMode === 'login' && (
-                        <Alert className="mb-4 border-primary bg-primary/10">
-                          <AlertDescription className="text-center">
-                            <p className="font-semibold text-foreground">Email já cadastrado</p>
-                            <p className="text-sm text-muted-foreground mt-1">Por favor, faça login</p>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                      
                       <form onSubmit={handleAuthSubmit} className="space-y-4">
                         {authMode === 'signup' && (
                           <>
@@ -650,6 +622,15 @@ export default function Cart() {
                               />
                             </div>
                           </>
+                        )}
+                        
+                        {showEmailExistsAlert && (
+                          <Alert variant="destructive">
+                            <AlertDescription className="text-center">
+                              <p className="font-semibold">Email já cadastrado</p>
+                              <p className="text-sm mt-1">Por favor, faça login</p>
+                            </AlertDescription>
+                          </Alert>
                         )}
                         
                         <div>
