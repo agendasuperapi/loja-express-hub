@@ -17,13 +17,13 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
 
   const cadastrosSubItems = [
     { id: 'produtos', label: 'produtos', icon: Package },
+    { id: 'cupons', label: 'cupons', icon: Tag },
     { id: 'categorias', label: 'categorias', icon: FolderTree },
     { id: 'clientes', label: 'clientes', icon: Users },
     { id: 'funcionarios', label: 'funcionários', icon: UserCog },
     { id: 'fornecedores', label: 'fornecedores', icon: Truck },
     { id: 'entregadores', label: 'entregadores', icon: Bike },
     { id: 'bairros', label: 'bairros', icon: MapPin },
-    { id: 'cupons', label: 'cupons', icon: Tag },
   ];
 
   const menuItems = [
