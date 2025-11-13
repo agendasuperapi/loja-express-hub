@@ -31,6 +31,7 @@ import { ImageUpload } from "./ImageUpload";
 import { OperatingHoursManager } from "./OperatingHoursManager";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
+import { WhatsAppStatusIndicator } from "./WhatsAppStatusIndicator";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { CircularProgress } from "./CircularProgress";
 import { DataCard } from "./DataCard";
@@ -634,6 +635,7 @@ export const StoreOwnerDashboard = () => {
                           <Clock className="w-3 h-3 mr-1" />
                           {storeStatusText}
                         </Badge>
+                        <WhatsAppStatusIndicator storeId={myStore.id} />
                       </div>
                       <motion.p
                         className="text-muted-foreground text-lg"
