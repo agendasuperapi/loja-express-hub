@@ -105,6 +105,24 @@ export default function BecomePartner() {
           }
         });
         setErrors(newErrors);
+
+        // Scroll to first error and focus the field
+        const first = error.errors[0];
+        const firstField = first?.path?.[0] ? String(first.path[0]) : undefined;
+        if (firstField) {
+          setTimeout(() => {
+            const el = document.getElementById(firstField);
+            el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (el as HTMLInputElement | null)?.focus?.();
+          }, 0);
+        }
+
+        // Show a specific toast message
+        toast({
+          title: 'Erro no formulário',
+          description: first?.message || 'Por favor, corrija os campos destacados',
+          variant: 'destructive',
+        });
       }
       return false;
     }
@@ -114,11 +132,7 @@ export default function BecomePartner() {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast({
-        title: "Erro no formulário",
-        description: "Por favor, corrija os erros antes de continuar",
-        variant: "destructive",
-      });
+      // The validateForm already showed toast and focused the first error
       return;
     }
 
