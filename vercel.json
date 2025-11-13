@@ -1,0 +1,30 @@
+{
+  "rewrites": [
+    {
+      "source": "/loja-:slug",
+      "has": [
+        {
+          "type": "query",
+          "key": "product"
+        },
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(bot|crawler|spider|facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|Telegram|Discordbot|instagram).*"
+        }
+      ],
+      "destination": "https://mgpzowiahnwcmcaelogf.supabase.co/functions/v1/meta-tags-proxy?product=:product"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ]
+}
