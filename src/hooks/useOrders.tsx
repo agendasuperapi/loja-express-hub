@@ -132,7 +132,25 @@ export const useOrders = () => {
         if (addonsError) throw addonsError;
       }
 
-      // ✅ WhatsApp será enviado automaticamente pelo trigger após inserir items
+      // 📱 AGORA SIM: Enviar WhatsApp APÓS inserir order + items + addons
+      try {
+        console.log("📱 Enviando WhatsApp com dados completos...");
+        
+        // Aguarda 500ms para garantir que view esteja atualizada
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const { error: whatsappError } = await supabase.functions.invoke('send-order-whatsapp', {
+          body: { record: createdOrder }
+        });
+
+        if (whatsappError) {
+          console.error("❌ WhatsApp error:", whatsappError);
+        } else {
+          console.log("✅ WhatsApp enviado com sucesso");
+        }
+      } catch (error) {
+        console.error("❌ WhatsApp exception:", error);
+      }
 
       return createdOrder;
     },
