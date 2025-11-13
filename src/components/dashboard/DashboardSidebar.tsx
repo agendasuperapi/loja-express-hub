@@ -30,11 +30,20 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
   };
 
   const cadastrosSubItems = [
-    ...(hasPermission('products') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
-    ...(hasPermission('coupons') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
-    ...(hasPermission('categories') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
-    ...(hasPermission('employees') ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
+    ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
+    ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
+    ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
+    ...(hasPermission('employees', 'view') ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
+  
+  console.log('[DashboardSidebar] Cadastros SubItems:', {
+    products: hasPermission('products', 'view'),
+    coupons: hasPermission('coupons', 'view'),
+    categories: hasPermission('categories', 'view'),
+    employees: hasPermission('employees', 'view'),
+    cadastrosSubItems: cadastrosSubItems.map(i => i.id),
+    employeePermissions
+  });
 
   const menuItems = [
     { id: 'home', label: 'home', icon: Home, show: true },
