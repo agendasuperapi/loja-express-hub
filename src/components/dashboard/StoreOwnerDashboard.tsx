@@ -338,6 +338,52 @@ export const StoreOwnerDashboard = () => {
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
+  // Filtrar pedidos para a tab de pedidos
+  const filteredOrdersForTab = useMemo(() => {
+    if (!orders) return [];
+    
+    return orders.filter(order => {
+      // Filtro de status
+      if (orderStatusFilter !== 'all' && order.status !== orderStatusFilter) {
+        return false;
+      }
+      
+      // Filtro de data
+      const orderDate = new Date(order.created_at);
+      
+      if (dateFilter === 'daily') {
+        return isToday(orderDate);
+      } else if (dateFilter === 'weekly') {
+        return isThisWeek(orderDate, { locale: ptBR });
+      } else if (dateFilter === 'monthly') {
+        return isThisMonth(orderDate);
+      } else if (dateFilter === 'custom' && customDateRange.from && customDateRange.to) {
+        return isWithinInterval(orderDate, {
+          start: startOfDay(customDateRange.from),
+          end: endOfDay(customDateRange.to),
+        });
+      }
+      
+      return true;
+    });
+  }, [orders, orderStatusFilter, dateFilter, customDateRange]);
+
+  // Paginação dos pedidos
+  const paginatedOrdersData = useMemo(() => {
+    const totalPages = Math.ceil(filteredOrdersForTab.length / ordersPerPage);
+    const startIndex = (currentOrderPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const paginatedOrders = filteredOrdersForTab.slice(startIndex, endIndex);
+    
+    return {
+      orders: paginatedOrders,
+      totalPages,
+      startIndex,
+      endIndex,
+      totalOrders: filteredOrdersForTab.length
+    };
+  }, [filteredOrdersForTab, currentOrderPage, ordersPerPage]);
+
   const filterOrdersByDate = (orders: any[] | undefined) => {
     if (!orders) return [];
     
@@ -1395,225 +1441,175 @@ export const StoreOwnerDashboard = () => {
             </div>
 
             {/* Lista de Pedidos */}
-            {orders && orders.length > 0 ? (
+            {paginatedOrdersData.totalOrders > 0 ? (
               <div className="space-y-6">
-                {(() => {
-                  const filteredOrders = orders.filter(order => {
-                    // Filtro de status
-                    if (orderStatusFilter !== 'all' && order.status !== orderStatusFilter) {
-                      return false;
-                    }
-                    
-                    // Filtro de data
-                    const orderDate = new Date(order.created_at);
-                    
-                    if (dateFilter === 'daily') {
-                      return isToday(orderDate);
-                    } else if (dateFilter === 'weekly') {
-                      return isThisWeek(orderDate, { locale: ptBR });
-                    } else if (dateFilter === 'monthly') {
-                      return isThisMonth(orderDate);
-                    } else if (dateFilter === 'custom' && customDateRange.from && customDateRange.to) {
-                      return isWithinInterval(orderDate, {
-                        start: startOfDay(customDateRange.from),
-                        end: endOfDay(customDateRange.to),
-                      });
-                    }
-                    
-                    return true;
-                  });
-
-                  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-                  const startIndex = (currentOrderPage - 1) * ordersPerPage;
-                  const endIndex = startIndex + ordersPerPage;
-                  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
-
-                  if (filteredOrders.length === 0) {
-                    return (
-                      <Card className="border-dashed">
-                        <CardContent className="py-12 text-center">
-                          <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                          <h3 className="text-lg font-semibold mb-2">Nenhum pedido encontrado</h3>
-                          <p className="text-muted-foreground">
-                            Nenhum pedido corresponde aos filtros selecionados
-                          </p>
-                        </CardContent>
-                      </Card>
-                    );
-                  }
-
-                  return (
-                    <>
-                      {paginatedOrders.map((order, index) => (
-                    <div key={order.id}>
-                      <Card className="hover:shadow-lg transition-shadow">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h3 className="font-semibold text-lg">Pedido #{order.order_number}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="capitalize">
-                              {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
-                            </Badge>
+                {paginatedOrdersData.orders.map((order, index) => (
+                  <div key={order.id}>
+                    <Card className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="font-semibold text-lg">Pedido #{order.order_number}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </p>
                           </div>
-
-                          <Separator className="my-4" />
-
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Cliente:</span>
-                              <span className="font-medium">{order.customer_name}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Telefone:</span>
-                              <span className="font-medium">{order.customer_phone}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Tipo:</span>
-                              <span className="font-medium capitalize">{order.delivery_type}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Pagamento:</span>
-                              <span className="font-medium capitalize">{order.payment_method}</span>
-                            </div>
-                            <div className="flex justify-between text-lg font-bold">
-                              <span>Total:</span>
-                              <span className="text-primary">R$ {order.total.toFixed(2)}</span>
-                            </div>
-                          </div>
-
-                          {order.delivery_type === 'delivery' && (
-                            <>
-                              <Separator className="my-4" />
-                              <div className="space-y-1 text-sm">
-                                <p className="font-medium">Endereço de Entrega:</p>
-                                <p className="text-muted-foreground">
-                                  {order.delivery_street}, {order.delivery_number}
-                                  {order.delivery_complement && ` - ${order.delivery_complement}`}
-                                </p>
-                                <p className="text-muted-foreground">{order.delivery_neighborhood}</p>
-                              </div>
-                            </>
-                          )}
-
-                          {order.notes && (
-                            <>
-                              <Separator className="my-4" />
-                              <div className="text-sm">
-                                <p className="font-medium mb-1">Observações:</p>
-                                <p className="text-muted-foreground">{order.notes}</p>
-                              </div>
-                            </>
-                          )}
-
-                          <Separator className="my-4" />
-
-                          <div className="flex gap-2">
-                            <Select
-                              value={order.status}
-                              onValueChange={(newStatus) => updateOrderStatus({ orderId: order.id, status: newStatus })}
-                            >
-                              <SelectTrigger className="flex-1">
-                                <SelectValue placeholder="Alterar status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {customStatuses.length > 0 ? (
-                                  customStatuses.map((status) => (
-                                    <SelectItem key={status.status_key} value={status.status_key}>
-                                      {status.status_label}
-                                    </SelectItem>
-                                  ))
-                                ) : (
-                                  <>
-                                    <SelectItem value="pending">Pendente</SelectItem>
-                                    <SelectItem value="confirmed">Confirmado</SelectItem>
-                                    <SelectItem value="preparing">Preparando</SelectItem>
-                                    <SelectItem value="ready">Pronto</SelectItem>
-                                    <SelectItem value="delivered">Entregue</SelectItem>
-                                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      {/* Separador grosso entre pedidos */}
-                      {index < paginatedOrders.length - 1 && (
-                        <div className="relative py-4">
-                          <Separator className="h-[3px] bg-orange-500" />
+                          <Badge variant="outline" className="capitalize">
+                            {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
+                          </Badge>
                         </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {/* Paginação */}
-                  {totalPages > 1 && (
-                    <div className="mt-8 space-y-4">
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious 
-                              onClick={() => setCurrentOrderPage(prev => Math.max(prev - 1, 1))}
-                              className={cn(
-                                "cursor-pointer",
-                                currentOrderPage === 1 && "pointer-events-none opacity-50"
-                              )}
-                            />
-                          </PaginationItem>
-                          
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                            const showPage = page === 1 || 
-                                           page === totalPages || 
-                                           (page >= currentOrderPage - 1 && page <= currentOrderPage + 1);
-                            const showEllipsis = page === currentOrderPage - 2 || page === currentOrderPage + 2;
-                            
-                            if (showPage) {
-                              return (
-                                <PaginationItem key={page}>
-                                  <PaginationLink
-                                    onClick={() => setCurrentOrderPage(page)}
-                                    isActive={currentOrderPage === page}
-                                    className="cursor-pointer"
-                                  >
-                                    {page}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              );
-                            } else if (showEllipsis) {
-                              return (
-                                <PaginationItem key={`ellipsis-${page}`}>
-                                  <PaginationEllipsis />
-                                </PaginationItem>
-                              );
-                            }
-                            return null;
-                          })}
+                        <Separator className="my-4" />
 
-                          <PaginationItem>
-                            <PaginationNext 
-                              onClick={() => setCurrentOrderPage(prev => Math.min(prev + 1, totalPages))}
-                              className={cn(
-                                "cursor-pointer",
-                                currentOrderPage === totalPages && "pointer-events-none opacity-50"
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Cliente:</span>
+                            <span className="font-medium">{order.customer_name}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Telefone:</span>
+                            <span className="font-medium">{order.customer_phone}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Tipo:</span>
+                            <span className="font-medium capitalize">{order.delivery_type}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Pagamento:</span>
+                            <span className="font-medium capitalize">{order.payment_method}</span>
+                          </div>
+                          <div className="flex justify-between text-lg font-bold">
+                            <span>Total:</span>
+                            <span className="text-primary">R$ {order.total.toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        {order.delivery_type === 'delivery' && (
+                          <>
+                            <Separator className="my-4" />
+                            <div className="space-y-1 text-sm">
+                              <p className="font-medium">Endereço de Entrega:</p>
+                              <p className="text-muted-foreground">
+                                {order.delivery_street}, {order.delivery_number}
+                                {order.delivery_complement && ` - ${order.delivery_complement}`}
+                              </p>
+                              <p className="text-muted-foreground">{order.delivery_neighborhood}</p>
+                            </div>
+                          </>
+                        )}
+
+                        {order.notes && (
+                          <>
+                            <Separator className="my-4" />
+                            <div className="text-sm">
+                              <p className="font-medium mb-1">Observações:</p>
+                              <p className="text-muted-foreground">{order.notes}</p>
+                            </div>
+                          </>
+                        )}
+
+                        <Separator className="my-4" />
+
+                        <div className="flex gap-2">
+                          <Select
+                            value={order.status}
+                            onValueChange={(newStatus) => updateOrderStatus({ orderId: order.id, status: newStatus })}
+                          >
+                            <SelectTrigger className="flex-1">
+                              <SelectValue placeholder="Alterar status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customStatuses.length > 0 ? (
+                                customStatuses.map((status) => (
+                                  <SelectItem key={status.status_key} value={status.status_key}>
+                                    {status.status_label}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <>
+                                  <SelectItem value="pending">Pendente</SelectItem>
+                                  <SelectItem value="confirmed">Confirmado</SelectItem>
+                                  <SelectItem value="preparing">Preparando</SelectItem>
+                                  <SelectItem value="ready">Pronto</SelectItem>
+                                  <SelectItem value="delivered">Entregue</SelectItem>
+                                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                                </>
                               )}
-                            />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                      
-                      <div className="text-center text-sm text-muted-foreground">
-                        Mostrando {startIndex + 1} a {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} pedidos
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Separador grosso entre pedidos */}
+                    {index < paginatedOrdersData.orders.length - 1 && (
+                      <div className="relative py-4">
+                        <Separator className="h-[3px] bg-orange-500" />
                       </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Paginação */}
+                {paginatedOrdersData.totalPages > 1 && (
+                  <div className="mt-8 space-y-4">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentOrderPage(prev => Math.max(prev - 1, 1))}
+                            className={cn(
+                              "cursor-pointer",
+                              currentOrderPage === 1 && "pointer-events-none opacity-50"
+                            )}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: paginatedOrdersData.totalPages }, (_, i) => i + 1).map((page) => {
+                          const showPage = page === 1 || 
+                                         page === paginatedOrdersData.totalPages || 
+                                         (page >= currentOrderPage - 1 && page <= currentOrderPage + 1);
+                          const showEllipsis = page === currentOrderPage - 2 || page === currentOrderPage + 2;
+                          
+                          if (showPage) {
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentOrderPage(page)}
+                                  isActive={currentOrderPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          } else if (showEllipsis) {
+                            return (
+                              <PaginationItem key={`ellipsis-${page}`}>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            );
+                          }
+                          return null;
+                        })}
+
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentOrderPage(prev => Math.min(prev + 1, paginatedOrdersData.totalPages))}
+                            className={cn(
+                              "cursor-pointer",
+                              currentOrderPage === paginatedOrdersData.totalPages && "pointer-events-none opacity-50"
+                            )}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                    
+                    <div className="text-center text-sm text-muted-foreground">
+                      Mostrando {paginatedOrdersData.startIndex + 1} a {Math.min(paginatedOrdersData.endIndex, paginatedOrdersData.totalOrders)} de {paginatedOrdersData.totalOrders} pedidos
                     </div>
-                  )}
-                </>
-                  );
-                })()}
+                  </div>
+                )}
               </div>
             ) : (
               <Card className="border-dashed">
@@ -1621,7 +1617,10 @@ export const StoreOwnerDashboard = () => {
                   <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Nenhum pedido encontrado</h3>
                   <p className="text-muted-foreground">
-                    Quando você receber pedidos, eles aparecerão aqui
+                    {orders && orders.length > 0 
+                      ? "Nenhum pedido corresponde aos filtros selecionados"
+                      : "Quando você receber pedidos, eles aparecerão aqui"
+                    }
                   </p>
                 </CardContent>
               </Card>
