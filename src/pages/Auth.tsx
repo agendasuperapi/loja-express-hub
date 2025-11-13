@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Loader2, User, Lock, Check } from "lucide-react";
+import { Loader2, User, Lock, Check, Mail } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { signUpSchema, signInSchema } from "@/hooks/useAuthValidation";
 import { toast } from "@/hooks/use-toast";
@@ -30,6 +30,26 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  // Formatar telefone com máscara
+  const formatPhoneNumber = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplica a máscara (XX) XXXXX-XXXX
+    if (numbers.length <= 2) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    } else {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhone(formatted);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -40,8 +60,17 @@ export default function Auth() {
         const validatedData = signInSchema.parse({ email, password });
         await signIn(validatedData.email, validatedData.password);
       } else {
+        // Remove formatação do telefone e adiciona +55
+        const cleanPhone = phone.replace(/\D/g, '');
+        const phoneWithCountryCode = `+55${cleanPhone}`;
+        
         // Validate signup data
-        const validatedData = signUpSchema.parse({ email, password, fullName, phone });
+        const validatedData = signUpSchema.parse({ 
+          email, 
+          password, 
+          fullName, 
+          phone: phoneWithCountryCode 
+        });
         await signUp(validatedData.email, validatedData.password, validatedData.fullName, validatedData.phone);
       }
     } catch (error) {
@@ -91,13 +120,22 @@ export default function Auth() {
                 <label className="text-sm font-medium text-foreground">
                   Telefone
                 </label>
-                <Input
-                  type="tel"
-                  placeholder="(00) 00000-0000"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="h-12"
-                />
+                <div className="relative">
+                  <div className="absolute left-0 top-0 bottom-0 w-16 bg-muted border-r flex items-center justify-center rounded-l-md">
+                    <span className="text-2xl" title="Brasil (+55)">🇧🇷</span>
+                  </div>
+                  <Input
+                    type="tel"
+                    placeholder="(38) 99999-9999"
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    maxLength={15}
+                    className="h-12 pl-20"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Código do país +55 adicionado automaticamente
+                </p>
               </div>
             </>
           )}
@@ -108,12 +146,12 @@ export default function Auth() {
               Email
             </label>
             <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted border-r flex items-center justify-center">
-                <User className="text-muted-foreground" size={18} />
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted border-r flex items-center justify-center rounded-l-md">
+                <Mail className="h-5 w-5 text-muted-foreground" />
               </div>
               <Input
                 type="email"
-                placeholder="email@email.com"
+                placeholder="seuemail@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -138,8 +176,8 @@ export default function Auth() {
               )}
             </div>
             <div className="relative">
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted border-r flex items-center justify-center">
-                <Lock className="text-muted-foreground" size={18} />
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-muted border-r flex items-center justify-center rounded-l-md">
+                <Lock className="h-5 w-5 text-muted-foreground" />
               </div>
               <Input
                 type="password"
