@@ -50,6 +50,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
+import { EmployeesManager } from "./EmployeesManager";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -1838,6 +1839,17 @@ export const StoreOwnerDashboard = () => {
             className="p-8"
           >
             <CouponsManager storeId={myStore.id} />
+          </motion.div>
+        )}
+
+        {activeTab === 'funcionarios' && myStore?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-8"
+          >
+            <EmployeesManager storeId={myStore.id} />
           </motion.div>
         )}
 
