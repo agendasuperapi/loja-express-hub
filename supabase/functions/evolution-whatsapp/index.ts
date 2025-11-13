@@ -141,16 +141,29 @@ serve(async (req) => {
       _role: 'store_owner' 
     });
 
-    if (!isAdmin && !isStoreOwner) {
-      console.error('Authorization failed: User lacks required role', { userId: user.id });
+    // Check if user is an active employee with manage_whatsapp permission
+    const { data: employeeData } = await supabaseClient
+      .from('store_employees')
+      .select('id, permissions, is_active')
+      .eq('user_id', user.id)
+      .eq('store_id', storeId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    const isEmployeeWithPermission = employeeData && 
+      (employeeData as any).permissions?.settings?.manage_whatsapp === true;
+
+    // User must be admin, store owner, or employee with manage_whatsapp permission
+    if (!isAdmin && !isStoreOwner && !isEmployeeWithPermission) {
+      console.error('Authorization failed: User lacks required role or permission', { userId: user.id });
       return new Response(
-        JSON.stringify({ error: 'Forbidden - Requires store_owner or admin role' }),
+        JSON.stringify({ error: 'Forbidden - Requires admin, store_owner role, or employee with manage_whatsapp permission' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // For store owners, verify they own the store
-    if (!isAdmin) {
+    if (isStoreOwner && !isAdmin && !isEmployeeWithPermission) {
       const { data: store, error: storeError } = await supabaseClient
         .from('stores')
         .select('id')
