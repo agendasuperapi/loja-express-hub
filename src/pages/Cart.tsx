@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
+import { useCoupons } from "@/hooks/useCoupons";
 import { supabase } from "@/integrations/supabase/client";
 import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -28,6 +29,7 @@ export default function Cart() {
   const { user, signUp, signIn } = useAuth();
   const { cart, updateQuantity, removeFromCart, getTotal, clearCart, updateCartItem, applyCoupon, removeCoupon } = useCart();
   const { createOrder, isCreating, orders } = useOrders();
+  const { validateCoupon } = useCoupons(cart.storeId || undefined);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [couponInput, setCouponInput] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -122,11 +124,39 @@ export default function Cart() {
   }, [user]);
 
   const handleApplyCoupon = async () => {
-    toast({
-      title: "Sistema em manutenção",
-      description: "Execute o SQL create_coupons_system.sql no Supabase primeiro",
-      variant: "destructive",
-    });
+    if (!couponInput.trim()) {
+      toast({
+        title: "Cupom inválido",
+        description: "Digite um código de cupom",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    
+    try {
+      const subtotal = getTotal();
+      const result = await validateCoupon(couponInput.trim().toUpperCase(), subtotal);
+      
+      if (result.is_valid && result.discount_amount > 0) {
+        applyCoupon(couponInput.trim().toUpperCase(), result.discount_amount);
+        setCouponInput("");
+        toast({
+          title: "Cupom aplicado!",
+          description: `Você ganhou R$ ${result.discount_amount.toFixed(2)} de desconto`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao validar cupom:', error);
+      toast({
+        title: "Erro ao validar cupom",
+        description: "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    } finally {
+      setIsValidatingCoupon(false);
+    }
   };
 
   const handleRemoveCoupon = () => {
