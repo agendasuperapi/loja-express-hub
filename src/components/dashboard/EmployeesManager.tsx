@@ -169,11 +169,9 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       if (editingEmployee) {
         await updateEmployee(editingEmployee.id, formData);
       } else {
-        // Para novos funcionários, precisamos de um user_id válido
-        // Por enquanto, vamos criar um registro com o email
+        // Criar funcionário sem user_id (será preenchido quando aceitar convite)
         await createEmployee({
           store_id: storeId,
-          user_id: crypto.randomUUID(), // Temporário - deve ser substituído por sistema de convite
           ...formData,
           is_active: true,
         } as any);
@@ -847,14 +845,27 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={employee.is_active ? 'default' : 'secondary'}>
-                            {employee.is_active ? (
-                              <CheckCircle2 className="mr-1 h-3 w-3" />
-                            ) : (
-                              <XCircle className="mr-1 h-3 w-3" />
+                          <div className="flex gap-2 items-center">
+                            <Badge variant={employee.is_active ? 'default' : 'secondary'}>
+                              {employee.is_active ? (
+                                <>
+                                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                                  Ativo
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="mr-1 h-3 w-3" />
+                                  Inativo
+                                </>
+                              )}
+                            </Badge>
+                            {!employee.user_id && (
+                              <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
+                                <Mail className="mr-1 h-3 w-3" />
+                                Sem conta
+                              </Badge>
                             )}
-                            {employee.is_active ? 'Ativo' : 'Inativo'}
-                          </Badge>
+                          </div>
                         </TableCell>
                         <TableCell>
                           {format(new Date(employee.created_at), 'dd/MM/yyyy', { locale: ptBR })}

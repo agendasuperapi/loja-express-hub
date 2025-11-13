@@ -65,7 +65,7 @@ export interface EmployeePermissions {
 export interface StoreEmployee {
   id: string;
   store_id: string;
-  user_id: string;
+  user_id?: string | null;  // Opcional - preenchido quando funcionário aceitar convite
   employee_name: string;
   employee_email: string;
   employee_phone?: string;
