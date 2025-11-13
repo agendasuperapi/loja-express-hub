@@ -25,6 +25,7 @@ interface OrderItem {
   subtotal: number;
   observation?: string;
   pendingRemoval?: boolean;
+  deleted_at?: string | null;
 }
 
 interface EditOrderDialogProps {
@@ -106,8 +107,14 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
       return;
     }
 
-    setOrderItems(data || []);
-    setOriginalOrderItems(data || []);
+    // Marcar itens deletados como pendingRemoval
+    const itemsWithStatus = (data || []).map((item: any) => ({
+      ...item,
+      pendingRemoval: !!item.deleted_at
+    }));
+
+    setOrderItems(itemsWithStatus);
+    setOriginalOrderItems(itemsWithStatus);
   };
 
   const updateLocalOrderItem = (itemId: string, updates: Partial<OrderItem>) => {
@@ -165,7 +172,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
 
       const existingItemIds = new Set(existingItems?.map(item => item.id) || []);
 
-      // Deletar itens marcados para remoção
+      // Deletar/marcar itens como removidos
       const itemsToDelete = orderItems
         .filter(item => item.pendingRemoval && !item.id.startsWith('temp_'))
         .map(item => item.id);
@@ -173,7 +180,19 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
       for (const itemId of itemsToDelete) {
         await supabase
           .from('order_items')
-          .delete()
+          .update({ deleted_at: new Date().toISOString() } as any)
+          .eq('id', itemId);
+      }
+
+      // Restaurar itens (remover marca de deleção)
+      const itemsToRestore = orderItems
+        .filter(item => !item.pendingRemoval && item.deleted_at)
+        .map(item => item.id);
+
+      for (const itemId of itemsToRestore) {
+        await supabase
+          .from('order_items')
+          .update({ deleted_at: null } as any)
           .eq('id', itemId);
       }
 
