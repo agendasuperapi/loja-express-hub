@@ -70,7 +70,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] md:max-w-3xl lg:max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto p-4 md:p-6">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl lg:max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto p-4 md:p-6 [&>button]:w-10 [&>button]:h-10 [&>button]:rounded-full [&>button]:bg-background [&>button]:border-2 [&>button]:border-border [&>button]:shadow-lg [&>button]:hover:bg-muted [&>button>svg]:w-5 [&>button>svg]:h-5">
           <DialogHeader>
             <DialogTitle className="sr-only">{product.name}</DialogTitle>
           </DialogHeader>
