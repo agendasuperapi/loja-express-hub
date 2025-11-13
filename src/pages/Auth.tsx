@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, User, Lock, Check, Mail } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { signUpSchema, signInSchema } from "@/hooks/useAuthValidation";
@@ -16,10 +17,31 @@ export default function Auth() {
   const { hasRole, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    if (user && !roleLoading) {
-      const dashboardPath = hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard';
-      navigate(dashboardPath);
-    }
+    const checkAccessAndRedirect = async () => {
+      if (!user || roleLoading) return;
+      
+      if (hasRole('store_owner')) {
+        navigate('/dashboard-lojista');
+        return;
+      }
+      
+      // Verificar se é funcionário ativo
+      const { data } = await supabase
+        .from('store_employees' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      
+      if (data) {
+        navigate('/dashboard-lojista');
+      } else {
+        navigate('/dashboard');
+      }
+    };
+    
+    checkAccessAndRedirect();
   }, [user, hasRole, roleLoading, navigate]);
 
   const [isLogin, setIsLogin] = useState(true);

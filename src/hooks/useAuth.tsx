@@ -149,8 +149,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    // Check if user is store_owner before signing out
-    let isStoreOwner = false;
+    // Check if user is store_owner or employee before signing out
+    let isStoreOwnerOrEmployee = false;
     if (user) {
       const { data: rolesData } = await supabase
         .from('user_roles')
@@ -158,7 +158,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('user_id', user.id);
       
       const roles = rolesData?.map(r => r.role) || [];
-      isStoreOwner = roles.includes('store_owner');
+      isStoreOwnerOrEmployee = roles.includes('store_owner');
+      
+      // Se não é store_owner, verificar se é funcionário
+      if (!isStoreOwnerOrEmployee) {
+        const { data: employeeData } = await supabase
+          .from('store_employees' as any)
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
+        
+        isStoreOwnerOrEmployee = !!employeeData;
+      }
     }
 
     await supabase.auth.signOut();
@@ -167,7 +180,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast.success('Logout realizado com sucesso!');
     
     // Redirect based on user role
-    navigate(isStoreOwner ? '/login-lojista' : '/');
+    navigate(isStoreOwnerOrEmployee ? '/login-lojista' : '/');
   };
 
   return (

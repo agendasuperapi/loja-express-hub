@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -13,10 +15,34 @@ export const MobileBottomNav = () => {
   const navigate = useNavigate();
   const { getItemCount, getTotal } = useCart();
   const { hasRole } = useUserRole();
+  const { user } = useAuth();
   const itemCount = getItemCount();
   const total = getTotal();
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEmployee, setIsEmployee] = useState(false);
+
+  // Verificar se é funcionário
+  useEffect(() => {
+    const checkEmployee = async () => {
+      if (!user) {
+        setIsEmployee(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('store_employees' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      
+      setIsEmployee(!!data);
+    };
+    
+    checkEmployee();
+  }, [user]);
 
   useEffect(() => {
     const loadLastStore = () => {
@@ -44,7 +70,8 @@ export const MobileBottomNav = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const getDashboardPath = () => {
-    return hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard';
+    if (hasRole('store_owner') || isEmployee) return '/dashboard-lojista';
+    return '/dashboard';
   };
 
   const handleHomeClick = () => {

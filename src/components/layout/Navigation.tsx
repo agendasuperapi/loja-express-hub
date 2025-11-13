@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 
 export const Navigation = () => {
@@ -18,6 +19,29 @@ export const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
+  const [isEmployee, setIsEmployee] = useState(false);
+
+  // Verificar se é funcionário
+  useEffect(() => {
+    const checkEmployee = async () => {
+      if (!user) {
+        setIsEmployee(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('store_employees' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      
+      setIsEmployee(!!data);
+    };
+    
+    checkEmployee();
+  }, [user]);
 
   // All hooks must be called before any conditional returns
   useEffect(() => {
@@ -95,7 +119,7 @@ export const Navigation = () => {
                     </Button>
                   </Link>
                 )}
-                <Link to={hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard'}>
+                <Link to={(hasRole('store_owner') || isEmployee) ? '/dashboard-lojista' : '/dashboard'}>
                   <Button variant="ghost" size="sm">
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
@@ -211,7 +235,7 @@ export const Navigation = () => {
                   )}
                   {user ? (
                     <>
-                      <Link to={hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard'} className="block">
+                      <Link to={(hasRole('store_owner') || isEmployee) ? '/dashboard-lojista' : '/dashboard'} className="block">
                         <Button variant="outline" className="w-full">
                           <LayoutDashboard className="w-4 h-4 mr-2" />
                           Dashboard
