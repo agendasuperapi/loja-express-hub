@@ -55,6 +55,7 @@ export default function Cart() {
   const [authFullName, setAuthFullName] = useState("");
   const [authPhone, setAuthPhone] = useState("");
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [storeData, setStoreData] = useState<any>(null);
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
@@ -293,102 +294,109 @@ export default function Cart() {
   };
 
   const handleCheckout = async () => {
-    if (!user) {
-      toast({
-        title: "Login necessário",
-        description: "Por favor, faça login para finalizar o pedido",
-        variant: "destructive",
-      });
-      setCurrentStep(1);
-      return;
-    }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    if (!storeIsOpen) {
-      toast({
-        title: "Loja fechada",
-        description: `Não é possível finalizar pedidos. ${storeStatusText}`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood)) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios de entrega.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Update user profile with current data
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        full_name: customerName,
-        phone: normalizePhone(customerPhone),
-        street: deliveryType === 'delivery' ? deliveryStreet : null,
-        street_number: deliveryType === 'delivery' ? deliveryNumber : null,
-        neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
-        complement: deliveryType === 'delivery' ? deliveryComplement : null,
-      })
-      .eq('id', user.id);
-
-    if (profileError) {
-      console.error('Profile update error:', profileError);
-      toast({
-        title: "Erro ao atualizar perfil",
-        description: profileError.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Create order
     try {
-      await createOrder({
-        storeId: cart.storeId!,
-        items: cart.items.map(item => ({
-          productId: item.productId,
-          productName: item.productName,
-          quantity: item.quantity,
-          unitPrice: item.promotionalPrice || item.price,
-          observation: item.observation || undefined,
-          addons: Array.isArray(item.addons) 
-            ? item.addons
-                .filter(addon => addon && addon.name && typeof addon.price === 'number')
-                .map(addon => ({
-                  name: String(addon.name),
-                  price: Number(addon.price),
-                }))
-            : [],
-        })),
-        customerName,
-        customerPhone,
-        deliveryType,
-        deliveryStreet: deliveryType === 'delivery' ? (deliveryStreet || undefined) : undefined,
-        deliveryNumber: deliveryType === 'delivery' ? (deliveryNumber || undefined) : undefined,
-        deliveryNeighborhood: deliveryType === 'delivery' ? (deliveryNeighborhood || undefined) : undefined,
-        deliveryComplement: deliveryType === 'delivery' ? (deliveryComplement || undefined) : undefined,
-        paymentMethod,
-        changeAmount: paymentMethod === 'dinheiro' && changeAmount ? Number(parseFloat(changeAmount)) : undefined,
-      });
-
-      console.log('Order created successfully, clearing cart...');
-      
-      // Clear cart and navigate after successful order
-      clearCart();
-      console.log('Cart cleared successfully');
-      
-      // Small delay to ensure state updates
-      setTimeout(() => {
-        console.log('Navigating to orders page...');
-        navigate('/orders');
-      }, 100);
-      
-    } catch (error) {
-      console.error('Order creation failed:', error);
-      // Error toast is already shown by the mutation
+      if (!user) {
+        toast({
+          title: "Login necessário",
+          description: "Por favor, faça login para finalizar o pedido",
+          variant: "destructive",
+        });
+        setCurrentStep(1);
+        return;
+      }
+  
+      if (!storeIsOpen) {
+        toast({
+          title: "Loja fechada",
+          description: `Não é possível finalizar pedidos. ${storeStatusText}`,
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      if (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood)) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Por favor, preencha todos os campos obrigatórios de entrega.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      // Update user profile with current data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: customerName,
+          phone: normalizePhone(customerPhone),
+          street: deliveryType === 'delivery' ? deliveryStreet : null,
+          street_number: deliveryType === 'delivery' ? deliveryNumber : null,
+          neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
+          complement: deliveryType === 'delivery' ? deliveryComplement : null,
+        })
+        .eq('id', user.id);
+  
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        toast({
+          title: "Erro ao atualizar perfil",
+          description: profileError.message,
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      // Create order
+      try {
+        await createOrder({
+          storeId: cart.storeId!,
+          items: cart.items.map(item => ({
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.quantity,
+            unitPrice: item.promotionalPrice || item.price,
+            observation: item.observation || undefined,
+            addons: Array.isArray(item.addons) 
+              ? item.addons
+                  .filter(addon => addon && addon.name && typeof addon.price === 'number')
+                  .map(addon => ({
+                    name: String(addon.name),
+                    price: Number(addon.price),
+                  }))
+              : [],
+          })),
+          customerName,
+          customerPhone,
+          deliveryType,
+          deliveryStreet: deliveryType === 'delivery' ? (deliveryStreet || undefined) : undefined,
+          deliveryNumber: deliveryType === 'delivery' ? (deliveryNumber || undefined) : undefined,
+          deliveryNeighborhood: deliveryType === 'delivery' ? (deliveryNeighborhood || undefined) : undefined,
+          deliveryComplement: deliveryType === 'delivery' ? (deliveryComplement || undefined) : undefined,
+          paymentMethod,
+          changeAmount: paymentMethod === 'dinheiro' && changeAmount ? Number(parseFloat(changeAmount)) : undefined,
+        });
+  
+        console.log('Order created successfully, clearing cart...');
+        
+        // Clear cart and navigate after successful order
+        clearCart();
+        console.log('Cart cleared successfully');
+        
+        // Small delay to ensure state updates
+        setTimeout(() => {
+          console.log('Navigating to orders page...');
+          navigate('/orders');
+        }, 100);
+        
+      } catch (error) {
+        console.error('Order creation failed:', error);
+        // Error toast is already shown by the mutation
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -988,6 +996,7 @@ export default function Cart() {
                         disabled={
                           !storeIsOpen || 
                           isCreating || 
+                          isSubmitting ||
                           !customerName ||
                           !customerPhone ||
                           (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood))
