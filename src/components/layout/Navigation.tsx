@@ -13,14 +13,14 @@ import { useState, useEffect } from "react";
 export const Navigation = () => {
   const { user, signOut } = useAuth();
   const { getItemCount } = useCart();
-  const { hasRole } = useUserRole();
+  const { hasRole, loading } = useUserRole();
   const itemCount = getItemCount();
   const navigate = useNavigate();
   const location = useLocation();
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
 
   // Hide navigation on dashboard page only for store owners
-  if (location.pathname === '/dashboard' && hasRole('store_owner')) {
+  if (!loading && location.pathname === '/dashboard' && hasRole('store_owner')) {
     return null;
   }
 
