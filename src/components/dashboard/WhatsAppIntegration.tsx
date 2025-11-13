@@ -26,9 +26,12 @@ const invokeEvolution = async (payload: any) => {
   console.log('[WhatsApp] Sessão ativa. Access token:', session.access_token.substring(0, 20) + '...');
   console.log('[WhatsApp] Chamando edge function...');
   
-  // Use supabase.functions.invoke which handles authentication automatically
+  // Use supabase.functions.invoke passing the JWT explicitly
   const { data, error } = await supabase.functions.invoke('evolution-whatsapp', {
-    body: payload
+    body: payload,
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    }
   });
   
   if (error) {
