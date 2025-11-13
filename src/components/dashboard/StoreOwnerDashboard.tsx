@@ -154,6 +154,20 @@ export const StoreOwnerDashboard = () => {
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false);
 
+  // Ajustar filtro padrão baseado em permissões
+  useEffect(() => {
+    if (employeeAccess.isEmployee) {
+      if (orderStatusFilter === 'all' && !canViewAllOrders) {
+        // Se não pode ver "todos", definir para o primeiro status permitido
+        if (canViewPendingOrders) {
+          setOrderStatusFilter('pending');
+        } else if (customStatuses.length > 0) {
+          setOrderStatusFilter(customStatuses[0].status_key);
+        }
+      }
+    }
+  }, [employeeAccess.isEmployee, canViewAllOrders, canViewPendingOrders, customStatuses]);
+
   useEffect(() => {
     if (myStore) {
       setStoreForm({
@@ -386,6 +400,25 @@ export const StoreOwnerDashboard = () => {
     if (!orders) return [];
     
     return orders.filter(order => {
+      // Validação de permissões de visualização
+      if (employeeAccess.isEmployee) {
+        // Se não pode ver "todos", só pode ver o status específico permitido
+        if (!canViewAllOrders) {
+          const orderIsPending = order.status === 'pending';
+          const canSeePending = canViewPendingOrders;
+          
+          // Se o pedido é pendente e não pode ver pendentes, bloquear
+          if (orderIsPending && !canSeePending) {
+            return false;
+          }
+          
+          // Se o pedido não é pendente e só pode ver pendentes, bloquear
+          if (!orderIsPending && !canSeePending) {
+            return false;
+          }
+        }
+      }
+      
       // Filtro de pesquisa por nome do cliente ou número do pedido
       if (orderSearchTerm.trim() !== '') {
         const searchLower = orderSearchTerm.toLowerCase().trim();
@@ -1344,21 +1377,30 @@ export const StoreOwnerDashboard = () => {
 
               {/* Botões de Status */}
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={orderStatusFilter === 'all' ? 'default' : 'outline'}
-                  onClick={() => setOrderStatusFilter('all')}
-                  className="flex items-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Todos
-                  <Badge variant="secondary" className="ml-1">
-                    {orders?.length || 0}
-                  </Badge>
-                </Button>
+                {canViewAllOrders && (
+                  <Button
+                    variant={orderStatusFilter === 'all' ? 'default' : 'outline'}
+                    onClick={() => setOrderStatusFilter('all')}
+                    className="flex items-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Todos
+                    <Badge variant="secondary" className="ml-1">
+                      {orders?.length || 0}
+                    </Badge>
+                  </Button>
+                )}
                 
                 {customStatuses.map((status) => {
                   const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
                   const isActive = orderStatusFilter === status.status_key;
+                  
+                  // Verificar se tem permissão para visualizar este status
+                  const canViewThisStatus = 
+                    status.status_key === 'pending' ? canViewPendingOrders :
+                    canViewAllOrders;
+                  
+                  if (!canViewThisStatus) return null;
                   
                   return (
                     <Button
@@ -1505,40 +1547,55 @@ export const StoreOwnerDashboard = () => {
                         <Separator className="my-4" />
 
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingOrder(order);
-                              setIsEditOrderDialogOpen(true);
-                            }}
-                            className="flex items-center gap-2"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                            Editar Pedido
-                          </Button>
+                          {hasPermission('orders', 'edit_order_details') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingOrder(order);
+                                setIsEditOrderDialogOpen(true);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              Editar Pedido
+                            </Button>
+                          )}
                           <Select
                             value={order.status}
-                            onValueChange={(newStatus) => updateOrderStatus({ orderId: order.id, status: newStatus })}
+                            onValueChange={(newStatus) => {
+                              // Verificar permissão antes de permitir mudança
+                              if (!canChangeTo(newStatus)) {
+                                toast({
+                                  title: "Sem permissão",
+                                  description: "Você não tem permissão para alterar para este status.",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+                              updateOrderStatus({ orderId: order.id, status: newStatus });
+                            }}
                           >
                             <SelectTrigger className="flex-1">
                               <SelectValue placeholder="Alterar status" />
                             </SelectTrigger>
                             <SelectContent>
                               {customStatuses.length > 0 ? (
-                                customStatuses.map((status) => (
-                                  <SelectItem key={status.status_key} value={status.status_key}>
-                                    {status.status_label}
-                                  </SelectItem>
-                                ))
+                                customStatuses
+                                  .filter(status => canChangeTo(status.status_key))
+                                  .map((status) => (
+                                    <SelectItem key={status.status_key} value={status.status_key}>
+                                      {status.status_label}
+                                    </SelectItem>
+                                  ))
                               ) : (
                                 <>
-                                  <SelectItem value="pending">Pendente</SelectItem>
-                                  <SelectItem value="confirmed">Confirmado</SelectItem>
-                                  <SelectItem value="preparing">Preparando</SelectItem>
-                                  <SelectItem value="ready">Pronto</SelectItem>
-                                  <SelectItem value="delivered">Entregue</SelectItem>
-                                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                                  {canChangeTo('pending') && <SelectItem value="pending">Pendente</SelectItem>}
+                                  {canChangeTo('confirmed') && <SelectItem value="confirmed">Confirmado</SelectItem>}
+                                  {canChangeTo('preparing') && <SelectItem value="preparing">Preparando</SelectItem>}
+                                  {canChangeTo('ready') && <SelectItem value="ready">Pronto</SelectItem>}
+                                  {canChangeTo('delivered') && <SelectItem value="delivered">Entregue</SelectItem>}
+                                  {canChangeTo('cancelled') && <SelectItem value="cancelled">Cancelado</SelectItem>}
                                 </>
                               )}
                             </SelectContent>
