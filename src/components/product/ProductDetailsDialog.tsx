@@ -81,7 +81,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
               <img
                 src={product.image_url || '/placeholder.svg'}
                 alt={product.name}
-                className="w-full aspect-square object-cover rounded-lg"
+                className="w-full h-48 md:aspect-square object-cover rounded-lg"
               />
               {hasDiscount && (
                 <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground">
