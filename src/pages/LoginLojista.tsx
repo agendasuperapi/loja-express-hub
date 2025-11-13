@@ -23,11 +23,31 @@ export default function LoginLojista() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Redirect if already logged in as store_owner
+  // Redirect if already logged in as store_owner or employee
   useEffect(() => {
-    if (user && !roleLoading && hasRole('store_owner')) {
-      navigate('/dashboard-lojista');
-    }
+    const checkAccess = async () => {
+      if (!user || roleLoading) return;
+      
+      if (hasRole('store_owner')) {
+        navigate('/dashboard-lojista');
+        return;
+      }
+
+      // Verificar se é funcionário ativo
+      const { data: employeeData } = await supabase
+        .from('store_employees' as any)
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (employeeData) {
+        navigate('/dashboard-lojista');
+      }
+    };
+    
+    checkAccess();
   }, [user, hasRole, roleLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -57,26 +77,57 @@ export default function LoginLojista() {
         console.error('Erro ao verificar role:', roleError);
       }
 
-      if (!roleData) {
-        // Não é lojista
+      let isStoreOwner = !!roleData;
+      let isEmployee = false;
+      let storeName = '';
+
+      // Se não é store_owner, verificar se é funcionário ativo
+      if (!isStoreOwner) {
+        const { data: employeeData } = await supabase
+          .from('store_employees' as any)
+          .select(`
+            id,
+            is_active,
+            stores:store_id (
+              name
+            )
+          `)
+          .eq('user_id', authData.user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (employeeData) {
+          isEmployee = true;
+          storeName = (employeeData as any).stores?.name || '';
+        }
+      }
+
+      // Se não é nem lojista nem funcionário, fazer logout e mostrar erro
+      if (!isStoreOwner && !isEmployee) {
         await supabase.auth.signOut();
-        setError("Esta conta não está registrada como lojista. Use o login de clientes ou cadastre sua loja.");
+        setError("Esta conta não está registrada como lojista ou funcionário. Use o login de clientes ou cadastre sua loja.");
         setIsLoading(false);
         return;
       }
 
-      // Verificar se tem loja cadastrada
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('id, status, name')
-        .eq('owner_id', authData.user.id)
-        .maybeSingle();
+      // Se é store_owner, verificar se tem loja cadastrada
+      if (isStoreOwner) {
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('id, status, name')
+          .eq('owner_id', authData.user.id)
+          .maybeSingle();
+
+        storeName = storeData?.name || '';
+      }
 
       toast({
         title: "Login realizado!",
-        description: storeData 
-          ? `Bem-vindo de volta, ${storeData.name}!`
-          : "Bem-vindo! Complete o cadastro da sua loja.",
+        description: isEmployee 
+          ? `Bem-vindo, funcionário${storeName ? ` da loja ${storeName}` : ''}!`
+          : storeName 
+            ? `Bem-vindo de volta, ${storeName}!`
+            : "Bem-vindo! Complete o cadastro da sua loja.",
       });
 
       // Redirecionar para dashboard
@@ -107,7 +158,7 @@ export default function LoginLojista() {
               Login de Lojista
             </h1>
             <p className="text-muted-foreground">
-              Acesse o painel de gerenciamento da sua loja
+              Acesse o painel de gerenciamento da sua loja ou área de funcionário
             </p>
           </div>
 
