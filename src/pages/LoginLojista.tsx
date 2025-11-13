@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
@@ -11,13 +11,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Store, LogIn, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export default function LoginLojista() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { hasRole, loading: roleLoading } = useUserRole();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  // Redirect if already logged in as store_owner
+  useEffect(() => {
+    if (user && !roleLoading && hasRole('store_owner')) {
+      navigate('/dashboard-lojista');
+    }
+  }, [user, hasRole, roleLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
