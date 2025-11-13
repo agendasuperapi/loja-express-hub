@@ -61,7 +61,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       toast.success('Conta criada com sucesso!');
       if (!skipNavigation && data.user) {
-        navigate('/dashboard');
+        // Check user role to determine navigation
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        const dashboardPath = roleData?.role === 'store_owner' ? '/dashboard-lojista' : '/dashboard';
+        navigate(dashboardPath);
       }
     }
 
@@ -79,7 +87,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       toast.success('Login realizado com sucesso!');
       if (!skipNavigation && data.user) {
-        navigate('/dashboard');
+        // Check user role to determine navigation
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id)
+          .single();
+        
+        const dashboardPath = roleData?.role === 'store_owner' ? '/dashboard-lojista' : '/dashboard';
+        navigate(dashboardPath);
       }
     }
 

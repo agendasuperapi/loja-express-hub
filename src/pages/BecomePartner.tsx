@@ -136,7 +136,7 @@ export default function BecomePartner() {
         
         // Aguardar um momento para garantir que o estado do auth foi atualizado
         setTimeout(() => {
-          navigate("/dashboard");
+          navigate("/dashboard-lojista");
         }, 1000);
       },
     });

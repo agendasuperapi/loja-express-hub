@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCart } from "@/contexts/CartContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -11,6 +12,7 @@ export const MobileBottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { getItemCount, getTotal } = useCart();
+  const { hasRole } = useUserRole();
   const itemCount = getItemCount();
   const total = getTotal();
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
@@ -40,6 +42,10 @@ export const MobileBottomNav = () => {
   }, []);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const getDashboardPath = () => {
+    return hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard';
+  };
 
   const handleHomeClick = () => {
     if (lastStore) {
@@ -111,7 +117,7 @@ export const MobileBottomNav = () => {
             <button
               className={cn(
                 "flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-lg transition-colors",
-                isActive('/dashboard')
+                isActive('/dashboard') || isActive('/dashboard-lojista')
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
@@ -141,7 +147,7 @@ export const MobileBottomNav = () => {
                 variant="ghost"
                 className="w-full justify-start gap-3 h-12"
                 onClick={() => {
-                  navigate('/dashboard');
+                  navigate(getDashboardPath());
                   setIsMenuOpen(false);
                 }}
               >

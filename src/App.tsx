@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MobileBottomNav } from "./components/layout/MobileBottomNav";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import DashboardLojista from "./pages/DashboardLojista";
 import Profile from "./pages/Profile";
 import StoreDetails from "./pages/StoreDetails";
 import Cart from "./pages/Cart";
@@ -38,6 +39,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/dashboard-lojista" 
+                element={
+                  <ProtectedRoute requireAuth={true} requireRole="store_owner">
+                    <DashboardLojista />
                   </ProtectedRoute>
                 } 
               />

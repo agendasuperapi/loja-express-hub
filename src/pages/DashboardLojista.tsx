@@ -1,8 +1,8 @@
 import { Navigation } from "@/components/layout/Navigation";
-import { CustomerDashboard } from "@/components/dashboard/CustomerDashboard";
+import { StoreOwnerDashboard } from "@/components/dashboard/StoreOwnerDashboard";
 import { motion } from "framer-motion";
 
-const Dashboard = () => {
+const DashboardLojista = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -12,11 +12,11 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <CustomerDashboard />
+          <StoreOwnerDashboard />
         </motion.div>
       </main>
     </div>
   );
 };
 
-export default Dashboard;
+export default DashboardLojista;

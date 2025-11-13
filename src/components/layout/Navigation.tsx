@@ -43,8 +43,8 @@ export const Navigation = () => {
     };
   }, []);
 
-  // Hide navigation on dashboard page only for store owners
-  if (!loading && location.pathname === '/dashboard' && hasRole('store_owner')) {
+  // Hide navigation on dashboard-lojista page
+  if (!loading && location.pathname === '/dashboard-lojista') {
     return null;
   }
 
@@ -93,7 +93,7 @@ export const Navigation = () => {
                     )}
                   </Button>
                 </Link>
-                <Link to="/dashboard">
+                <Link to={hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard'}>
                   <Button variant="ghost" size="sm">
                     <LayoutDashboard className="w-4 h-4 mr-2" />
                     Dashboard
@@ -199,7 +199,7 @@ export const Navigation = () => {
                   </Link>
                   {user ? (
                     <>
-                      <Link to="/dashboard" className="block">
+                      <Link to={hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard'} className="block">
                         <Button variant="outline" className="w-full">
                           <LayoutDashboard className="w-4 h-4 mr-2" />
                           Dashboard

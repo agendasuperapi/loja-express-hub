@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2, User, Lock, Check } from "lucide-react";
 import { Navigation } from "@/components/layout/Navigation";
 import { signUpSchema, signInSchema } from "@/hooks/useAuthValidation";
@@ -12,12 +13,14 @@ import { z } from "zod";
 export default function Auth() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasRole, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    if (user && !roleLoading) {
+      const dashboardPath = hasRole('store_owner') ? '/dashboard-lojista' : '/dashboard';
+      navigate(dashboardPath);
     }
-  }, [user, navigate]);
+  }, [user, hasRole, roleLoading, navigate]);
 
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");

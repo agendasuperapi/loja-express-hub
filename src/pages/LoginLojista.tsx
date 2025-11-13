@@ -69,7 +69,7 @@ export default function LoginLojista() {
       });
 
       // Redirecionar para dashboard
-      navigate('/dashboard');
+      navigate('/dashboard-lojista');
     } catch (error: any) {
       console.error('Erro no login:', error);
       setError(error.message || "Erro ao fazer login. Verifique suas credenciais.");
