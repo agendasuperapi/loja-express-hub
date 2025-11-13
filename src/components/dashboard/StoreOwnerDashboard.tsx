@@ -2048,40 +2048,6 @@ export const StoreOwnerDashboard = () => {
                           </div>
                           <Separator />
                           
-                          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                            <div className="flex items-center justify-between">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <Pizza className="w-4 h-4" />
-                                  <Label>Este produto permite múltiplos sabores (Pizza)</Label>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Ative para permitir que clientes escolham mais de um sabor
-                                </p>
-                              </div>
-                              <Switch
-                                checked={productForm.is_pizza}
-                                onCheckedChange={(checked) => setProductForm({ ...productForm, is_pizza: checked })}
-                              />
-                            </div>
-
-                            {productForm.is_pizza && (
-                              <div>
-                                <Label>Número máximo de sabores</Label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="4"
-                                  value={productForm.max_flavors}
-                                  onChange={(e) => setProductForm({ ...productForm, max_flavors: parseInt(e.target.value) || 2 })}
-                                />
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Define quantos sabores o cliente pode escolher (ex: 2 para meio a meio)
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
                           <div className="flex items-center gap-2">
                             <Switch
                               checked={productForm.is_available}
@@ -2099,7 +2065,43 @@ export const StoreOwnerDashboard = () => {
 
                         <TabsContent value="flavors" className="mt-4">
                           {editingProduct && (
-                            <ProductFlavorsManager productId={editingProduct.id} />
+                            <>
+                              <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                      <Pizza className="w-4 h-4" />
+                                      <Label>Este produto permite múltiplos sabores</Label>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Ative para permitir que clientes escolham mais de um sabor
+                                    </p>
+                                  </div>
+                                  <Switch
+                                    checked={productForm.is_pizza}
+                                    onCheckedChange={(checked) => setProductForm({ ...productForm, is_pizza: checked })}
+                                  />
+                                </div>
+
+                                {productForm.is_pizza && (
+                                  <div>
+                                    <Label>Número máximo de sabores</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      max="4"
+                                      value={productForm.max_flavors}
+                                      onChange={(e) => setProductForm({ ...productForm, max_flavors: parseInt(e.target.value) || 2 })}
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Define quantos sabores o cliente pode escolher (ex: 2 para meio a meio)
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <ProductFlavorsManager productId={editingProduct.id} />
+                            </>
                           )}
                         </TabsContent>
                       </Tabs>
