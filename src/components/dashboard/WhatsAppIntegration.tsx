@@ -64,6 +64,37 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
     return () => clearInterval(statusInterval);
   }, [instanceName]);
 
+  // Atualizar QR code automaticamente a cada 10 segundos enquanto não conectar
+  useEffect(() => {
+    if (!qrCode || isConnected || !instanceName) return;
+
+    console.log('[WhatsApp] Iniciando atualização automática do QR code');
+    
+    const qrRefreshInterval = setInterval(async () => {
+      console.log('[WhatsApp] Atualizando QR code...');
+      try {
+        const { data, error } = await invokeEvolution({ 
+          action: 'create_instance',
+          storeId: storeId,
+          instanceName: instanceName,
+          phoneNumber: phoneNumber
+        });
+
+        if (!error && data?.qrcode) {
+          setQrCode(data.qrcode.base64);
+          console.log('[WhatsApp] QR code atualizado com sucesso');
+        }
+      } catch (error) {
+        console.error('[WhatsApp] Erro ao atualizar QR code:', error);
+      }
+    }, 10000); // Atualizar a cada 10 segundos
+
+    return () => {
+      console.log('[WhatsApp] Parando atualização automática do QR code');
+      clearInterval(qrRefreshInterval);
+    };
+  }, [qrCode, isConnected, instanceName, phoneNumber, storeId]);
+
   const checkExistingInstance = async () => {
     try {
       // Buscar da tabela store_instances
