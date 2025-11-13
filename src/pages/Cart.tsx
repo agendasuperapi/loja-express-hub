@@ -169,7 +169,7 @@ export default function Cart() {
 
   const deliveryFee = deliveryType === 'pickup' ? 0 : 5;
   const subtotal = getTotal();
-  const total = subtotal + deliveryFee - cart.couponDiscount;
+  const total = Math.max(0, subtotal + deliveryFee - (cart.couponDiscount || 0));
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
