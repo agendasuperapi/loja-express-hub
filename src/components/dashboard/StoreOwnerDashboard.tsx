@@ -46,6 +46,7 @@ import { PersonalDataSettings } from "@/components/settings/PersonalDataSettings
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -98,6 +99,8 @@ export const StoreOwnerDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
+  const [currentOrderPage, setCurrentOrderPage] = useState(1);
+  const ordersPerPage = 10;
   const [activeTab, setActiveTab] = useState('home');
   const [periodFilter, setPeriodFilter] = useState<string>("all");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -120,6 +123,11 @@ export const StoreOwnerDashboard = () => {
       });
     }
   }, [myStore]);
+
+  // Reset current page when filters change
+  useEffect(() => {
+    setCurrentOrderPage(1);
+  }, [orderStatusFilter, dateFilter, customDateRange]);
 
   const statusConfig: Record<string, { label: string; color: string }> = {
     pending_approval: { label: 'Aguardando Aprovação', color: 'bg-yellow-500' },
@@ -1259,8 +1267,8 @@ export const StoreOwnerDashboard = () => {
             {/* Lista de Pedidos */}
             {orders && orders.length > 0 ? (
               <div className="space-y-6">
-                {orders
-                  .filter(order => {
+                {(() => {
+                  const filteredOrders = orders.filter(order => {
                     // Filtro de status
                     if (orderStatusFilter !== 'all' && order.status !== orderStatusFilter) {
                       return false;
@@ -1283,8 +1291,16 @@ export const StoreOwnerDashboard = () => {
                     }
                     
                     return true;
-                  })
-                  .map((order, index, filteredOrders) => (
+                  });
+
+                  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+                  const startIndex = (currentOrderPage - 1) * ordersPerPage;
+                  const endIndex = startIndex + ordersPerPage;
+                  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+                  return (
+                    <>
+                      {paginatedOrders.map((order, index) => (
                     <div key={order.id}>
                       <Card className="hover:shadow-lg transition-shadow">
                         <CardContent className="p-6">
@@ -1383,13 +1399,76 @@ export const StoreOwnerDashboard = () => {
                       </Card>
                       
                       {/* Separador grosso entre pedidos */}
-                      {index < filteredOrders.length - 1 && (
+                      {index < paginatedOrders.length - 1 && (
                         <div className="relative py-4">
                           <Separator className="h-[3px] bg-orange-500" />
                         </div>
                       )}
                     </div>
                   ))}
+
+                  {/* Paginação */}
+                  {totalPages > 1 && (
+                    <div className="mt-8">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentOrderPage(prev => Math.max(prev - 1, 1))}
+                              className={cn(
+                                "cursor-pointer",
+                                currentOrderPage === 1 && "pointer-events-none opacity-50"
+                              )}
+                            />
+                          </PaginationItem>
+                          
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            // Mostrar primeira página, última página, página atual e páginas adjacentes
+                            if (
+                              page === 1 ||
+                              page === totalPages ||
+                              (page >= currentOrderPage - 1 && page <= currentOrderPage + 1)
+                            ) {
+                              return (
+                                <PaginationItem key={page}>
+                                  <PaginationLink
+                                    onClick={() => setCurrentOrderPage(page)}
+                                    isActive={currentOrderPage === page}
+                                    className="cursor-pointer"
+                                  >
+                                    {page}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            } else if (
+                              page === currentOrderPage - 2 ||
+                              page === currentOrderPage + 2
+                            ) {
+                              return (
+                                <PaginationItem key={page}>
+                                  <PaginationEllipsis />
+                                </PaginationItem>
+                              );
+                            }
+                            return null;
+                          })}
+
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentOrderPage(prev => Math.min(prev + 1, totalPages))}
+                              className={cn(
+                                "cursor-pointer",
+                                currentOrderPage === totalPages && "pointer-events-none opacity-50"
+                              )}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </>
+                  );
+                })()}
               </div>
             ) : (
               <Card className="border-dashed">
