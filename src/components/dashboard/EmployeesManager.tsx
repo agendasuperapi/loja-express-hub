@@ -126,11 +126,11 @@ const DEFAULT_PERMISSIONS: EmployeePermissions = {
     export: false,
   },
   settings: {
-    view: false,
+    view: true,
     update_store_info: false,
     update_delivery_settings: false,
     update_operating_hours: false,
-    manage_whatsapp: false,
+    manage_whatsapp: true,
   },
 };
 
