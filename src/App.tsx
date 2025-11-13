@@ -6,6 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { CartProvider } from "./contexts/CartContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { StoreAccessRoute } from "./components/auth/StoreAccessRoute";
 import { MobileBottomNav } from "./components/layout/MobileBottomNav";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -45,9 +46,10 @@ const App = () => (
               <Route 
                 path="/dashboard-lojista" 
                 element={
-                  <ProtectedRoute requireAuth={true} requireRole="store_owner" redirectPath="/login-lojista">
+                  // Permite acesso para dono da loja OU funcionário ativo
+                  <StoreAccessRoute redirectPath="/login-lojista">
                     <DashboardLojista />
-                  </ProtectedRoute>
+                  </StoreAccessRoute>
                 } 
               />
               <Route 
