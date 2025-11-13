@@ -4,35 +4,45 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { EmployeePermissions } from "@/hooks/useStoreEmployees";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   storeLogo?: string;
   storeName?: string;
+  isEmployee?: boolean;
+  employeePermissions?: EmployeePermissions | null;
 }
 
-export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName }: DashboardSidebarProps) => {
+export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
 
+  // Função para verificar se o funcionário tem permissão
+  const hasPermission = (module: string, action: string = 'view'): boolean => {
+    if (!isEmployee || !employeePermissions) return true; // Donos de loja veem tudo
+    
+    const modulePermissions = (employeePermissions as any)[module];
+    if (!modulePermissions) return false;
+    
+    return modulePermissions[action] === true;
+  };
+
   const cadastrosSubItems = [
-    { id: 'produtos', label: 'produtos', icon: Package },
-    { id: 'cupons', label: 'cupons', icon: Tag },
-    { id: 'categorias', label: 'categorias', icon: FolderTree },
-    { id: 'clientes', label: 'clientes', icon: Users },
-    { id: 'funcionarios', label: 'funcionários', icon: UserCog },
-    { id: 'fornecedores', label: 'fornecedores', icon: Truck },
-    { id: 'entregadores', label: 'entregadores', icon: Bike },
-    { id: 'bairros', label: 'bairros', icon: MapPin },
+    ...(hasPermission('products') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
+    ...(hasPermission('coupons') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
+    ...(hasPermission('categories') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
+    ...(hasPermission('employees') ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
 
   const menuItems = [
-    { id: 'home', label: 'home', icon: Home },
-    { id: 'metricas', label: 'métricas', icon: TrendingUp },
-    { id: 'pedidos', label: 'pedidos', icon: ShoppingCart },
-    { id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true },
-    { id: 'result', label: 'Configurações', icon: BarChart3 },
-  ];
+    { id: 'home', label: 'home', icon: Home, show: true },
+    ...(hasPermission('reports') ? [{ id: 'metricas', label: 'métricas', icon: TrendingUp, show: true }] : []),
+    ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
+    ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
+    ...(hasPermission('settings') ? [{ id: 'result', label: 'Configurações', icon: BarChart3, show: true }] : []),
+  ].filter(item => item.show);
 
   return (
     <motion.div
@@ -40,7 +50,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
       animate={{ x: 0, opacity: 1 }}
       className="w-32 bg-background/95 backdrop-blur-xl border-r border-border/50 min-h-screen flex flex-col items-center py-8 shadow-lg"
     >
-      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20 overflow-hidden">
+      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20 overflow-hidden">
         {storeLogo ? (
           <img 
             src={storeLogo} 
@@ -51,6 +61,12 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
           <span className="text-primary font-bold text-3xl">U</span>
         )}
       </div>
+      
+      {isEmployee && (
+        <Badge variant="secondary" className="mb-8 text-xs">
+          Funcionário
+        </Badge>
+      )}
 
       <nav className="flex-1 w-full space-y-1 px-2">
         {menuItems.map((item, index) => {

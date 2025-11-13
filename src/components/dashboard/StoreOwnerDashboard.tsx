@@ -51,10 +51,14 @@ import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
+import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isStoreOwner } = useUserRole();
+  const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
   const { products, createProduct, updateProduct, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
@@ -594,12 +598,14 @@ export const StoreOwnerDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background w-full">
-      <DashboardSidebar 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        storeLogo={myStore?.logo_url}
-        storeName={myStore?.name}
-      />
+        <DashboardSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab}
+          storeLogo={myStore?.logo_url}
+          storeName={myStore?.name}
+          isEmployee={employeeAccess.isEmployee}
+          employeePermissions={employeeAccess.permissions}
+        />
       
       <div className="flex-1">{activeTab === 'home' && (
           <motion.div

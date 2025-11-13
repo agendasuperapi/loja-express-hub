@@ -61,16 +61,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       toast.success('Conta criada com sucesso!');
       if (!skipNavigation && data.user) {
-        // Check user roles to determine navigation - prioritize store_owner
+        // Check user roles to determine navigation - prioritize store_owner, then employee
         const { data: rolesData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id);
         
         const roles = rolesData?.map(r => r.role) || [];
-        const dashboardPath = roles.includes('store_owner') ? '/dashboard-lojista' : '/dashboard';
-        console.log('Auth signUp redirect:', { userId: data.user.id, roles, dashboardPath });
-        navigate(dashboardPath);
+        
+        // Check if user is a store owner
+        if (roles.includes('store_owner')) {
+          console.log('Auth signUp redirect: store_owner to /dashboard-lojista');
+          navigate('/dashboard-lojista');
+          return { error };
+        }
+        
+        // Check if user is an active employee
+        const { data: employeeData } = await supabase
+          .from('store_employees' as any)
+          .select('id, store_id, is_active')
+          .eq('user_id', data.user.id)
+          .eq('is_active', true)
+          .single();
+        
+        if (employeeData) {
+          console.log('Auth signUp redirect: employee to /dashboard-lojista');
+          navigate('/dashboard-lojista');
+          return { error };
+        }
+        
+        // Default to customer dashboard
+        console.log('Auth signUp redirect: customer to /dashboard');
+        navigate('/dashboard');
       }
     }
 
@@ -88,16 +110,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } else {
       toast.success('Login realizado com sucesso!');
       if (!skipNavigation && data.user) {
-        // Check user roles to determine navigation - prioritize store_owner
+        // Check user roles to determine navigation - prioritize store_owner, then employee
         const { data: rolesData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', data.user.id);
         
         const roles = rolesData?.map(r => r.role) || [];
-        const dashboardPath = roles.includes('store_owner') ? '/dashboard-lojista' : '/dashboard';
-        console.log('Auth signIn redirect:', { userId: data.user.id, roles, dashboardPath });
-        navigate(dashboardPath);
+        
+        // Check if user is a store owner
+        if (roles.includes('store_owner')) {
+          console.log('Auth signIn redirect: store_owner to /dashboard-lojista');
+          navigate('/dashboard-lojista');
+          return { error };
+        }
+        
+        // Check if user is an active employee
+        const { data: employeeData } = await supabase
+          .from('store_employees' as any)
+          .select('id, store_id, is_active')
+          .eq('user_id', data.user.id)
+          .eq('is_active', true)
+          .single();
+        
+        if (employeeData) {
+          console.log('Auth signIn redirect: employee to /dashboard-lojista');
+          navigate('/dashboard-lojista');
+          return { error };
+        }
+        
+        // Default to customer dashboard
+        console.log('Auth signIn redirect: customer to /dashboard');
+        navigate('/dashboard');
       }
     }
 
