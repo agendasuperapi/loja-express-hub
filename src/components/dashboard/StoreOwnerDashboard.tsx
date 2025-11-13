@@ -1428,6 +1428,20 @@ export const StoreOwnerDashboard = () => {
                   const endIndex = startIndex + ordersPerPage;
                   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
+                  if (filteredOrders.length === 0) {
+                    return (
+                      <Card className="border-dashed">
+                        <CardContent className="py-12 text-center">
+                          <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                          <h3 className="text-lg font-semibold mb-2">Nenhum pedido encontrado</h3>
+                          <p className="text-muted-foreground">
+                            Nenhum pedido corresponde aos filtros selecionados
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+
                   return (
                     <>
                       {paginatedOrders.map((order, index) => (
@@ -1539,7 +1553,7 @@ export const StoreOwnerDashboard = () => {
 
                   {/* Paginação */}
                   {totalPages > 1 && (
-                    <div className="mt-8">
+                    <div className="mt-8 space-y-4">
                       <Pagination>
                         <PaginationContent>
                           <PaginationItem>
@@ -1553,12 +1567,12 @@ export const StoreOwnerDashboard = () => {
                           </PaginationItem>
                           
                           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                            // Mostrar primeira página, última página, página atual e páginas adjacentes
-                            if (
-                              page === 1 ||
-                              page === totalPages ||
-                              (page >= currentOrderPage - 1 && page <= currentOrderPage + 1)
-                            ) {
+                            const showPage = page === 1 || 
+                                           page === totalPages || 
+                                           (page >= currentOrderPage - 1 && page <= currentOrderPage + 1);
+                            const showEllipsis = page === currentOrderPage - 2 || page === currentOrderPage + 2;
+                            
+                            if (showPage) {
                               return (
                                 <PaginationItem key={page}>
                                   <PaginationLink
@@ -1570,12 +1584,9 @@ export const StoreOwnerDashboard = () => {
                                   </PaginationLink>
                                 </PaginationItem>
                               );
-                            } else if (
-                              page === currentOrderPage - 2 ||
-                              page === currentOrderPage + 2
-                            ) {
+                            } else if (showEllipsis) {
                               return (
-                                <PaginationItem key={page}>
+                                <PaginationItem key={`ellipsis-${page}`}>
                                   <PaginationEllipsis />
                                 </PaginationItem>
                               );
@@ -1594,6 +1605,10 @@ export const StoreOwnerDashboard = () => {
                           </PaginationItem>
                         </PaginationContent>
                       </Pagination>
+                      
+                      <div className="text-center text-sm text-muted-foreground">
+                        Mostrando {startIndex + 1} a {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} pedidos
+                      </div>
                     </div>
                   )}
                 </>
