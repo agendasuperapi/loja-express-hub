@@ -92,11 +92,13 @@ Deno.serve(async (req) => {
     // Log for audit purposes (server-side only)
     console.log(`Email check for ${email}: ${exists ? 'exists' : 'not found'} from IP ${clientIp}`);
 
-    // Always return ambiguous response to prevent enumeration
-    // Never expose whether email exists to prevent account enumeration attacks
+    // Return exists status for frontend validation
     return new Response(
       JSON.stringify({ 
-        message: 'Request processed. If this email is registered, further instructions will be sent.'
+        exists,
+        message: exists 
+          ? 'Email já cadastrado' 
+          : 'Email disponível para cadastro'
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

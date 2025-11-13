@@ -56,6 +56,7 @@ export default function Cart() {
   const [authPhone, setAuthPhone] = useState("");
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEmailExistsAlert, setShowEmailExistsAlert] = useState(false);
   
   const [storeData, setStoreData] = useState<any>(null);
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
@@ -195,14 +196,10 @@ export default function Cart() {
           });
 
           if (checkResult?.exists) {
-            // Email já cadastrado - mudar para modo login
+            // Email já cadastrado - mudar para modo login e mostrar alerta
             setAuthMode('login');
             setAuthPassword("");
-            toast({
-              title: "Email já cadastrado",
-              description: "Esse e-mail já possui uma conta cadastrada. Digite sua senha e efetue login.",
-              variant: "default",
-            });
+            setShowEmailExistsAlert(true);
             setIsAuthLoading(false);
             return;
           }
@@ -621,6 +618,15 @@ export default function Cart() {
                         {authMode === 'login' ? 'Fazer Login' : 'Criar Conta'}
                       </h3>
                       
+                      {showEmailExistsAlert && authMode === 'login' && (
+                        <Alert className="mb-4 border-primary bg-primary/10">
+                          <AlertDescription className="text-center">
+                            <p className="font-semibold text-foreground">Email já cadastrado</p>
+                            <p className="text-sm text-muted-foreground mt-1">Por favor, faça login</p>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
                       <form onSubmit={handleAuthSubmit} className="space-y-4">
                         {authMode === 'signup' && (
                           <>
@@ -690,6 +696,7 @@ export default function Cart() {
                           onClick={() => {
                             setAuthMode(authMode === 'login' ? 'signup' : 'login');
                             setAuthPassword("");
+                            setShowEmailExistsAlert(false);
                           }}
                         >
                           {authMode === 'login' 
