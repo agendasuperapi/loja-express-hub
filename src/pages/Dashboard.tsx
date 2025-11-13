@@ -1,8 +1,20 @@
 import { Navigation } from "@/components/layout/Navigation";
 import { CustomerDashboard } from "@/components/dashboard/CustomerDashboard";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { hasRole, loading } = useUserRole();
+
+  useEffect(() => {
+    if (!loading && hasRole('store_owner')) {
+      navigate('/dashboard-lojista');
+    }
+  }, [loading, hasRole, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />

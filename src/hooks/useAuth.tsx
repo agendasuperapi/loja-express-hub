@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const roles = rolesData?.map(r => r.role) || [];
         const dashboardPath = roles.includes('store_owner') ? '/dashboard-lojista' : '/dashboard';
+        console.log('Auth signUp redirect:', { userId: data.user.id, roles, dashboardPath });
         navigate(dashboardPath);
       }
     }
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         const roles = rolesData?.map(r => r.role) || [];
         const dashboardPath = roles.includes('store_owner') ? '/dashboard-lojista' : '/dashboard';
+        console.log('Auth signIn redirect:', { userId: data.user.id, roles, dashboardPath });
         navigate(dashboardPath);
       }
     }
