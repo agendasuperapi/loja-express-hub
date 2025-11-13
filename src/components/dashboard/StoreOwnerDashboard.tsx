@@ -78,6 +78,14 @@ export const StoreOwnerDashboard = () => {
   const canViewAllOrders = hasPermission('orders', 'view_all_orders');
   const canViewPendingOrders = hasPermission('orders', 'view_pending_orders');
 
+  // Debug de permissões
+  console.log('[Permissões de Pedidos]', {
+    isEmployee: employeeAccess.isEmployee,
+    canViewAllOrders,
+    canViewPendingOrders,
+    permissions: employeeAccess.permissions
+  });
+
   // Helpers para mudança de status conforme permissões
   const canChangeTo = (statusKey: string) => {
     if (hasPermission('orders', 'change_any_status')) return true;
@@ -156,17 +164,25 @@ export const StoreOwnerDashboard = () => {
 
   // Ajustar filtro padrão baseado em permissões
   useEffect(() => {
-    if (employeeAccess.isEmployee) {
+    if (employeeAccess.isEmployee && employeeAccess.permissions) {
+      console.log('[Ajustando Filtro]', {
+        orderStatusFilter,
+        canViewAllOrders,
+        canViewPendingOrders
+      });
+      
       if (orderStatusFilter === 'all' && !canViewAllOrders) {
         // Se não pode ver "todos", definir para o primeiro status permitido
         if (canViewPendingOrders) {
+          console.log('[Ajustando Filtro] Mudando para pending');
           setOrderStatusFilter('pending');
         } else if (customStatuses.length > 0) {
+          console.log('[Ajustando Filtro] Mudando para primeiro status customizado');
           setOrderStatusFilter(customStatuses[0].status_key);
         }
       }
     }
-  }, [employeeAccess.isEmployee, canViewAllOrders, canViewPendingOrders, customStatuses]);
+  }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, customStatuses, orderStatusFilter]);
 
   useEffect(() => {
     if (myStore) {
@@ -402,18 +418,15 @@ export const StoreOwnerDashboard = () => {
     return orders.filter(order => {
       // Validação de permissões de visualização
       if (employeeAccess.isEmployee) {
-        // Se não pode ver "todos", só pode ver o status específico permitido
+        // Lógica simplificada:
+        // - canViewAllOrders = true: pode ver todos
+        // - canViewAllOrders = false, canViewPendingOrders = true: só pode ver pending
+        // - ambos false: não pode ver nada
         if (!canViewAllOrders) {
-          const orderIsPending = order.status === 'pending';
-          const canSeePending = canViewPendingOrders;
-          
-          // Se o pedido é pendente e não pode ver pendentes, bloquear
-          if (orderIsPending && !canSeePending) {
-            return false;
-          }
-          
-          // Se o pedido não é pendente e só pode ver pendentes, bloquear
-          if (!orderIsPending && !canSeePending) {
+          if (canViewPendingOrders && order.status === 'pending') {
+            // Pode ver apenas pendentes
+          } else {
+            // Não tem permissão para ver este pedido
             return false;
           }
         }
@@ -1396,9 +1409,16 @@ export const StoreOwnerDashboard = () => {
                   const isActive = orderStatusFilter === status.status_key;
                   
                   // Verificar se tem permissão para visualizar este status
-                  const canViewThisStatus = 
-                    status.status_key === 'pending' ? canViewPendingOrders :
-                    canViewAllOrders;
+                  // Pode ver se: tem permissão geral (all) OU se é "pending" E tem permissão de pending
+                  const canViewThisStatus = canViewAllOrders || 
+                    (status.status_key === 'pending' && canViewPendingOrders);
+                  
+                  console.log(`[Botão ${status.status_key}]`, {
+                    canViewAllOrders,
+                    canViewPendingOrders,
+                    canViewThisStatus,
+                    isPending: status.status_key === 'pending'
+                  });
                   
                   if (!canViewThisStatus) return null;
                   
