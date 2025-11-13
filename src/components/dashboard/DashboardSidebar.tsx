@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, LogOut } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,7 +14,6 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
-  const { signOut } = useAuth();
 
   const cadastrosSubItems = [
     { id: 'produtos', label: 'produtos', icon: Package },
@@ -41,7 +40,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
       animate={{ x: 0, opacity: 1 }}
       className="w-32 bg-background/95 backdrop-blur-xl border-r border-border/50 min-h-screen flex flex-col items-center py-8 shadow-lg"
     >
-      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/20 overflow-hidden">
+      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-12 border border-primary/20 overflow-hidden">
         {storeLogo ? (
           <img 
             src={storeLogo} 
@@ -51,22 +50,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName 
         ) : (
           <span className="text-primary font-bold text-3xl">U</span>
         )}
-      </div>
-
-      {/* Logout Button */}
-      <div className="w-full px-2 mb-6">
-        <motion.button
-          onClick={signOut}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-xs font-medium uppercase">
-            Sair
-          </span>
-        </motion.button>
-        <div className="h-0.5 bg-primary/20 my-2 mx-2" />
       </div>
 
       <nav className="flex-1 w-full space-y-1 px-2">
