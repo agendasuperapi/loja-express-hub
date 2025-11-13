@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ImageUpload } from "./ImageUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History } from "lucide-react";
+import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus } from "lucide-react";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -36,6 +36,8 @@ interface EditOrderDialogProps {
 export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrderDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [showAddProduct, setShowAddProduct] = useState(false);
   const { history, addHistory } = useOrderHistory(order?.id);
   
   const [formData, setFormData] = useState({
@@ -66,8 +68,24 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
         store_image_url: order.store_image_url || '',
       });
       loadOrderItems();
+      loadAvailableProducts();
     }
   }, [order]);
+
+  const loadAvailableProducts = async () => {
+    if (!order?.store_id) return;
+    
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, price, is_available')
+      .eq('store_id', order.store_id)
+      .eq('is_available', true)
+      .order('name');
+
+    if (!error && data) {
+      setAvailableProducts(data);
+    }
+  };
 
   const loadOrderItems = async () => {
     if (!order?.id) return;
@@ -99,23 +117,77 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
     );
   };
 
+  const removeLocalOrderItem = (itemId: string) => {
+    setOrderItems(items => items.filter(item => item.id !== itemId));
+  };
+
+  const addNewProduct = (product: any) => {
+    const newItem: OrderItem = {
+      id: `temp_${Date.now()}`,
+      product_name: product.name,
+      quantity: 1,
+      unit_price: product.price,
+      subtotal: product.price,
+      observation: '',
+    };
+    setOrderItems(items => [...items, newItem]);
+    setShowAddProduct(false);
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     
     try {
-      // Salvar todos os itens modificados
-      for (const item of orderItems) {
-        const { error: itemError } = await supabase
-          .from('order_items')
-          .update({
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            subtotal: item.subtotal,
-            observation: item.observation,
-          })
-          .eq('id', item.id);
+      // Primeiro, buscar os IDs dos itens existentes no banco
+      const { data: existingItems } = await supabase
+        .from('order_items')
+        .select('id')
+        .eq('order_id', order.id);
 
-        if (itemError) throw itemError;
+      const existingItemIds = new Set(existingItems?.map(item => item.id) || []);
+
+      // Deletar itens que foram removidos
+      const itemsToDelete = Array.from(existingItemIds).filter(
+        id => !orderItems.find(item => item.id === id)
+      );
+
+      for (const itemId of itemsToDelete) {
+        await supabase
+          .from('order_items')
+          .delete()
+          .eq('id', itemId);
+      }
+
+      // Salvar itens existentes modificados e inserir novos
+      for (const item of orderItems) {
+        if (item.id.startsWith('temp_')) {
+          // Novo item
+          const { error: insertError } = await supabase
+            .from('order_items')
+            .insert({
+              order_id: order.id,
+              product_name: item.product_name,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              subtotal: item.subtotal,
+              observation: item.observation,
+            });
+
+          if (insertError) throw insertError;
+        } else {
+          // Item existente
+          const { error: updateError } = await supabase
+            .from('order_items')
+            .update({
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              subtotal: item.subtotal,
+              observation: item.observation,
+            })
+            .eq('id', item.id);
+
+          if (updateError) throw updateError;
+        }
       }
 
       // Calculate new total
@@ -239,9 +311,63 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
 
           <ScrollArea className="flex-1 mt-4">
             <TabsContent value="items" className="space-y-4 pr-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium">Itens do Pedido</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAddProduct(!showAddProduct)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Produto
+                </Button>
+              </div>
+
+              {showAddProduct && (
+                <div className="border rounded-lg p-4 mb-4 bg-muted/50">
+                  <h4 className="font-medium mb-3 text-sm">Produtos Disponíveis</h4>
+                  <div className="grid gap-2 max-h-[200px] overflow-y-auto">
+                    {availableProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-2 border rounded hover:bg-background cursor-pointer"
+                        onClick={() => addNewProduct(product)}
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{product.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            R$ {product.price.toFixed(2)}
+                          </div>
+                        </div>
+                        <Button type="button" size="sm" variant="ghost">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {availableProducts.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhum produto disponível
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {orderItems.map((item) => (
                 <div key={item.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="font-medium">{item.product_name}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium">{item.product_name}</div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeLocalOrderItem(item.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <Label>Quantidade</Label>
