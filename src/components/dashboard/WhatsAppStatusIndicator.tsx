@@ -46,24 +46,39 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
         }
       });
 
-      if (!error && data) {
-        // A API retorna { instance: { state: "open" } } ou { status: "open" }
-        const statusValue = data.instance?.state || data.status;
-        
-        if (statusValue) {
-          const statusLower = statusValue.toLowerCase();
-          
-          // Apenas 'open' e 'connected' são considerados conectados
-          if (['open', 'connected'].includes(statusLower)) {
-            setStatus('connected');
-          } else if (['connecting', 'qr'].includes(statusLower)) {
-            setStatus('connecting');
-          } else {
-            setStatus('disconnected');
-          }
-        } else {
-          setStatus('disconnected');
-        }
+      if (error) {
+        console.error('Erro ao verificar status do WhatsApp (edge):', error);
+        setStatus('disconnected');
+        return;
+      }
+
+      // Normalizar possíveis formatos de resposta
+      const rawStatus: string | undefined = (
+        (data as any)?.instance?.state ||
+        (data as any)?.instance?.connectionStatus ||
+        (data as any)?.status ||
+        (data as any)?.state ||
+        (data as any)?.result?.state ||
+        (data as any)?.data?.state
+      );
+
+      if (!rawStatus) {
+        console.warn('Resposta de status do WhatsApp sem campo de status reconhecido:', data);
+        setStatus('disconnected');
+        return;
+      }
+
+      const statusLower = String(rawStatus).toLowerCase();
+
+      // Estados considerados conectados
+      const connectedStates = ['open', 'connected', 'authenticated', 'online', 'ready'];
+      // Estados considerados em conexão
+      const connectingStates = ['connecting', 'qr', 'pairing', 'loading', 'starting'];
+
+      if (connectedStates.some(s => statusLower.includes(s))) {
+        setStatus('connected');
+      } else if (connectingStates.some(s => statusLower.includes(s))) {
+        setStatus('connecting');
       } else {
         setStatus('disconnected');
       }
