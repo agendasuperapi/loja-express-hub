@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const FloatingCartButton = () => {
   const { cart, getItemCount, getTotal } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const controls = useAnimation();
+  const isMobile = useIsMobile();
   
   const itemCount = getItemCount();
   const total = getTotal();
@@ -47,7 +49,7 @@ export const FloatingCartButton = () => {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="fixed bottom-2 md:bottom-3 inset-x-0 z-50 flex justify-center px-4"
       >
-        <motion.div animate={controls} className="w-full max-w-md">
+        <motion.div animate={controls} className={`w-full max-w-md ${isMobile ? 'animate-pulse' : ''}`}>
           <Button
             onClick={() => navigate('/cart')}
             className="w-full bg-gradient-primary hover:opacity-90 shadow-lg h-12 sm:h-14 text-sm sm:text-base font-semibold rounded-full border-2 border-orange-500 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] transition-all duration-500"
