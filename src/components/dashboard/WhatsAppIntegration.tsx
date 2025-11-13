@@ -12,6 +12,19 @@ import { useToast } from "@/hooks/use-toast";
 const invokeEvolution = async (payload: any) => {
   console.log('[WhatsApp] Enviando para edge function:', payload);
   
+  // Verify user session before calling edge function
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session) {
+    console.error('[WhatsApp] Erro de sessão:', sessionError);
+    return { 
+      data: null, 
+      error: new Error('Sessão expirada. Por favor, faça login novamente.') 
+    };
+  }
+  
+  console.log('[WhatsApp] Sessão ativa, chamando edge function...');
+  
   // Use supabase.functions.invoke which handles authentication automatically
   const { data, error } = await supabase.functions.invoke('evolution-whatsapp', {
     body: payload
@@ -208,14 +221,21 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
     try {
       const generatedInstanceName = `store_${storeId.substring(0, 8)}`;
       
-const { data, error } = await invokeEvolution({ 
+      const { data, error } = await invokeEvolution({ 
         action: 'create_instance',
         storeId: storeId,
         instanceName: generatedInstanceName,
         phoneNumber: phoneNumber
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[WhatsApp] Erro ao criar instância:', error);
+        throw error;
+      }
+
+      if (!data || !data.qrcode) {
+        throw new Error('Resposta inválida da API - QR Code não recebido');
+      }
 
       if (data?.qrcode) {
         setQrCode(data.qrcode.base64);
