@@ -46,14 +46,21 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
         }
       });
 
-      if (!error && data?.status) {
-        const statusLower = data.status.toLowerCase();
+      if (!error && data) {
+        // A API retorna { instance: { state: "open" } } ou { status: "open" }
+        const statusValue = data.instance?.state || data.status;
         
-        // Apenas 'open' e 'connected' são considerados conectados
-        if (['open', 'connected'].includes(statusLower)) {
-          setStatus('connected');
-        } else if (['connecting', 'qr'].includes(statusLower)) {
-          setStatus('connecting');
+        if (statusValue) {
+          const statusLower = statusValue.toLowerCase();
+          
+          // Apenas 'open' e 'connected' são considerados conectados
+          if (['open', 'connected'].includes(statusLower)) {
+            setStatus('connected');
+          } else if (['connecting', 'qr'].includes(statusLower)) {
+            setStatus('connecting');
+          } else {
+            setStatus('disconnected');
+          }
         } else {
           setStatus('disconnected');
         }
