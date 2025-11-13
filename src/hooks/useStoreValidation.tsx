@@ -13,8 +13,8 @@ export const storeSchema = z.object({
   address: z.string().trim().max(500, 'Endereço muito longo').optional(),
   phone: z.string()
     .transform(val => val?.replace(/\D/g, '') || '')
-    .refine(val => !val || val.length === 12 || val.length === 13, {
-      message: 'Telefone deve ter 12 ou 13 dígitos com código do país'
+    .refine(val => !val || val.length >= 10, {
+      message: 'Telefone inválido'
     }).optional(),
   email: z.string().trim().email('Email inválido').max(255, 'Email muito longo').optional(),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres').max(128, 'Senha muito longa').optional(),
@@ -25,8 +25,8 @@ export const storeSchema = z.object({
   owner_name: z.string().trim().min(2, 'Nome do proprietário é obrigatório').max(100, 'Nome muito longo'),
   owner_phone: z.string()
     .transform(val => val.replace(/\D/g, ''))
-    .refine(val => val.length === 12 || val.length === 13, {
-      message: 'Telefone deve ter 12 ou 13 dígitos com código do país'
+    .refine(val => val.length >= 10, {
+      message: 'Telefone inválido'
     }),
 }).refine((data) => {
   // Validate password confirmation if password is provided
