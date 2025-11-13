@@ -33,10 +33,10 @@ export const useCoupons = (storeId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Temporarily disabled until SQL migration is executed
+  // Load coupons when store ID is available
   useEffect(() => {
     if (storeId) {
-      // fetchCoupons();
+      fetchCoupons();
     }
   }, [storeId]);
 
@@ -109,13 +109,18 @@ export const useCoupons = (storeId: string | undefined) => {
 
   const createCoupon = async (couponData: Omit<Coupon, 'id' | 'created_at' | 'updated_at' | 'used_count'>) => {
     try {
+      console.log('Creating coupon with data:', couponData);
+      
       const { data, error } = await supabase
         .from('coupons' as any)
         .insert([couponData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error creating coupon:', error);
+        throw error;
+      }
 
       toast({
         title: 'Cupom criado com sucesso',
@@ -125,9 +130,13 @@ export const useCoupons = (storeId: string | undefined) => {
       await fetchCoupons();
       return data;
     } catch (error: any) {
+      console.error('Error creating coupon:', error);
+      
+      const errorMessage = error.message || error.hint || 'Erro desconhecido';
+      
       toast({
         title: 'Erro ao criar cupom',
-        description: 'Execute o SQL create_coupons_system.sql primeiro',
+        description: errorMessage,
         variant: 'destructive',
       });
       throw error;
@@ -136,6 +145,8 @@ export const useCoupons = (storeId: string | undefined) => {
 
   const updateCoupon = async (id: string, updates: Partial<Coupon>) => {
     try {
+      console.log('Updating coupon:', id, updates);
+      
       const { data, error } = await supabase
         .from('coupons' as any)
         .update(updates)
@@ -143,7 +154,10 @@ export const useCoupons = (storeId: string | undefined) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error updating coupon:', error);
+        throw error;
+      }
 
       toast({
         title: 'Cupom atualizado',
@@ -153,9 +167,13 @@ export const useCoupons = (storeId: string | undefined) => {
       await fetchCoupons();
       return data;
     } catch (error: any) {
+      console.error('Error updating coupon:', error);
+      
+      const errorMessage = error.message || error.hint || 'Erro desconhecido';
+      
       toast({
         title: 'Erro ao atualizar cupom',
-        description: 'Execute o SQL create_coupons_system.sql primeiro',
+        description: errorMessage,
         variant: 'destructive',
       });
       throw error;
@@ -164,12 +182,17 @@ export const useCoupons = (storeId: string | undefined) => {
 
   const deleteCoupon = async (id: string) => {
     try {
+      console.log('Deleting coupon:', id);
+      
       const { error } = await supabase
         .from('coupons' as any)
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error deleting coupon:', error);
+        throw error;
+      }
 
       toast({
         title: 'Cupom excluído',
@@ -178,9 +201,13 @@ export const useCoupons = (storeId: string | undefined) => {
 
       await fetchCoupons();
     } catch (error: any) {
+      console.error('Error deleting coupon:', error);
+      
+      const errorMessage = error.message || error.hint || 'Erro desconhecido';
+      
       toast({
         title: 'Erro ao excluir cupom',
-        description: 'Execute o SQL create_coupons_system.sql primeiro',
+        description: errorMessage,
         variant: 'destructive',
       });
       throw error;
