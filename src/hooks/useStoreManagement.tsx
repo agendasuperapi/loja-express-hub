@@ -29,14 +29,37 @@ export const useStoreManagement = () => {
   const myStoreQuery = useQuery({
     queryKey: ['my-store', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user?.id) return null;
+
+      // Primeiro, tentar buscar loja onde o usuário é owner
+      const { data: ownerStore, error: ownerError } = await supabase
         .from('stores')
         .select('*')
-        .eq('owner_id', user!.id)
+        .eq('owner_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (ownerError) throw ownerError;
+      
+      // Se encontrou como owner, retornar
+      if (ownerStore) {
+        return ownerStore;
+      }
+
+      // Se não é owner, buscar loja onde é funcionário ativo
+      const { data: employeeData, error: employeeError } = await supabase
+        .from('store_employees' as any)
+        .select(`
+          store_id,
+          stores:store_id (*)
+        `)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (employeeError) throw employeeError;
+      
+      // Retornar a loja do funcionário
+      return employeeData ? (employeeData as any).stores : null;
     },
     enabled: !!user,
   });
