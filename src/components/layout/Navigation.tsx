@@ -101,6 +101,12 @@ export const Navigation = () => {
                     Dashboard
                   </Button>
                 </Link>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="w-4 h-4 mr-2" />
+                    Perfil
+                  </Button>
+                </Link>
                 <Link to="/orders">
                   <Button variant="ghost" size="sm">
                     <Package className="w-4 h-4 mr-2" />
@@ -209,6 +215,12 @@ export const Navigation = () => {
                         <Button variant="outline" className="w-full">
                           <LayoutDashboard className="w-4 h-4 mr-2" />
                           Dashboard
+                        </Button>
+                      </Link>
+                      <Link to="/profile" className="block">
+                        <Button variant="outline" className="w-full">
+                          <User className="w-4 h-4 mr-2" />
+                          Perfil
                         </Button>
                       </Link>
                       <Link to="/orders" className="block">
