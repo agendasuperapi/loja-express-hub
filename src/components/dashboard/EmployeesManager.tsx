@@ -210,6 +210,28 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
     setEditingEmployee(null);
   };
 
+  // Helper para garantir que todas as permissões tenham a estrutura completa
+  const mergePermissions = (employeePermissions: any): EmployeePermissions => {
+    return {
+      orders: { ...DEFAULT_PERMISSIONS.orders, ...employeePermissions?.orders },
+      products: { ...DEFAULT_PERMISSIONS.products, ...employeePermissions?.products },
+      categories: { ...DEFAULT_PERMISSIONS.categories, ...employeePermissions?.categories },
+      coupons: { ...DEFAULT_PERMISSIONS.coupons, ...employeePermissions?.coupons },
+      employees: { ...DEFAULT_PERMISSIONS.employees, ...employeePermissions?.employees },
+      reports: { ...DEFAULT_PERMISSIONS.reports, ...employeePermissions?.reports },
+      settings: { ...DEFAULT_PERMISSIONS.settings, ...employeePermissions?.settings },
+      whatsapp: { 
+        ...DEFAULT_PERMISSIONS.whatsapp, 
+        ...employeePermissions?.whatsapp,
+        // Migrar manage_whatsapp antigo para edit se existir
+        ...(employeePermissions?.settings?.manage_whatsapp && {
+          view: true,
+          edit: employeePermissions.settings.manage_whatsapp
+        })
+      },
+    };
+  };
+
   const handleEdit = (employee: any) => {
     setEditingEmployee(employee);
     setFormData({
@@ -219,7 +241,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       position: employee.position || '',
       notes: employee.notes || '',
       password: '',
-      permissions: employee.permissions,
+      permissions: mergePermissions(employee.permissions),
     });
     setIsDialogOpen(true);
   };
