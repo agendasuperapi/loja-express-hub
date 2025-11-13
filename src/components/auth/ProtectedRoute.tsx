@@ -8,12 +8,14 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requireRole?: 'customer' | 'store_owner' | 'admin';
   requireAuth?: boolean;
+  redirectPath?: string;
 }
 
 export const ProtectedRoute = ({ 
   children, 
   requireRole,
-  requireAuth = true 
+  requireAuth = true,
+  redirectPath 
 }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { hasRole, loading: roleLoading } = useUserRole();
@@ -23,15 +25,19 @@ export const ProtectedRoute = ({
     if (authLoading || roleLoading) return;
 
     if (requireAuth && !user) {
-      navigate('/auth');
+      // Use custom redirect path or default to /auth
+      const defaultRedirect = requireRole === 'store_owner' ? '/login-lojista' : '/auth';
+      navigate(redirectPath || defaultRedirect);
       return;
     }
 
     if (requireRole && !hasRole(requireRole)) {
-      navigate('/');
+      // If user is authenticated but doesn't have the role
+      const defaultRedirect = requireRole === 'store_owner' ? '/login-lojista' : '/';
+      navigate(redirectPath || defaultRedirect);
       return;
     }
-  }, [user, authLoading, roleLoading, requireAuth, requireRole, hasRole, navigate]);
+  }, [user, authLoading, roleLoading, requireAuth, requireRole, hasRole, navigate, redirectPath]);
 
   if (authLoading || roleLoading) {
     return (
