@@ -425,7 +425,12 @@ await invokeEvolution({
                     <span className="font-medium">Nome:</span> {instanceName}
                   </p>
                   <p className="text-muted-foreground">
-                    <span className="font-medium">Status:</span> {connectionStatus}
+                    <span className="font-medium">Status:</span>{' '}
+                    {connectionStatus === 'open' || connectionStatus === 'connected' 
+                      ? 'WhatsApp Conectado com sucesso' 
+                      : connectionStatus === 'connecting' 
+                      ? 'Conectando...' 
+                      : connectionStatus}
                   </p>
                 </div>
               </div>
