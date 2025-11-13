@@ -21,6 +21,8 @@ import { useState, useRef, useEffect } from "react";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductDetailsDialog } from "@/components/product/ProductDetailsDialog";
+
 export default function StoreDetails() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -31,6 +33,7 @@ export default function StoreDetails() {
   const { addToCart } = useCart();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [detailsProduct, setDetailsProduct] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -598,10 +601,13 @@ export default function StoreDetails() {
                       whileHover={{ y: -8 }}
                       className="group"
                     >
-                      <Card className="overflow-hidden h-full border-2 border-orange-300 hover:border-orange-400 transition-all duration-300 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm">
+                      <Card 
+                        className="overflow-hidden h-full border-2 border-orange-300 hover:border-orange-400 transition-all duration-300 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm cursor-pointer"
+                        onClick={() => setDetailsProduct(product)}
+                      >
                         {product.image_url && (
                           <div className="relative h-52 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
-                            <motion.img 
+                            <motion.img
                               initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -659,7 +665,10 @@ export default function StoreDetails() {
                                 <Button 
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleShareProduct(product)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShareProduct(product);
+                                  }}
                                   className="shadow-md hover:shadow-lg transition-all duration-300"
                                 >
                                   <Share2 className="w-4 h-4" />
@@ -671,7 +680,10 @@ export default function StoreDetails() {
                               >
                                 <Button 
                                   size="sm"
-                                  onClick={() => setSelectedProduct(product)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedProduct(product);
+                                  }}
                                   className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
                                 >
                                   Adicionar
@@ -699,6 +711,13 @@ export default function StoreDetails() {
         onOpenChange={(open) => !open && setSelectedProduct(null)}
         product={selectedProduct || { id: '', name: '', price: 0 }}
         onAdd={handleAddToCart}
+      />
+
+      <ProductDetailsDialog
+        product={detailsProduct}
+        store={store}
+        open={!!detailsProduct}
+        onOpenChange={(open) => !open && setDetailsProduct(null)}
       />
 
       <FloatingCartButton />
