@@ -1296,99 +1296,59 @@ export const StoreOwnerDashboard = () => {
                   </Badge>
                 </Button>
                 
-                {customStatuses.length > 0 ? (
-                  customStatuses.map((status) => {
-                    const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
-                    return (
-                      <Button
-                        key={status.id}
-                        variant={orderStatusFilter === status.status_key ? 'default' : 'outline'}
-                        onClick={() => setOrderStatusFilter(status.status_key)}
-                        className="flex items-center gap-2"
+                {customStatuses.map((status) => {
+                  const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
+                  const isActive = orderStatusFilter === status.status_key;
+                  
+                  return (
+                    <Button
+                      key={status.id}
+                      variant={isActive ? 'default' : 'outline'}
+                      onClick={() => setOrderStatusFilter(status.status_key)}
+                      className={cn(
+                        "flex items-center gap-2 transition-all",
+                        isActive && "shadow-md"
+                      )}
+                      style={{
+                        backgroundColor: isActive ? status.status_color : undefined,
+                        borderColor: status.status_color,
+                        color: isActive ? '#ffffff' : undefined,
+                      }}
+                    >
+                      <Badge
+                        className="w-3 h-3 p-0 rounded-full"
+                        style={{ backgroundColor: status.status_color }}
+                      />
+                      {status.status_label}
+                      <Badge 
+                        variant="secondary" 
+                        className="ml-1"
                         style={{
-                          backgroundColor: orderStatusFilter === status.status_key ? status.status_color : undefined,
-                          borderColor: orderStatusFilter === status.status_key ? status.status_color : status.status_color + '40',
-                          color: orderStatusFilter === status.status_key ? '#ffffff' : undefined,
+                          backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)',
+                          color: isActive ? '#ffffff' : 'inherit',
                         }}
                       >
-                        {status.status_label}
-                        <Badge 
-                          variant="secondary" 
-                          className="ml-1"
-                          style={{
-                            backgroundColor: orderStatusFilter === status.status_key ? 'rgba(255,255,255,0.2)' : undefined,
-                          }}
-                        >
-                          {statusCount}
-                        </Badge>
-                      </Button>
-                    );
-                  })
-                ) : (
-                  <>
-                    <Button
-                      variant={orderStatusFilter === 'pending' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('pending')}
-                      className="flex items-center gap-2"
-                    >
-                      Pendente
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'pending').length || 0}
+                        {statusCount}
                       </Badge>
                     </Button>
-                    <Button
-                      variant={orderStatusFilter === 'confirmed' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('confirmed')}
-                      className="flex items-center gap-2"
-                    >
-                      Confirmado
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'confirmed').length || 0}
-                      </Badge>
-                    </Button>
-                    <Button
-                      variant={orderStatusFilter === 'preparing' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('preparing')}
-                      className="flex items-center gap-2"
-                    >
-                      Preparando
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'preparing').length || 0}
-                      </Badge>
-                    </Button>
-                    <Button
-                      variant={orderStatusFilter === 'ready' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('ready')}
-                      className="flex items-center gap-2"
-                    >
-                      Pronto
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'ready').length || 0}
-                      </Badge>
-                    </Button>
-                    <Button
-                      variant={orderStatusFilter === 'delivered' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('delivered')}
-                      className="flex items-center gap-2"
-                    >
-                      Entregue
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'delivered').length || 0}
-                      </Badge>
-                    </Button>
-                    <Button
-                      variant={orderStatusFilter === 'cancelled' ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter('cancelled')}
-                      className="flex items-center gap-2"
-                    >
-                      Cancelado
-                      <Badge variant="secondary" className="ml-1">
-                        {orders?.filter(o => o.status === 'cancelled').length || 0}
-                      </Badge>
-                    </Button>
-                  </>
-                )}
+                  );
+                })}
               </div>
+              
+              {customStatuses.length === 0 && (
+                <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma etapa de pedido ativa. Configure as etapas em{' '}
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto text-primary"
+                      onClick={() => setActiveTab('configuracoes')}
+                    >
+                      Configurações → Etapas do Pedido
+                    </Button>
+                  </p>
+                </div>
+              )}
 
               {/* Campo de Pesquisa */}
               <div className="mt-4">
