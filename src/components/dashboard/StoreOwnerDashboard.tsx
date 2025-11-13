@@ -97,7 +97,7 @@ export const StoreOwnerDashboard = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('all');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const ordersPerPage = 10;
@@ -349,6 +349,10 @@ export const StoreOwnerDashboard = () => {
       }
       
       // Filtro de data
+      if (dateFilter === 'all') {
+        return true; // Mostrar todos os pedidos
+      }
+      
       const orderDate = new Date(order.created_at);
       
       if (dateFilter === 'daily') {
@@ -1263,12 +1267,13 @@ export const StoreOwnerDashboard = () => {
                   <Label className="text-sm font-medium">Filtrar por período:</Label>
                   <Select
                     value={dateFilter}
-                    onValueChange={(value: 'daily' | 'weekly' | 'monthly' | 'custom') => setDateFilter(value)}
+                    onValueChange={(value: 'all' | 'daily' | 'weekly' | 'monthly' | 'custom') => setDateFilter(value)}
                   >
                     <SelectTrigger className="w-[200px] bg-background z-50">
                       <SelectValue placeholder="Selecione o período" />
                     </SelectTrigger>
                     <SelectContent className="bg-background z-50">
+                      <SelectItem value="all">🌐 Todos os períodos</SelectItem>
                       <SelectItem value="daily">📅 Diário</SelectItem>
                       <SelectItem value="weekly">📆 Semanal</SelectItem>
                       <SelectItem value="monthly">🗓️ Mensal</SelectItem>
@@ -1314,11 +1319,11 @@ export const StoreOwnerDashboard = () => {
                     </Popover>
                   )}
                   
-                  {dateFilter !== 'daily' && (
+                  {dateFilter !== 'all' && (
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        setDateFilter('daily');
+                        setDateFilter('all');
                         setCustomDateRange({ from: undefined, to: undefined });
                       }}
                       size="sm"
