@@ -73,6 +73,27 @@ export const StoreOwnerDashboard = () => {
     
     return modulePermissions[action] === true;
   };
+
+  // Derivados para filtros de pedidos
+  const canViewAllOrders = hasPermission('orders', 'view_all_orders');
+  const canViewPendingOrders = hasPermission('orders', 'view_pending_orders');
+
+  // Helpers para mudança de status conforme permissões
+  const canChangeTo = (statusKey: string) => {
+    if (hasPermission('orders', 'change_any_status')) return true;
+    const map: Record<string, string> = {
+      confirmed: 'change_status_confirmed',
+      preparing: 'change_status_preparing',
+      in_delivery: 'change_status_out_for_delivery',
+      out_for_delivery: 'change_status_out_for_delivery',
+      delivered: 'change_status_delivered',
+      cancelled: 'change_status_cancelled',
+      ready: 'change_status_preparing', // aproximação: pronto ~ preparar concluído
+    };
+    const perm = map[statusKey];
+    return perm ? hasPermission('orders', perm) : false;
+  };
+
   const { categories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useCategories(myStore?.id);
   
   // Enable automatic WhatsApp notifications
