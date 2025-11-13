@@ -141,7 +141,7 @@ serve(async (req) => {
       _role: 'store_owner' 
     });
 
-    // Check if user is an active employee with manage_whatsapp permission
+    // Check if user is an active employee with WhatsApp permission
     const { data: employeeData } = await supabaseClient
       .from('store_employees')
       .select('id, permissions, is_active')
@@ -150,27 +150,37 @@ serve(async (req) => {
       .eq('is_active', true)
       .maybeSingle();
 
-    const isEmployeeWithPermission = employeeData && 
-      (employeeData as any).permissions?.settings?.manage_whatsapp === true;
+    const hasWhatsAppView = employeeData && 
+      (employeeData as any).permissions?.whatsapp?.view === true;
+    
+    const hasWhatsAppEdit = employeeData && 
+      (employeeData as any).permissions?.whatsapp?.edit === true;
 
-    // Authorization: allow 'check_status' for any authenticated user; other actions require admin/store_owner or employee permission
+    // Authorization: 
+    // - 'check_status' requires view permission
+    // - 'create_instance' and 'disconnect' require edit permission
     const isAuthorizedForAction = Boolean(
       isAdmin ||
       isStoreOwner ||
-      isEmployeeWithPermission ||
-      (action === 'check_status')
+      (action === 'check_status' && hasWhatsAppView) ||
+      ((action === 'create_instance' || action === 'disconnect') && hasWhatsAppEdit)
     );
 
     if (!isAuthorizedForAction) {
       console.error('Authorization failed: insufficient role/permission', { userId: user.id, action });
       return new Response(
-        JSON.stringify({ error: 'Forbidden - Requires admin, store_owner role, or employee permission (check_status allowed for any authenticated user)' }),
+        JSON.stringify({ 
+          error: 'Forbidden - Requires admin, store_owner role, or employee WhatsApp permission',
+          details: action === 'check_status' 
+            ? 'Viewing WhatsApp status requires view permission' 
+            : 'Managing WhatsApp connection requires edit permission'
+        }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // For store owners, verify they own the store
-    if (isStoreOwner && !isAdmin && !isEmployeeWithPermission) {
+    if (isStoreOwner && !isAdmin && !hasWhatsAppEdit && !hasWhatsAppView) {
       const { data: store, error: storeError } = await supabaseClient
         .from('stores')
         .select('id')

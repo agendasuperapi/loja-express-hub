@@ -58,7 +58,10 @@ export interface EmployeePermissions {
     update_store_info: boolean;            // Atualizar informações da loja
     update_delivery_settings: boolean;     // Configurações de entrega
     update_operating_hours: boolean;       // Horário de funcionamento
-    manage_whatsapp: boolean;              // Gerenciar integração WhatsApp
+  };
+  whatsapp: {
+    view: boolean;                         // Visualizar status e configurações
+    edit: boolean;                         // Conectar/desconectar WhatsApp
   };
 }
 

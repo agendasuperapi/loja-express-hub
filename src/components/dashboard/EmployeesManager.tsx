@@ -130,7 +130,10 @@ const DEFAULT_PERMISSIONS: EmployeePermissions = {
     update_store_info: false,
     update_delivery_settings: false,
     update_operating_hours: false,
-    manage_whatsapp: true,
+  },
+  whatsapp: {
+    view: true,
+    edit: false,
   },
 };
 
@@ -785,12 +788,44 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                           />
                           <Label className="text-sm">Horário de Funcionamento</Label>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Integração WhatsApp
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Controle de acesso ao WhatsApp Business
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 p-4 border rounded-lg">
+                      <div className="space-y-3">
                         <div className="flex items-center space-x-2">
                           <Switch
-                            checked={formData.permissions.settings.manage_whatsapp}
-                            onCheckedChange={(checked) => updatePermission('settings', 'manage_whatsapp', checked)}
+                            checked={formData.permissions.whatsapp.view}
+                            onCheckedChange={(checked) => updatePermission('whatsapp', 'view', checked)}
                           />
-                          <Label className="text-sm">Integração WhatsApp</Label>
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Visualizar</Label>
+                            <p className="text-xs text-muted-foreground">Ver status e configurações do WhatsApp</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.whatsapp.edit}
+                            onCheckedChange={(checked) => updatePermission('whatsapp', 'edit', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Editar</Label>
+                            <p className="text-xs text-muted-foreground">Conectar e desconectar WhatsApp</p>
+                          </div>
                         </div>
                       </div>
                     </div>

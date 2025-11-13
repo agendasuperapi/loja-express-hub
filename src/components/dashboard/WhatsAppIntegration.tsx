@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, FileText } from "lucide-react";
+import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, FileText, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // Unified invoker to Evolution function using supabase.functions.invoke
 const invokeEvolution = async (payload: any) => {
@@ -61,6 +63,13 @@ interface WhatsAppIntegrationProps {
 
 export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
   const { toast } = useToast();
+  const { isEmployee, permissions } = useEmployeeAccess();
+  const { isAdmin, isStoreOwner } = useUserRole();
+  
+  // Verificar se o usuário tem permissão de editar WhatsApp
+  const canEditWhatsApp = isAdmin || isStoreOwner || (isEmployee && permissions?.whatsapp?.edit === true);
+  const canViewWhatsApp = isAdmin || isStoreOwner || (isEmployee && permissions?.whatsapp?.view === true);
+  
   const [phoneNumber, setPhoneNumber] = useState("");
   const [instanceName, setInstanceName] = useState("");
   const [qrCode, setQrCode] = useState("");
@@ -515,6 +524,24 @@ await invokeEvolution({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Mensagem para funcionários com permissão apenas de visualizar */}
+          {isEmployee && canViewWhatsApp && !canEditWhatsApp && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Eye className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-sm text-blue-900 dark:text-blue-100">
+                    Modo Somente Visualização
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Você pode visualizar o status do WhatsApp, mas não pode conectar ou desconectar. 
+                    Entre em contato com o proprietário para solicitar permissão de edição.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {!isConnected && !qrCode && (
             <div className="space-y-4">
               <div>
@@ -540,7 +567,7 @@ await invokeEvolution({
 
               <Button 
                 onClick={createInstance} 
-                disabled={isLoading || !phoneNumber}
+                disabled={isLoading || !phoneNumber || !canEditWhatsApp}
                 className="w-full"
               >
                 {isLoading ? (
@@ -672,7 +699,7 @@ await invokeEvolution({
                 
                 <Button 
                   onClick={disconnectInstance} 
-                  disabled={isLoading}
+                  disabled={isLoading || !canEditWhatsApp}
                   variant="destructive"
                   className="w-full"
                 >
