@@ -141,6 +141,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
     activityLogs,
     isLoading,
     createEmployee,
+    createEmployeeWithAccount,
     updateEmployee,
     deleteEmployee,
     toggleEmployeeStatus,
@@ -155,6 +156,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
     employee_phone: '',
     position: '',
     notes: '',
+    password: '',
     permissions: DEFAULT_PERMISSIONS,
   });
 
@@ -169,12 +171,18 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       if (editingEmployee) {
         await updateEmployee(editingEmployee.id, formData);
       } else {
-        // Criar funcionário sem user_id (será preenchido quando aceitar convite)
-        await createEmployee({
-          store_id: storeId,
-          ...formData,
-          is_active: true,
-        } as any);
+        if (!formData.password) {
+          throw new Error('Senha é obrigatória para novos funcionários');
+        }
+        await createEmployeeWithAccount({
+          email: formData.employee_email,
+          password: formData.password,
+          employee_name: formData.employee_name,
+          employee_phone: formData.employee_phone,
+          position: formData.position,
+          permissions: formData.permissions,
+          notes: formData.notes,
+        });
       }
       
       setIsDialogOpen(false);
@@ -191,6 +199,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       employee_phone: '',
       position: '',
       notes: '',
+      password: '',
       permissions: DEFAULT_PERMISSIONS,
     });
     setEditingEmployee(null);
@@ -204,6 +213,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       employee_phone: employee.employee_phone || '',
       position: employee.position || '',
       notes: employee.notes || '',
+      password: '',
       permissions: employee.permissions,
     });
     setIsDialogOpen(true);
@@ -320,6 +330,24 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                     />
                   </div>
                 </div>
+
+                {!editingEmployee && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Senha *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      minLength={6}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      O funcionário usará este email e senha para fazer login no sistema
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>

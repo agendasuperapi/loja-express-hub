@@ -212,6 +212,47 @@ export const useStoreEmployees = (storeId?: string) => {
     }
   };
 
+  const createEmployeeWithAccount = async (employeeData: {
+    email: string;
+    password: string;
+    employee_name: string;
+    employee_phone?: string;
+    position?: string;
+    permissions: EmployeePermissions;
+    notes?: string;
+  }) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Não autenticado');
+
+      const response = await supabase.functions.invoke('create-employee-account', {
+        body: {
+          ...employeeData,
+          store_id: storeId
+        }
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao criar funcionário');
+
+      toast({
+        title: 'Funcionário cadastrado',
+        description: 'Conta criada com sucesso! O funcionário já pode fazer login.',
+      });
+
+      await fetchEmployees();
+      return response.data.employee;
+    } catch (error: any) {
+      console.error('Error creating employee with account:', error);
+      toast({
+        title: 'Erro ao criar funcionário',
+        description: error.message || 'Erro ao criar conta do funcionário',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   const updateEmployee = async (id: string, updates: Partial<StoreEmployee>) => {
     try {
       const { data, error } = await supabase
@@ -378,6 +419,7 @@ export const useStoreEmployees = (storeId?: string) => {
     fetchInvites,
     fetchActivityLogs,
     createEmployee,
+    createEmployeeWithAccount,
     updateEmployee,
     deleteEmployee,
     toggleEmployeeStatus,
