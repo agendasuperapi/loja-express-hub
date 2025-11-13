@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,6 +67,7 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<string>("disconnected");
+  const [connectionLogs, setConnectionLogs] = useState<Array<{ time: string; message: string; type: 'info' | 'success' | 'error' }>>([]);
 
   useEffect(() => {
     checkExistingInstance();
@@ -176,7 +178,13 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
   };
 
   const checkConnectionStatus = async (instance: string) => {
+    const addLog = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+      const time = new Date().toLocaleTimeString('pt-BR');
+      setConnectionLogs(prev => [...prev, { time, message, type }]);
+    };
+
     try {
+      addLog(`Verificando status da instância: ${instance}`, 'info');
       console.log('[WhatsApp] Verificando status da instância:', instance);
       
       const { data, error } = await invokeEvolution({ 
@@ -191,6 +199,8 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         console.log('[WhatsApp] Dados recebidos:', data);
         console.log('[WhatsApp] Status recebido:', data.status);
         
+        addLog(`Status recebido da API: ${data.status}`, 'info');
+        
         const connected = isConnectedState(data.status);
         console.log('[WhatsApp] Status interpretado:', {
           rawStatus: data.status,
@@ -199,14 +209,22 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         
         setConnectionStatus(data.status || 'unknown');
         setIsConnected(connected);
-        if (connected) setQrCode("");
+        
+        if (connected) {
+          addLog('✅ WhatsApp conectado com sucesso!', 'success');
+          setQrCode("");
+        } else {
+          addLog(`⚠️ WhatsApp não conectado. Status: ${data.status}`, 'error');
+        }
       } else {
         console.error('[WhatsApp] Erro ao verificar status:', error);
+        addLog(`❌ Erro ao verificar status: ${error?.message || 'Erro desconhecido'}`, 'error');
         setConnectionStatus('error');
         setIsConnected(false);
       }
     } catch (error) {
       console.error('[WhatsApp] Exceção ao verificar status:', error);
+      addLog(`❌ Exceção ao verificar status: ${error}`, 'error');
       setConnectionStatus('error');
       setIsConnected(false);
     }
@@ -493,6 +511,41 @@ await invokeEvolution({
                   )}
                 </Button>
               </div>
+
+              {connectionLogs.length > 0 && (
+                <div className="p-4 bg-muted rounded-lg space-y-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="w-4 h-4" />
+                    <h4 className="font-semibold text-sm">Log de Conexão</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setConnectionLogs([])}
+                      className="ml-auto h-6 text-xs"
+                    >
+                      Limpar
+                    </Button>
+                  </div>
+                  <ScrollArea className="h-[200px] w-full rounded border bg-background p-3">
+                    <div className="space-y-2 text-xs font-mono">
+                      {connectionLogs.map((log, index) => (
+                        <div 
+                          key={index} 
+                          className={`${
+                            log.type === 'error' 
+                              ? 'text-destructive' 
+                              : log.type === 'success' 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          <span className="text-muted-foreground">[{log.time}]</span> {log.message}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
