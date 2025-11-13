@@ -1550,9 +1550,19 @@ export const StoreOwnerDashboard = () => {
                   </div>
                 ))}
 
-                {/* Paginação */}
-                {paginatedOrdersData.totalPages > 1 && (
-                  <div className="mt-8 space-y-4">
+                {/* Informação de pedidos e Paginação */}
+                <div className="mt-8 space-y-4">
+                  {/* Sempre mostrar contador de pedidos */}
+                  <div className="text-center text-sm text-muted-foreground font-medium">
+                    {paginatedOrdersData.totalPages > 1 ? (
+                      <>Mostrando {paginatedOrdersData.startIndex + 1} a {Math.min(paginatedOrdersData.endIndex, paginatedOrdersData.totalOrders)} de {paginatedOrdersData.totalOrders} pedidos</>
+                    ) : (
+                      <>Total: {paginatedOrdersData.totalOrders} {paginatedOrdersData.totalOrders === 1 ? 'pedido' : 'pedidos'}</>
+                    )}
+                  </div>
+
+                  {/* Paginação - aparece quando tem mais de 1 página */}
+                  {paginatedOrdersData.totalPages > 1 && (
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
@@ -1604,12 +1614,8 @@ export const StoreOwnerDashboard = () => {
                         </PaginationItem>
                       </PaginationContent>
                     </Pagination>
-                    
-                    <div className="text-center text-sm text-muted-foreground">
-                      Mostrando {paginatedOrdersData.startIndex + 1} a {Math.min(paginatedOrdersData.endIndex, paginatedOrdersData.totalOrders)} de {paginatedOrdersData.totalOrders} pedidos
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ) : (
               <Card className="border-dashed">
