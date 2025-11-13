@@ -1912,15 +1912,13 @@ export const StoreOwnerDashboard = () => {
                   <ScrollArea className="flex-1 h-0 -mx-6 px-6">
                     <div className="pr-4 space-y-4">
                       <Tabs defaultValue="info" className="w-full">
-                        <TabsList className={`grid w-full ${productForm.is_pizza ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                        <TabsList className="grid w-full grid-cols-3">
                           <TabsTrigger value="info">Informações</TabsTrigger>
-                          {productForm.is_pizza && (
-                            <TabsTrigger value="flavors" disabled={!editingProduct}>
-                              Sabores {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
-                            </TabsTrigger>
-                          )}
                           <TabsTrigger value="addons" disabled={!editingProduct}>
                             Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                          </TabsTrigger>
+                          <TabsTrigger value="flavors" disabled={!editingProduct}>
+                            Múltiplos Sabores {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
                         </TabsList>
                         
@@ -2093,17 +2091,15 @@ export const StoreOwnerDashboard = () => {
                           </div>
                         </TabsContent>
 
-                        {productForm.is_pizza && (
-                          <TabsContent value="flavors" className="mt-4">
-                            {editingProduct && (
-                              <ProductFlavorsManager productId={editingProduct.id} />
-                            )}
-                          </TabsContent>
-                        )}
-
                         <TabsContent value="addons" className="mt-4">
                           {editingProduct && (
                             <ProductAddonsManager productId={editingProduct.id} />
+                          )}
+                        </TabsContent>
+
+                        <TabsContent value="flavors" className="mt-4">
+                          {editingProduct && (
+                            <ProductFlavorsManager productId={editingProduct.id} />
                           )}
                         </TabsContent>
                       </Tabs>
