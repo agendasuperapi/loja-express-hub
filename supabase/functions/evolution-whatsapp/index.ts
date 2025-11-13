@@ -153,11 +153,19 @@ serve(async (req) => {
     const isEmployeeWithPermission = employeeData && 
       (employeeData as any).permissions?.settings?.manage_whatsapp === true;
 
-    // User must be admin, store owner, or employee with manage_whatsapp permission
-    if (!isAdmin && !isStoreOwner && !isEmployeeWithPermission) {
-      console.error('Authorization failed: User lacks required role or permission', { userId: user.id });
+    // Authorization: allow 'check_status' for any active employee of the store (no manage_whatsapp required)
+    const isActiveEmployee = !!employeeData;
+    const isAuthorizedForAction = Boolean(
+      isAdmin ||
+      isStoreOwner ||
+      isEmployeeWithPermission ||
+      (action === 'check_status' && isActiveEmployee)
+    );
+
+    if (!isAuthorizedForAction) {
+      console.error('Authorization failed: insufficient role/permission', { userId: user.id, action });
       return new Response(
-        JSON.stringify({ error: 'Forbidden - Requires admin, store_owner role, or employee with manage_whatsapp permission' }),
+        JSON.stringify({ error: 'Forbidden - Requires admin, store_owner role, or employee permission (check_status allowed for active employees)' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
