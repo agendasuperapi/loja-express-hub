@@ -62,6 +62,23 @@ serve(async (req) => {
     const { record } = await req.json();
     console.log('Processing order:', record);
 
+    // 🔒 IDEMPOTÊNCIA: Verificar se já enviamos mensagem para este pedido+status
+    const orderStatus = record.status || 'pending';
+    const { data: existingLog } = await supabaseClient
+      .from('whatsapp_message_log')
+      .select('id')
+      .eq('order_id', record.id || record.order_id)
+      .eq('order_status', orderStatus)
+      .single();
+
+    if (existingLog) {
+      console.log(`💬 Mensagem já enviada para order ${record.id || record.order_id} status ${orderStatus}`);
+      return new Response(
+        JSON.stringify({ success: true, message: 'Message already sent', skipped: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!record.customer_phone) {
       console.log('No customer phone provided');
       return new Response(
@@ -328,6 +345,21 @@ serve(async (req) => {
 
     const evolutionData = await evolutionResponse.json();
     console.log('Message sent successfully:', evolutionData);
+
+    // 📝 REGISTRAR mensagem enviada no log (idempotência)
+    try {
+      await supabaseClient
+        .from('whatsapp_message_log')
+        .insert({
+          order_id: record.id || record.order_id,
+          order_status: record.status || 'pending',
+          phone_number: phone,
+          message_content: message
+        });
+      console.log('✅ Mensagem registrada no log de idempotência');
+    } catch (logError) {
+      console.warn('⚠️ Erro ao registrar no log (não crítico):', logError);
+    }
 
     return new Response(
       JSON.stringify({ 
