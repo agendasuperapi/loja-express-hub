@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmailInput } from "@/components/ui/email-input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Lock, Check, X, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginModalProps {
   open: boolean;
@@ -36,6 +38,7 @@ export function LoginModal({
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone);
+  const [emailExistsError, setEmailExistsError] = useState(false);
 
   // Update fields when initial values change
   useEffect(() => {
@@ -53,12 +56,35 @@ export function LoginModal({
     }
   }, [forceMode]);
 
+  const checkEmailExists = async (emailToCheck: string) => {
+    try {
+      const { data } = await supabase.functions.invoke('check-email-exists', {
+        body: { email: emailToCheck }
+      });
+      
+      if (data?.exists) {
+        setEmailExistsError(true);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailExistsError(false);
     
     if (isLogin) {
       await onSignIn(email, password);
     } else {
+      // Check if email exists before signing up
+      const exists = await checkEmailExists(email);
+      if (exists) {
+        return; // Don't proceed with signup
+      }
       await onSignUp(email, password, fullName, phone);
     }
   };
@@ -194,12 +220,25 @@ export function LoginModal({
             
             <Button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setEmailExistsError(false);
+              }}
               className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold bg-primary hover:bg-primary/90"
               disabled={isLoading}
             >
               {isLogin ? "Cadastre-se agora" : "Já tem conta? Faça login"}
             </Button>
+
+            {/* Email already exists alert */}
+            {emailExistsError && !isLogin && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertDescription className="text-center">
+                  <p className="font-semibold">Email já cadastrado</p>
+                  <p className="text-sm mt-1">Por favor, faça login</p>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Benefits */}
             {isLogin && (
