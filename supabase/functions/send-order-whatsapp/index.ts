@@ -265,14 +265,18 @@ serve(async (req) => {
       const statusData = await statusResponse.json();
       console.log('Instance connection status:', statusData);
       
+      // Extract state from response (can be at root or nested in instance object)
+      const state = statusData.state || statusData.instance?.state;
+      console.log('Extracted state:', state);
+      
       // Check if instance is connected
-      if (statusData.state !== 'open' && statusData.state !== 'connected') {
-        console.error('WhatsApp instance not connected. State:', statusData.state);
+      if (state !== 'open' && state !== 'connected') {
+        console.error('WhatsApp instance not connected. State:', state);
         return new Response(
           JSON.stringify({ 
             success: false, 
             message: 'WhatsApp não está conectado. Por favor, conecte o WhatsApp no painel da loja.',
-            state: statusData.state
+            state: state
           }),
           { 
             status: 400,
@@ -280,6 +284,8 @@ serve(async (req) => {
           }
         );
       }
+      
+      console.log('WhatsApp instance is connected, proceeding with message send');
     } else {
       console.warn('Could not check instance status, proceeding with message send');
     }
