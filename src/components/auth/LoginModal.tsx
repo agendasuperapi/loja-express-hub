@@ -148,6 +148,16 @@ export function LoginModal({
               </>
             )}
 
+            {/* Email already exists alert */}
+            {emailExistsError && !isLogin && (
+              <Alert variant="destructive">
+                <AlertDescription className="text-center">
+                  <p className="font-semibold">Email já cadastrado</p>
+                  <p className="text-sm mt-1">Por favor, faça login</p>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Email */}
             <div className="space-y-1.5 sm:space-y-2">
               <label className="text-sm sm:text-base font-semibold text-foreground">
@@ -229,16 +239,6 @@ export function LoginModal({
             >
               {isLogin ? "Cadastre-se agora" : "Já tem conta? Faça login"}
             </Button>
-
-            {/* Email already exists alert */}
-            {emailExistsError && !isLogin && (
-              <Alert variant="destructive" className="mt-3">
-                <AlertDescription className="text-center">
-                  <p className="font-semibold">Email já cadastrado</p>
-                  <p className="text-sm mt-1">Por favor, faça login</p>
-                </AlertDescription>
-              </Alert>
-            )}
 
             {/* Benefits */}
             {isLogin && (
