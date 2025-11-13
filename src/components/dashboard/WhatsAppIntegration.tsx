@@ -596,15 +596,15 @@ await invokeEvolution({
               </div>
 
               {/* Sistema de Reconexão Automática */}
-              <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse" />
                     <div>
-                      <p className="font-semibold text-sm text-blue-900 dark:text-blue-100">
+                      <p className="font-semibold text-sm text-green-900 dark:text-green-100">
                         Sistema de Proteção Ativo
                       </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300">
+                      <p className="text-xs text-green-700 dark:text-green-300">
                         Monitoramento contínuo e reconexão automática
                       </p>
                     </div>
@@ -613,7 +613,7 @@ await invokeEvolution({
                     variant="ghost"
                     size="sm"
                     onClick={() => setAutoReconnectEnabled(!autoReconnectEnabled)}
-                    className={autoReconnectEnabled ? "text-blue-600" : "text-muted-foreground"}
+                    className={autoReconnectEnabled ? "text-green-600" : "text-muted-foreground"}
                   >
                     {autoReconnectEnabled ? "Ativo" : "Inativo"}
                   </Button>
