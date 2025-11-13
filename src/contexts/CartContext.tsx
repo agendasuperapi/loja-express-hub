@@ -25,6 +25,8 @@ export interface Cart {
   storeId: string | null;
   storeName: string | null;
   storeSlug: string | null;
+  couponCode: string | null;
+  couponDiscount: number;
 }
 
 interface CartContextType {
@@ -48,6 +50,8 @@ interface CartContextType {
   clearCart: () => void;
   getTotal: () => number;
   getItemCount: () => number;
+  applyCoupon: (code: string, discount: number) => void;
+  removeCoupon: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -57,7 +61,14 @@ const CART_STORAGE_KEY = 'shopping_cart';
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<Cart>(() => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
-    const initialCart = stored ? JSON.parse(stored) : { items: [], storeId: null, storeName: null, storeSlug: null };
+    const initialCart = stored ? JSON.parse(stored) : { 
+      items: [], 
+      storeId: null, 
+      storeName: null, 
+      storeSlug: null,
+      couponCode: null,
+      couponDiscount: 0
+    };
     console.log('🎬 CartProvider: initialized with', initialCart);
     return initialCart;
   });
@@ -101,6 +112,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           storeId,
           storeName,
           storeSlug: storeSlug || null,
+          couponCode: null,
+          couponDiscount: 0,
         };
         console.log('🛒 New cart (different store):', newCart);
         return newCart;
@@ -137,6 +150,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         storeId,
         storeName,
         storeSlug: prev.storeSlug || storeSlug || null,
+        couponCode: prev.couponCode,
+        couponDiscount: prev.couponDiscount,
       };
       console.log('🛒 Updated cart (new item):', updatedCart);
       return updatedCart;
@@ -151,6 +166,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         storeId: newItems.length > 0 ? prev.storeId : null,
         storeName: newItems.length > 0 ? prev.storeName : null,
         storeSlug: newItems.length > 0 ? prev.storeSlug : null,
+        couponCode: newItems.length > 0 ? prev.couponCode : null,
+        couponDiscount: newItems.length > 0 ? prev.couponDiscount : 0,
       };
     });
   };
@@ -180,7 +197,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     console.log('🗑️ CartProvider: clearing cart');
-    setCart({ items: [], storeId: null, storeName: null, storeSlug: null });
+    setCart({ 
+      items: [], 
+      storeId: null, 
+      storeName: null, 
+      storeSlug: null,
+      couponCode: null,
+      couponDiscount: 0
+    });
   };
 
   const getTotal = () => {
@@ -197,6 +221,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return count;
   };
 
+  const applyCoupon = (code: string, discount: number) => {
+    setCart(prev => ({
+      ...prev,
+      couponCode: code,
+      couponDiscount: discount
+    }));
+  };
+
+  const removeCoupon = () => {
+    setCart(prev => ({
+      ...prev,
+      couponCode: null,
+      couponDiscount: 0
+    }));
+  };
+
   return (
     <CartContext.Provider value={{
       cart,
@@ -207,6 +247,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       clearCart,
       getTotal,
       getItemCount,
+      applyCoupon,
+      removeCoupon,
     }}>
       {children}
     </CartContext.Provider>

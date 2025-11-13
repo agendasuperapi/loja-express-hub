@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PhoneInput } from "@/components/ui/phone-input";
 import { EmailInput } from "@/components/ui/email-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
@@ -25,9 +26,11 @@ import { normalizePhone } from "@/lib/phone";
 export default function Cart() {
   const navigate = useNavigate();
   const { user, signUp, signIn } = useAuth();
-  const { cart, updateQuantity, removeFromCart, getTotal, clearCart, updateCartItem } = useCart();
+  const { cart, updateQuantity, removeFromCart, getTotal, clearCart, updateCartItem, applyCoupon, removeCoupon } = useCart();
   const { createOrder, isCreating, orders } = useOrders();
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   
@@ -118,8 +121,25 @@ export default function Cart() {
     loadUserProfile();
   }, [user]);
 
+  const handleApplyCoupon = async () => {
+    toast({
+      title: "Sistema em manutenção",
+      description: "Execute o SQL create_coupons_system.sql no Supabase primeiro",
+      variant: "destructive",
+    });
+  };
+
+  const handleRemoveCoupon = () => {
+    removeCoupon();
+    toast({
+      title: "Cupom removido",
+      description: "O desconto foi removido do seu pedido",
+    });
+  };
+
   const deliveryFee = deliveryType === 'pickup' ? 0 : 5;
-  const total = getTotal() + deliveryFee;
+  const subtotal = getTotal();
+  const total = subtotal + deliveryFee - cart.couponDiscount;
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -824,6 +844,65 @@ export default function Cart() {
                           rows={3}
                         />
                       </div>
+
+                      {/* Cupom de Desconto */}
+                      <div>
+                        <Label htmlFor="coupon">Cupom de Desconto (opcional)</Label>
+                        {cart.couponCode ? (
+                          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                            <Tag className="w-4 h-4 text-green-600 dark:text-green-400" />
+                            <span className="font-mono font-semibold text-green-700 dark:text-green-300">
+                              {cart.couponCode}
+                            </span>
+                            <Badge variant="secondary" className="ml-auto">
+                              -R$ {cart.couponDiscount.toFixed(2)}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleRemoveCoupon}
+                              className="h-6 w-6 p-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Input
+                              id="coupon"
+                              value={couponInput}
+                              onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                              placeholder="Digite o código do cupom"
+                              maxLength={20}
+                              disabled={isValidatingCoupon}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleApplyCoupon();
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleApplyCoupon}
+                              disabled={isValidatingCoupon || !couponInput.trim()}
+                            >
+                              {isValidatingCoupon ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Validando...
+                                </>
+                              ) : (
+                                <>
+                                  <Tag className="w-4 h-4 mr-2" />
+                                  Aplicar
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <Separator />
@@ -831,12 +910,21 @@ export default function Cart() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>R$ {getTotal().toFixed(2)}</span>
+                        <span>R$ {subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>{deliveryType === 'pickup' ? 'Retirada' : 'Taxa de entrega'}</span>
                         <span>{deliveryType === 'pickup' ? 'Grátis' : `R$ ${deliveryFee.toFixed(2)}`}</span>
                       </div>
+                      {cart.couponDiscount > 0 && (
+                        <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                          <span className="flex items-center gap-1">
+                            <Tag className="w-3 h-3" />
+                            Desconto do Cupom
+                          </span>
+                          <span>-R$ {cart.couponDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
                       <Separator />
                       <div className="flex justify-between text-lg font-bold">
                         <span>Total</span>
