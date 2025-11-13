@@ -37,5 +37,16 @@
       ],
       "destination": "https://mgpzowiahnwcmcaelogf.supabase.co/functions/v1/meta-tags-proxy?store=:store_slug"
     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
   ]
 }
