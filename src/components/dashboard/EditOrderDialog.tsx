@@ -417,7 +417,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
                 </div>
               )}
 
-              <ScrollArea className="max-h-[60vh] md:max-h-[50vh] pr-4">
+              <ScrollArea className="max-h-[50vh] pr-4">
                 <div className="space-y-4">
                   {orderItems.map((item, index) => (
                 <>
