@@ -68,12 +68,11 @@ serve(async (req) => {
     }
   );
 
-  // Authenticate user
-  const authHeader = req.headers.get('Authorization');
-  console.log('Authorization header present:', !!authHeader);
-  console.log('Authorization header value (first 20 chars):', authHeader?.substring(0, 20));
-  
-  if (!authHeader) {
+  // Authenticate user using Bearer token from the Authorization header
+  const authHeader = req.headers.get('Authorization') || '';
+  const hasHeader = !!authHeader;
+  console.log('Authorization header present:', hasHeader);
+  if (!hasHeader) {
     console.error('No Authorization header provided');
     return new Response(
       JSON.stringify({ error: 'Unauthorized - No Authorization header' }),
@@ -81,14 +80,19 @@ serve(async (req) => {
     );
   }
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+  const jwt = authHeader.startsWith('Bearer ')
+    ? authHeader.slice('Bearer '.length)
+    : authHeader;
+  console.log('JWT present:', !!jwt, 'prefix:', authHeader.substring(0, 20));
+
+  const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
   
   if (authError || !user) {
     console.error('Authentication failed:', authError);
     return new Response(
       JSON.stringify({ 
         error: 'Unauthorized - Authentication required',
-        details: authError?.message 
+        details: authError?.message || 'Unknown auth error'
       }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
