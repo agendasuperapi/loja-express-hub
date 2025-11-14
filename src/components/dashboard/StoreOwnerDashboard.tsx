@@ -33,7 +33,6 @@ import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { WhatsAppStatusIndicator } from "./WhatsAppStatusIndicator";
 import { DashboardSidebar } from "./DashboardSidebar";
-import { DashboardMobileNav } from "./DashboardMobileNav";
 import { CircularProgress } from "./CircularProgress";
 import { DataCard } from "./DataCard";
 import { BarChartCard } from "./BarChartCard";
@@ -872,7 +871,7 @@ export const StoreOwnerDashboard = () => {
           employeePermissions={employeeAccess.permissions}
         />
       
-      <div className="flex-1 pb-24 md:pb-0">{activeTab === 'home' && (
+      <div className="flex-1">{activeTab === 'home' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -3375,13 +3374,6 @@ export const StoreOwnerDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Mobile Bottom Navigation */}
-      <DashboardMobileNav 
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        ordersCount={orders?.length || 0}
-      />
     </div>
   );
 };
