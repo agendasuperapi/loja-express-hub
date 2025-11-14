@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
@@ -13,10 +13,11 @@ import { EmailInput } from "@/components/ui/email-input";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useStoreManagement } from "@/hooks/useStoreManagement";
-import { Store, Rocket, CheckCircle, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Store, Rocket, CheckCircle, TrendingUp, Users, DollarSign, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { storeSchema } from "@/hooks/useStoreValidation";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = [
   "Restaurante",
@@ -77,6 +78,15 @@ export default function BecomePartner() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [slugAvailability, setSlugAvailability] = useState<{
+    isChecking: boolean;
+    isAvailable: boolean | null;
+    message: string;
+  }>({
+    isChecking: false,
+    isAvailable: null,
+    message: "",
+  });
 
   const handleSlugGeneration = (name: string) => {
     const slug = name
@@ -100,6 +110,76 @@ export default function BecomePartner() {
       .replace(/-+/g, "-") // Remove hífens duplicados
       .replace(/^-|-$/g, ""); // Remove hífens no início e fim
   };
+
+  // Check slug availability in real-time
+  useEffect(() => {
+    const checkSlugAvailability = async () => {
+      const slug = formData.slug.trim();
+      
+      // Reset if empty
+      if (!slug) {
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: null,
+          message: "",
+        });
+        return;
+      }
+
+      // Start checking
+      setSlugAvailability({
+        isChecking: true,
+        isAvailable: null,
+        message: "",
+      });
+
+      try {
+        const { data, error } = await supabase
+          .from("stores")
+          .select("slug")
+          .eq("slug", slug)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error checking slug:", error);
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: null,
+            message: "",
+          });
+          return;
+        }
+
+        if (data) {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: false,
+            message: "Esta URL já está em uso",
+          });
+        } else {
+          setSlugAvailability({
+            isChecking: false,
+            isAvailable: true,
+            message: "URL disponível",
+          });
+        }
+      } catch (err) {
+        console.error("Error checking slug:", err);
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: null,
+          message: "",
+        });
+      }
+    };
+
+    // Debounce the check
+    const timeoutId = setTimeout(() => {
+      checkSlugAvailability();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.slug]);
 
   const validateForm = () => {
     try {
@@ -329,6 +409,34 @@ export default function BecomePartner() {
                           <code className="text-sm font-mono text-foreground">
                             appofertas.lovable.app/{formData.slug}
                           </code>
+                        </div>
+                        
+                        {/* Availability status */}
+                        <div className="mt-2 flex items-center gap-2">
+                          {slugAvailability.isChecking && (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                Verificando disponibilidade...
+                              </span>
+                            </>
+                          )}
+                          {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <span className="text-xs text-green-600 font-medium">
+                                {slugAvailability.message}
+                              </span>
+                            </>
+                          )}
+                          {!slugAvailability.isChecking && slugAvailability.isAvailable === false && (
+                            <>
+                              <AlertCircle className="w-4 h-4 text-red-600" />
+                              <span className="text-xs text-red-600 font-medium">
+                                {slugAvailability.message}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
