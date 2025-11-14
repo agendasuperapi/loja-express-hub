@@ -111,7 +111,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const productContent = (
     <>
       {/* Imagem do Produto */}
-      <div className="relative w-full overflow-hidden group">
+      <div className="relative w-full overflow-hidden group rounded-t-3xl md:rounded-2xl">
         <motion.img
           initial={{ scale: 1.15, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -295,7 +295,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[88vh] p-0 animate-in slide-in-from-bottom duration-300">
+        <DrawerContent className="h-[88vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
