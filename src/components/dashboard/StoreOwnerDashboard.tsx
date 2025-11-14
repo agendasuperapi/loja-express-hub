@@ -53,6 +53,7 @@ import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
+import { ReportsPage } from "./ReportsPage";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -2535,6 +2536,10 @@ export const StoreOwnerDashboard = () => {
               ))}
             </div>
           </motion.div>
+        )}
+
+        {activeTab === 'relatorios' && myStore?.id && (
+          <ReportsPage storeId={myStore.id} />
         )}
 
         {activeTab === 'result' && (
