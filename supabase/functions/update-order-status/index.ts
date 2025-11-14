@@ -80,34 +80,45 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Load employee permissions for this store
-    const { data: employee, error: empErr } = await supabaseAdmin
-      .from('store_employees' as any)
-      .select('id, is_active, permissions')
-      .eq('user_id', user.id)
-      .eq('store_id', order.store_id)
+    // Check if user is store owner
+    const { data: store, error: storeErr } = await supabaseAdmin
+      .from('stores' as any)
+      .select('owner_id')
+      .eq('id', order.store_id)
       .single();
 
-    if (empErr || !employee) {
-      return new Response(JSON.stringify({ error: 'Funcionário não encontrado ou sem vínculo com a loja.' }), {
-        status: 403,
-        headers: corsHeaders,
-      });
-    }
-
-    const perms = ((employee.permissions as any)?.orders || {}) as Record<string, boolean>;
+    const isStoreOwner = !storeErr && store && store.owner_id === user.id;
     const statusKey = String(status);
-    const dynamicPermission = `change_status_${statusKey}`;
 
-    const canChange = Boolean(
-      employee.is_active && (perms.change_any_status === true || perms[dynamicPermission] === true)
-    );
+    // If not store owner, check employee permissions
+    if (!isStoreOwner) {
+      const { data: employee, error: empErr } = await supabaseAdmin
+        .from('store_employees' as any)
+        .select('id, is_active, permissions')
+        .eq('user_id', user.id)
+        .eq('store_id', order.store_id)
+        .single();
 
-    if (!canChange) {
-      return new Response(
-        JSON.stringify({ error: 'Você não tem permissão para alterar para este status.' }),
-        { status: 403, headers: corsHeaders }
+      if (empErr || !employee) {
+        return new Response(JSON.stringify({ error: 'Você não tem permissão para gerenciar pedidos desta loja.' }), {
+          status: 403,
+          headers: corsHeaders,
+        });
+      }
+
+      const perms = ((employee.permissions as any)?.orders || {}) as Record<string, boolean>;
+      const dynamicPermission = `change_status_${statusKey}`;
+
+      const canChange = Boolean(
+        employee.is_active && (perms.change_any_status === true || perms[dynamicPermission] === true)
       );
+
+      if (!canChange) {
+        return new Response(
+          JSON.stringify({ error: 'Você não tem permissão para alterar para este status.' }),
+          { status: 403, headers: corsHeaders }
+        );
+      }
     }
 
     // Perform the update
