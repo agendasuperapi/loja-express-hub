@@ -12,6 +12,9 @@ interface DaySchedule {
   open: string;
   close: string;
   is_closed: boolean;
+  has_lunch_break?: boolean;
+  lunch_break_start?: string;
+  lunch_break_end?: string;
 }
 
 interface OperatingHours {
@@ -43,7 +46,7 @@ export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursMa
   const [hours, setHours] = useState<OperatingHours>(initialHours);
   const [saving, setSaving] = useState(false);
 
-  const handleTimeChange = (day: keyof OperatingHours, field: 'open' | 'close', value: string) => {
+  const handleTimeChange = (day: keyof OperatingHours, field: 'open' | 'close' | 'lunch_break_start' | 'lunch_break_end', value: string) => {
     setHours(prev => ({
       ...prev,
       [day]: {
@@ -59,6 +62,16 @@ export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursMa
       [day]: {
         ...prev[day],
         is_closed: !prev[day].is_closed
+      }
+    }));
+  };
+
+  const handleToggleLunchBreak = (day: keyof OperatingHours) => {
+    setHours(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        has_lunch_break: !prev[day].has_lunch_break
       }
     }));
   };
@@ -82,6 +95,35 @@ export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursMa
             variant: 'destructive'
           });
           return false;
+        }
+
+        if (schedule.has_lunch_break) {
+          if (!schedule.lunch_break_start || !schedule.lunch_break_end) {
+            toast({
+              title: 'Horário inválido',
+              description: `Por favor, preencha os horários do intervalo de almoço em ${DAYS_PT[day as keyof typeof DAYS_PT]}`,
+              variant: 'destructive'
+            });
+            return false;
+          }
+
+          if (schedule.lunch_break_start >= schedule.lunch_break_end) {
+            toast({
+              title: 'Horário inválido',
+              description: `O início do intervalo deve ser anterior ao fim em ${DAYS_PT[day as keyof typeof DAYS_PT]}`,
+              variant: 'destructive'
+            });
+            return false;
+          }
+
+          if (schedule.lunch_break_start < schedule.open || schedule.lunch_break_end > schedule.close) {
+            toast({
+              title: 'Horário inválido',
+              description: `O intervalo de almoço deve estar dentro do horário de funcionamento em ${DAYS_PT[day as keyof typeof DAYS_PT]}`,
+              variant: 'destructive'
+            });
+            return false;
+          }
         }
       }
     }
@@ -189,32 +231,82 @@ export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursMa
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="grid grid-cols-2 gap-4"
+                className="space-y-4"
               >
-                <div className="space-y-2">
-                  <Label htmlFor={`${day}-open`} className="text-sm">
-                    Abertura
-                  </Label>
-                  <Input
-                    id={`${day}-open`}
-                    type="time"
-                    value={hours[day].open}
-                    onChange={(e) => handleTimeChange(day, 'open', e.target.value)}
-                    className="font-mono"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${day}-open`} className="text-sm">
+                      Abertura
+                    </Label>
+                    <Input
+                      id={`${day}-open`}
+                      type="time"
+                      value={hours[day].open}
+                      onChange={(e) => handleTimeChange(day, 'open', e.target.value)}
+                      className="font-mono"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor={`${day}-close`} className="text-sm">
+                      Fechamento
+                    </Label>
+                    <Input
+                      id={`${day}-close`}
+                      type="time"
+                      value={hours[day].close}
+                      onChange={(e) => handleTimeChange(day, 'close', e.target.value)}
+                      className="font-mono"
+                    />
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor={`${day}-close`} className="text-sm">
-                    Fechamento
-                  </Label>
-                  <Input
-                    id={`${day}-close`}
-                    type="time"
-                    value={hours[day].close}
-                    onChange={(e) => handleTimeChange(day, 'close', e.target.value)}
-                    className="font-mono"
-                  />
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id={`lunch-break-${day}`}
+                      checked={hours[day].has_lunch_break || false}
+                      onCheckedChange={() => handleToggleLunchBreak(day)}
+                    />
+                    <Label htmlFor={`lunch-break-${day}`} className="text-sm text-muted-foreground">
+                      Intervalo de almoço
+                    </Label>
+                  </div>
+
+                  {hours[day].has_lunch_break && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="grid grid-cols-2 gap-4 pl-8"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor={`${day}-lunch-start`} className="text-xs text-muted-foreground">
+                          Início do intervalo
+                        </Label>
+                        <Input
+                          id={`${day}-lunch-start`}
+                          type="time"
+                          value={hours[day].lunch_break_start || ''}
+                          onChange={(e) => handleTimeChange(day, 'lunch_break_start', e.target.value)}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`${day}-lunch-end`} className="text-xs text-muted-foreground">
+                          Fim do intervalo
+                        </Label>
+                        <Input
+                          id={`${day}-lunch-end`}
+                          type="time"
+                          value={hours[day].lunch_break_end || ''}
+                          onChange={(e) => handleTimeChange(day, 'lunch_break_end', e.target.value)}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
               </motion.div>
             )}

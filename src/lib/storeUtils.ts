@@ -2,6 +2,9 @@ interface DaySchedule {
   open: string;
   close: string;
   is_closed: boolean;
+  has_lunch_break?: boolean;
+  lunch_break_start?: string;
+  lunch_break_end?: string;
 }
 
 interface OperatingHours {
@@ -29,6 +32,13 @@ export function isStoreOpen(operatingHours: OperatingHours | any): boolean {
     return false;
   }
 
+  // Check if within lunch break
+  if (daySchedule.has_lunch_break && daySchedule.lunch_break_start && daySchedule.lunch_break_end) {
+    if (currentTime >= daySchedule.lunch_break_start && currentTime <= daySchedule.lunch_break_end) {
+      return false;
+    }
+  }
+
   return currentTime >= daySchedule.open && currentTime <= daySchedule.close;
 }
 
@@ -53,6 +63,13 @@ export function getStoreStatusText(operatingHours: OperatingHours | any): string
   
   if (currentTime > daySchedule.close) {
     return 'Loja fechada';
+  }
+
+  // Check if in lunch break
+  if (daySchedule.has_lunch_break && daySchedule.lunch_break_start && daySchedule.lunch_break_end) {
+    if (currentTime >= daySchedule.lunch_break_start && currentTime <= daySchedule.lunch_break_end) {
+      return `Intervalo de almoço - Reabre às ${daySchedule.lunch_break_end}`;
+    }
   }
   
   return `Aberto até ${daySchedule.close}`;
