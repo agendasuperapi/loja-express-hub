@@ -40,6 +40,17 @@ interface ProductReport {
   orders_count: number;
 }
 
+interface RegisteredProduct {
+  id: string;
+  short_id: string;
+  name: string;
+  description: string;
+  price: number;
+  promotional_price: number;
+  is_available: boolean;
+  category: string;
+}
+
 interface RevenueData {
   total_revenue: number;
   total_orders: number;
@@ -49,6 +60,7 @@ interface RevenueData {
 export const ReportsPage = ({ storeId }: ReportsPageProps) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<ProductReport[]>([]);
+  const [registeredProducts, setRegisteredProducts] = useState<RegisteredProduct[]>([]);
   const [revenue, setRevenue] = useState<RevenueData>({
     total_revenue: 0,
     total_orders: 0,
@@ -56,6 +68,8 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
   });
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [productSearchTerm, setProductSearchTerm] = useState("");
+  const [productStatusFilter, setProductStatusFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState("all");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -250,11 +264,33 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
     }
   };
 
+  // Buscar produtos cadastrados
+  const fetchRegisteredProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, short_id, name, description, price, promotional_price, is_available, category')
+        .eq('store_id', storeId)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+
+      setRegisteredProducts(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar produtos cadastrados:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os produtos cadastrados",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Carregar todos os dados
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchCustomers(), fetchProducts(), fetchRevenue()]);
+      await Promise.all([fetchCustomers(), fetchProducts(), fetchRevenue(), fetchRegisteredProducts()]);
       setLoading(false);
     };
 
@@ -275,6 +311,32 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
         customer.delivery_neighborhood?.toLowerCase().includes(term)
     );
   }, [customers, searchTerm]);
+
+  // Filtrar produtos cadastrados
+  const filteredRegisteredProducts = useMemo(() => {
+    let filtered = registeredProducts;
+
+    // Filtro de status
+    if (productStatusFilter === "active") {
+      filtered = filtered.filter(p => p.is_available);
+    } else if (productStatusFilter === "inactive") {
+      filtered = filtered.filter(p => !p.is_available);
+    }
+
+    // Filtro de busca
+    if (productSearchTerm) {
+      const term = productSearchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(term) ||
+          product.description?.toLowerCase().includes(term) ||
+          product.short_id?.toLowerCase().includes(term) ||
+          product.category.toLowerCase().includes(term)
+      );
+    }
+
+    return filtered;
+  }, [registeredProducts, productSearchTerm, productStatusFilter]);
 
   const exportToCSV = (data: any[], filename: string) => {
     const headers = Object.keys(data[0] || {});
@@ -544,7 +606,7 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => exportToCSV(products, 'relatorio_produtos')}
+            onClick={() => exportToCSV(products, 'relatorio_produtos_vendidos')}
           >
             <Download className="h-4 w-4 mr-2" />
             Exportar
@@ -593,6 +655,115 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
                       </TableCell>
                       <TableCell className="text-right font-medium text-green-600">
                         R$ {product.revenue.toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Relatório de Produtos Cadastrados */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Produtos Cadastrados
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Lista completa de produtos cadastrados na loja
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportToCSV(filteredRegisteredProducts, 'relatorio_produtos_cadastrados')}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex-1 min-w-[250px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar produto por nome, código ou categoria..."
+                  value={productSearchTerm}
+                  onChange={(e) => setProductSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="min-w-[150px]">
+              <Select value={productStatusFilter} onValueChange={setProductStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativos</SelectItem>
+                  <SelectItem value="inactive">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <ScrollArea className="h-[400px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">Preço</TableHead>
+                  <TableHead className="text-right">Preço Promocional</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRegisteredProducts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      {productSearchTerm || productStatusFilter !== "all" 
+                        ? 'Nenhum produto encontrado com os filtros selecionados' 
+                        : 'Nenhum produto cadastrado'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredRegisteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-mono text-sm">
+                        {product.short_id || product.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell className="max-w-[300px] truncate text-sm text-muted-foreground">
+                        {product.description || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{product.category}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        R$ {product.price.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {product.promotional_price && product.promotional_price > 0 ? (
+                          <span className="text-green-600 font-medium">
+                            R$ {product.promotional_price.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={product.is_available ? "default" : "secondary"}>
+                          {product.is_available ? "Ativo" : "Inativo"}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))
