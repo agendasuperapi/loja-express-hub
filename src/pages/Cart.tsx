@@ -88,7 +88,7 @@ export default function Cart() {
       if (cart.storeId) {
         const { data } = await supabase
           .from('stores')
-          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee')
+          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash')
           .eq('id', cart.storeId)
           .single();
         
@@ -105,6 +105,19 @@ export default function Cart() {
             setDeliveryType('delivery');
           } else if (acceptsPickup) {
             setDeliveryType('pickup'); // Default to pickup if both are available
+          }
+
+          // Set default payment method based on what store accepts
+          const acceptsPix = (data as any).accepts_pix ?? true;
+          const acceptsCard = (data as any).accepts_card ?? true;
+          const acceptsCash = (data as any).accepts_cash ?? true;
+
+          if (acceptsPix) {
+            setPaymentMethod('pix');
+          } else if (acceptsCard) {
+            setPaymentMethod('cartao');
+          } else if (acceptsCash) {
+            setPaymentMethod('dinheiro');
           }
         }
       }
@@ -893,9 +906,15 @@ export default function Cart() {
                             <SelectValue placeholder="Selecione a forma de pagamento" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pix">PIX</SelectItem>
-                            <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                            <SelectItem value="cartao">Cartão</SelectItem>
+                            {((storeData as any)?.accepts_pix ?? true) && (
+                              <SelectItem value="pix">PIX</SelectItem>
+                            )}
+                            {((storeData as any)?.accepts_card ?? true) && (
+                              <SelectItem value="cartao">Cartão</SelectItem>
+                            )}
+                            {((storeData as any)?.accepts_cash ?? true) && (
+                              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
