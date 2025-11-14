@@ -367,7 +367,7 @@ export default function BecomePartner() {
                   </div>
 
                   <div>
-                    <Label htmlFor="phone">Telefone</Label>
+                    <Label htmlFor="phone">Telefone da Loja</Label>
                     <PhoneInput
                       id="phone"
                       value={formData.phone}
