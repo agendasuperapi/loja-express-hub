@@ -63,7 +63,7 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
 
-  // Get authenticated user from JWT (already validated by Supabase when verify_jwt = true)
+  // Extract user ID from JWT (already validated by Supabase when verify_jwt = true)
   const authHeader = req.headers.get('Authorization');
   if (!authHeader) {
     console.error('No Authorization header provided');
@@ -73,31 +73,36 @@ serve(async (req) => {
     );
   }
 
-  // Create a client with user's JWT to get user info
-  const supabaseAuth = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    {
-      global: {
-        headers: { Authorization: authHeader },
-      },
+  // Decode JWT to extract user_id (JWT already validated by Supabase)
+  let user;
+  try {
+    const jwt = authHeader.replace('Bearer ', '');
+    const parts = jwt.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT format');
     }
-  );
-
-  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-  
-  if (authError || !user) {
-    console.error('Failed to get user:', authError);
+    
+    // Decode the payload (second part)
+    const payload = JSON.parse(atob(parts[1]));
+    console.log('JWT payload decoded:', { sub: payload.sub, exp: payload.exp });
+    
+    if (!payload.sub) {
+      throw new Error('No user ID in JWT');
+    }
+    
+    user = { id: payload.sub };
+    console.log('Authenticated user:', user.id);
+  } catch (decodeError) {
+    console.error('Failed to decode JWT:', decodeError);
+    const errorMessage = decodeError instanceof Error ? decodeError.message : 'Invalid token';
     return new Response(
       JSON.stringify({ 
-        error: 'Unauthorized - Invalid token',
-        details: authError?.message || 'Unknown auth error'
+        error: 'Unauthorized - Invalid token format',
+        details: errorMessage
       }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-
-  console.log('Authenticated user:', user.id);
 
   try {
     let rawData;
