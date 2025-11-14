@@ -310,17 +310,17 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+        <DialogHeader className="px-5 pt-6 pb-4">
           <DialogTitle className="sr-only">{product.name}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6">
+        <div className="flex-1 overflow-y-auto px-5">
           <div className="space-y-6 pb-6">
             {productContent}
           </div>
         </div>
 
-        <div className="border-t bg-background px-6 py-4">
+        <div className="border-t bg-background px-5 py-4">
           {footerContent}
         </div>
       </DialogContent>
