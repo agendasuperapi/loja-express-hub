@@ -1085,6 +1085,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      fc_consultar_email_user: {
+        Args: { param_email: string }
+        Returns: {
+          cadastrado: boolean
+          result: string
+        }[]
+      }
       generate_short_id: { Args: never; Returns: string }
       get_admin_users: {
         Args: never

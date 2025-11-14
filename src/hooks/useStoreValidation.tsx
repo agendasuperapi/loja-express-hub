@@ -7,7 +7,10 @@ export const storeSchema = z.object({
     .trim()
     .min(1, 'URL da loja é obrigatória')
     .max(100, 'URL muito longa')
-    .regex(/^[a-z0-9-]+$/, 'URL deve conter apenas letras minúsculas, números e hífens'),
+    .regex(/^[a-z0-9-]+$/, 'URL deve conter apenas letras minúsculas, números e hífens')
+    .refine(val => !val.includes(' '), {
+      message: 'URL não pode conter espaços'
+    }),
   description: z.string().trim().max(1000, 'Descrição muito longa').optional(),
   category: z.string().trim().min(1, 'Categoria é obrigatória').max(100),
   address: z.string().trim().max(500, 'Endereço muito longo').optional(),
