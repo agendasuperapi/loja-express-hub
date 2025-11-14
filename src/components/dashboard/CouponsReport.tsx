@@ -29,6 +29,8 @@ export function CouponsReport({ storeId }: CouponsReportProps) {
   const { data: orders, isLoading } = useQuery({
     queryKey: ['coupon-report', storeId],
     queryFn: async () => {
+      console.log('[CouponsReport] Buscando pedidos com cupons para storeId:', storeId);
+      
       const { data, error } = await supabase
         .from('orders')
         .select('coupon_code, coupon_discount')
@@ -36,18 +38,37 @@ export function CouponsReport({ storeId }: CouponsReportProps) {
         .not('coupon_code', 'is', null)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('[CouponsReport] Resultado da query:', { 
+        data, 
+        error, 
+        totalOrders: data?.length || 0 
+      });
+
+      if (error) {
+        console.error('[CouponsReport] Erro ao buscar pedidos:', error);
+        throw error;
+      }
       return (data as any) || [];
     },
   });
 
   const couponStats = useMemo(() => {
-    if (!orders) return { coupons: [], totalUses: 0, totalDiscount: 0 };
+    console.log('[CouponsReport] Calculando estatísticas. Orders recebidos:', orders);
+    
+    if (!orders) {
+      console.log('[CouponsReport] Nenhum pedido encontrado');
+      return { coupons: [], totalUses: 0, totalDiscount: 0 };
+    }
 
     const couponMap = new Map<string, CouponUsage>();
 
     orders.forEach((order) => {
-      if (!order.coupon_code) return;
+      console.log('[CouponsReport] Processando order:', order);
+      
+      if (!order.coupon_code) {
+        console.log('[CouponsReport] Order sem cupom, pulando');
+        return;
+      }
 
       const existing = couponMap.get(order.coupon_code);
       if (existing) {
@@ -65,6 +86,13 @@ export function CouponsReport({ storeId }: CouponsReportProps) {
     const coupons = Array.from(couponMap.values()).sort((a, b) => b.totalUses - a.totalUses);
     const totalUses = coupons.reduce((sum, c) => sum + c.totalUses, 0);
     const totalDiscount = coupons.reduce((sum, c) => sum + c.totalDiscount, 0);
+
+    console.log('[CouponsReport] Estatísticas calculadas:', { 
+      totalCoupons: coupons.length, 
+      totalUses, 
+      totalDiscount,
+      coupons 
+    });
 
     return { coupons, totalUses, totalDiscount };
   }, [orders]);
