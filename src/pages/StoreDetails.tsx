@@ -676,7 +676,7 @@ export default function StoreDetails() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedProduct(product);
+                                    setDetailsProduct(product);
                                   }}
                                   className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
                                 >
