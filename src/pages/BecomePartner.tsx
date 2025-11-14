@@ -90,6 +90,17 @@ export default function BecomePartner() {
     return slug;
   };
 
+  const sanitizeSlug = (value: string) => {
+    // Remove espaços e caracteres inválidos em tempo real
+    return value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+      .replace(/[^a-z0-9-]/g, "") // Permite apenas letras minúsculas, números e hífens
+      .replace(/-+/g, "-") // Remove hífens duplicados
+      .replace(/^-|-$/g, ""); // Remove hífens no início e fim
+  };
+
   const validateForm = () => {
     try {
       // Validate using zod schema
@@ -299,13 +310,17 @@ export default function BecomePartner() {
                       <Input
                         id="slug"
                         value={formData.slug}
-                        onChange={(e) =>
-                          setFormData({ ...formData, slug: e.target.value })
-                        }
+                        onChange={(e) => {
+                          const sanitized = sanitizeSlug(e.target.value);
+                          setFormData({ ...formData, slug: sanitized });
+                        }}
                         placeholder="pizzaria-bella-italia"
                         className={errors.slug ? "border-red-500" : ""}
                       />
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Apenas letras minúsculas, números e hífens
+                    </p>
                     {errors.slug && (
                       <p className="text-sm text-red-500 mt-1">{errors.slug}</p>
                     )}
