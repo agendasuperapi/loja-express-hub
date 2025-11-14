@@ -118,7 +118,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
           src={product.image_url || '/placeholder.svg'}
           alt={product.name}
-          className="w-full h-56 md:h-64 object-cover rounded-t-3xl md:rounded-2xl group-hover:scale-110 transition-transform duration-1000 ease-out"
+          className="w-full h-56 md:h-64 object-cover md:rounded-2xl group-hover:scale-110 transition-transform duration-1000 ease-out"
         />
         {/* Animated shine effect */}
         <motion.div
@@ -295,7 +295,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[88vh] rounded-t-3xl p-0 animate-in slide-in-from-bottom duration-300">
+        <DrawerContent className="h-[88vh] p-0 animate-in slide-in-from-bottom duration-300">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
@@ -310,7 +310,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             </Button>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="space-y-3 pb-4">
+              <div className="pb-4">
                 {productContent}
               </div>
             </div>
