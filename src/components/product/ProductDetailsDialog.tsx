@@ -114,7 +114,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         <img
           src={product.image_url || '/placeholder.svg'}
           alt={product.name}
-          className="w-full h-56 md:h-64 object-cover md:rounded-t-3xl md:rounded-2xl"
+          className="w-full h-56 md:h-64 object-cover rounded-t-3xl md:rounded-2xl"
         />
         {hasDiscount && (
           <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
@@ -278,7 +278,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[88vh] rounded-t-3xl">
+        <DrawerContent className="h-[88vh] rounded-t-3xl p-0">
           <div className="flex flex-col h-full overflow-hidden relative">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
@@ -293,7 +293,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             </Button>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="space-y-4 pb-4 px-0 pt-0">
+              <div className="space-y-4 pb-4">
                 {productContent}
               </div>
             </div>
