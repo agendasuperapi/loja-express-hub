@@ -34,10 +34,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Ticket, Calendar, DollarSign, Users, Copy } from 'lucide-react';
+import { Plus, Pencil, Trash2, Ticket, Calendar, DollarSign, Users, Copy, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { CouponsReport } from './CouponsReport';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CouponsManagerProps {
   storeId: string;
@@ -202,14 +204,30 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
           <h2 className="text-2xl font-bold gradient-text">Cupons de Desconto</h2>
           <p className="text-muted-foreground">Gerencie os cupons promocionais da sua loja</p>
         </div>
-        {canCreate && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Novo Cupom
-              </Button>
-            </DialogTrigger>
+      </div>
+
+      <Tabs defaultValue="management" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="management" className="gap-2">
+            <Ticket className="h-4 w-4" />
+            Gerenciar Cupons
+          </TabsTrigger>
+          <TabsTrigger value="report" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Relatório
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="management" className="space-y-6">
+          <div className="flex justify-end">
+            {canCreate && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => handleOpenDialog()} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Novo Cupom
+                  </Button>
+                </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <form onSubmit={handleSubmit}>
               <DialogHeader>
@@ -463,6 +481,12 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="report">
+          <CouponsReport storeId={storeId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
