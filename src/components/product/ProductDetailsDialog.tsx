@@ -114,7 +114,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         <img
           src={product.image_url || '/placeholder.svg'}
           alt={product.name}
-          className="w-full h-64 md:h-80 object-cover rounded-xl"
+          className="w-full h-48 md:h-56 object-cover rounded-xl"
         />
         {hasDiscount && (
           <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
@@ -280,16 +280,16 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="h-[95vh] rounded-t-3xl">
           <div className="flex flex-col h-full overflow-hidden">
-            <DrawerHeader className="flex-shrink-0 border-b pb-4">
-              <div className="flex items-center justify-between">
+            <DrawerHeader className="flex-shrink-0 border-b pb-2 pt-2">
+              <div className="flex items-center justify-end">
                 <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onOpenChange(false)}
-                  className="rounded-full"
+                  className="rounded-full h-12 w-12"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-6 h-6" />
                 </Button>
               </div>
             </DrawerHeader>
