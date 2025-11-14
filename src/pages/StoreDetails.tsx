@@ -5,7 +5,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { AddToCartDialog } from "@/components/cart/AddToCartDialog";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, Heart, ArrowLeft, Search, Share2 } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useStore } from "@/hooks/useStores";
 import { useProducts } from "@/hooks/useProducts";
-import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/contexts/CartContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useRef, useEffect } from "react";
@@ -29,7 +28,6 @@ export default function StoreDetails() {
   const [searchParams] = useSearchParams();
   const { data: store, isLoading: storeLoading } = useStore(slug!);
   const { data: products, isLoading: productsLoading } = useProducts(store?.id || '');
-  const { isFavorite, toggleFavorite } = useFavorites();
   const { addToCart } = useCart();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -439,33 +437,6 @@ export default function StoreDetails() {
                   )}
                 </div>
               </div>
-
-              {store.slug !== 'drogaclaramoc' && (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => toggleFavorite(store.id)}
-                    className={`${
-                      isFavorite(store.id) 
-                        ? 'border-red-500 bg-red-500/10 hover:bg-red-500/20' 
-                        : 'hover:border-red-500/50 hover:bg-red-500/5'
-                    } transition-all duration-300 shadow-lg hover:shadow-xl`}
-                  >
-                    <Heart 
-                      className={`w-5 h-5 mr-2 transition-all ${
-                        isFavorite(store.id) 
-                          ? 'fill-red-500 text-red-500 animate-pulse' 
-                          : ''
-                      }`}
-                    />
-                    {isFavorite(store.id) ? 'Favoritado' : 'Favoritar'}
-                  </Button>
-                </motion.div>
-              )}
             </div>
           </motion.div>
         </motion.div>
