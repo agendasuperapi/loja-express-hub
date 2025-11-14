@@ -79,15 +79,23 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
       const statusLower = String(rawStatus).toLowerCase();
       console.log('[WhatsApp Status] Status normalizado:', statusLower);
 
-      // Estados considerados conectados
-      const connectedStates = ['open', 'connected', 'authenticated', 'online', 'ready'];
-      // Estados considerados em conexão
-      const connectingStates = ['connecting', 'qr', 'pairing', 'loading', 'starting'];
+      // Estados considerados (comparação por tokens exatos para evitar falso-positivos)
+      const connectedSet = new Set(['open', 'connected', 'authenticated', 'online', 'ready']);
+      const connectingSet = new Set(['connecting', 'qr', 'pairing', 'loading', 'starting']);
+      const disconnectedSet = new Set(['disconnected', 'closed', 'close', 'offline', 'logout', 'not_connected', 'notconnected']);
 
-      if (connectedStates.some(s => statusLower.includes(s))) {
+      // Tokenizar status para comparar palavras exatas
+      const tokens = statusLower.replace(/[^a-z_ ]/g, ' ').split(/\s+/).filter(Boolean);
+
+      const hasAny = (set: Set<string>) => tokens.some(t => set.has(t));
+
+      if (hasAny(disconnectedSet)) {
+        console.log('[WhatsApp Status] ❌ Status DESCONECTADO detectado');
+        setStatus('disconnected');
+      } else if (hasAny(connectedSet)) {
         console.log('[WhatsApp Status] ✅ Status CONECTADO detectado');
         setStatus('connected');
-      } else if (connectingStates.some(s => statusLower.includes(s))) {
+      } else if (hasAny(connectingSet)) {
         console.log('[WhatsApp Status] ⏳ Status CONECTANDO detectado');
         setStatus('connecting');
       } else {
