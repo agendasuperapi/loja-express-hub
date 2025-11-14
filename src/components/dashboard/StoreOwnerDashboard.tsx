@@ -872,11 +872,12 @@ export const StoreOwnerDashboard = () => {
         />
       
       
-      <div className="flex-1">{activeTab === 'home' && (
+      <div className="flex-1">
+        {activeTab === 'home' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="p-8 space-y-6"
+            className="p-4 md:p-8 space-y-6"
           >
             {/* Store Header */}
             <motion.div
@@ -998,13 +999,13 @@ export const StoreOwnerDashboard = () => {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center justify-between flex-wrap gap-4"
+              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
               <div>
-                <h2 className="text-2xl font-bold gradient-text">Estatísticas da Loja</h2>
-                <p className="text-muted-foreground">Acompanhe o desempenho do seu negócio</p>
+                <h2 className="text-xl md:text-2xl font-bold gradient-text">Estatísticas da Loja</h2>
+                <p className="text-sm md:text-base text-muted-foreground">Acompanhe o desempenho do seu negócio</p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Select value={periodFilter} onValueChange={(value) => {
                   if (value === "custom") {
                     setShowCustomDatePicker(true);
@@ -1012,7 +1013,7 @@ export const StoreOwnerDashboard = () => {
                     setPeriodFilter(value);
                   }
                 }}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <CalendarIcon className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Período" />
                   </SelectTrigger>
@@ -1028,7 +1029,7 @@ export const StoreOwnerDashboard = () => {
                 </Select>
 
                 <Select value={statsStatusFilter} onValueChange={setStatsStatusFilter}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1623,13 +1624,13 @@ export const StoreOwnerDashboard = () => {
 
               {/* Filtros de Data */}
               <div className="space-y-3 mb-4">
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                   <Label className="text-sm font-medium">Filtrar por período:</Label>
                   <Select
                     value={dateFilter}
                     onValueChange={(value: 'all' | 'daily' | 'weekly' | 'monthly' | 'custom') => setDateFilter(value)}
                   >
-                    <SelectTrigger className="w-[200px] bg-background z-50">
+                    <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Selecione o período" />
                     </SelectTrigger>
                     <SelectContent className="bg-background z-50">
@@ -1702,10 +1703,11 @@ export const StoreOwnerDashboard = () => {
                   <Button
                     variant={orderStatusFilter === 'all' ? 'default' : 'outline'}
                     onClick={() => setOrderStatusFilter('all')}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-xs sm:text-sm"
+                    size="sm"
                   >
-                    <ShoppingBag className="w-4 h-4" />
-                    Todos
+                    <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden xs:inline">Todos</span>
                     <Badge variant="secondary" className="ml-1">
                       {orders?.length || 0}
                     </Badge>
@@ -1740,9 +1742,10 @@ export const StoreOwnerDashboard = () => {
                       variant={isActive ? 'default' : 'outline'}
                       onClick={() => setOrderStatusFilter(status.status_key)}
                       className={cn(
-                        "flex items-center gap-2 transition-all",
+                        "flex items-center gap-1 sm:gap-2 transition-all text-xs sm:text-sm px-2 sm:px-4",
                         isActive && "shadow-md"
                       )}
+                      size="sm"
                       style={{
                         backgroundColor: isActive ? status.status_color : undefined,
                         borderColor: status.status_color,
@@ -1750,10 +1753,10 @@ export const StoreOwnerDashboard = () => {
                       }}
                     >
                       <Badge
-                        className="w-3 h-3 p-0 rounded-full"
+                        className="w-2 h-2 sm:w-3 sm:h-3 p-0 rounded-full"
                         style={{ backgroundColor: status.status_color }}
                       />
-                      {status.status_label}
+                      <span className="truncate">{status.status_label}</span>
                       <Badge 
                         variant="secondary" 
                         className="ml-1"
@@ -1810,19 +1813,19 @@ export const StoreOwnerDashboard = () => {
 
             {/* Lista de Pedidos */}
             {paginatedOrdersData.totalOrders > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {paginatedOrdersData.orders.map((order, index) => (
                   <div key={order.id}>
                     <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                           <div>
-                            <h3 className="font-semibold text-lg">Pedido #{order.order_number}</h3>
-                            <p className="text-sm text-muted-foreground">
+                            <h3 className="font-semibold text-base md:text-lg">Pedido #{order.order_number}</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground">
                               {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                             </p>
                           </div>
-                          <Badge variant="outline" className="capitalize">
+                          <Badge variant="outline" className="capitalize text-xs self-start">
                             {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
                           </Badge>
                         </div>
@@ -1892,7 +1895,7 @@ export const StoreOwnerDashboard = () => {
 
                         <Separator className="my-4" />
 
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -1900,9 +1903,9 @@ export const StoreOwnerDashboard = () => {
                               setViewingOrder(order);
                               setIsViewOrderDialogOpen(true);
                             }}
-                            className="flex items-center gap-2"
+                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                             Visualizar
                           </Button>
                           
@@ -1910,9 +1913,9 @@ export const StoreOwnerDashboard = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => handlePrintOrder(order)}
-                            className="flex items-center gap-2"
+                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
-                            <Printer className="w-4 h-4" />
+                            <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
                             Imprimir
                           </Button>
                           
@@ -1925,9 +1928,9 @@ export const StoreOwnerDashboard = () => {
                                 setIsEditOrderDialogOpen(true);
                                 setEditDialogInitialTab('notes');
                               }}
-                              className="flex items-center gap-2"
+                              className="flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
-                              <MessageSquare className="w-4 h-4" />
+                              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
                               Notas
                             </Button>
                           )}
@@ -1941,9 +1944,9 @@ export const StoreOwnerDashboard = () => {
                                 setIsEditOrderDialogOpen(true);
                                 setEditDialogInitialTab("items");
                               }}
-                              className="flex items-center gap-2"
+                              className="flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                               Editar Pedido
                             </Button>
                           )}
