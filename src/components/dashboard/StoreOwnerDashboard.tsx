@@ -862,7 +862,7 @@ export const StoreOwnerDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background w-full">
+    <div className="flex min-h-screen bg-background w-full overflow-x-hidden">
         {/* Mobile Sidebar (Drawer) */}
         <DashboardMobileSidebar
           activeTab={activeTab}
@@ -884,12 +884,12 @@ export const StoreOwnerDashboard = () => {
         />
       
       
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 overflow-x-hidden">
         {activeTab === 'home' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="p-4 md:p-8 space-y-6"
+            className="p-4 md:p-8 space-y-6 max-w-full"
           >
             {/* Store Header */}
             <motion.div
