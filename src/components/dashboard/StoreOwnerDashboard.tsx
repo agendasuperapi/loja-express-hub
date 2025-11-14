@@ -684,6 +684,7 @@ export const StoreOwnerDashboard = () => {
       min_order_value: storeForm.min_order_value,
       avg_delivery_time: storeForm.avg_delivery_time,
       address: storeForm.address,
+      pickup_address: storeForm.pickup_address,
       phone: storeForm.phone,
     });
   };
