@@ -53,7 +53,12 @@ import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
-import { ReportsPage } from "./ReportsPage";
+import { CustomersReport } from "./CustomersReport";
+import { BestSellingProductsReport } from "./BestSellingProductsReport";
+import { RegisteredProductsReport } from "./RegisteredProductsReport";
+import { OrdersReport } from "./OrdersReport";
+import { ReportsFilters } from "./ReportsFilters";
+import { useDateRangeFilter } from "@/hooks/useDateRangeFilter";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -171,6 +176,13 @@ export const StoreOwnerDashboard = () => {
   const [currentHomeOrderPage, setCurrentHomeOrderPage] = useState(1);
   const homeOrdersPerPage = 10;
   const [activeTab, setActiveTab] = useState('home');
+  const { 
+    periodFilter: reportsPeriodFilter, 
+    setPeriodFilter: setReportsPeriodFilter,
+    customDateRange: reportsCustomDateRange,
+    setCustomDateRange: setReportsCustomDateRange,
+    dateRange: reportsDateRange 
+  } = useDateRangeFilter();
   const [periodFilter, setPeriodFilter] = useState<string>("all");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
@@ -2538,8 +2550,34 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === 'relatorios' && myStore?.id && (
-          <ReportsPage storeId={myStore.id} />
+        {(activeTab === 'relatorio-clientes' || 
+          activeTab === 'relatorio-produtos-vendidos' || 
+          activeTab === 'relatorio-produtos-cadastrados' || 
+          activeTab === 'relatorio-pedidos') && myStore?.id && (
+          <div className="p-8 space-y-6">
+            <ReportsFilters
+              periodFilter={reportsPeriodFilter}
+              onPeriodFilterChange={setReportsPeriodFilter}
+              customDateRange={reportsCustomDateRange}
+              onCustomDateRangeChange={setReportsCustomDateRange}
+            />
+            
+            {activeTab === 'relatorio-clientes' && (
+              <CustomersReport storeId={myStore.id} dateRange={reportsDateRange} />
+            )}
+
+            {activeTab === 'relatorio-produtos-vendidos' && (
+              <BestSellingProductsReport storeId={myStore.id} dateRange={reportsDateRange} />
+            )}
+
+            {activeTab === 'relatorio-produtos-cadastrados' && (
+              <RegisteredProductsReport storeId={myStore.id} />
+            )}
+
+            {activeTab === 'relatorio-pedidos' && (
+              <OrdersReport storeId={myStore.id} dateRange={reportsDateRange} />
+            )}
+          </div>
         )}
 
         {activeTab === 'result' && (

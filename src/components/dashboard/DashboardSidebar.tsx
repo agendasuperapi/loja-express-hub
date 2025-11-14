@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, FileBarChart } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, FileBarChart, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -18,6 +18,7 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
+  const [relatoriosOpen, setRelatoriosOpen] = useState(false);
 
   // Função para verificar se o funcionário tem permissão
   const hasPermission = (module: string, action: string = 'view'): boolean => {
@@ -36,6 +37,13 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     // Funcionários só são visíveis para donos de loja
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
+
+  const relatoriosSubItems = [
+    ...(hasPermission('reports') ? [{ id: 'relatorio-clientes', label: 'clientes', icon: Users }] : []),
+    ...(hasPermission('reports') ? [{ id: 'relatorio-produtos-vendidos', label: 'mais vendidos', icon: TrendingUp }] : []),
+    ...(hasPermission('reports') ? [{ id: 'relatorio-produtos-cadastrados', label: 'cadastrados', icon: Package }] : []),
+    ...(hasPermission('reports') ? [{ id: 'relatorio-pedidos', label: 'pedidos', icon: ShoppingCart }] : []),
+  ];
   
   console.log('[DashboardSidebar] Cadastros SubItems:', {
     products: hasPermission('products', 'view'),
@@ -50,7 +58,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     { id: 'home', label: 'home', icon: Home, show: true },
     ...(hasPermission('reports') ? [{ id: 'metricas', label: 'métricas', icon: TrendingUp, show: true }] : []),
     ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
-    ...(hasPermission('reports') ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, show: true }] : []),
+    ...(relatoriosSubItems.length > 0 ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, hasSubmenu: true, show: true }] : []),
     ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
     ...(hasPermission('settings', 'manage_whatsapp') ? [{ id: 'whatsapp', label: 'whatsapp', icon: MessageSquare, show: true }] : []),
     ...(hasPermission('settings') ? [{ id: 'result', label: 'configurações', icon: Settings, show: true }] : []),
@@ -86,9 +94,9 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
           const isActive = activeTab === item.id;
           
           if (item.hasSubmenu) {
-            const isOpen = cadastrosOpen;
-            const setOpen = setCadastrosOpen;
-            const subItems = cadastrosSubItems;
+            const isOpen = item.id === 'cadastros' ? cadastrosOpen : relatoriosOpen;
+            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : setRelatoriosOpen;
+            const subItems = item.id === 'cadastros' ? cadastrosSubItems : relatoriosSubItems;
             
             return (
               <div key={item.id}>
