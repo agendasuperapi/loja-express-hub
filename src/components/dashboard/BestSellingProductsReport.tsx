@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Package, Download, FileText } from "lucide-react";
+import { Package, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { generateBestSellersReport } from "@/lib/pdfReports";
+import * as XLSX from 'xlsx';
 
 interface ProductReport {
   product_name: string;
@@ -152,6 +153,38 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
     });
   };
 
+  const exportToExcel = () => {
+    const data = products.map((product, index) => ({
+      'Posição': `#${index + 1}`,
+      'Produto': product.product_name,
+      'Quantidade Vendida': product.quantity_sold,
+      'Pedidos': product.orders_count,
+      'Receita': product.revenue
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Auto-width das colunas
+    const colWidths = [
+      { wch: 10 }, // Posição
+      { wch: 30 }, // Produto
+      { wch: 20 }, // Quantidade Vendida
+      { wch: 12 }, // Pedidos
+      { wch: 15 }  // Receita
+    ];
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Produtos Mais Vendidos");
+    
+    XLSX.writeFile(wb, `relatorio_produtos_vendidos_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+    
+    toast({
+      title: "Excel gerado!",
+      description: "O relatório foi exportado com sucesso.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -168,6 +201,15 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
           >
             <Download className="h-4 w-4 mr-2" />
             CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToExcel}
+            disabled={products.length === 0}
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Excel
           </Button>
           <Button
             variant="outline"

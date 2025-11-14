@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Users, Download, FileText } from "lucide-react";
+import { Search, Users, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateCustomersReport } from "@/lib/pdfReports";
+import * as XLSX from 'xlsx';
 
 interface Customer {
   customer_name: string;
@@ -174,6 +175,42 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
     });
   };
 
+  const exportToExcel = () => {
+    const data = filteredCustomers.map(customer => ({
+      'Nome': customer.customer_name,
+      'WhatsApp': customer.customer_phone,
+      'Endereço': customer.delivery_street && customer.delivery_number 
+        ? `${customer.delivery_street}, ${customer.delivery_number}${customer.delivery_neighborhood ? ` - ${customer.delivery_neighborhood}` : ''}`
+        : '-',
+      'Total de Pedidos': customer.total_orders,
+      'Total Gasto': customer.total_spent,
+      'Último Pedido': format(new Date(customer.last_order), 'dd/MM/yyyy', { locale: ptBR })
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Auto-width das colunas
+    const colWidths = [
+      { wch: 25 }, // Nome
+      { wch: 15 }, // WhatsApp
+      { wch: 40 }, // Endereço
+      { wch: 18 }, // Total de Pedidos
+      { wch: 15 }, // Total Gasto
+      { wch: 15 }  // Último Pedido
+    ];
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Clientes");
+    
+    XLSX.writeFile(wb, `relatorio_clientes_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+    
+    toast({
+      title: "Excel gerado!",
+      description: "O relatório foi exportado com sucesso.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -201,6 +238,15 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
           >
             <Download className="h-4 w-4 mr-2" />
             CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToExcel}
+            disabled={filteredCustomers.length === 0}
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Excel
           </Button>
           <Button
             variant="outline"

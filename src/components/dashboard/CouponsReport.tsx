@@ -12,11 +12,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tag, TrendingUp, DollarSign, Ticket, Download, FileText } from 'lucide-react';
+import { Tag, TrendingUp, DollarSign, Ticket, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { generateCouponsReport } from '@/lib/pdfReports';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
 interface CouponsReportProps {
   storeId: string;
@@ -107,6 +110,57 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
       toast({
         title: "Erro",
         description: "Não foi possível gerar o PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToExcel = async () => {
+    try {
+      // Buscar cupons completos do banco de dados
+      const { data: coupons, error } = await supabase
+        .from('coupons' as any)
+        .select('code, discount, discount_type, usage_count, valid_until, is_active')
+        .eq('store_id', storeId);
+
+      if (error) throw error;
+
+      const data = (coupons || []).map((c: any) => ({
+        'Código': c.code,
+        'Desconto': c.discount_type === 'percentage' ? `${c.discount}%` : c.discount,
+        'Tipo': c.discount_type === 'percentage' ? 'Percentual' : 'Valor Fixo',
+        'Usos': c.usage_count || 0,
+        'Validade': c.valid_until ? format(new Date(c.valid_until), 'dd/MM/yyyy', { locale: ptBR }) : 'Sem validade',
+        'Status': c.is_active ? 'Ativo' : 'Inativo'
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(data);
+      
+      // Auto-width das colunas
+      const colWidths = [
+        { wch: 15 }, // Código
+        { wch: 12 }, // Desconto
+        { wch: 15 }, // Tipo
+        { wch: 8 },  // Usos
+        { wch: 15 }, // Validade
+        { wch: 10 }  // Status
+      ];
+      ws['!cols'] = colWidths;
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Cupons");
+      
+      XLSX.writeFile(wb, `relatorio_cupons_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+      
+      toast({
+        title: "Excel gerado!",
+        description: "O relatório foi exportado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao gerar Excel:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o Excel.",
         variant: "destructive",
       });
     }
@@ -221,15 +275,26 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                 Visualize o desempenho de cada cupom utilizado
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToPDF}
-              disabled={couponStats.coupons.length === 0}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              PDF
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToExcel}
+                disabled={couponStats.coupons.length === 0}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Excel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToPDF}
+                disabled={couponStats.coupons.length === 0}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {couponStats.coupons.length === 0 ? (
