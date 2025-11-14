@@ -114,7 +114,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         <img
           src={product.image_url || '/placeholder.svg'}
           alt={product.name}
-          className="w-full h-40 md:h-48 object-contain rounded-2xl"
+          className="w-full h-40 md:h-48 object-contain md:rounded-2xl"
         />
         {hasDiscount && (
           <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
@@ -279,22 +279,20 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="h-[95vh] rounded-t-3xl">
-          <div className="flex flex-col h-full overflow-hidden">
-            <DrawerHeader className="flex-shrink-0 border-b pb-2 pt-2">
-              <div className="flex items-center justify-end">
-                <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onOpenChange(false)}
-                  className="rounded-full h-12 w-12"
-                >
-                  <X className="w-6 h-6" />
-                </Button>
-              </div>
-            </DrawerHeader>
+          <div className="flex flex-col h-full overflow-hidden relative">
+            <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
+            
+            {/* Botão de fechar flutuante sobre a imagem */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="absolute top-2 right-2 z-10 rounded-full h-12 w-12 bg-background/80 backdrop-blur-sm hover:bg-background/90"
+            >
+              <X className="w-6 h-6" />
+            </Button>
 
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto">
               <div className="space-y-6 pb-6">
                 {productContent}
               </div>
