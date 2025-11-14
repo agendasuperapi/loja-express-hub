@@ -1,4 +1,5 @@
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Share2, ShoppingCart, Store, Minus, Plus, X } from "lucide-react";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductDetailsDialogProps {
   product: any;
@@ -20,6 +22,7 @@ interface ProductDetailsDialogProps {
 
 export function ProductDetailsDialog({ product, store, open, onOpenChange }: ProductDetailsDialogProps) {
   const { addToCart } = useCart();
+  const isMobile = useIsMobile();
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
@@ -104,194 +107,225 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     }
   };
 
-  return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[95vh] rounded-t-3xl">
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Header fixo */}
-          <DrawerHeader className="flex-shrink-0 border-b pb-4">
-            <div className="flex items-center justify-between">
-              <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                className="rounded-full"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-          </DrawerHeader>
+  const productContent = (
+    <>
+      {/* Imagem do Produto */}
+      <div className="relative w-full">
+        <img
+          src={product.image_url || '/placeholder.svg'}
+          alt={product.name}
+          className="w-full h-64 md:h-80 object-cover rounded-xl"
+        />
+        {hasDiscount && (
+          <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
+            {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
+          </Badge>
+        )}
+      </div>
 
-          {/* Conteúdo com scroll */}
-          <div className="flex-1 overflow-y-auto px-4 md:px-6">
-            <div className="space-y-6 pb-6">
-              {/* Imagem do Produto */}
-              <div className="relative w-full">
-                <img
-                  src={product.image_url || '/placeholder.svg'}
-                  alt={product.name}
-                  className="w-full h-64 md:h-80 object-cover rounded-xl"
-                />
-                {hasDiscount && (
-                  <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
-                    {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
-                  </Badge>
-                )}
-              </div>
-
-              {/* Info da Loja */}
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-                {store.logo_url ? (
-                  <img src={store.logo_url} alt={store.name} className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Store className="w-6 h-6 text-primary" />
-                  </div>
-                )}
-                <div>
-                  <p className="font-semibold text-sm">{store.name}</p>
-                  <p className="text-xs text-muted-foreground">{product.category}</p>
-                </div>
-              </div>
-
-              {/* Nome e Descrição */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">{product.name}</h2>
-                {product.description && (
-                  <p className="text-base text-muted-foreground">{product.description}</p>
-                )}
-              </div>
-
-              {/* Preço */}
-              <div className="space-y-2">
-                {hasDiscount && (
-                  <p className="text-sm text-muted-foreground line-through">
-                    De R$ {Number(product.price).toFixed(2)}
-                  </p>
-                )}
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-primary">
-                    R$ {Number(currentPrice).toFixed(2)}
-                  </span>
-                  {hasDiscount && (
-                    <Badge variant="secondary" className="text-xs">
-                      Economize R$ {Number(product.price - product.promotional_price).toFixed(2)}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Quantidade */}
-              <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-base font-semibold">Quantidade</Label>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-10 w-10"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </Button>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="text-center w-20 h-10 text-lg font-semibold"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Adicionais */}
-              {addons && addons.length > 0 && (
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold">Adicionais</Label>
-                  <div className="space-y-2">
-                    {addons.filter(addon => addon.is_available).map((addon) => (
-                      <div
-                        key={addon.id}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <Checkbox
-                            id={addon.id}
-                            checked={selectedAddons.has(addon.id)}
-                            onCheckedChange={() => handleAddonToggle(addon.id)}
-                          />
-                          <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
-                            {addon.name}
-                          </Label>
-                        </div>
-                        <span className="text-sm font-semibold text-primary">
-                          + R$ {addon.price.toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Observação */}
-              <div className="space-y-2">
-                <Label htmlFor="observation" className="text-base font-semibold">
-                  Observações (opcional)
-                </Label>
-                <Textarea
-                  id="observation"
-                  placeholder="Ex: Sem cebola, bem passado..."
-                  value={observation}
-                  onChange={(e) => setObservation(e.target.value)}
-                  className="min-h-20 resize-none"
-                />
-              </div>
-
-              {/* Informações Adicionais */}
-              {product.additional_info && (
-                <div className="p-4 bg-muted/50 rounded-xl">
-                  <p className="text-sm text-muted-foreground">{product.additional_info}</p>
-                </div>
-              )}
-            </div>
+      {/* Info da Loja */}
+      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+        {store.logo_url ? (
+          <img src={store.logo_url} alt={store.name} className="w-12 h-12 rounded-full object-cover" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+            <Store className="w-6 h-6 text-primary" />
           </div>
+        )}
+        <div>
+          <p className="font-semibold text-sm">{store.name}</p>
+          <p className="text-xs text-muted-foreground">{product.category}</p>
+        </div>
+      </div>
 
-          {/* Footer fixo com botões */}
-          <div className="flex-shrink-0 border-t bg-background p-4 space-y-3">
-            <div className="flex items-center justify-between text-lg font-semibold">
-              <span>Total:</span>
-              <span className="text-2xl text-primary">R$ {total.toFixed(2)}</span>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                size="lg"
-                className="w-14"
+      {/* Nome e Descrição */}
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{product.name}</h2>
+        {product.description && (
+          <p className="text-base text-muted-foreground">{product.description}</p>
+        )}
+      </div>
+
+      {/* Preço */}
+      <div className="space-y-2">
+        {hasDiscount && (
+          <p className="text-sm text-muted-foreground line-through">
+            De R$ {Number(product.price).toFixed(2)}
+          </p>
+        )}
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-bold text-primary">
+            R$ {Number(currentPrice).toFixed(2)}
+          </span>
+          {hasDiscount && (
+            <Badge variant="secondary" className="text-xs">
+              Economize R$ {Number(product.price - product.promotional_price).toFixed(2)}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Quantidade */}
+      <div className="space-y-2">
+        <Label htmlFor="quantity" className="text-base font-semibold">Quantidade</Label>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            className="h-10 w-10"
+          >
+            <Minus className="w-5 h-5" />
+          </Button>
+          <Input
+            id="quantity"
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+            className="text-center w-20 h-10 text-lg font-semibold"
+          />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setQuantity(quantity + 1)}
+            className="h-10 w-10"
+          >
+            <Plus className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Adicionais */}
+      {addons && addons.length > 0 && (
+        <div className="space-y-3">
+          <Label className="text-base font-semibold">Adicionais</Label>
+          <div className="space-y-2">
+            {addons.filter(addon => addon.is_available).map((addon) => (
+              <div
+                key={addon.id}
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
               >
-                <Share2 className="w-5 h-5" />
-              </Button>
-              <Button
-                onClick={handleAddToCart}
-                className="flex-1 text-base h-12"
-                size="lg"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                Adicionar ao Carrinho
-              </Button>
-            </div>
+                <div className="flex items-center gap-3 flex-1">
+                  <Checkbox
+                    id={addon.id}
+                    checked={selectedAddons.has(addon.id)}
+                    onCheckedChange={() => handleAddonToggle(addon.id)}
+                  />
+                  <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
+                    {addon.name}
+                  </Label>
+                </div>
+                <span className="text-sm font-semibold text-primary">
+                  + R$ {addon.price.toFixed(2)}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+      )}
+
+      {/* Observação */}
+      <div className="space-y-2">
+        <Label htmlFor="observation" className="text-base font-semibold">
+          Observações (opcional)
+        </Label>
+        <Textarea
+          id="observation"
+          placeholder="Ex: Sem cebola, bem passado..."
+          value={observation}
+          onChange={(e) => setObservation(e.target.value)}
+          className="min-h-20 resize-none"
+        />
+      </div>
+
+      {/* Informações Adicionais */}
+      {product.additional_info && (
+        <div className="p-4 bg-muted/50 rounded-xl">
+          <p className="text-sm text-muted-foreground">{product.additional_info}</p>
+        </div>
+      )}
+    </>
+  );
+
+  const footerContent = (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-lg font-semibold">
+        <span>Total:</span>
+        <span className="text-2xl text-primary">R$ {total.toFixed(2)}</span>
+      </div>
+      <div className="flex gap-3">
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          size="lg"
+          className="w-14"
+        >
+          <Share2 className="w-5 h-5" />
+        </Button>
+        <Button
+          onClick={handleAddToCart}
+          className="flex-1 text-base h-12"
+          size="lg"
+        >
+          <ShoppingCart className="w-5 h-5 mr-2" />
+          Adicionar ao Carrinho
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="h-[95vh] rounded-t-3xl">
+          <div className="flex flex-col h-full overflow-hidden">
+            <DrawerHeader className="flex-shrink-0 border-b pb-4">
+              <div className="flex items-center justify-between">
+                <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onOpenChange(false)}
+                  className="rounded-full"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </DrawerHeader>
+
+            <div className="flex-1 overflow-y-auto px-4">
+              <div className="space-y-6 pb-6">
+                {productContent}
+              </div>
+            </div>
+
+            <div className="flex-shrink-0 border-t bg-background p-4">
+              {footerContent}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="sr-only">{product.name}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-6">
+          <div className="space-y-6 pb-6">
+            {productContent}
+          </div>
+        </div>
+
+        <div className="border-t bg-background px-6 py-4">
+          {footerContent}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
