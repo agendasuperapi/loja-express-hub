@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Package, Download, FileText } from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -28,6 +29,8 @@ interface BestSellingProductsReportProps {
 export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", dateRange }: BestSellingProductsReportProps) => {
   const [products, setProducts] = useState<ProductReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchProducts = async () => {
     try {
@@ -94,6 +97,18 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
       fetchProducts();
     }
   }, [storeId, dateRange]);
+
+  // Paginação
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return products.slice(startIndex, startIndex + itemsPerPage);
+  }, [products, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateRange]);
 
   const exportToCSV = () => {
     const headers = Object.keys(products[0] || {});
@@ -176,18 +191,20 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                     </TableCell>
                   </TableRow>
                 ) : (
-                  products.map((product, index) => (
+                  paginatedProducts.map((product, index) => {
+                    const globalIndex = (currentPage - 1) * itemsPerPage + index;
+                    return (
                     <TableRow key={index}>
                       <TableCell>
                         <Badge
-                          variant={index < 3 ? "default" : "secondary"}
+                          variant={globalIndex < 3 ? "default" : "secondary"}
                           className={cn(
-                            index === 0 && "bg-yellow-500 hover:bg-yellow-600",
-                            index === 1 && "bg-gray-400 hover:bg-gray-500",
-                            index === 2 && "bg-orange-600 hover:bg-orange-700"
+                            globalIndex === 0 && "bg-yellow-500 hover:bg-yellow-600",
+                            globalIndex === 1 && "bg-gray-400 hover:bg-gray-500",
+                            globalIndex === 2 && "bg-orange-600 hover:bg-orange-700"
                           )}
                         >
-                          #{index + 1}
+                          #{globalIndex + 1}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">{product.product_name}</TableCell>
@@ -201,11 +218,47 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                         R$ {product.revenue.toFixed(2)}
                       </TableCell>
                     </TableRow>
-                  ))
+                  );
+                  })
                 )}
             </TableBody>
             </Table>
           </ScrollArea>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
   );

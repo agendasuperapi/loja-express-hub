@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Users, Download, FileText } from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -35,6 +36,8 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchCustomers = async () => {
     try {
@@ -112,6 +115,18 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
         customer.delivery_neighborhood?.toLowerCase().includes(term)
     );
   }, [customers, searchTerm]);
+
+  // Paginação
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const paginatedCustomers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCustomers, currentPage, itemsPerPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateRange]);
 
   const exportToCSV = () => {
     const headers = Object.keys(filteredCustomers[0] || {});
@@ -207,7 +222,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCustomers.map((customer, index) => (
+                  paginatedCustomers.map((customer, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">{customer.customer_name}</TableCell>
                       <TableCell>{customer.customer_phone}</TableCell>
@@ -239,6 +254,41 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
         </TableBody>
       </Table>
     </ScrollArea>
+
+    {/* Paginação */}
+    {totalPages > 1 && (
+      <div className="mt-4">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <PaginationNext 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    )}
   </CardContent>
 </Card>
   );
