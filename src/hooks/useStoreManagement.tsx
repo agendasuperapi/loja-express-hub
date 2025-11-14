@@ -251,10 +251,29 @@ export const useStoreManagement = () => {
   });
 
   const updateStoreMutation = useMutation({
-    mutationFn: async ({ id, ...storeData }: StoreFormData & { id: string }) => {
+    mutationFn: async ({ id, slug, ...storeData }: StoreFormData & { id: string }) => {
+      // Validar slug antes de atualizar (double-check no backend)
+      if (slug) {
+        const { data: existingStore, error: checkError } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('slug', slug)
+          .neq('id', id)
+          .maybeSingle();
+
+        if (checkError) throw checkError;
+        
+        if (existingStore) {
+          throw new Error(`A URL "${slug}" já está em uso por outra loja.`);
+        }
+      }
+
       const { data, error } = await supabase
         .from('stores')
-        .update(storeData)
+        .update({
+          ...storeData,
+          slug,
+        })
         .eq('id', id)
         .select()
         .single();
@@ -264,6 +283,7 @@ export const useStoreManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-store'] });
+      queryClient.invalidateQueries({ queryKey: ['stores'] });
       toast({
         title: 'Loja atualizada!',
         description: 'As informações da sua loja foram atualizadas.',

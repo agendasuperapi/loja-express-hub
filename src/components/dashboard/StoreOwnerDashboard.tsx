@@ -734,7 +734,7 @@ export const StoreOwnerDashboard = () => {
     });
   };
 
-  const handleUpdateStore = () => {
+  const handleUpdateStore = async () => {
     if (!myStore) return;
     
     // Validação: impedir salvar se slug estiver em uso
@@ -757,26 +757,88 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    updateStore({
-      id: myStore.id,
-      name: storeForm.name,
-      slug: storeForm.slug,
-      category: storeForm.category,
-      logo_url: storeForm.logo_url,
-      banner_url: storeForm.banner_url,
-      description: storeForm.description,
-      delivery_fee: storeForm.delivery_fee,
-      min_order_value: storeForm.min_order_value,
-      avg_delivery_time: storeForm.avg_delivery_time,
-      accepts_delivery: storeForm.accepts_delivery,
-      accepts_pickup: storeForm.accepts_pickup,
-      accepts_pix: storeForm.accepts_pix,
-      accepts_card: storeForm.accepts_card,
-      accepts_cash: storeForm.accepts_cash,
-      address: storeForm.address,
-      pickup_address: storeForm.pickup_address,
-      phone: storeForm.phone,
-    });
+    // Validação: verificar se ainda está checando disponibilidade
+    if (slugAvailability.isChecking) {
+      toast({
+        title: "Aguarde",
+        description: "Verificando disponibilidade da URL...",
+      });
+      return;
+    }
+
+    const oldSlug = myStore.slug;
+    const newSlug = storeForm.slug;
+    const isSlugChanging = oldSlug !== newSlug;
+
+    // Se o slug está mudando, mostrar alerta de confirmação
+    if (isSlugChanging) {
+      const confirmed = window.confirm(
+        `⚠️ ATENÇÃO: Você está mudando a URL da sua loja!\n\n` +
+        `URL antiga: appofertas.lovable.app/${oldSlug}\n` +
+        `URL nova: appofertas.lovable.app/${newSlug}\n\n` +
+        `IMPORTANTE: Links antigos compartilhados não funcionarão mais.\n\n` +
+        `Deseja realmente continuar?`
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    try {
+      await updateStore({
+        id: myStore.id,
+        name: storeForm.name,
+        slug: storeForm.slug,
+        category: storeForm.category,
+        logo_url: storeForm.logo_url,
+        banner_url: storeForm.banner_url,
+        description: storeForm.description,
+        delivery_fee: storeForm.delivery_fee,
+        min_order_value: storeForm.min_order_value,
+        avg_delivery_time: storeForm.avg_delivery_time,
+        accepts_delivery: storeForm.accepts_delivery,
+        accepts_pickup: storeForm.accepts_pickup,
+        accepts_pix: storeForm.accepts_pix,
+        accepts_card: storeForm.accepts_card,
+        accepts_cash: storeForm.accepts_cash,
+        address: storeForm.address,
+        pickup_address: storeForm.pickup_address,
+        phone: storeForm.phone,
+      });
+
+      // Se o slug foi alterado, limpar caches e localStorage
+      if (isSlugChanging) {
+        console.log(`🔄 Slug alterado de "${oldSlug}" para "${newSlug}"`);
+        
+        // Limpar localStorage que possa ter o slug antigo
+        const lastVisited = localStorage.getItem('lastVisitedStore');
+        if (lastVisited) {
+          try {
+            const parsed = JSON.parse(lastVisited);
+            if (parsed.slug === oldSlug) {
+              localStorage.removeItem('lastVisitedStore');
+              console.log('🧹 localStorage limpo');
+            }
+          } catch (e) {
+            console.error('Erro ao limpar localStorage:', e);
+          }
+        }
+
+        // Invalidar todas as queries relacionadas à loja
+        queryClient.invalidateQueries({ queryKey: ['store', oldSlug] });
+        queryClient.invalidateQueries({ queryKey: ['store', newSlug] });
+        queryClient.invalidateQueries({ queryKey: ['stores'] });
+        queryClient.invalidateQueries({ queryKey: ['my-store'] });
+        
+        toast({
+          title: "✅ URL atualizada com sucesso!",
+          description: `Nova URL: appofertas.lovable.app/${newSlug}`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar loja:', error);
+    }
   };
 
   const handleSaveOperatingHours = async (hours: any) => {
