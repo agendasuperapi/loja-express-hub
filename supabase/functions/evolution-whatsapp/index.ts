@@ -57,22 +57,15 @@ serve(async (req) => {
     );
   }
 
-  // Initialize Supabase client
+  // Initialize Supabase client with service role for database operations
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-    {
-      global: {
-        headers: { Authorization: req.headers.get('Authorization') ?? '' },
-      },
-    }
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
 
-  // Authenticate user using Bearer token from the Authorization header
-  const authHeader = req.headers.get('Authorization') || '';
-  const hasHeader = !!authHeader;
-  console.log('Authorization header present:', hasHeader);
-  if (!hasHeader) {
+  // Get authenticated user from JWT (already validated by Supabase when verify_jwt = true)
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
     console.error('No Authorization header provided');
     return new Response(
       JSON.stringify({ error: 'Unauthorized - No Authorization header' }),
@@ -80,18 +73,24 @@ serve(async (req) => {
     );
   }
 
-  const jwt = authHeader.startsWith('Bearer ')
-    ? authHeader.slice('Bearer '.length)
-    : authHeader;
-  console.log('JWT present:', !!jwt, 'prefix:', authHeader.substring(0, 20));
+  // Create a client with user's JWT to get user info
+  const supabaseAuth = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    {
+      global: {
+        headers: { Authorization: authHeader },
+      },
+    }
+  );
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
+  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
   
   if (authError || !user) {
-    console.error('Authentication failed:', authError);
+    console.error('Failed to get user:', authError);
     return new Response(
       JSON.stringify({ 
-        error: 'Unauthorized - Authentication required',
+        error: 'Unauthorized - Invalid token',
         details: authError?.message || 'Unknown auth error'
       }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
