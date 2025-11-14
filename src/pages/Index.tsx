@@ -174,7 +174,7 @@ const Index = () => {
 
                     <Link to={`/${store.slug}`} className="mt-auto">
                       <Button className="w-full bg-gradient-primary">
-                        Ver {store.slug === 'drogaclaramoc' ? 'Produtos' : 'Cardápio'}
+                        Ver {(store as any).menu_label || 'Cardápio'}
                       </Button>
                     </Link>
                   </div>

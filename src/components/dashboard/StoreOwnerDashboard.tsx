@@ -165,6 +165,7 @@ export const StoreOwnerDashboard = () => {
     address: myStore?.address || '',
     pickup_address: myStore?.pickup_address || '',
     phone: myStore?.phone || '',
+    menu_label: myStore?.menu_label || 'Cardápio',
   });
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -264,6 +265,7 @@ export const StoreOwnerDashboard = () => {
         address: myStore.address || '',
         pickup_address: myStore.pickup_address || '',
         phone: myStore.phone || '',
+        menu_label: myStore.menu_label || 'Cardápio',
       });
     }
   }, [myStore]);
@@ -3039,6 +3041,25 @@ export const StoreOwnerDashboard = () => {
                       <SelectItem value="Outros">Outros</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label>Tipo de Exibição de Produtos</Label>
+                  <Select
+                    value={storeForm.menu_label}
+                    onValueChange={(value) => setStoreForm({ ...storeForm, menu_label: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione como deseja exibir" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cardápio">Cardápio</SelectItem>
+                      <SelectItem value="Produtos">Produtos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Define como seus produtos serão chamados na loja (Ex: "Ver Cardápio" ou "Ver Produtos")
+                  </p>
                 </div>
               </div>
 
