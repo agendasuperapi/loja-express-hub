@@ -117,7 +117,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           className="w-full h-56 md:h-64 object-cover rounded-t-3xl md:rounded-2xl"
         />
         {hasDiscount && (
-          <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
+          <Badge className="absolute top-16 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
             {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
           </Badge>
         )}
