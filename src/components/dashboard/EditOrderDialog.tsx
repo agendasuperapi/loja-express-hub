@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +59,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
   
   const [formData, setFormData] = useState({
     payment_method: order?.payment_method || 'pix',
+    payment_received: (order as any)?.payment_received || false,
     change_amount: order?.change_amount || 0,
     delivery_type: order?.delivery_type || 'delivery',
     delivery_street: order?.delivery_street || '',
@@ -73,6 +75,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
     if (order) {
       setFormData({
         payment_method: order.payment_method || 'pix',
+        payment_received: (order as any).payment_received || false,
         change_amount: order.change_amount || 0,
         delivery_type: order.delivery_type || 'delivery',
         delivery_street: order.delivery_street || '',
@@ -383,6 +386,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
       // Monta payload base
       const baseUpdate: any = {
         payment_method: formData.payment_method,
+        payment_received: formData.payment_received,
         change_amount: formData.change_amount,
         delivery_type: formData.delivery_type,
         delivery_street: formData.delivery_street,
@@ -630,7 +634,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
             </TabsContent>
 
             <TabsContent value="payment" className="space-y-4 pr-4">
-              <div>
+              <div className="space-y-2">
                 <Label>Forma de Pagamento</Label>
                 <Select
                   value={formData.payment_method}
@@ -654,6 +658,17 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
                     )}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <Switch
+                  id="payment-received"
+                  checked={formData.payment_received}
+                  onCheckedChange={(checked) => setFormData({ ...formData, payment_received: checked })}
+                />
+                <Label htmlFor="payment-received" className="cursor-pointer">
+                  Pagamento Recebido
+                </Label>
               </div>
 
               {formData.payment_method === 'dinheiro' && (
