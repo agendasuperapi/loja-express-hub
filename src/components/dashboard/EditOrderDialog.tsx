@@ -11,11 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ImageUpload } from "./ImageUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus } from "lucide-react";
+import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X } from "lucide-react";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { useCoupons } from "@/hooks/useCoupons";
 
 interface OrderItem {
   id: string;
@@ -42,6 +43,12 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const { history, addHistory } = useOrderHistory(order?.id);
+  const { validateCoupon } = useCoupons(order?.store_id);
+  
+  const [couponCode, setCouponCode] = useState(order?.coupon_code || '');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [couponDiscount, setCouponDiscount] = useState(order?.coupon_discount || 0);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
   
   const [formData, setFormData] = useState({
     payment_method: order?.payment_method || 'pix',
@@ -70,6 +77,14 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
         store_notes: order.store_notes || '',
         store_image_url: order.store_image_url || '',
       });
+      setCouponCode(order.coupon_code || '');
+      setCouponDiscount(order.coupon_discount || 0);
+      if (order.coupon_code) {
+        setAppliedCoupon({
+          code: order.coupon_code,
+          discount: order.coupon_discount
+        });
+      }
       loadOrderItems();
       loadAvailableProducts();
     }
@@ -160,6 +175,55 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
     setShowAddProduct(false);
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast({
+        title: 'Código inválido',
+        description: 'Por favor, insira um código de cupom',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setValidatingCoupon(true);
+    
+    const subtotal = orderItems
+      .filter(item => !item.pendingRemoval)
+      .reduce((sum, item) => sum + item.subtotal, 0);
+
+    const validation = await validateCoupon(couponCode, subtotal);
+    setValidatingCoupon(false);
+
+    if (validation.is_valid) {
+      setAppliedCoupon({
+        code: couponCode,
+        discount: validation.discount_amount,
+        discountType: validation.discount_type
+      });
+      setCouponDiscount(validation.discount_amount || 0);
+      toast({
+        title: 'Cupom aplicado!',
+        description: `Desconto de R$ ${(validation.discount_amount || 0).toFixed(2)} aplicado`,
+      });
+    } else {
+      toast({
+        title: 'Cupom inválido',
+        description: validation.error_message || 'Este cupom não pode ser usado',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    toast({
+      title: 'Cupom removido',
+      description: 'O desconto foi removido do pedido',
+    });
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     
@@ -232,7 +296,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
       const subtotal = orderItems
         .filter(item => !item.pendingRemoval)
         .reduce((sum, item) => sum + item.subtotal, 0);
-      const total = subtotal + (formData.delivery_fee || 0);
+      const total = subtotal + (formData.delivery_fee || 0) - couponDiscount;
 
       // Detectar mudanças
       const changes: Record<string, any> = {};
@@ -269,6 +333,21 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
       if (order.delivery_street !== formData.delivery_street) {
         changes.delivery_street = { before: order.delivery_street, after: formData.delivery_street };
       }
+      
+      // Mudanças no cupom
+      if (order.coupon_code !== (appliedCoupon?.code || null)) {
+        changes.coupon = {
+          before: order.coupon_code || 'Nenhum',
+          after: appliedCoupon?.code || 'Nenhum'
+        };
+      }
+      if (order.coupon_discount !== couponDiscount) {
+        changes.coupon_discount = {
+          before: order.coupon_discount || 0,
+          after: couponDiscount
+        };
+      }
+      
       if (order.subtotal !== subtotal) {
         changes.subtotal = { before: order.subtotal, after: subtotal };
       }
@@ -288,6 +367,8 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
         delivery_fee: formData.delivery_fee,
         subtotal,
         total,
+        coupon_code: appliedCoupon?.code || null,
+        coupon_discount: couponDiscount,
         store_notes: formData.store_notes,
         store_image_url: formData.store_image_url,
       };
@@ -554,6 +635,87 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
                   />
                 </div>
               )}
+
+              <Separator />
+
+              <div className="space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Cupom de Desconto
+                </Label>
+                
+                {appliedCoupon ? (
+                  <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{appliedCoupon.code}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Desconto: R$ {couponDiscount.toFixed(2)}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveCoupon}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Código do cupom"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={validatingCoupon}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={validatingCoupon || !couponCode.trim()}
+                    >
+                      {validatingCoupon ? 'Validando...' : 'Aplicar'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>R$ {orderItems
+                    .filter(item => !item.pendingRemoval)
+                    .reduce((sum, item) => sum + item.subtotal, 0)
+                    .toFixed(2)}
+                  </span>
+                </div>
+                {formData.delivery_fee > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Taxa de entrega:</span>
+                    <span>R$ {formData.delivery_fee.toFixed(2)}</span>
+                  </div>
+                )}
+                {couponDiscount > 0 && (
+                  <div className="flex justify-between text-sm text-success">
+                    <span>Desconto:</span>
+                    <span>- R$ {couponDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span>R$ {(
+                    orderItems
+                      .filter(item => !item.pendingRemoval)
+                      .reduce((sum, item) => sum + item.subtotal, 0) +
+                    (formData.delivery_fee || 0) -
+                    couponDiscount
+                  ).toFixed(2)}</span>
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="delivery" className="space-y-4 pr-4">
