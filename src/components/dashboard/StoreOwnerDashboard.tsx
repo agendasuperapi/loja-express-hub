@@ -200,6 +200,7 @@ export const StoreOwnerDashboard = () => {
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false);
+  const [editDialogInitialTab, setEditDialogInitialTab] = useState<string>("items");
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [isViewOrderDialogOpen, setIsViewOrderDialogOpen] = useState(false);
 
@@ -1549,6 +1550,22 @@ export const StoreOwnerDashboard = () => {
                               <Printer className="w-3 h-3" />
                               Imprimir
                             </Button>
+                            
+                            {hasPermission('orders', 'edit_order_details') && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setEditingOrder(order);
+                                  setIsEditOrderDialogOpen(true);
+                                  setEditDialogInitialTab('notes');
+                                }}
+                                className="flex items-center gap-2"
+                              >
+                                <MessageSquare className="w-3 h-3" />
+                                Notas
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -1897,6 +1914,22 @@ export const StoreOwnerDashboard = () => {
                             <Printer className="w-4 h-4" />
                             Imprimir
                           </Button>
+                          
+                          {hasPermission('orders', 'edit_order_details') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingOrder(order);
+                                setIsEditOrderDialogOpen(true);
+                                setEditDialogInitialTab('notes');
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              Notas
+                            </Button>
+                          )}
 
                           {hasPermission('orders', 'edit_order_details') && (
                             <Button
@@ -1905,6 +1938,7 @@ export const StoreOwnerDashboard = () => {
                               onClick={() => {
                                 setEditingOrder(order);
                                 setIsEditOrderDialogOpen(true);
+                                setEditDialogInitialTab("items");
                               }}
                               className="flex items-center gap-2"
                             >
@@ -3115,8 +3149,12 @@ export const StoreOwnerDashboard = () => {
       {/* Edit Order Dialog */}
       <EditOrderDialog
         open={isEditOrderDialogOpen}
-        onOpenChange={setIsEditOrderDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditOrderDialogOpen(open);
+          if (!open) setEditDialogInitialTab("items");
+        }}
         order={editingOrder}
+        initialTab={editDialogInitialTab}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['store-orders'] });
         }}
@@ -3304,10 +3342,26 @@ export const StoreOwnerDashboard = () => {
                 </Button>
                 {hasPermission('orders', 'edit_order_details') && (
                   <Button
+                    variant="outline"
                     onClick={() => {
                       setIsViewOrderDialogOpen(false);
                       setEditingOrder(viewingOrder);
                       setIsEditOrderDialogOpen(true);
+                      setEditDialogInitialTab('notes');
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Notas
+                  </Button>
+                )}
+                {hasPermission('orders', 'edit_order_details') && (
+                  <Button
+                    onClick={() => {
+                      setIsViewOrderDialogOpen(false);
+                      setEditingOrder(viewingOrder);
+                      setIsEditOrderDialogOpen(true);
+                      setEditDialogInitialTab("items");
                     }}
                     className="flex items-center gap-2"
                   >

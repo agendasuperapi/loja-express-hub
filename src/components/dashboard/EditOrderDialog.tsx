@@ -35,9 +35,10 @@ interface EditOrderDialogProps {
   onOpenChange: (open: boolean) => void;
   order: any;
   onUpdate: () => void;
+  initialTab?: string;
 }
 
-export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrderDialogProps) => {
+export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTab = "items" }: EditOrderDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [originalOrderItems, setOriginalOrderItems] = useState<OrderItem[]>([]);
@@ -458,7 +459,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
           <DialogTitle>Editar Pedido #{order.order_number}</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="items" className="flex-1 flex flex-col overflow-hidden">
+        <Tabs defaultValue={initialTab} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-5 flex-shrink-0">
             <TabsTrigger value="items">
               <Package className="w-4 h-4 mr-2" />
