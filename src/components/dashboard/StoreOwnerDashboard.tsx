@@ -16,7 +16,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2 } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -178,6 +178,8 @@ export const StoreOwnerDashboard = () => {
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [isEditOrderDialogOpen, setIsEditOrderDialogOpen] = useState(false);
+  const [viewingOrder, setViewingOrder] = useState<any>(null);
+  const [isViewOrderDialogOpen, setIsViewOrderDialogOpen] = useState(false);
 
   // Ajustar filtro padrão baseado em permissões
   useEffect(() => {
@@ -705,6 +707,115 @@ export const StoreOwnerDashboard = () => {
       </motion.div>
     );
   }
+
+  // Função para imprimir pedido
+  const handlePrintOrder = (order: any) => {
+    const printWindow = window.open('', '', 'width=800,height=600');
+    if (!printWindow) return;
+
+    const orderItems = order.order_items || [];
+    const itemsHtml = orderItems.map((item: any) => {
+      const addons = item.order_item_addons?.map((addon: any) => 
+        `<div style="margin-left: 20px; font-size: 12px;">+ ${addon.addon_name} - R$ ${addon.addon_price.toFixed(2)}</div>`
+      ).join('') || '';
+      
+      const flavors = item.order_item_flavors?.map((flavor: any) => 
+        `<div style="margin-left: 20px; font-size: 12px;">• ${flavor.flavor_name}</div>`
+      ).join('') || '';
+
+      return `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${item.product_name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">R$ ${item.subtotal.toFixed(2)}</td>
+        </tr>
+        ${addons ? `<tr><td colspan="2" style="padding: 4px 8px;">${addons}</td></tr>` : ''}
+        ${flavors ? `<tr><td colspan="2" style="padding: 4px 8px;">${flavors}</td></tr>` : ''}
+      `;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Pedido #${order.order_number}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .info { margin-bottom: 20px; }
+            .info-row { margin-bottom: 8px; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th { background-color: #f0f0f0; padding: 10px; text-align: left; }
+            .total { font-size: 18px; font-weight: bold; margin-top: 20px; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${myStore?.name}</h1>
+            <p>Pedido #${order.order_number}</p>
+            <p>${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+          </div>
+          
+          <div class="info">
+            <div class="info-row"><strong>Cliente:</strong> ${order.customer_name}</div>
+            <div class="info-row"><strong>Telefone:</strong> ${order.customer_phone}</div>
+            <div class="info-row"><strong>Tipo:</strong> ${order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}</div>
+            <div class="info-row"><strong>Pagamento:</strong> ${order.payment_method}</div>
+            <div class="info-row"><strong>Status:</strong> ${customStatuses.find((s: any) => s.status_key === order.status)?.status_label || order.status}</div>
+            ${order.delivery_type === 'delivery' ? `
+              <div class="info-row">
+                <strong>Endereço:</strong> ${order.delivery_street}, ${order.delivery_number}
+                ${order.delivery_complement ? ` - ${order.delivery_complement}` : ''}
+                - ${order.delivery_neighborhood}
+              </div>
+            ` : ''}
+            ${order.notes ? `<div class="info-row"><strong>Observações:</strong> ${order.notes}</div>` : ''}
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th style="text-align: right;">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+              <tr>
+                <td style="padding: 8px;"><strong>Subtotal</strong></td>
+                <td style="padding: 8px; text-align: right;"><strong>R$ ${order.subtotal.toFixed(2)}</strong></td>
+              </tr>
+              ${order.delivery_fee > 0 ? `
+                <tr>
+                  <td style="padding: 8px;">Taxa de Entrega</td>
+                  <td style="padding: 8px; text-align: right;">R$ ${order.delivery_fee.toFixed(2)}</td>
+                </tr>
+              ` : ''}
+              ${order.coupon_discount > 0 ? `
+                <tr>
+                  <td style="padding: 8px;">Desconto (${order.coupon_code})</td>
+                  <td style="padding: 8px; text-align: right;">- R$ ${order.coupon_discount.toFixed(2)}</td>
+                </tr>
+              ` : ''}
+            </tbody>
+          </table>
+          
+          <div class="total">
+            Total: R$ ${order.total.toFixed(2)}
+          </div>
+          
+          <script>
+            window.onload = function() {
+              window.print();
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   return (
     <div className="flex min-h-screen bg-background w-full">
@@ -1275,22 +1386,49 @@ export const StoreOwnerDashboard = () => {
                   <CardContent className="pt-6">
                     <div className="space-y-4">
                       {filteredOrders.slice(0, 5).map((order) => (
-                        <div key={order.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <p className="font-semibold">#{order.order_number}</p>
-                              <Badge variant="outline" className="capitalize">
-                                {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
-                              </Badge>
+                        <div key={order.id} className="p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <p className="font-semibold">#{order.order_number}</p>
+                                <Badge variant="outline" className="capitalize">
+                                  {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground space-y-1">
+                                <p>{order.customer_name}</p>
+                                <p>{format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <p>{order.customer_name}</p>
-                              <p>{format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                            <div className="text-right">
+                              <p className="font-bold text-lg text-green-500">R$ {order.total.toFixed(2)}</p>
+                              <p className="text-sm text-muted-foreground capitalize">{order.payment_method}</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg text-green-500">R$ {order.total.toFixed(2)}</p>
-                            <p className="text-sm text-muted-foreground capitalize">{order.payment_method}</p>
+                          
+                          <div className="flex gap-2 mt-3 pt-3 border-t">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setViewingOrder(order);
+                                setIsViewOrderDialogOpen(true);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye className="w-3 h-3" />
+                              Visualizar
+                            </Button>
+                            
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePrintOrder(order)}
+                              className="flex items-center gap-2"
+                            >
+                              <Printer className="w-3 h-3" />
+                              Imprimir
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -1602,7 +1740,30 @@ export const StoreOwnerDashboard = () => {
 
                         <Separator className="my-4" />
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setViewingOrder(order);
+                              setIsViewOrderDialogOpen(true);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Visualizar
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePrintOrder(order)}
+                            className="flex items-center gap-2"
+                          >
+                            <Printer className="w-4 h-4" />
+                            Imprimir
+                          </Button>
+
                           {hasPermission('orders', 'edit_order_details') && (
                             <Button
                               variant="outline"
@@ -2635,6 +2796,205 @@ export const StoreOwnerDashboard = () => {
           queryClient.invalidateQueries({ queryKey: ['store-orders'] });
         }}
       />
+
+      {/* View Order Dialog */}
+      <Dialog open={isViewOrderDialogOpen} onOpenChange={setIsViewOrderDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Pedido #{viewingOrder?.order_number}</DialogTitle>
+          </DialogHeader>
+          
+          {viewingOrder && (
+            <div className="space-y-6">
+              {/* Status e Data */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <Badge variant="outline" className="capitalize">
+                    {customStatuses.find((s: any) => s.status_key === viewingOrder.status)?.status_label || viewingOrder.status}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(viewingOrder.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+              </div>
+
+              <Separator />
+
+              {/* Informações do Cliente */}
+              <div>
+                <h3 className="font-semibold mb-3">Informações do Cliente</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Nome:</span>
+                    <span className="font-medium">{viewingOrder.customer_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Telefone:</span>
+                    <span className="font-medium">{viewingOrder.customer_phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Tipo de Entrega e Pagamento */}
+              <div>
+                <h3 className="font-semibold mb-3">Detalhes do Pedido</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tipo:</span>
+                    <span className="font-medium capitalize">
+                      {viewingOrder.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Pagamento:</span>
+                    <span className="font-medium capitalize">{viewingOrder.payment_method}</span>
+                  </div>
+                  {viewingOrder.change_amount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Troco para:</span>
+                      <span className="font-medium">R$ {viewingOrder.change_amount.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Endereço de Entrega */}
+              {viewingOrder.delivery_type === 'delivery' && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-3">Endereço de Entrega</h3>
+                    <div className="text-sm space-y-1">
+                      <p>{viewingOrder.delivery_street}, {viewingOrder.delivery_number}</p>
+                      {viewingOrder.delivery_complement && <p>{viewingOrder.delivery_complement}</p>}
+                      <p>{viewingOrder.delivery_neighborhood}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Observações */}
+              {viewingOrder.notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-3">Observações</h3>
+                    <p className="text-sm text-muted-foreground">{viewingOrder.notes}</p>
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
+              {/* Itens do Pedido */}
+              <div>
+                <h3 className="font-semibold mb-3">Itens do Pedido</h3>
+                <div className="space-y-3">
+                  {viewingOrder.order_items?.map((item: any) => (
+                    <div key={item.id} className="bg-muted/30 p-3 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <p className="font-medium">
+                            {item.quantity}x {item.product_name}
+                          </p>
+                          {item.observation && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Obs: {item.observation}
+                            </p>
+                          )}
+                        </div>
+                        <span className="font-medium">R$ {item.subtotal.toFixed(2)}</span>
+                      </div>
+                      
+                      {/* Sabores */}
+                      {item.order_item_flavors?.length > 0 && (
+                        <div className="mt-2 pl-4 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">Sabores:</p>
+                          {item.order_item_flavors.map((flavor: any) => (
+                            <p key={flavor.id} className="text-sm text-muted-foreground">
+                              • {flavor.flavor_name}
+                              {flavor.flavor_price > 0 && ` (+R$ ${flavor.flavor_price.toFixed(2)})`}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {/* Adicionais */}
+                      {item.order_item_addons?.length > 0 && (
+                        <div className="mt-2 pl-4 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground">Adicionais:</p>
+                          {item.order_item_addons.map((addon: any) => (
+                            <p key={addon.id} className="text-sm text-muted-foreground">
+                              + {addon.addon_name} (R$ {addon.addon_price.toFixed(2)})
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Resumo de Valores */}
+              <div>
+                <h3 className="font-semibold mb-3">Resumo</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal:</span>
+                    <span>R$ {viewingOrder.subtotal.toFixed(2)}</span>
+                  </div>
+                  {viewingOrder.delivery_fee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Taxa de Entrega:</span>
+                      <span>R$ {viewingOrder.delivery_fee.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {viewingOrder.coupon_discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Desconto ({viewingOrder.coupon_code}):</span>
+                      <span>- R$ {viewingOrder.coupon_discount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <Separator />
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="text-primary">R$ {viewingOrder.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => handlePrintOrder(viewingOrder)}
+                  className="flex items-center gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir
+                </Button>
+                {hasPermission('orders', 'edit_order_details') && (
+                  <Button
+                    onClick={() => {
+                      setIsViewOrderDialogOpen(false);
+                      setEditingOrder(viewingOrder);
+                      setIsEditOrderDialogOpen(true);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Editar Pedido
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
