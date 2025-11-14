@@ -150,7 +150,10 @@ export const StoreOwnerDashboard = () => {
     logo_url: myStore?.logo_url || '',
     banner_url: myStore?.banner_url || '',
     description: myStore?.description || '',
+    category: myStore?.category || 'Outros',
     delivery_fee: myStore?.delivery_fee || 0,
+    min_order_value: myStore?.min_order_value || 0,
+    avg_delivery_time: myStore?.avg_delivery_time || 30,
     address: myStore?.address || '',
     pickup_address: myStore?.pickup_address || '',
     phone: myStore?.phone || '',
@@ -234,7 +237,10 @@ export const StoreOwnerDashboard = () => {
         logo_url: myStore.logo_url || '',
         banner_url: myStore.banner_url || '',
         description: myStore.description || '',
+        category: myStore.category || 'Outros',
         delivery_fee: myStore.delivery_fee || 0,
+        min_order_value: myStore.min_order_value || 0,
+        avg_delivery_time: myStore.avg_delivery_time || 30,
         address: myStore.address || '',
         pickup_address: myStore.pickup_address || '',
         phone: myStore.phone || '',
@@ -670,11 +676,13 @@ export const StoreOwnerDashboard = () => {
       id: myStore.id,
       name: storeForm.name,
       slug: myStore.slug,
-      category: myStore.category,
+      category: storeForm.category,
       logo_url: storeForm.logo_url,
       banner_url: storeForm.banner_url,
       description: storeForm.description,
       delivery_fee: storeForm.delivery_fee,
+      min_order_value: storeForm.min_order_value,
+      avg_delivery_time: storeForm.avg_delivery_time,
       address: storeForm.address,
       phone: storeForm.phone,
     });
@@ -2827,16 +2835,81 @@ export const StoreOwnerDashboard = () => {
                 />
               </div>
 
-              <div>
-                <Label>Taxa de Entrega (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={storeForm.delivery_fee}
-                  onChange={(e) => setStoreForm({ ...storeForm, delivery_fee: parseFloat(e.target.value) || 0 })}
-                />
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Categoria</h3>
+                
+                <div>
+                  <Label>Categoria da Loja *</Label>
+                  <Select
+                    value={storeForm.category}
+                    onValueChange={(value) => setStoreForm({ ...storeForm, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Restaurante">Restaurante</SelectItem>
+                      <SelectItem value="Lanchonete">Lanchonete</SelectItem>
+                      <SelectItem value="Pizzaria">Pizzaria</SelectItem>
+                      <SelectItem value="Hamburgueria">Hamburgueria</SelectItem>
+                      <SelectItem value="Japonês">Japonês</SelectItem>
+                      <SelectItem value="Italiano">Italiano</SelectItem>
+                      <SelectItem value="Brasileira">Brasileira</SelectItem>
+                      <SelectItem value="Mercado">Mercado</SelectItem>
+                      <SelectItem value="Padaria">Padaria</SelectItem>
+                      <SelectItem value="Açougue">Açougue</SelectItem>
+                      <SelectItem value="Farmácia">Farmácia</SelectItem>
+                      <SelectItem value="Pet Shop">Pet Shop</SelectItem>
+                      <SelectItem value="Flores">Flores</SelectItem>
+                      <SelectItem value="Outros">Outros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Configurações de Entrega</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Taxa de Entrega (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={storeForm.delivery_fee}
+                      onChange={(e) => setStoreForm({ ...storeForm, delivery_fee: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Pedido Mínimo (R$)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={storeForm.min_order_value}
+                      onChange={(e) => setStoreForm({ ...storeForm, min_order_value: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Tempo Médio de Entrega (min)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={storeForm.avg_delivery_time}
+                      onChange={(e) => setStoreForm({ ...storeForm, avg_delivery_time: parseInt(e.target.value) || 30 })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
 
               <div>
                 <Label>Endereço</Label>
