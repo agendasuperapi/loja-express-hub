@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical, Save, AlertCircle } from "lucide-react";
+import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import {
   Dialog,
   DialogContent,
@@ -35,11 +36,21 @@ interface OrderStatusManagerProps {
 
 export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const { toast } = useToast();
+  const employeeAccess = useEmployeeAccess();
   const [statuses, setStatuses] = useState<OrderStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingStatus, setEditingStatus] = useState<OrderStatus | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'inactive' | 'all'>('active');
+
+  // Verificar permissões
+  const hasPermission = (action: string): boolean => {
+    if (!employeeAccess.isEmployee || !employeeAccess.permissions) return true;
+    const modulePermissions = (employeeAccess.permissions as any)['settings'];
+    return modulePermissions?.[action] === true;
+  };
+
+  const canEdit = hasPermission('update_store_info');
 
   useEffect(() => {
     loadStatuses();
@@ -168,13 +179,14 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
               Configure os status dos pedidos e as mensagens do WhatsApp
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleAddNew}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Etapa
-              </Button>
-            </DialogTrigger>
+          {canEdit && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={handleAddNew}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Etapa
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
@@ -299,6 +311,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
               )}
             </DialogContent>
           </Dialog>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -360,16 +373,18 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                   <Badge variant="outline" className="text-xs">Inativa</Badge>
                 )}
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingStatus(status);
-                    setIsDialogOpen(true);
-                  }}
-                >
-                  Editar
-                </Button>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingStatus(status);
+                      setIsDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}

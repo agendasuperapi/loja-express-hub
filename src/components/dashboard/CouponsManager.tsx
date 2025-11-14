@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCoupons, Coupon, DiscountType } from '@/hooks/useCoupons';
+import { useEmployeeAccess } from '@/hooks/useEmployeeAccess';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,9 +55,22 @@ const couponSchema = z.object({
 
 export function CouponsManager({ storeId }: CouponsManagerProps) {
   const { coupons, isLoading, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus } = useCoupons(storeId);
+  const employeeAccess = useEmployeeAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const { toast } = useToast();
+
+  // Verificar permissões
+  const hasPermission = (action: string): boolean => {
+    if (!employeeAccess.isEmployee || !employeeAccess.permissions) return true;
+    const modulePermissions = (employeeAccess.permissions as any)['coupons'];
+    return modulePermissions?.[action] === true;
+  };
+
+  const canCreate = hasPermission('create');
+  const canUpdate = hasPermission('update');
+  const canDelete = hasPermission('delete');
+  const canToggleStatus = hasPermission('toggle_status');
 
   const [formData, setFormData] = useState({
     code: '',
@@ -188,13 +202,14 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
           <h2 className="text-2xl font-bold gradient-text">Cupons de Desconto</h2>
           <p className="text-muted-foreground">Gerencie os cupons promocionais da sua loja</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Novo Cupom
-            </Button>
-          </DialogTrigger>
+        {canCreate && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenDialog()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Cupom
+              </Button>
+            </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <form onSubmit={handleSubmit}>
               <DialogHeader>
@@ -323,6 +338,7 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {coupons.length === 0 ? (
@@ -332,10 +348,12 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
             <p className="text-muted-foreground text-center mb-4">
               Você ainda não criou nenhum cupom de desconto
             </p>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Primeiro Cupom
-            </Button>
+            {canCreate && (
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Cupom
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -362,34 +380,38 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenDialog(coupon)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir cupom?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. O cupom {coupon.code} será permanentemente removido.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteCoupon(coupon.id)}>
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      {canUpdate && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenDialog(coupon)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir cupom?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. O cupom {coupon.code} será permanentemente removido.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteCoupon(coupon.id)}>
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2 mt-2">
@@ -423,10 +445,16 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
                   <div className="pt-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">Status</span>
-                      <Switch
-                        checked={coupon.is_active}
-                        onCheckedChange={(checked) => toggleCouponStatus(coupon.id, checked)}
-                      />
+                      {canToggleStatus ? (
+                        <Switch
+                          checked={coupon.is_active}
+                          onCheckedChange={(checked) => toggleCouponStatus(coupon.id, checked)}
+                        />
+                      ) : (
+                        <Badge variant={coupon.is_active ? 'default' : 'secondary'} className="text-xs">
+                          {coupon.is_active ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardContent>
