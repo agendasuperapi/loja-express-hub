@@ -1,11 +1,15 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Share2, ShoppingCart, Store } from "lucide-react";
+import { Share2, ShoppingCart, Store, Minus, Plus, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "@/hooks/use-toast";
-import { AddToCartDialog } from "@/components/cart/AddToCartDialog";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useProductAddons } from "@/hooks/useProductAddons";
+import { useState, useEffect } from "react";
 
 interface ProductDetailsDialogProps {
   product: any;
@@ -16,14 +20,44 @@ interface ProductDetailsDialogProps {
 
 export function ProductDetailsDialog({ product, store, open, onOpenChange }: ProductDetailsDialogProps) {
   const { addToCart } = useCart();
-  const [showAddToCart, setShowAddToCart] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [observation, setObservation] = useState("");
+  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const { addons } = useProductAddons(product?.id);
+
+  useEffect(() => {
+    if (!open) {
+      setQuantity(1);
+      setObservation("");
+      setSelectedAddons(new Set());
+    }
+  }, [open]);
 
   if (!product || !store) return null;
 
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
-  const handleAddToCart = (quantity: number, observation: string, selectedAddons: Array<{ id: string; name: string; price: number }>) => {
+  const handleAddonToggle = (addonId: string) => {
+    const newSelected = new Set(selectedAddons);
+    if (newSelected.has(addonId)) {
+      newSelected.delete(addonId);
+    } else {
+      newSelected.add(addonId);
+    }
+    setSelectedAddons(newSelected);
+  };
+
+  const addonsTotal = addons
+    ?.filter(addon => selectedAddons.has(addon.id))
+    .reduce((sum, addon) => sum + addon.price, 0) || 0;
+  const total = (currentPrice + addonsTotal) * quantity;
+
+  const handleAddToCart = () => {
+    const addonsToAdd = addons
+      ?.filter(addon => selectedAddons.has(addon.id))
+      .map(addon => ({ id: addon.id, name: addon.name, price: addon.price })) || [];
+    
     addToCart(
       product.id,
       product.name,
@@ -35,10 +69,13 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       product.image_url,
       observation,
       store.slug,
-      selectedAddons
+      addonsToAdd
     );
-    setShowAddToCart(false);
     onOpenChange(false);
+    toast({
+      title: "Adicionado ao carrinho!",
+      description: `${quantity}x ${product.name}`,
+    });
   };
 
   const handleShare = async () => {
@@ -68,111 +105,193 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   };
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] md:max-w-3xl lg:max-w-4xl max-h-[85vh] md:max-h-[90vh] overflow-y-auto p-4 md:p-6 [&>button]:w-10 [&>button]:h-10 [&>button]:rounded-full [&>button]:bg-orange-500 [&>button]:hover:bg-orange-600 [&>button]:border-2 [&>button]:border-orange-400 [&>button]:shadow-lg [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button>svg]:w-6 [&>button>svg]:h-6 [&>button>svg]:text-white">
-          <DialogHeader>
-            <DialogTitle className="sr-only">{product.name}</DialogTitle>
-          </DialogHeader>
-
-          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
-            {/* Imagem do Produto */}
-            <div className="relative">
-              <img
-                src={product.image_url || '/placeholder.svg'}
-                alt={product.name}
-                className="w-full h-48 md:aspect-square object-cover rounded-lg"
-              />
-              {hasDiscount && (
-                <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground">
-                  {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
-                </Badge>
-              )}
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="h-[95vh] rounded-t-3xl">
+        <div className="flex flex-col h-full overflow-hidden">
+          {/* Header fixo */}
+          <DrawerHeader className="flex-shrink-0 border-b pb-4">
+            <div className="flex items-center justify-between">
+              <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
+          </DrawerHeader>
 
-            {/* Detalhes do Produto */}
-            <div className="space-y-4 md:space-y-6">
+          {/* Conteúdo com scroll */}
+          <div className="flex-1 overflow-y-auto px-4 md:px-6">
+            <div className="space-y-6 pb-6">
+              {/* Imagem do Produto */}
+              <div className="relative w-full">
+                <img
+                  src={product.image_url || '/placeholder.svg'}
+                  alt={product.name}
+                  className="w-full h-64 md:h-80 object-cover rounded-xl"
+                />
+                {hasDiscount && (
+                  <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
+                    {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
+                  </Badge>
+                )}
+              </div>
+
               {/* Info da Loja */}
-              <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
                 {store.logo_url ? (
-                  <img src={store.logo_url} alt={store.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover" />
+                  <img src={store.logo_url} alt={store.name} className="w-12 h-12 rounded-full object-cover" />
                 ) : (
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Store className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Store className="w-6 h-6 text-primary" />
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-xs md:text-sm">{store.name}</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">{product.category}</p>
+                  <p className="font-semibold text-sm">{store.name}</p>
+                  <p className="text-xs text-muted-foreground">{product.category}</p>
                 </div>
               </div>
 
-              {/* Nome do Produto */}
+              {/* Nome e Descrição */}
               <div>
-                <h2 className="text-lg md:text-2xl font-bold text-foreground mb-1 md:mb-2">{product.name}</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-2">{product.name}</h2>
                 {product.description && (
-                  <p className="text-sm md:text-base text-muted-foreground">{product.description}</p>
+                  <p className="text-base text-muted-foreground">{product.description}</p>
                 )}
               </div>
 
               {/* Preço */}
-              <div className="space-y-1 md:space-y-2">
+              <div className="space-y-2">
                 {hasDiscount && (
-                  <p className="text-xs md:text-sm text-muted-foreground line-through">
+                  <p className="text-sm text-muted-foreground line-through">
                     De R$ {Number(product.price).toFixed(2)}
                   </p>
                 )}
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl md:text-3xl font-bold text-primary">
+                  <span className="text-3xl font-bold text-primary">
                     R$ {Number(currentPrice).toFixed(2)}
                   </span>
                   {hasDiscount && (
-                    <Badge variant="secondary" className="text-[10px] md:text-xs">
+                    <Badge variant="secondary" className="text-xs">
                       Economize R$ {Number(product.price - product.promotional_price).toFixed(2)}
                     </Badge>
                   )}
                 </div>
               </div>
 
-              {/* Botões de Ação */}
-              <div className="flex gap-2 md:gap-3">
-                <Button
-                  onClick={() => setShowAddToCart(true)}
-                  className="flex-1 text-xs md:text-sm"
-                  size="default"
-                >
-                  <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-2" />
-                  <span className="hidden sm:inline">Adicionar ao Carrinho</span>
-                  <span className="sm:hidden">Adicionar</span>
-                </Button>
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  size="default"
-                >
-                  <Share2 className="w-4 h-4 md:w-5 md:h-5" />
-                </Button>
+              {/* Quantidade */}
+              <div className="space-y-2">
+                <Label htmlFor="quantity" className="text-base font-semibold">Quantidade</Label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="h-10 w-10"
+                  >
+                    <Minus className="w-5 h-5" />
+                  </Button>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="text-center w-20 h-10 text-lg font-semibold"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="h-10 w-10"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Adicionais */}
+              {addons && addons.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Adicionais</Label>
+                  <div className="space-y-2">
+                    {addons.filter(addon => addon.is_available).map((addon) => (
+                      <div
+                        key={addon.id}
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <Checkbox
+                            id={addon.id}
+                            checked={selectedAddons.has(addon.id)}
+                            onCheckedChange={() => handleAddonToggle(addon.id)}
+                          />
+                          <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
+                            {addon.name}
+                          </Label>
+                        </div>
+                        <span className="text-sm font-semibold text-primary">
+                          + R$ {addon.price.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Observação */}
+              <div className="space-y-2">
+                <Label htmlFor="observation" className="text-base font-semibold">
+                  Observações (opcional)
+                </Label>
+                <Textarea
+                  id="observation"
+                  placeholder="Ex: Sem cebola, bem passado..."
+                  value={observation}
+                  onChange={(e) => setObservation(e.target.value)}
+                  className="min-h-20 resize-none"
+                />
               </div>
 
               {/* Informações Adicionais */}
               {product.additional_info && (
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <p className="text-xs md:text-sm text-muted-foreground">{product.additional_info}</p>
+                <div className="p-4 bg-muted/50 rounded-xl">
+                  <p className="text-sm text-muted-foreground">{product.additional_info}</p>
                 </div>
               )}
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
 
-      {showAddToCart && (
-        <AddToCartDialog
-          product={product}
-          open={showAddToCart}
-          onOpenChange={setShowAddToCart}
-          onAdd={handleAddToCart}
-        />
-      )}
-    </>
+          {/* Footer fixo com botões */}
+          <div className="flex-shrink-0 border-t bg-background p-4 space-y-3">
+            <div className="flex items-center justify-between text-lg font-semibold">
+              <span>Total:</span>
+              <span className="text-2xl text-primary">R$ {total.toFixed(2)}</span>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                size="lg"
+                className="w-14"
+              >
+                <Share2 className="w-5 h-5" />
+              </Button>
+              <Button
+                onClick={handleAddToCart}
+                className="flex-1 text-base h-12"
+                size="lg"
+              >
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                Adicionar ao Carrinho
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
