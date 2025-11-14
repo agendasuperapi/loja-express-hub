@@ -140,21 +140,21 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
       {/* Nome e Descrição */}
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">{product.name}</h2>
+        <h2 className="text-xl font-bold text-foreground mb-1.5">{product.name}</h2>
         {product.description && (
-          <p className="text-base text-muted-foreground">{product.description}</p>
+          <p className="text-sm text-muted-foreground">{product.description}</p>
         )}
       </div>
 
       {/* Preço */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {hasDiscount && (
-          <p className="text-sm text-muted-foreground line-through">
+          <p className="text-xs text-muted-foreground line-through">
             De R$ {Number(product.price).toFixed(2)}
           </p>
         )}
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-primary">
+          <span className="text-2xl font-bold text-primary">
             R$ {Number(currentPrice).toFixed(2)}
           </span>
           {hasDiscount && (
@@ -166,16 +166,16 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       </div>
 
       {/* Quantidade */}
-      <div className="space-y-2">
-        <Label htmlFor="quantity" className="text-base font-semibold">Quantidade</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="quantity" className="text-sm font-semibold">Quantidade</Label>
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="h-10 w-10"
+            className="h-9 w-9"
           >
-            <Minus className="w-5 h-5" />
+            <Minus className="w-4 h-4" />
           </Button>
           <Input
             id="quantity"
@@ -183,30 +183,30 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             min="1"
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-            className="text-center w-20 h-10 text-lg font-semibold"
+            className="text-center w-16 h-9 text-base font-semibold"
           />
           <Button
             variant="outline"
             size="icon"
             onClick={() => setQuantity(quantity + 1)}
-            className="h-10 w-10"
+            className="h-9 w-9"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Adicionais */}
       {addons && addons.length > 0 && (
-        <div className="space-y-3">
-          <Label className="text-base font-semibold">Adicionais</Label>
-          <div className="space-y-2">
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">Adicionais</Label>
+          <div className="space-y-1.5">
             {addons.filter(addon => addon.is_available).map((addon) => (
               <div
                 key={addon.id}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-xl"
+                className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
               >
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex items-center gap-2.5 flex-1">
                   <Checkbox
                     id={addon.id}
                     checked={selectedAddons.has(addon.id)}
@@ -226,8 +226,8 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       )}
 
       {/* Observação */}
-      <div className="space-y-2">
-        <Label htmlFor="observation" className="text-base font-semibold">
+      <div className="space-y-1.5">
+        <Label htmlFor="observation" className="text-sm font-semibold">
           Observações (opcional)
         </Label>
         <Textarea
@@ -235,40 +235,40 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           placeholder="Ex: Sem cebola, bem passado..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
-          className="min-h-20 resize-none"
+          className="min-h-16 resize-none text-sm"
         />
       </div>
 
       {/* Informações Adicionais */}
       {product.additional_info && (
-        <div className="p-4 bg-muted/50 rounded-xl">
-          <p className="text-sm text-muted-foreground">{product.additional_info}</p>
+        <div className="p-3 bg-muted/50 rounded-lg">
+          <p className="text-xs text-muted-foreground">{product.additional_info}</p>
         </div>
       )}
     </>
   );
 
   const footerContent = (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between text-lg font-semibold">
+    <div className="space-y-2.5">
+      <div className="flex items-center justify-between text-base font-semibold">
         <span>Total:</span>
-        <span className="text-2xl text-primary">R$ {total.toFixed(2)}</span>
+        <span className="text-xl text-primary">R$ {total.toFixed(2)}</span>
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-2.5">
         <Button
           onClick={handleShare}
           variant="outline"
           size="lg"
-          className="w-14"
+          className="w-12"
         >
-          <Share2 className="w-5 h-5" />
+          <Share2 className="w-4 h-4" />
         </Button>
         <Button
           onClick={handleAddToCart}
-          className="flex-1 text-base h-12"
+          className="flex-1 text-sm h-11"
           size="lg"
         >
-          <ShoppingCart className="w-5 h-5 mr-2" />
+          <ShoppingCart className="w-4 h-4 mr-2" />
           Adicionar ao Carrinho
         </Button>
       </div>
@@ -293,12 +293,12 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             </Button>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="space-y-6 pb-6 px-4">
+              <div className="space-y-4 pb-4 px-4">
                 {productContent}
               </div>
             </div>
 
-            <div className="flex-shrink-0 border-t bg-background p-4">
+            <div className="flex-shrink-0 border-t bg-background p-3">
               {footerContent}
             </div>
           </div>
