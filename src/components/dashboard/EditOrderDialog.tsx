@@ -660,17 +660,6 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2 pt-2">
-                <Switch
-                  id="payment-received"
-                  checked={formData.payment_received}
-                  onCheckedChange={(checked) => setFormData({ ...formData, payment_received: checked })}
-                />
-                <Label htmlFor="payment-received" className="cursor-pointer">
-                  Pagamento Recebido
-                </Label>
-              </div>
-
               {formData.payment_method === 'dinheiro' && (
                 <div>
                   <Label>Troco para</Label>
@@ -763,6 +752,19 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate }: EditOrd
                     couponDiscount
                   ).toFixed(2)}</span>
                 </div>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="payment-received"
+                  checked={formData.payment_received}
+                  onCheckedChange={(checked) => setFormData({ ...formData, payment_received: checked })}
+                />
+                <Label htmlFor="payment-received" className="cursor-pointer">
+                  Pagamento Recebido
+                </Label>
               </div>
             </TabsContent>
 
