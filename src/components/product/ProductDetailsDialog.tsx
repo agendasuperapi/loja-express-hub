@@ -110,11 +110,11 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const productContent = (
     <>
       {/* Imagem do Produto */}
-      <div className="relative w-full">
+      <div className="relative w-full -mt-0">
         <img
           src={product.image_url || '/placeholder.svg'}
           alt={product.name}
-          className="w-full h-56 md:h-48 object-contain md:rounded-2xl"
+          className="w-full h-56 md:h-48 object-cover rounded-t-3xl md:rounded-2xl"
         />
         {hasDiscount && (
           <Badge className="absolute top-4 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
@@ -293,7 +293,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             </Button>
 
             <div className="flex-1 overflow-y-auto">
-              <div className="space-y-6 pb-6">
+              <div className="space-y-6 pb-6 px-4">
                 {productContent}
               </div>
             </div>
