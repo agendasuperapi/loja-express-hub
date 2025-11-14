@@ -193,40 +193,34 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
       </div>
       
       <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Package className="h-5 w-5" />
-          Produtos Mais Vendidos
-        </CardTitle>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToCSV}
-            disabled={products.length === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            CSV
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToExcel}
-            disabled={products.length === 0}
-          >
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Excel
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToPDF}
-            disabled={products.length === 0}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
-        </div>
+      <CardHeader className="flex flex-row items-center justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportToCSV}
+          disabled={products.length === 0}
+        >
+          <Download className="h-4 w-4 mr-2" />
+          CSV
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportToExcel}
+          disabled={products.length === 0}
+        >
+          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          Excel
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportToPDF}
+          disabled={products.length === 0}
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          PDF
+        </Button>
       </CardHeader>
         <CardContent>
           <ScrollArea className="h-[600px]">
