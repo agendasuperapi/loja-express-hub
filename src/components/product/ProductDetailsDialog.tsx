@@ -278,7 +278,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[95vh] rounded-t-3xl">
+        <DrawerContent className="h-[90vh] rounded-t-3xl">
           <div className="flex flex-col h-full overflow-hidden relative">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
