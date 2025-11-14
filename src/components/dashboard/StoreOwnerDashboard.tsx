@@ -84,12 +84,22 @@ export const StoreOwnerDashboard = () => {
   // Derivados para filtros de pedidos
   const canViewAllOrders = hasPermission('orders', 'view_all_orders');
   const canViewPendingOrders = hasPermission('orders', 'view_pending_orders');
+  const canViewConfirmedOrders = hasPermission('orders', 'view_confirmed_orders');
+  const canViewPreparingOrders = hasPermission('orders', 'view_preparing_orders');
+  const canViewOutForDeliveryOrders = hasPermission('orders', 'view_out_for_delivery_orders');
+  const canViewDeliveredOrders = hasPermission('orders', 'view_delivered_orders');
+  const canViewCancelledOrders = hasPermission('orders', 'view_cancelled_orders');
 
   // Debug de permissões
   console.log('[Permissões de Pedidos]', {
     isEmployee: employeeAccess.isEmployee,
     canViewAllOrders,
     canViewPendingOrders,
+    canViewConfirmedOrders,
+    canViewPreparingOrders,
+    canViewOutForDeliveryOrders,
+    canViewDeliveredOrders,
+    canViewCancelledOrders,
     permissions: employeeAccess.permissions
   });
 
@@ -183,13 +193,23 @@ export const StoreOwnerDashboard = () => {
         if (canViewPendingOrders) {
           console.log('[Ajustando Filtro] Mudando para pending');
           setOrderStatusFilter('pending');
+        } else if (canViewConfirmedOrders) {
+          setOrderStatusFilter('confirmed');
+        } else if (canViewPreparingOrders) {
+          setOrderStatusFilter('preparing');
+        } else if (canViewOutForDeliveryOrders && customStatuses.find(s => s.status_key === 'out_for_delivery')) {
+          setOrderStatusFilter('out_for_delivery');
+        } else if (canViewDeliveredOrders) {
+          setOrderStatusFilter('delivered');
+        } else if (canViewCancelledOrders) {
+          setOrderStatusFilter('cancelled');
         } else if (customStatuses.length > 0) {
           console.log('[Ajustando Filtro] Mudando para primeiro status customizado');
           setOrderStatusFilter(customStatuses[0].status_key);
         }
       }
     }
-  }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, customStatuses, orderStatusFilter]);
+  }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, canViewConfirmedOrders, canViewPreparingOrders, canViewOutForDeliveryOrders, canViewDeliveredOrders, canViewCancelledOrders, customStatuses, orderStatusFilter]);
 
   useEffect(() => {
     if (myStore) {
@@ -425,14 +445,19 @@ export const StoreOwnerDashboard = () => {
     return orders.filter(order => {
       // Validação de permissões de visualização
       if (employeeAccess.isEmployee) {
-        // Lógica simplificada:
-        // - canViewAllOrders = true: pode ver todos
-        // - canViewAllOrders = false, canViewPendingOrders = true: só pode ver pending
-        // - ambos false: não pode ver nada
+        // Se pode ver todos os pedidos, não precisa de verificação adicional
         if (!canViewAllOrders) {
-          if (canViewPendingOrders && order.status === 'pending') {
-            // Pode ver apenas pendentes
-          } else {
+          // Verificar permissão específica para o status do pedido
+          const orderStatus = order.status;
+          const hasSpecificPermission = 
+            (orderStatus === 'pending' && canViewPendingOrders) ||
+            (orderStatus === 'confirmed' && canViewConfirmedOrders) ||
+            (orderStatus === 'preparing' && canViewPreparingOrders) ||
+            (orderStatus === 'in_delivery' && canViewOutForDeliveryOrders) ||
+            (orderStatus === 'delivered' && canViewDeliveredOrders) ||
+            (orderStatus === 'cancelled' && canViewCancelledOrders);
+          
+          if (!hasSpecificPermission) {
             // Não tem permissão para ver este pedido
             return false;
           }
@@ -1416,15 +1441,19 @@ export const StoreOwnerDashboard = () => {
                   const isActive = orderStatusFilter === status.status_key;
                   
                   // Verificar se tem permissão para visualizar este status
-                  // Pode ver se: tem permissão geral (all) OU se é "pending" E tem permissão de pending
                   const canViewThisStatus = canViewAllOrders || 
-                    (status.status_key === 'pending' && canViewPendingOrders);
+                    (status.status_key === 'pending' && canViewPendingOrders) ||
+                    (status.status_key === 'confirmed' && canViewConfirmedOrders) ||
+                    (status.status_key === 'preparing' && canViewPreparingOrders) ||
+                    (status.status_key === 'out_for_delivery' && canViewOutForDeliveryOrders) ||
+                    (status.status_key === 'in_delivery' && canViewOutForDeliveryOrders) || // compatibilidade
+                    (status.status_key === 'delivered' && canViewDeliveredOrders) ||
+                    (status.status_key === 'cancelled' && canViewCancelledOrders);
                   
                   console.log(`[Botão ${status.status_key}]`, {
                     canViewAllOrders,
-                    canViewPendingOrders,
                     canViewThisStatus,
-                    isPending: status.status_key === 'pending'
+                    statusKey: status.status_key
                   });
                   
                   if (!canViewThisStatus) return null;
