@@ -16,7 +16,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -54,6 +54,7 @@ import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import { CustomersReport } from "./CustomersReport";
 import { BestSellingProductsReport } from "./BestSellingProductsReport";
 import { RegisteredProductsReport } from "./RegisteredProductsReport";
@@ -148,6 +149,7 @@ export const StoreOwnerDashboard = () => {
 
   const [storeForm, setStoreForm] = useState({
     name: myStore?.name || '',
+    slug: myStore?.slug || '',
     logo_url: myStore?.logo_url || '',
     banner_url: myStore?.banner_url || '',
     description: myStore?.description || '',
@@ -176,6 +178,11 @@ export const StoreOwnerDashboard = () => {
   const [categoryStatusFilter, setCategoryStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [slugAvailability, setSlugAvailability] = useState<{
+    isChecking: boolean;
+    isAvailable: boolean | null;
+    message: string;
+  }>({ isChecking: false, isAvailable: null, message: '' });
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
@@ -241,6 +248,7 @@ export const StoreOwnerDashboard = () => {
     if (myStore) {
       setStoreForm({
         name: myStore.name,
+        slug: myStore.slug || '',
         logo_url: myStore.logo_url || '',
         banner_url: myStore.banner_url || '',
         description: myStore.description || '',
@@ -269,6 +277,50 @@ export const StoreOwnerDashboard = () => {
   useEffect(() => {
     setCurrentHomeOrderPage(1);
   }, [periodFilter, customDateRange]);
+
+  // Sanitize slug in real-time
+  const sanitizeSlug = (value: string) => {
+    return value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-z0-9-]/g, '') // Only letters, numbers, hyphens
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  };
+
+  // Check slug availability
+  useEffect(() => {
+    if (!storeForm.slug || storeForm.slug === myStore?.slug) {
+      setSlugAvailability({ isChecking: false, isAvailable: null, message: '' });
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSlugAvailability({ isChecking: true, isAvailable: null, message: '' });
+
+      const { data, error } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('slug', storeForm.slug)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking slug:', error);
+        setSlugAvailability({ isChecking: false, isAvailable: null, message: 'Erro ao verificar disponibilidade' });
+        return;
+      }
+
+      if (data) {
+        setSlugAvailability({ isChecking: false, isAvailable: false, message: 'Esta URL já está em uso' });
+      } else {
+        setSlugAvailability({ isChecking: false, isAvailable: true, message: 'URL disponível' });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [storeForm.slug, myStore?.slug]);
 
   const statusConfig: Record<string, { label: string; color: string }> = {
     pending_approval: { label: 'Aguardando Aprovação', color: 'bg-yellow-500' },
@@ -684,10 +736,31 @@ export const StoreOwnerDashboard = () => {
 
   const handleUpdateStore = () => {
     if (!myStore) return;
+    
+    // Validação: impedir salvar se slug estiver em uso
+    if (storeForm.slug !== myStore.slug && slugAvailability.isAvailable === false) {
+      toast({
+        title: "URL já está em uso",
+        description: "Por favor, escolha outra URL para sua loja.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação: impedir salvar se slug estiver vazio
+    if (!storeForm.slug || storeForm.slug.trim() === '') {
+      toast({
+        title: "URL é obrigatória",
+        description: "Por favor, preencha a URL da loja.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     updateStore({
       id: myStore.id,
       name: storeForm.name,
-      slug: myStore.slug,
+      slug: storeForm.slug,
       category: storeForm.category,
       logo_url: storeForm.logo_url,
       banner_url: storeForm.banner_url,
@@ -2799,6 +2872,55 @@ export const StoreOwnerDashboard = () => {
                   value={storeForm.name}
                   onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>URL da Loja *</Label>
+                <Input
+                  value={storeForm.slug}
+                  onChange={(e) => {
+                    const sanitized = sanitizeSlug(e.target.value);
+                    setStoreForm({ ...storeForm, slug: sanitized });
+                  }}
+                  placeholder="minha-loja"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Apenas letras minúsculas, números e hífens
+                </p>
+
+                {/* URL Preview */}
+                {storeForm.slug && (
+                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+                    <Store className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <code className="text-sm text-foreground">
+                      appofertas.lovable.app/{storeForm.slug}
+                    </code>
+                  </div>
+                )}
+
+                {/* Availability Check */}
+                {storeForm.slug && storeForm.slug !== myStore?.slug && (
+                  <div className="flex items-center gap-2">
+                    {slugAvailability.isChecking && (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">Verificando disponibilidade...</span>
+                      </>
+                    )}
+                    {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-green-500">{slugAvailability.message}</span>
+                      </>
+                    )}
+                    {!slugAvailability.isChecking && slugAvailability.isAvailable === false && (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-destructive" />
+                        <span className="text-sm text-destructive">{slugAvailability.message}</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
