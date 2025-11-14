@@ -320,7 +320,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           </div>
         </div>
 
-        <div className="border-t bg-background px-5 py-4">
+        <div className="border-t bg-background px-5 py-3">
           {footerContent}
         </div>
       </DialogContent>
