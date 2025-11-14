@@ -249,7 +249,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         </Label>
         <Textarea
           id="observation"
-          placeholder="Ex: Sem cebola, bem passado..."
+          placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
           className="min-h-16 resize-none text-sm"
