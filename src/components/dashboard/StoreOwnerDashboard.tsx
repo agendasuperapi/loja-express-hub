@@ -184,6 +184,7 @@ export const StoreOwnerDashboard = () => {
     dateRange: reportsDateRange 
   } = useDateRangeFilter();
   const [periodFilter, setPeriodFilter] = useState<string>("all");
+  const [statsStatusFilter, setStatsStatusFilter] = useState<string>("all");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
@@ -262,7 +263,7 @@ export const StoreOwnerDashboard = () => {
   const storeIsOpen = myStore ? isStoreOpen(myStore.operating_hours) : false;
   const storeStatusText = myStore ? getStoreStatusText(myStore.operating_hours) : '';
 
-  // Filter orders based on period
+  // Filter orders based on period and status
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
     
@@ -298,14 +299,18 @@ export const StoreOwnerDashboard = () => {
         }
         break;
       default:
-        return orders;
+        return orders.filter(order => 
+          statsStatusFilter === "all" || order.status === statsStatusFilter
+        );
     }
 
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
-      return isWithinInterval(orderDate, { start: startDate, end: endDate });
+      const matchesDate = isWithinInterval(orderDate, { start: startDate, end: endDate });
+      const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
+      return matchesDate && matchesStatus;
     });
-  }, [orders, periodFilter, customDateRange]);
+  }, [orders, periodFilter, customDateRange, statsStatusFilter]);
 
   // Calculate previous period for comparison
   const previousPeriodOrders = useMemo(() => {
@@ -927,7 +932,7 @@ export const StoreOwnerDashboard = () => {
                 <h2 className="text-2xl font-bold gradient-text">Estatísticas da Loja</h2>
                 <p className="text-muted-foreground">Acompanhe o desempenho do seu negócio</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Select value={periodFilter} onValueChange={(value) => {
                   if (value === "custom") {
                     setShowCustomDatePicker(true);
@@ -947,6 +952,27 @@ export const StoreOwnerDashboard = () => {
                     <SelectItem value="30days">Últimos 30 Dias</SelectItem>
                     <SelectItem value="month">Este Mês</SelectItem>
                     <SelectItem value="custom">Data Personalizada</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={statsStatusFilter} onValueChange={setStatsStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="confirmed">Confirmado</SelectItem>
+                    <SelectItem value="preparing">Preparando</SelectItem>
+                    <SelectItem value="ready">Pronto</SelectItem>
+                    <SelectItem value="out_for_delivery">Saiu para Entrega</SelectItem>
+                    <SelectItem value="delivered">Entregue</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                    {customStatuses.map((status) => (
+                      <SelectItem key={status.id} value={status.status_key}>
+                        {status.status_label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
