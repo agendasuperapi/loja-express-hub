@@ -315,7 +315,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-5">
-          <div className="space-y-6 pb-6">
+          <div className="space-y-4 pb-6">
             {productContent}
           </div>
         </div>
