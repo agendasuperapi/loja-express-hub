@@ -9,6 +9,11 @@ export interface EmployeePermissions {
     // Filtros de visualização
     view_all_orders: boolean;              // Botão "Todos" - ver todos os pedidos
     view_pending_orders: boolean;          // Botão "Pendentes" - ver pedidos pendentes
+    view_confirmed_orders: boolean;        // Botão "Confirmados" - ver pedidos confirmados
+    view_preparing_orders: boolean;        // Botão "Em Preparo" - ver pedidos em preparo
+    view_out_for_delivery_orders: boolean; // Botão "Saiu para Entrega" - ver pedidos saindo
+    view_delivered_orders: boolean;        // Botão "Entregues" - ver pedidos entregues
+    view_cancelled_orders: boolean;        // Botão "Cancelados" - ver pedidos cancelados
     // Botões específicos da tela de pedidos
     edit_order_details: boolean;           // Botão "Editar Pedido"
     change_status_confirmed: boolean;       // Alterar status para "Confirmado"

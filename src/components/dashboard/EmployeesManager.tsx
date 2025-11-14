@@ -81,6 +81,11 @@ const DEFAULT_PERMISSIONS: EmployeePermissions = {
     create: true,
     view_all_orders: true,
     view_pending_orders: true,
+    view_confirmed_orders: true,
+    view_preparing_orders: true,
+    view_out_for_delivery_orders: true,
+    view_delivered_orders: true,
+    view_cancelled_orders: true,
     edit_order_details: false,
     change_status_confirmed: true,
     change_status_preparing: true,
@@ -429,7 +434,7 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-4 border rounded-lg">
                       <div className="space-y-3">
-                        <p className="text-xs font-medium text-muted-foreground uppercase">Filtros</p>
+                        <p className="text-xs font-medium text-muted-foreground uppercase">Filtros de Status</p>
                         <div className="flex items-center space-x-2">
                           <Switch
                             checked={formData.permissions.orders.view_all_orders}
@@ -448,6 +453,56 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                           <div className="flex-1">
                             <Label className="text-sm font-medium">Pendentes</Label>
                             <p className="text-xs text-muted-foreground">Ver pedidos pendentes</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.orders.view_confirmed_orders}
+                            onCheckedChange={(checked) => updatePermission('orders', 'view_confirmed_orders', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Confirmados</Label>
+                            <p className="text-xs text-muted-foreground">Ver pedidos confirmados</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.orders.view_preparing_orders}
+                            onCheckedChange={(checked) => updatePermission('orders', 'view_preparing_orders', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Em Preparo</Label>
+                            <p className="text-xs text-muted-foreground">Ver pedidos em preparo</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.orders.view_out_for_delivery_orders}
+                            onCheckedChange={(checked) => updatePermission('orders', 'view_out_for_delivery_orders', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Saiu para Entrega</Label>
+                            <p className="text-xs text-muted-foreground">Ver pedidos saindo para entrega</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.orders.view_delivered_orders}
+                            onCheckedChange={(checked) => updatePermission('orders', 'view_delivered_orders', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Entregues</Label>
+                            <p className="text-xs text-muted-foreground">Ver pedidos entregues</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={formData.permissions.orders.view_cancelled_orders}
+                            onCheckedChange={(checked) => updatePermission('orders', 'view_cancelled_orders', checked)}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-sm font-medium">Cancelados</Label>
+                            <p className="text-xs text-muted-foreground">Ver pedidos cancelados</p>
                           </div>
                         </div>
                         
