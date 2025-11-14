@@ -19,6 +19,9 @@ export interface StoreFormData {
   avg_delivery_time?: number;
   accepts_delivery?: boolean;
   accepts_pickup?: boolean;
+  accepts_pix?: boolean;
+  accepts_card?: boolean;
+  accepts_cash?: boolean;
   logo_url?: string;
   banner_url?: string;
   operating_hours?: any;

@@ -156,6 +156,9 @@ export const StoreOwnerDashboard = () => {
     avg_delivery_time: myStore?.avg_delivery_time || 30,
     accepts_delivery: myStore?.accepts_delivery ?? true,
     accepts_pickup: myStore?.accepts_pickup ?? true,
+    accepts_pix: myStore?.accepts_pix ?? true,
+    accepts_card: myStore?.accepts_card ?? true,
+    accepts_cash: myStore?.accepts_cash ?? true,
     address: myStore?.address || '',
     pickup_address: myStore?.pickup_address || '',
     phone: myStore?.phone || '',
@@ -245,6 +248,9 @@ export const StoreOwnerDashboard = () => {
         avg_delivery_time: myStore.avg_delivery_time || 30,
         accepts_delivery: myStore.accepts_delivery ?? true,
         accepts_pickup: myStore.accepts_pickup ?? true,
+        accepts_pix: myStore.accepts_pix ?? true,
+        accepts_card: myStore.accepts_card ?? true,
+        accepts_cash: myStore.accepts_cash ?? true,
         address: myStore.address || '',
         pickup_address: myStore.pickup_address || '',
         phone: myStore.phone || '',
@@ -689,6 +695,9 @@ export const StoreOwnerDashboard = () => {
       avg_delivery_time: storeForm.avg_delivery_time,
       accepts_delivery: storeForm.accepts_delivery,
       accepts_pickup: storeForm.accepts_pickup,
+      accepts_pix: storeForm.accepts_pix,
+      accepts_card: storeForm.accepts_card,
+      accepts_cash: storeForm.accepts_cash,
       address: storeForm.address,
       pickup_address: storeForm.pickup_address,
       phone: storeForm.phone,
@@ -2910,6 +2919,62 @@ export const StoreOwnerDashboard = () => {
                       checked={storeForm.accepts_pickup}
                       onCheckedChange={(checked) => 
                         setStoreForm({ ...storeForm, accepts_pickup: checked })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Métodos de Pagamento Aceitos</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="accepts_pix">PIX</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Aceita pagamento via PIX
+                      </p>
+                    </div>
+                    <Switch
+                      id="accepts_pix"
+                      checked={storeForm.accepts_pix}
+                      onCheckedChange={(checked) => 
+                        setStoreForm({ ...storeForm, accepts_pix: checked })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="accepts_card">Cartão</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Aceita pagamento com cartão de crédito ou débito
+                      </p>
+                    </div>
+                    <Switch
+                      id="accepts_card"
+                      checked={storeForm.accepts_card}
+                      onCheckedChange={(checked) => 
+                        setStoreForm({ ...storeForm, accepts_card: checked })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="accepts_cash">Dinheiro</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Aceita pagamento em dinheiro
+                      </p>
+                    </div>
+                    <Switch
+                      id="accepts_cash"
+                      checked={storeForm.accepts_cash}
+                      onCheckedChange={(checked) => 
+                        setStoreForm({ ...storeForm, accepts_cash: checked })
                       }
                     />
                   </div>
