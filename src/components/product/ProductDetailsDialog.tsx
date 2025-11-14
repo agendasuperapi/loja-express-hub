@@ -278,7 +278,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[88vh] rounded-t-3xl p-0 animate-fade-in">
+        <DrawerContent className="h-[88vh] rounded-t-3xl p-0 animate-in slide-in-from-bottom duration-300">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
