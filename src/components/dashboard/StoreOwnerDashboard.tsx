@@ -3390,6 +3390,21 @@ export const StoreOwnerDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Floating Orders Button - Mobile */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed bottom-6 right-6 md:hidden z-50"
+      >
+        <Button
+          onClick={() => setActiveTab("orders")}
+          size="lg"
+          className="h-14 w-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <ShoppingBag className="w-6 h-6" />
+        </Button>
+      </motion.div>
     </div>
   );
 };
