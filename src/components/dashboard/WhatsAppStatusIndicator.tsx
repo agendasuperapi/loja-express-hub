@@ -2,26 +2,80 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Loader2, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 
 interface WhatsAppStatusIndicatorProps {
   storeId: string;
 }
 
-type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'loading';
+type ConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'loading' | 'no-permission';
 
 export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProps) => {
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
+  const { isEmployee, permissions, storeId: employeeStoreId } = useEmployeeAccess();
   const [status, setStatus] = useState<ConnectionStatus>('loading');
+  const [hasPermission, setHasPermission] = useState<boolean>(false);
 
   useEffect(() => {
-    checkConnectionStatus();
-    
-    // Verificar status a cada 30 segundos
-    const interval = setInterval(checkConnectionStatus, 30000);
-    
-    return () => clearInterval(interval);
-  }, [storeId]);
+    checkPermissions();
+  }, [user, storeId, isAdmin, isEmployee, employeeStoreId, permissions]);
+
+  useEffect(() => {
+    if (hasPermission) {
+      checkConnectionStatus();
+      
+      // Verificar status a cada 30 segundos
+      const interval = setInterval(checkConnectionStatus, 30000);
+      
+      return () => clearInterval(interval);
+    } else {
+      setStatus('no-permission');
+    }
+  }, [storeId, hasPermission]);
+
+  const checkPermissions = async () => {
+    if (!user) {
+      setHasPermission(false);
+      return;
+    }
+
+    // Admin sempre tem permissão
+    if (isAdmin) {
+      setHasPermission(true);
+      return;
+    }
+
+    // Verificar se é dono da loja
+    const { data: store } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('id', storeId)
+      .eq('owner_id', user.id)
+      .maybeSingle();
+
+    if (store) {
+      setHasPermission(true);
+      return;
+    }
+
+    // Verificar se é funcionário com permissão de visualização
+    if (isEmployee && employeeStoreId === storeId && permissions?.whatsapp?.view) {
+      setHasPermission(true);
+      return;
+    }
+
+    setHasPermission(false);
+  };
 
   const checkConnectionStatus = async () => {
+    if (!hasPermission) {
+      setStatus('no-permission');
+      return;
+    }
+
     try {
       // Buscar instância da loja
       const { data: instanceData } = await supabase
@@ -53,6 +107,12 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
       console.log('[WhatsApp Status] Resposta completa da edge function:', { data, error });
 
       if (error) {
+        // Se for erro 403, não temos permissão
+        if (error.message?.includes('403') || error.message?.includes('Forbidden')) {
+          console.warn('[WhatsApp Status] Sem permissão para acessar esta loja');
+          setStatus('no-permission');
+          return;
+        }
         console.error('[WhatsApp Status] Erro ao verificar status:', error);
         setStatus('disconnected');
         return;
@@ -107,6 +167,11 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
       setStatus('disconnected');
     }
   };
+
+  // Não renderizar se não tiver permissão
+  if (status === 'no-permission') {
+    return null;
+  }
 
   if (status === 'loading') {
     return (
