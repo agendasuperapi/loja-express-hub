@@ -259,6 +259,9 @@ export const useStoreEmployees = (storeId?: string) => {
 
   const updateEmployee = async (id: string, updates: Partial<StoreEmployee>) => {
     try {
+      console.log('[useStoreEmployees] updateEmployee called with:', { id, updates });
+      console.log('[useStoreEmployees] WhatsApp permissions in updates:', updates.permissions?.whatsapp);
+      
       const { data, error } = await supabase
         .from('store_employees' as any)
         .update(updates)
@@ -267,6 +270,11 @@ export const useStoreEmployees = (storeId?: string) => {
         .single();
 
       if (error) throw error;
+
+      console.log('[useStoreEmployees] Employee updated, returned data:', data);
+      if (data && typeof data === 'object' && 'permissions' in data) {
+        console.log('[useStoreEmployees] WhatsApp permissions in saved data:', (data as any).permissions?.whatsapp);
+      }
 
       toast({
         title: 'Funcionário atualizado',

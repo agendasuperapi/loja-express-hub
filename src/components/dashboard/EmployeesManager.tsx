@@ -170,10 +170,14 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('[EmployeesManager] handleSubmit - formData:', formData);
+    
     try {
       if (editingEmployee) {
         // Remove password do formData ao atualizar (password não existe na tabela store_employees)
         const { password, ...updateData } = formData;
+        console.log('[EmployeesManager] Updating employee with data:', updateData);
+        console.log('[EmployeesManager] WhatsApp permissions:', updateData.permissions.whatsapp);
         await updateEmployee(editingEmployee.id, updateData);
       } else {
         if (!formData.password) {
@@ -254,16 +258,21 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
   };
 
   const updatePermission = (resource: string, action: string, value: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: {
-        ...prev.permissions,
-        [resource]: {
-          ...prev.permissions[resource as keyof EmployeePermissions],
-          [action]: value,
+    console.log('[EmployeesManager] updatePermission:', { resource, action, value });
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        permissions: {
+          ...prev.permissions,
+          [resource]: {
+            ...prev.permissions[resource as keyof EmployeePermissions],
+            [action]: value,
+          },
         },
-      },
-    }));
+      };
+      console.log('[EmployeesManager] Updated permissions:', updated.permissions);
+      return updated;
+    });
   };
 
   return (
