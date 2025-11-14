@@ -150,7 +150,6 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     label: 'Integração WhatsApp',
     description: 'Controle de acesso ao WhatsApp Business',
     permissions: [
-      { key: 'view', label: 'Visualizar', description: 'Ver status e configurações', defaultValue: true },
       { key: 'edit', label: 'Editar', description: 'Conectar e desconectar WhatsApp', defaultValue: false },
     ],
   },
