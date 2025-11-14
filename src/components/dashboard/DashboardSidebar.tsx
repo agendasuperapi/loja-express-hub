@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, FileBarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -49,6 +49,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
   const menuItems = [
     { id: 'home', label: 'home', icon: Home, show: true },
     ...(hasPermission('reports') ? [{ id: 'metricas', label: 'métricas', icon: TrendingUp, show: true }] : []),
+    ...(hasPermission('reports') ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, show: true }] : []),
     ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
     ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
     ...(hasPermission('settings', 'manage_whatsapp') ? [{ id: 'whatsapp', label: 'whatsapp', icon: MessageSquare, show: true }] : []),
