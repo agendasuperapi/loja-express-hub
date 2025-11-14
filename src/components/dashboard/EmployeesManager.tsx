@@ -791,49 +791,6 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                     </div>
                   </div>
 
-                  <Separator />
-
-                  {/* Funcionários */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium">Gerenciar Funcionários</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-muted/30 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={formData.permissions.employees.view}
-                          onCheckedChange={(checked) => updatePermission('employees', 'view', checked)}
-                        />
-                        <Label className="text-sm">Visualizar</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={formData.permissions.employees.create}
-                          onCheckedChange={(checked) => updatePermission('employees', 'create', checked)}
-                        />
-                        <Label className="text-sm">Criar</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={formData.permissions.employees.update}
-                          onCheckedChange={(checked) => updatePermission('employees', 'update', checked)}
-                        />
-                        <Label className="text-sm">Editar</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={formData.permissions.employees.delete}
-                          onCheckedChange={(checked) => updatePermission('employees', 'delete', checked)}
-                        />
-                        <Label className="text-sm">Deletar</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={formData.permissions.employees.manage_permissions}
-                          onCheckedChange={(checked) => updatePermission('employees', 'manage_permissions', checked)}
-                        />
-                        <Label className="text-sm">Gerenciar Permissões</Label>
-                      </div>
-                    </div>
-                  </div>
 
                   <Separator />
 
