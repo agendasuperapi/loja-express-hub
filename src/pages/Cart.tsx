@@ -364,6 +364,8 @@ export default function Cart() {
           deliveryComplement: deliveryType === 'delivery' ? (deliveryComplement || undefined) : undefined,
           paymentMethod,
           changeAmount: paymentMethod === 'dinheiro' && changeAmount ? Number(parseFloat(changeAmount)) : undefined,
+          couponCode: cart.couponCode || undefined,
+          couponDiscount: cart.couponDiscount || undefined,
         });
   
         console.log('✅ Order created successfully, clearing cart...');

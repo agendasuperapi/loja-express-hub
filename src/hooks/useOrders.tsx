@@ -77,6 +77,8 @@ export const useOrders = () => {
           delivery_neighborhood: validatedData.deliveryNeighborhood || null,
           delivery_complement: validatedData.deliveryComplement || null,
           change_amount: validatedData.changeAmount || null,
+          coupon_code: validatedData.couponCode || null,
+          coupon_discount: validatedData.couponDiscount || 0,
         })
         .select()
         .single();
