@@ -321,6 +321,17 @@ export default function BecomePartner() {
                     <p className="text-xs text-muted-foreground mt-1">
                       Apenas letras minúsculas, números e hífens
                     </p>
+                    {formData.slug && (
+                      <div className="mt-2 p-3 bg-muted/50 rounded-lg border border-border">
+                        <p className="text-xs text-muted-foreground mb-1">Preview da URL:</p>
+                        <div className="flex items-center gap-2">
+                          <Store className="w-4 h-4 text-primary" />
+                          <code className="text-sm font-mono text-foreground">
+                            appofertas.lovable.app/{formData.slug}
+                          </code>
+                        </div>
+                      </div>
+                    )}
                     {errors.slug && (
                       <p className="text-sm text-red-500 mt-1">{errors.slug}</p>
                     )}
