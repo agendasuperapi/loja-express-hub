@@ -176,9 +176,22 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       if (editingEmployee) {
         // Remove password do formData ao atualizar (password não existe na tabela store_employees)
         const { password, ...updateData } = formData;
-        console.log('[EmployeesManager] Updating employee with data:', updateData);
-        console.log('[EmployeesManager] WhatsApp permissions:', updateData.permissions.whatsapp);
-        await updateEmployee(editingEmployee.id, updateData);
+        // Sanitiza permissões: garante whatsapp explícito e remove campo legado manage_whatsapp
+        const cleanedPermissions: any = {
+          ...updateData.permissions,
+          settings: { ...updateData.permissions.settings },
+          whatsapp: {
+            view: !!updateData.permissions.whatsapp.view,
+            edit: !!updateData.permissions.whatsapp.edit,
+          },
+        };
+        if (cleanedPermissions.settings && 'manage_whatsapp' in cleanedPermissions.settings) {
+          delete cleanedPermissions.settings.manage_whatsapp;
+        }
+        const payload = { ...updateData, permissions: cleanedPermissions };
+        console.log('[EmployeesManager] Updating employee with payload:', payload);
+        console.log('[EmployeesManager] WhatsApp permissions to save:', payload.permissions.whatsapp);
+        await updateEmployee(editingEmployee.id, payload);
       } else {
         if (!formData.password) {
           throw new Error('Senha é obrigatória para novos funcionários');
@@ -226,11 +239,12 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       whatsapp: {
         ...DEFAULT_PERMISSIONS.whatsapp, 
         ...employeePermissions?.whatsapp,
-        // Migrar manage_whatsapp antigo para edit se existir
-        ...(employeePermissions?.settings?.manage_whatsapp && {
-          view: true,
-          edit: employeePermissions.settings.manage_whatsapp
-        })
+        // Só migra do campo legado se NÃO existir whatsapp.edit explícito
+        ...(
+          (employeePermissions?.whatsapp?.edit === undefined && employeePermissions?.settings?.manage_whatsapp !== undefined)
+            ? { view: true, edit: !!employeePermissions.settings.manage_whatsapp }
+            : {}
+        ),
       },
     };
   };

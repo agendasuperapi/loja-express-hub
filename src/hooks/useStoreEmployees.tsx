@@ -272,8 +272,9 @@ export const useStoreEmployees = (storeId?: string) => {
       if (error) throw error;
 
       console.log('[useStoreEmployees] Employee updated, returned data:', data);
-      if (data && typeof data === 'object' && 'permissions' in data) {
-        console.log('[useStoreEmployees] WhatsApp permissions in saved data:', (data as any).permissions?.whatsapp);
+      const saved: any = data as any;
+      if (saved) {
+        console.log('[useStoreEmployees] WhatsApp permissions in saved data:', saved.permissions?.whatsapp);
       }
 
       toast({
