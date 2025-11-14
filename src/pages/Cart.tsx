@@ -337,7 +337,11 @@ export default function Cart() {
   
       // Create order
       try {
-        console.log("📦 Criando pedido...");
+        console.log("📦 Criando pedido com cupom:", {
+          couponCode: cart.couponCode,
+          couponDiscount: cart.couponDiscount
+        });
+        
         await createOrder({
           storeId: cart.storeId!,
           items: cart.items.map(item => ({

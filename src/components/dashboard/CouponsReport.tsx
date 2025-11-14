@@ -14,7 +14,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tag, TrendingUp, DollarSign, Ticket } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useEffect } from 'react';
 
 interface CouponsReportProps {
   storeId: string;
@@ -27,82 +26,43 @@ interface CouponUsage {
 }
 
 export function CouponsReport({ storeId }: CouponsReportProps) {
-  // Carregar função de correção no console
-  useEffect(() => {
-    const fixOrderCoupon = async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .update({
-          coupon_code: 'promo10',
-          coupon_discount: 6.90,
-        } as any)
-        .eq('order_number', '#96187023')
-        .select();
-
-      if (error) {
-        console.error('❌ Erro ao corrigir pedido:', error);
-      } else {
-        console.log('✅ Pedido #96187023 corrigido:', data);
-      }
-    };
-
-    // Disponibilizar no console
-    (window as any).fixOrderCoupon96187023 = fixOrderCoupon;
-  }, []);
-
   const { data: orders, isLoading } = useQuery({
     queryKey: ['coupon-report', storeId],
     queryFn: async () => {
-      console.log('[CouponsReport] Buscando pedidos com cupons para storeId:', storeId);
-      
       const { data, error } = await supabase
         .from('orders')
-        .select('coupon_code, coupon_discount')
+        .select('coupon_code, coupon_discount, created_at')
         .eq('store_id', storeId)
         .not('coupon_code', 'is', null)
         .order('created_at', { ascending: false });
 
-      console.log('[CouponsReport] Resultado da query:', { 
-        data, 
-        error, 
-        totalOrders: data?.length || 0 
-      });
-
-      if (error) {
-        console.error('[CouponsReport] Erro ao buscar pedidos:', error);
-        throw error;
-      }
+      if (error) throw error;
       return (data as any) || [];
     },
   });
 
   const couponStats = useMemo(() => {
-    console.log('[CouponsReport] Calculando estatísticas. Orders recebidos:', orders);
-    
-    if (!orders) {
-      console.log('[CouponsReport] Nenhum pedido encontrado');
+    if (!orders || orders.length === 0) {
       return { coupons: [], totalUses: 0, totalDiscount: 0 };
     }
 
     const couponMap = new Map<string, CouponUsage>();
 
     orders.forEach((order) => {
-      console.log('[CouponsReport] Processando order:', order);
-      
-      if (!order.coupon_code) {
-        console.log('[CouponsReport] Order sem cupom, pulando');
-        return;
-      }
+      if (!order.coupon_code) return;
 
-      const existing = couponMap.get(order.coupon_code);
+      const code = order.coupon_code.toUpperCase();
+      const discount = Number(order.coupon_discount || 0);
+
+      const existing = couponMap.get(code);
       if (existing) {
         existing.totalUses++;
-        existing.totalDiscount += Number(order.coupon_discount || 0);
+        existing.totalDiscount += discount;
       } else {
-        couponMap.set(order.coupon_code, {
+        couponMap.set(code, {
           code: order.coupon_code,
           totalUses: 1,
-          totalDiscount: Number(order.coupon_discount || 0),
+          totalDiscount: discount,
         });
       }
     });
@@ -110,13 +70,6 @@ export function CouponsReport({ storeId }: CouponsReportProps) {
     const coupons = Array.from(couponMap.values()).sort((a, b) => b.totalUses - a.totalUses);
     const totalUses = coupons.reduce((sum, c) => sum + c.totalUses, 0);
     const totalDiscount = coupons.reduce((sum, c) => sum + c.totalDiscount, 0);
-
-    console.log('[CouponsReport] Estatísticas calculadas:', { 
-      totalCoupons: coupons.length, 
-      totalUses, 
-      totalDiscount,
-      coupons 
-    });
 
     return { coupons, totalUses, totalDiscount };
   }, [orders]);

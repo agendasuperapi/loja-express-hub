@@ -50,14 +50,15 @@ export const useOrders = () => {
         0
       );
       const deliveryFee = validatedData.deliveryType === "pickup" ? 0 : 5;
-      const total = subtotal + deliveryFee;
+      const couponDiscount = validatedData.couponDiscount || 0;
+      const total = subtotal + deliveryFee - couponDiscount;
 
       // 🔢 Gerar número do pedido
       const orderNumber = `#${Date.now().toString().slice(-8)}`;
 
       console.log("🧾 Criando pedido diretamente via INSERT...");
 
-      // 🟢 INSERT DIRETO - Sem RPC para evitar problemas com triggers!
+      // 🟢 INSERT DIRETO com cupom incluso
       const { data: createdOrder, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -78,8 +79,8 @@ export const useOrders = () => {
           delivery_complement: validatedData.deliveryComplement || null,
           change_amount: validatedData.changeAmount || null,
           coupon_code: validatedData.couponCode || null,
-          coupon_discount: validatedData.couponDiscount || 0,
-        })
+          coupon_discount: couponDiscount,
+        } as any)
         .select()
         .single();
 
@@ -92,7 +93,11 @@ export const useOrders = () => {
         throw new Error("Falha ao criar pedido");
       }
 
-      console.log("✅ Order created:", createdOrder.id);
+      console.log("✅ Order created:", {
+        id: createdOrder.id,
+        coupon: validatedData.couponCode || 'nenhum',
+        discount: couponDiscount
+      });
 
       // 🟦 Inserir itens da ordem
       const itemsToInsert = validatedData.items.map((item) => ({
