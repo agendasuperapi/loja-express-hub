@@ -50,13 +50,6 @@ export interface EmployeePermissions {
     delete: boolean;
     toggle_status: boolean;                // Ativar/desativar cupons
   };
-  employees: {
-    view: boolean;
-    create: boolean;
-    update: boolean;
-    delete: boolean;
-    manage_permissions: boolean;           // Gerenciar permissões de outros funcionários
-  };
   reports: {
     view: boolean;
     export: boolean;                       // Exportar relatórios

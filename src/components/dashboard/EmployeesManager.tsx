@@ -121,13 +121,6 @@ const DEFAULT_PERMISSIONS: EmployeePermissions = {
     delete: false,
     toggle_status: false,
   },
-  employees: {
-    view: false,
-    create: false,
-    update: false,
-    delete: false,
-    manage_permissions: false,
-  },
   reports: {
     view: false,
     export: false,
@@ -224,10 +217,9 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       products: { ...DEFAULT_PERMISSIONS.products, ...employeePermissions?.products },
       categories: { ...DEFAULT_PERMISSIONS.categories, ...employeePermissions?.categories },
       coupons: { ...DEFAULT_PERMISSIONS.coupons, ...employeePermissions?.coupons },
-      employees: { ...DEFAULT_PERMISSIONS.employees, ...employeePermissions?.employees },
       reports: { ...DEFAULT_PERMISSIONS.reports, ...employeePermissions?.reports },
       settings: { ...DEFAULT_PERMISSIONS.settings, ...employeePermissions?.settings },
-      whatsapp: { 
+      whatsapp: {
         ...DEFAULT_PERMISSIONS.whatsapp, 
         ...employeePermissions?.whatsapp,
         // Migrar manage_whatsapp antigo para edit se existir
