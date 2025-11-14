@@ -287,9 +287,9 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-foreground/20 backdrop-blur-sm hover:bg-foreground/30"
+              className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-orange-500 backdrop-blur-sm hover:bg-orange-600"
             >
-              <X className="w-6 h-6 text-background" />
+              <X className="w-6 h-6 text-white" />
             </Button>
 
             <div className="flex-1 overflow-y-auto">
