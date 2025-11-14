@@ -243,7 +243,13 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   };
 
   return (
-    <Card>
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-bold gradient-text">Relatório de Pedidos</h2>
+        <p className="text-muted-foreground">Visualize e exporte todos os pedidos do período selecionado</p>
+      </div>
+      
+      <Card>
       <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex-1 flex gap-4">
             <div className="flex-1 max-w-sm">
@@ -485,5 +491,6 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
           )}
         </CardContent>
       </Card>
+    </div>
   );
 };

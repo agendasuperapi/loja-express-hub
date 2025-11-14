@@ -186,7 +186,13 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
   };
 
   return (
-    <Card>
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-2xl font-bold gradient-text">Produtos Mais Vendidos</h2>
+        <p className="text-muted-foreground">Ranking dos produtos com melhor desempenho de vendas</p>
+      </div>
+      
+      <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Package className="h-5 w-5" />
@@ -312,5 +318,6 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
           )}
         </CardContent>
       </Card>
+    </div>
   );
 };
