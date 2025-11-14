@@ -220,11 +220,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
       
       <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Relatório de Clientes
-        </CardTitle>
-        <div className="flex-1 max-w-sm mx-4">
+        <div className="flex-1 max-w-sm">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
