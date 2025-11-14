@@ -33,6 +33,7 @@ import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { WhatsAppStatusIndicator } from "./WhatsAppStatusIndicator";
 import { DashboardSidebar } from "./DashboardSidebar";
+import { DashboardMobileSidebar } from "./DashboardMobileSidebar";
 import { CircularProgress } from "./CircularProgress";
 import { DataCard } from "./DataCard";
 import { BarChartCard } from "./BarChartCard";
@@ -862,6 +863,17 @@ export const StoreOwnerDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-background w-full">
+        {/* Mobile Sidebar (Drawer) */}
+        <DashboardMobileSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          storeLogo={myStore?.logo_url}
+          storeName={myStore?.name}
+          isEmployee={employeeAccess.isEmployee}
+          employeePermissions={employeeAccess.permissions}
+        />
+        
+        {/* Desktop Sidebar */}
         <DashboardSidebar 
           activeTab={activeTab} 
           onTabChange={setActiveTab}
