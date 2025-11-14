@@ -337,6 +337,18 @@ export default function Cart() {
   
       // Create order
       try {
+        // Auto-aplicar cupom no submit caso o usuário tenha digitado mas não clicado em "Aplicar"
+        if (couponInput.trim() && !cart.couponCode) {
+          try {
+            const result = await validateCoupon(couponInput.trim().toUpperCase(), getTotal());
+            if (result.is_valid && result.discount_amount > 0) {
+              applyCoupon(couponInput.trim().toUpperCase(), result.discount_amount);
+            }
+          } catch (e) {
+            console.warn("⚠️ Falha ao validar cupom no submit:", e);
+          }
+        }
+
         console.log("📦 Criando pedido com cupom:", {
           couponCode: cart.couponCode,
           couponDiscount: cart.couponDiscount
