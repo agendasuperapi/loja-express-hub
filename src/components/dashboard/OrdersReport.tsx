@@ -9,13 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Search, ShoppingCart, Download, Tag, FileText } from "lucide-react";
+import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { generateOrdersReport } from "@/lib/pdfReports";
+import * as XLSX from 'xlsx';
 
 interface OrderReport {
   id: string;
@@ -198,6 +199,49 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     });
   };
 
+  const exportToExcel = () => {
+    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Entrega', 'Cupom'];
+    
+    const data = filteredOrders.map(order => ({
+      'Pedido': order.order_number,
+      'Data': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
+      'Cliente': order.customer_name,
+      'Telefone': order.customer_phone,
+      'Status': order.status,
+      'Subtotal': order.subtotal,
+      'Taxa de Entrega': order.delivery_fee,
+      'Desconto': order.coupon_discount || 0,
+      'Total': order.total,
+      'Pagamento': order.payment_method,
+      'Entrega': order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
+      'Cupom': order.coupon_code || '-'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Formatação de colunas
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + "1";
+      if (!ws[address]) continue;
+      ws[address].s = { font: { bold: true }, fill: { fgColor: { rgb: "4F46E5" } } };
+    }
+    
+    // Auto-width das colunas
+    const colWidths = headers.map(h => ({ wch: Math.max(h.length, 15) }));
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+    
+    XLSX.writeFile(wb, `relatorio_pedidos_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+    
+    toast({
+      title: "Excel gerado!",
+      description: "O relatório foi exportado com sucesso.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -240,6 +284,15 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
             >
               <Download className="h-4 w-4 mr-2" />
               CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToExcel}
+              disabled={filteredOrders.length === 0}
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Excel
             </Button>
             <Button
               variant="outline"

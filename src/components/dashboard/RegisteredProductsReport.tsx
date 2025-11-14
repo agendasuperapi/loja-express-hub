@@ -7,12 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Package, Download, FileText } from "lucide-react";
+import { Search, Package, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { generateProductsReport } from "@/lib/pdfReports";
+import * as XLSX from 'xlsx';
 
 interface RegisteredProduct {
   id: string;
@@ -145,6 +146,44 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
     });
   };
 
+  const exportToExcel = () => {
+    const data = filteredProducts.map(product => ({
+      'Código': product.short_id || product.id.substring(0, 8),
+      'Nome': product.name,
+      'Descrição': product.description || '-',
+      'Categoria': product.category,
+      'Preço': product.price,
+      'Preço Promocional': product.promotional_price && product.promotional_price > 0 
+        ? product.promotional_price 
+        : 0,
+      'Status': product.is_available ? 'Ativo' : 'Inativo'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Auto-width das colunas
+    const colWidths = [
+      { wch: 12 }, // Código
+      { wch: 30 }, // Nome
+      { wch: 40 }, // Descrição
+      { wch: 15 }, // Categoria
+      { wch: 12 }, // Preço
+      { wch: 18 }, // Preço Promocional
+      { wch: 10 }  // Status
+    ];
+    ws['!cols'] = colWidths;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Produtos Cadastrados");
+    
+    XLSX.writeFile(wb, `relatorio_produtos_cadastrados_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+    
+    toast({
+      title: "Excel gerado!",
+      description: "O relatório foi exportado com sucesso.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -182,6 +221,15 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
             >
               <Download className="h-4 w-4 mr-2" />
               CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToExcel}
+              disabled={filteredProducts.length === 0}
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Excel
             </Button>
             <Button
               variant="outline"
