@@ -447,69 +447,6 @@ export default function BecomePartner() {
                   </div>
                 )}
 
-                {/* Delivery Settings */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Configurações de Entrega
-                  </h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="delivery_fee">Taxa de Entrega (R$)</Label>
-                      <Input
-                        id="delivery_fee"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.delivery_fee}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            delivery_fee: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="min_order_value">
-                        Pedido Mínimo (R$)
-                      </Label>
-                      <Input
-                        id="min_order_value"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.min_order_value}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            min_order_value: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="avg_delivery_time">
-                        Tempo Médio (min)
-                      </Label>
-                      <Input
-                        id="avg_delivery_time"
-                        type="number"
-                        min="1"
-                        value={formData.avg_delivery_time}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            avg_delivery_time: parseInt(e.target.value) || 30,
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                </div>
 
                 <Button
                   type="submit"
