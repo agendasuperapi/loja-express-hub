@@ -31,14 +31,13 @@ export const useStoreOrders = (storeId?: string) => {
       orderId: string; 
       status: string
     }) => {
-      const { data, error } = await supabase
-        .from('orders')
-        .update({ status: status as any })
-        .eq('id', orderId)
-        .select()
-        .single();
+      const { data, error } = await supabase.functions.invoke('update-order-status', {
+        body: { orderId, status },
+      });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || 'Falha ao atualizar status');
+      }
       return data;
     },
     onSuccess: () => {
