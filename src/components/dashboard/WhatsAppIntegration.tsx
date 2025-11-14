@@ -260,6 +260,7 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
 
   const checkExistingInstance = async () => {
     try {
+      console.log('[WhatsApp] Verificando instância existente para storeId:', storeId);
       // Buscar da tabela store_instances
       const { data, error } = await supabase
         .from('store_instances' as any)
@@ -267,8 +268,12 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         .eq('store_id', storeId)
         .maybeSingle();
 
+      console.log('[WhatsApp] Resultado:', { data, error, nota: 'Instância usa storeId, não slug da loja' });
+
       if (!error && (data as any)?.evolution_instance_id) {
-        setInstanceName((data as any).evolution_instance_id);
+        const instanceId = (data as any).evolution_instance_id;
+        setInstanceName(instanceId);
+        console.log('[WhatsApp] Instância encontrada:', instanceId);
         
         // Buscar telefone da loja
         const { data: storeData } = await supabase
@@ -288,10 +293,12 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         setConnectionStatus('checking...');
         
         // Verificar status real
-        await checkConnectionStatus((data as any).evolution_instance_id);
+        await checkConnectionStatus(instanceId);
       } else {
         // Tentar detectar automaticamente instância pelo padrão de nome
+        // Nome baseado em storeId, não no slug (para não ser afetado por mudanças de URL)
         const candidate = `store_${storeId.substring(0, 8)}`;
+        console.log('[WhatsApp] Tentando detectar instância:', candidate);
         try {
           const { data: statusData } = await invokeEvolution({
             action: 'check_status',
@@ -310,9 +317,11 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
                 store_id: storeId,
                 evolution_instance_id: candidate 
               });
+            console.log('[WhatsApp] Instância detectada e salva');
           }
         } catch (e) {
           // silencioso
+          console.log('[WhatsApp] Nenhuma instância ativa detectada');
         }
       }
     } catch (error) {
@@ -385,7 +394,10 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
 
     setIsLoading(true);
     try {
+      // Gerar nome da instância baseado no storeId (UUID), NÃO no slug
+      // Isso garante que mudanças no slug da loja não afetem o WhatsApp
       const generatedInstanceName = `store_${storeId.substring(0, 8)}`;
+      console.log('[WhatsApp] Criando instância:', { generatedInstanceName, storeId, note: 'Usa storeId, não slug' });
       
       const { data, error } = await invokeEvolution({ 
         action: 'create_instance',
@@ -407,7 +419,7 @@ export const WhatsAppIntegration = ({ storeId }: WhatsAppIntegrationProps) => {
         setQrCode(data.qrcode.base64);
         setInstanceName(generatedInstanceName);
         
-        // Save instance to database
+        // Save instance to database (vincula storeId ao instanceName)
         await supabase
           .from('store_instances' as any)
           .upsert({ 

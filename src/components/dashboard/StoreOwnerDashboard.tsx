@@ -776,7 +776,10 @@ export const StoreOwnerDashboard = () => {
         `⚠️ ATENÇÃO: Você está mudando a URL da sua loja!\n\n` +
         `URL antiga: appofertas.lovable.app/${oldSlug}\n` +
         `URL nova: appofertas.lovable.app/${newSlug}\n\n` +
-        `IMPORTANTE: Links antigos compartilhados não funcionarão mais.\n\n` +
+        `IMPORTANTE:\n` +
+        `• Links antigos compartilhados não funcionarão mais\n` +
+        `• WhatsApp NÃO será afetado (usa ID da loja, não a URL)\n` +
+        `• Produtos e pedidos continuam normalmente\n\n` +
         `Deseja realmente continuar?`
       );
 
@@ -831,9 +834,11 @@ export const StoreOwnerDashboard = () => {
         queryClient.invalidateQueries({ queryKey: ['stores'] });
         queryClient.invalidateQueries({ queryKey: ['my-store'] });
         
+        console.log('✅ WhatsApp mantido - usa store_id, não slug');
+        
         toast({
           title: "✅ URL atualizada com sucesso!",
-          description: `Nova URL: appofertas.lovable.app/${newSlug}`,
+          description: `Nova URL: appofertas.lovable.app/${newSlug}\n\n✓ WhatsApp mantido (usa ID da loja)`,
         });
       }
     } catch (error) {
