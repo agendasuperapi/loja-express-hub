@@ -25,6 +25,7 @@ export const storeSchema = z.object({
   delivery_fee: z.number().min(0, 'Taxa de entrega inválida').max(1000, 'Taxa muito alta'),
   min_order_value: z.number().min(0, 'Valor mínimo inválido').max(10000, 'Valor muito alto'),
   avg_delivery_time: z.number().int().min(0, 'Tempo de entrega inválido').max(500, 'Tempo muito longo'),
+  menu_label: z.string().trim().default('Cardápio'),
   owner_name: z.string().trim().min(2, 'Nome do proprietário é obrigatório').max(100, 'Nome muito longo'),
   owner_phone: z.string()
     .transform(val => val.replace(/\D/g, ''))

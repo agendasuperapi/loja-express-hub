@@ -810,7 +810,8 @@ export const StoreOwnerDashboard = () => {
         address: storeForm.address,
         pickup_address: storeForm.pickup_address,
         phone: storeForm.phone,
-      });
+        menu_label: storeForm.menu_label,
+      } as any);
 
       // Se o slug foi alterado, limpar caches e localStorage
       if (isSlugChanging) {
