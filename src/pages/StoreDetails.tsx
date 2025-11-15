@@ -568,7 +568,7 @@ export default function StoreDetails() {
                     
                     return (
                     <motion.div
-                      key={product.id}
+                      key={`${product.id}-${cartQuantity}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.05 }}
@@ -576,22 +576,23 @@ export default function StoreDetails() {
                       className="group"
                     >
                       <motion.div
+                        key={`card-${product.id}-${cartQuantity}`}
+                        initial={isInCart ? { scale: 1 } : false}
                         animate={isInCart ? {
-                          scale: [1, 1.05, 1.02],
-                          boxShadow: [
-                            '0 0 0px rgba(var(--primary-rgb), 0)',
-                            '0 0 30px rgba(var(--primary-rgb), 0.6)',
-                            '0 0 20px rgba(var(--primary-rgb), 0.3)'
-                          ]
-                        } : {}}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
+                          scale: [1, 1.08, 1.02],
+                        } : { scale: 1 }}
+                        transition={{ 
+                          duration: 0.5, 
+                          ease: "easeOut",
+                          times: [0, 0.5, 1]
+                        }}
                       >
                         <Card
-                        className={`overflow-hidden h-full border-3 transition-all duration-300 cursor-pointer ${
+                        className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
                           isInCart 
-                            ? 'border-primary ring-4 ring-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] scale-[1.02]' 
-                            : 'border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
-                        } ${isInCart ? 'bg-primary/5' : 'bg-card/50 backdrop-blur-sm'}`}
+                            ? 'border-[3px] border-primary ring-4 ring-primary/40 shadow-[0_0_25px_hsl(16_100%_50%/0.5)] hover:shadow-[0_0_35px_hsl(16_100%_50%/0.7)] bg-primary/5 scale-[1.02]' 
+                            : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
+                        }`}
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
