@@ -199,7 +199,8 @@ export default function Cart() {
     });
   };
 
-  const deliveryFee = deliveryType === 'pickup' ? 0 : ((storeData as any)?.delivery_fee || 5);
+  const storeDeliveryFee = (storeData as any)?.delivery_fee || 5;
+  const deliveryFee = deliveryType === 'pickup' ? 0 : storeDeliveryFee;
   const subtotal = getTotal();
   const total = Math.max(0, subtotal + deliveryFee - (cart.couponDiscount || 0));
 
@@ -826,7 +827,7 @@ export default function Cart() {
                             <Package className="w-6 h-6 mx-auto mb-2" />
                             <div className="font-semibold">Entrega</div>
                             <div className="text-xs text-muted-foreground">
-                              R$ {deliveryFee.toFixed(2)}
+                              R$ {storeDeliveryFee.toFixed(2)}
                             </div>
                           </button>
                         )}
@@ -1012,8 +1013,12 @@ export default function Cart() {
                         <span>R$ {subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span>{deliveryType === 'pickup' ? 'Retirada' : 'Taxa de entrega'}</span>
-                        <span>{deliveryType === 'pickup' ? 'Grátis' : `R$ ${deliveryFee.toFixed(2)}`}</span>
+                        <span>Taxa de entrega</span>
+                        <span>{deliveryType === 'pickup' ? (
+                          <span className="text-muted-foreground">R$ {storeDeliveryFee.toFixed(2)} <span className="text-green-600">(Grátis na retirada)</span></span>
+                        ) : (
+                          `R$ ${deliveryFee.toFixed(2)}`
+                        )}</span>
                       </div>
                       {cart.couponDiscount > 0 && (
                         <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
