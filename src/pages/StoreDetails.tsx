@@ -576,11 +576,11 @@ export default function StoreDetails() {
                       className="group"
                     >
                       <Card 
-                        className={`overflow-hidden h-full border-2 transition-all duration-300 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm cursor-pointer ${
+                        className={`overflow-hidden h-full border-3 transition-all duration-300 cursor-pointer ${
                           isInCart 
-                            ? 'border-primary ring-2 ring-primary/20' 
-                            : 'border-orange-300 hover:border-orange-400'
-                        }`}
+                            ? 'border-primary ring-4 ring-primary/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] hover:shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)] scale-[1.02]' 
+                            : 'border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
+                        } ${isInCart ? 'bg-primary/5' : 'bg-card/50 backdrop-blur-sm'}`}
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
@@ -610,12 +610,13 @@ export default function StoreDetails() {
                             )}
                             {isInCart && (
                               <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 200 }}
-                                className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1"
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                                className="absolute top-2 left-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-base font-extrabold shadow-2xl z-10 flex items-center gap-2 ring-2 ring-background"
                               >
-                                ✓ {cartQuantity}x no carrinho
+                                <span className="text-xl">✓</span>
+                                <span>{cartQuantity}x</span>
                               </motion.div>
                             )}
                           </div>
