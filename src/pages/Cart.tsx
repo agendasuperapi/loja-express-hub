@@ -103,8 +103,8 @@ export default function Cart() {
             setDeliveryType('pickup');
           } else if (acceptsDelivery && !acceptsPickup) {
             setDeliveryType('delivery');
-          } else if (acceptsDelivery) {
-            setDeliveryType('delivery'); // Default to delivery if both are available
+          } else if (acceptsPickup) {
+            setDeliveryType('pickup'); // Default to pickup if both are available
           }
 
           // Set default payment method based on what store accepts
