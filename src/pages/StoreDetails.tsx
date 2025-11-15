@@ -591,7 +591,7 @@ export default function StoreDetails() {
                         <Card
                         className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
                           isInCart 
-                            ? 'border-[2px] border-primary ring-4 ring-primary/40 shadow-[0_0_25px_hsl(16_100%_50%/0.5)] hover:shadow-[0_0_35px_hsl(16_100%_50%/0.7)] bg-primary/5 scale-[1.02]' 
+                            ? 'border border-primary ring-4 ring-primary/40 shadow-[0_0_25px_hsl(16_100%_50%/0.5)] hover:shadow-[0_0_35px_hsl(16_100%_50%/0.7)] bg-primary/5 scale-[1.02]' 
                             : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
                         }`}
                         onClick={() => setDetailsProduct(product)}
