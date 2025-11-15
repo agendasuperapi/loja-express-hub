@@ -621,17 +621,6 @@ export default function StoreDetails() {
                                 OFERTA
                               </motion.div>
                             )}
-                            {isInCart && (
-                              <motion.div
-                                initial={{ y: 100, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground py-3 px-4 text-center font-extrabold text-sm tracking-wide z-10 flex items-center justify-center gap-2 shadow-2xl"
-                              >
-                                <span className="text-lg">✓</span>
-                                <span>ITEM NO CARRINHO ({cartQuantity}x)</span>
-                              </motion.div>
-                            )}
                           </div>
                         )}
                         <CardContent className="p-4">
