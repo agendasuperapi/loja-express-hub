@@ -621,13 +621,13 @@ export default function StoreDetails() {
                             )}
                             {isInCart && (
                               <motion.div
-                                initial={{ scale: 0, rotate: -180 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                className="absolute top-2 left-2 bg-primary text-primary-foreground px-4 py-2 rounded-full text-base font-extrabold shadow-2xl z-10 flex items-center gap-2 ring-2 ring-background"
+                                initial={{ y: 100, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground py-3 px-4 text-center font-extrabold text-sm tracking-wide z-10 flex items-center justify-center gap-2 shadow-2xl"
                               >
-                                <span className="text-xl">✓</span>
-                                <span>{cartQuantity}x</span>
+                                <span className="text-lg">✓</span>
+                                <span>ITEM NO CARRINHO ({cartQuantity}x)</span>
                               </motion.div>
                             )}
                           </div>
