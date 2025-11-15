@@ -5,7 +5,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { AddToCartDialog } from "@/components/cart/AddToCartDialog";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, ArrowLeft, Search, Share2 } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -619,6 +619,17 @@ export default function StoreDetails() {
                                 className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10"
                               >
                                 OFERTA
+                              </motion.div>
+                            )}
+                            {isInCart && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                className={`absolute top-3 ${product.promotional_price ? 'left-3' : 'right-3'} bg-primary text-primary-foreground px-3 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-2`}
+                              >
+                                <ShoppingCart size={16} />
+                                <span>{cartQuantity}</span>
                               </motion.div>
                             )}
                           </div>
