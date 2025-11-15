@@ -28,7 +28,7 @@ export default function StoreDetails() {
   const [searchParams] = useSearchParams();
   const { data: store, isLoading: storeLoading } = useStore(slug!);
   const { data: products, isLoading: productsLoading } = useProducts(store?.id || '');
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [detailsProduct, setDetailsProduct] = useState<any>(null);
@@ -52,6 +52,12 @@ export default function StoreDetails() {
 
   // Update sharedProduct for meta tags
   const sharedProduct = products?.find(p => p.short_id === sharedProductShortId);
+
+  // Check if product is in cart and get its quantity
+  const getProductCartQuantity = (productId: string) => {
+    const cartItem = cart.items.find(item => item.id === productId);
+    return cartItem?.quantity || 0;
+  };
 
   const handleAddToCart = (quantity: number, observation: string, selectedAddons: Array<{ id: string; name: string; price: number }>) => {
     if (!store || !selectedProduct) return;
@@ -556,7 +562,11 @@ export default function StoreDetails() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {categoryProducts.map((product, index) => (
+                  {categoryProducts.map((product, index) => {
+                    const cartQuantity = getProductCartQuantity(product.id);
+                    const isInCart = cartQuantity > 0;
+                    
+                    return (
                     <motion.div
                       key={product.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -566,7 +576,11 @@ export default function StoreDetails() {
                       className="group"
                     >
                       <Card 
-                        className="overflow-hidden h-full border-2 border-orange-300 hover:border-orange-400 transition-all duration-300 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm cursor-pointer"
+                        className={`overflow-hidden h-full border-2 transition-all duration-300 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm cursor-pointer ${
+                          isInCart 
+                            ? 'border-primary ring-2 ring-primary/20' 
+                            : 'border-orange-300 hover:border-orange-400'
+                        }`}
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
@@ -592,6 +606,16 @@ export default function StoreDetails() {
                                 className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10"
                               >
                                 OFERTA
+                              </motion.div>
+                            )}
+                            {isInCart && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200 }}
+                                className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1"
+                              >
+                                ✓ {cartQuantity}x no carrinho
                               </motion.div>
                             )}
                           </div>
@@ -658,7 +682,8 @@ export default function StoreDetails() {
                         </CardContent>
                       </Card>
                     </motion.div>
-                  ))}
+                  );
+                  })}
                 </div>
               </motion.div>
               ))
