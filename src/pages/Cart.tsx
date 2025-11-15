@@ -88,7 +88,7 @@ export default function Cart() {
       if (cart.storeId) {
         const { data } = await supabase
           .from('stores')
-          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash')
+          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash, pickup_address, address')
           .eq('id', cart.storeId)
           .single();
         
@@ -832,6 +832,18 @@ export default function Cart() {
                           </button>
                         )}
                       </div>
+
+                      {deliveryType === 'pickup' && (
+                        <Alert className="mb-6">
+                          <Store className="h-4 w-4" />
+                          <AlertDescription>
+                            <div className="font-semibold mb-1">Endereço para retirada:</div>
+                            <div className="text-sm">
+                              {(storeData as any)?.pickup_address || (storeData as any)?.address || 'Endereço não disponível'}
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
 
                       {deliveryType === 'delivery' && (
                         <>
