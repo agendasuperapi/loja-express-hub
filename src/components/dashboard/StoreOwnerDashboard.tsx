@@ -16,7 +16,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -50,6 +50,7 @@ import { PersonalDataSettings } from "@/components/settings/PersonalDataSettings
 import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
@@ -2855,6 +2856,10 @@ export const StoreOwnerDashboard = () => {
                     <Lock className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Segurança</span>
                   </TabsTrigger>
+                  <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Bell className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Notificações</span>
+                  </TabsTrigger>
                   <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Menu className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Etapas do Pedido</span>
@@ -2884,6 +2889,17 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
           >
             <SecuritySettings />
+          </motion.div>
+        </TabsContent>
+
+        {/* Notifications Tab */}
+        <TabsContent value="notifications">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <NotificationSettings />
           </motion.div>
         </TabsContent>
 

@@ -5,6 +5,12 @@ import { useQueryClient } from '@tanstack/react-query';
 
 // Web Audio API para gerar bipe de notificação
 const playNotificationSound = () => {
+  // Verificar se o som está habilitado nas configurações
+  const soundEnabled = localStorage.getItem('notification-sound-enabled');
+  if (soundEnabled !== null && !JSON.parse(soundEnabled)) {
+    return;
+  }
+
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
@@ -72,7 +78,12 @@ export const useNewOrderNotification = (storeId: string | undefined) => {
           });
 
           // Enviar notificação do navegador
-          if ('Notification' in window && Notification.permission === 'granted') {
+          const browserNotificationEnabled = localStorage.getItem('browser-notification-enabled');
+          const shouldShowBrowserNotification = browserNotificationEnabled !== null 
+            ? JSON.parse(browserNotificationEnabled) 
+            : true;
+
+          if (shouldShowBrowserNotification && 'Notification' in window && Notification.permission === 'granted') {
             new Notification('🔔 Novo Pedido Recebido!', {
               body: `Pedido #${order.order_number}\n${order.customer_name}\nR$ ${order.total.toFixed(2)}`,
               icon: '/favicon.ico',
