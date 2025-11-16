@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useProductAddons } from "@/hooks/useProductAddons";
+import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
@@ -27,13 +28,19 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
   const { addons } = useProductAddons(product?.id);
+  const { flavors } = useProductFlavors(product?.id);
+
+  const maxFlavors = product?.max_flavors || 1;
+  const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
 
   useEffect(() => {
     if (!open) {
       setQuantity(1);
       setObservation("");
       setSelectedAddons(new Set());
+      setSelectedFlavors(new Set());
     }
   }, [open]);
 
@@ -52,15 +59,45 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     setSelectedAddons(newSelected);
   };
 
+  const handleFlavorToggle = (flavorId: string) => {
+    const newSelected = new Set(selectedFlavors);
+    if (newSelected.has(flavorId)) {
+      newSelected.delete(flavorId);
+    } else {
+      if (newSelected.size < maxFlavors) {
+        newSelected.add(flavorId);
+      }
+    }
+    setSelectedFlavors(newSelected);
+  };
+
   const addonsTotal = addons
     ?.filter(addon => selectedAddons.has(addon.id))
     .reduce((sum, addon) => sum + addon.price, 0) || 0;
-  const total = (currentPrice + addonsTotal) * quantity;
+  
+  const flavorsTotal = flavors
+    ?.filter(flavor => selectedFlavors.has(flavor.id))
+    .reduce((sum, flavor) => sum + flavor.price, 0) || 0;
+  
+  const total = (currentPrice + addonsTotal + flavorsTotal) * quantity;
 
   const handleAddToCart = () => {
+    if (hasFlavors && selectedFlavors.size === 0) {
+      toast({
+        title: "Selecione os sabores",
+        description: "É necessário selecionar pelo menos 1 sabor",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const addonsToAdd = addons
       ?.filter(addon => selectedAddons.has(addon.id))
       .map(addon => ({ id: addon.id, name: addon.name, price: addon.price })) || [];
+    
+    const flavorsToAdd = flavors
+      ?.filter(flavor => selectedFlavors.has(flavor.id))
+      .map(flavor => ({ id: flavor.id, name: flavor.name, price: flavor.price })) || [];
     
     addToCart(
       product.id,
@@ -73,7 +110,8 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       product.image_url,
       observation,
       store.slug,
-      addonsToAdd
+      addonsToAdd,
+      flavorsToAdd
     );
     onOpenChange(false);
     toast({
@@ -214,6 +252,51 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         </div>
       </div>
 
+      {/* Sabores */}
+      {hasFlavors && (
+        <div className="space-y-2 px-4 md:px-0">
+          <Label className="text-sm font-semibold">
+            Sabores {maxFlavors > 1 && `(máx. ${maxFlavors})`}
+            <span className="text-destructive ml-1">*</span>
+          </Label>
+          <div className="space-y-1.5 max-h-60 overflow-y-auto">
+            {flavors?.filter(flavor => flavor.is_available).map((flavor) => (
+              <div
+                key={flavor.id}
+                className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
+              >
+                <div className="flex items-center gap-2.5 flex-1">
+                  <Checkbox
+                    id={flavor.id}
+                    checked={selectedFlavors.has(flavor.id)}
+                    onCheckedChange={() => handleFlavorToggle(flavor.id)}
+                    disabled={!selectedFlavors.has(flavor.id) && selectedFlavors.size >= maxFlavors}
+                  />
+                  <Label htmlFor={flavor.id} className="flex-1 cursor-pointer text-sm">
+                    {flavor.name}
+                    {flavor.description && (
+                      <span className="text-xs text-muted-foreground block">
+                        {flavor.description}
+                      </span>
+                    )}
+                  </Label>
+                </div>
+                {flavor.price > 0 && (
+                  <span className="text-sm font-semibold text-primary">
+                    + R$ {flavor.price.toFixed(2)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          {selectedFlavors.size === 0 && (
+            <p className="text-xs text-destructive">
+              Selecione pelo menos 1 sabor
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Adicionais */}
       {addons && addons.length > 0 && (
         <div className="space-y-2 px-4 md:px-0">
@@ -286,6 +369,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           onClick={handleAddToCart}
           className="flex-1 text-base h-14"
           size="lg"
+          disabled={hasFlavors && selectedFlavors.size === 0}
         >
           <ShoppingCart className="w-5 h-5 mr-2" />
           Adicionar ao Carrinho
