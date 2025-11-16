@@ -626,9 +626,8 @@ export default function StoreDetails() {
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                className={`absolute top-3 ${product.promotional_price ? 'left-3' : 'right-3'} bg-primary text-primary-foreground px-3 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-2`}
+                                className={`absolute top-3 ${product.promotional_price ? 'left-3' : 'right-3'} bg-primary text-primary-foreground px-3 py-2 rounded-full text-sm font-bold shadow-lg z-10`}
                               >
-                                <ShoppingCart size={16} />
                                 <span>{cartQuantity}</span>
                               </motion.div>
                             )}
