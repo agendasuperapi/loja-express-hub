@@ -250,9 +250,9 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       </div>
       
       <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex-1 flex gap-4">
-            <div className="flex-1 max-w-sm">
+      <CardHeader className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -263,7 +263,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                 />
               </div>
             </div>
-            <div className="w-[150px]">
+            <div className="w-full sm:w-[150px]">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Status" />
@@ -287,32 +287,36 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               size="sm"
               onClick={exportToCSV}
               disabled={filteredOrders.length === 0}
+              className="flex-1 sm:flex-none"
             >
-              <Download className="h-4 w-4 mr-2" />
-              CSV
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">CSV</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={exportToExcel}
               disabled={filteredOrders.length === 0}
+              className="flex-1 sm:flex-none"
             >
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Excel
+              <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Excel</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={exportToPDF}
               disabled={filteredOrders.length === 0}
+              className="flex-1 sm:flex-none"
             >
-              <FileText className="h-4 w-4 mr-2" />
-              PDF
+              <FileText className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[500px]">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+          <ScrollArea className="h-[400px] sm:h-[500px]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -424,6 +428,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               </TableBody>
             </Table>
           </ScrollArea>
+          </div>
 
           {filteredOrders.length > 0 && (
             <>

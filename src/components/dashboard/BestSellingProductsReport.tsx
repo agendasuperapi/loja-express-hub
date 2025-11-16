@@ -193,37 +193,41 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
       </div>
       
       <Card>
-      <CardHeader className="flex flex-row items-center justify-end gap-2">
+      <CardHeader className="flex flex-row items-center justify-end gap-2 flex-wrap">
         <Button
           variant="outline"
           size="sm"
           onClick={exportToCSV}
           disabled={products.length === 0}
+          className="flex-1 sm:flex-none min-w-[80px]"
         >
-          <Download className="h-4 w-4 mr-2" />
-          CSV
+          <Download className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">CSV</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={exportToExcel}
           disabled={products.length === 0}
+          className="flex-1 sm:flex-none min-w-[80px]"
         >
-          <FileSpreadsheet className="h-4 w-4 mr-2" />
-          Excel
+          <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Excel</span>
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={exportToPDF}
           disabled={products.length === 0}
+          className="flex-1 sm:flex-none min-w-[80px]"
         >
-          <FileText className="h-4 w-4 mr-2" />
-          PDF
+          <FileText className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">PDF</span>
         </Button>
       </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px]">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+          <ScrollArea className="h-[400px] sm:h-[600px]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -275,6 +279,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
             </TableBody>
             </Table>
           </ScrollArea>
+          </div>
 
           {/* Paginação */}
           {totalPages > 1 && (

@@ -219,8 +219,8 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
       </div>
       
       <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div className="flex-1 max-w-sm">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 w-full sm:max-w-sm">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -231,38 +231,42 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
             />
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={exportToCSV}
             disabled={filteredCustomers.length === 0}
+            className="flex-1 sm:flex-none"
           >
-            <Download className="h-4 w-4 mr-2" />
-            CSV
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">CSV</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={exportToExcel}
             disabled={filteredCustomers.length === 0}
+            className="flex-1 sm:flex-none"
           >
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Excel
+            <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Excel</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={exportToPDF}
             disabled={filteredCustomers.length === 0}
+            className="flex-1 sm:flex-none"
           >
-            <FileText className="h-4 w-4 mr-2" />
-            PDF
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">PDF</span>
           </Button>
         </div>
       </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px]">
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+          <ScrollArea className="h-[400px] sm:h-[600px]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -312,8 +316,9 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
                   ))
                 )}
         </TableBody>
-      </Table>
-    </ScrollArea>
+            </Table>
+          </ScrollArea>
+          </div>
 
     {/* Paginação */}
     {totalPages > 1 && (
