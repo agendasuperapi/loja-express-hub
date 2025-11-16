@@ -390,6 +390,14 @@ export default function StoreDetails() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3 mb-2">
                     <h1 className="text-2xl md:text-4xl font-bold gradient-text">{store.name}</h1>
+                    <motion.div 
+                      whileHover={{ scale: 1.05 }}
+                      className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-full"
+                    >
+                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                      <span className="font-semibold">{store.rating || 5}</span>
+                      <span className="text-muted-foreground">({store.total_reviews || 0})</span>
+                    </motion.div>
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -411,13 +419,6 @@ export default function StoreDetails() {
                   <p className="text-muted-foreground mb-2 text-sm md:text-base leading-relaxed">{store.description}</p>
                   
                   <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base">
-                  <motion.div 
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-full"
-                  >
-                    <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                  <span className="font-semibold">{store.rating || 5}</span>
-                  </motion.div>
                     
                     {store.slug !== 'drogaclaramoc' && (store as any).show_avg_delivery_time !== false && (
                       <motion.div 
