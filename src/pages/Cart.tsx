@@ -396,6 +396,14 @@ export default function Cart() {
                     price: Number(addon.price),
                   }))
               : [],
+            flavors: Array.isArray(item.flavors)
+              ? item.flavors
+                  .filter(flavor => flavor && flavor.name && typeof flavor.price === 'number')
+                  .map(flavor => ({
+                    name: String(flavor.name),
+                    price: Number(flavor.price),
+                  }))
+              : [],
           })),
           customerName,
           customerPhone,
@@ -530,6 +538,19 @@ export default function Cart() {
                       )}
                       <div className="flex-1">
                         <h3 className="font-semibold mb-1">{item.productName}</h3>
+                        {item.flavors && item.flavors.length > 0 && (
+                          <div className="text-sm text-muted-foreground mb-2">
+                            <span className="font-medium">Sabores:</span>
+                            {item.flavors.map((flavor, idx) => (
+                              <div key={idx} className="flex justify-between ml-2">
+                                <span>• {flavor.name}</span>
+                                {flavor.price > 0 && (
+                                  <span>R$ {flavor.price.toFixed(2)}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {item.addons && item.addons.length > 0 && (
                           <div className="text-sm text-muted-foreground mb-2">
                             {item.addons.map((addon, idx) => (
@@ -547,11 +568,14 @@ export default function Cart() {
                         )}
                         <p className="text-lg font-bold text-primary mb-2">
                           R$ {(item.promotionalPrice || item.price).toFixed(2)}
-                          {item.addons && item.addons.length > 0 && (
+                          {(item.addons && item.addons.length > 0) || (item.flavors && item.flavors.length > 0) ? (
                             <span className="text-sm text-muted-foreground ml-2">
-                              + R$ {item.addons.reduce((sum, addon) => sum + addon.price, 0).toFixed(2)}
+                              + R$ {(
+                                (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
+                                (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)
+                              ).toFixed(2)}
                             </span>
-                          )}
+                          ) : null}
                         </p>
                         
                         <div className="flex items-center justify-between">

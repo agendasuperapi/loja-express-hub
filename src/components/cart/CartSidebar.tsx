@@ -62,21 +62,30 @@ export const CartSidebar = () => {
                         <h4 className="font-semibold text-sm truncate">
                           {item.productName}
                         </h4>
+                        {item.flavors && item.flavors.length > 0 && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            <span className="font-medium">Sabores:</span>
+                            {item.flavors.map((flavor, idx) => (
+                              <div key={idx} className="ml-1">• {flavor.name}</div>
+                            ))}
+                          </div>
+                        )}
                         {item.addons && item.addons.length > 0 && (
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground mt-1">
                             {item.addons.map((addon, idx) => (
                               <div key={idx}>+ {addon.name}</div>
                             ))}
                           </div>
                         )}
                         {item.observation && (
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="text-xs text-muted-foreground truncate mt-1">
                             Obs: {item.observation}
                           </p>
                         )}
                         <p className="text-sm font-bold text-primary mt-1">
                           R$ {((item.promotionalPrice || item.price) + 
-                            (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0)).toFixed(2)}
+                            (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
+                            (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)).toFixed(2)}
                         </p>
                         
                         <div className="flex items-center justify-between mt-2">

@@ -14,7 +14,8 @@ export const useStoreOrders = (storeId?: string) => {
           *,
           order_items (
             *,
-            order_item_addons (*)
+            order_item_addons (*),
+            order_item_flavors (*)
           )
         `)
         .eq('store_id', storeId!)

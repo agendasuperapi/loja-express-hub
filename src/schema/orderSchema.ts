@@ -10,6 +10,16 @@ const orderItemAddonSchema = z.object({
     .min(0, "Price must be non-negative"),
 });
 
+// Order item flavor validation with length constraints
+const orderItemFlavorSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, "Flavor name cannot be empty")
+    .max(100, "Flavor name must be less than 100 characters"),
+  price: z.number()
+    .min(0, "Price must be non-negative"),
+});
+
 // Order item validation with length constraints
 export const orderItemSchema = z.object({
   productId: z.string().uuid("Invalid product ID"),
@@ -31,6 +41,9 @@ export const orderItemSchema = z.object({
     .transform(val => val || null),
   addons: z.array(orderItemAddonSchema)
     .max(20, "Cannot have more than 20 addons per item")
+    .optional(),
+  flavors: z.array(orderItemFlavorSchema)
+    .max(10, "Cannot have more than 10 flavors per item")
     .optional(),
 });
 

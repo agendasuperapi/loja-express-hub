@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CartItem, CartAddon } from "@/contexts/CartContext";
+import { CartItem, CartAddon, CartFlavor } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
@@ -12,7 +12,7 @@ interface EditCartItemDialogProps {
   item: CartItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (itemId: string, observation: string, addons: CartAddon[]) => void;
+  onUpdate: (itemId: string, observation: string, addons: CartAddon[], flavors?: CartFlavor[]) => void;
 }
 
 interface ProductAddon {
@@ -21,31 +21,54 @@ interface ProductAddon {
   price: number;
 }
 
+interface ProductFlavor {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
+
 export const EditCartItemDialog = ({ item, open, onOpenChange, onUpdate }: EditCartItemDialogProps) => {
   const [observation, setObservation] = useState(item.observation || "");
   const [selectedAddons, setSelectedAddons] = useState<CartAddon[]>(item.addons || []);
+  const [selectedFlavors, setSelectedFlavors] = useState<CartFlavor[]>(item.flavors || []);
   const [availableAddons, setAvailableAddons] = useState<ProductAddon[]>([]);
+  const [availableFlavors, setAvailableFlavors] = useState<ProductFlavor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
-      loadAddons();
+      loadAddonsAndFlavors();
       setObservation(item.observation || "");
       setSelectedAddons(item.addons || []);
+      setSelectedFlavors(item.flavors || []);
     }
   }, [open, item]);
 
-  const loadAddons = async () => {
+  const loadAddonsAndFlavors = async () => {
     setIsLoading(true);
-    const { data } = await supabase
-      .from('product_addons')
-      .select('*')
-      .eq('product_id', item.productId)
-      .eq('is_available', true);
     
-    if (data) {
-      setAvailableAddons(data);
+    const [addonsResponse, flavorsResponse] = await Promise.all([
+      supabase
+        .from('product_addons')
+        .select('*')
+        .eq('product_id', item.productId)
+        .eq('is_available', true),
+      supabase
+        .from('product_flavors')
+        .select('*')
+        .eq('product_id', item.productId)
+        .eq('is_available', true)
+    ]);
+    
+    if (addonsResponse.data) {
+      setAvailableAddons(addonsResponse.data);
     }
+    
+    if (flavorsResponse.data) {
+      setAvailableFlavors(flavorsResponse.data);
+    }
+    
     setIsLoading(false);
   };
 
@@ -62,8 +85,21 @@ export const EditCartItemDialog = ({ item, open, onOpenChange, onUpdate }: EditC
     }
   };
 
+  const handleFlavorToggle = (flavor: ProductFlavor) => {
+    const isSelected = selectedFlavors.some(f => f.id === flavor.id);
+    if (isSelected) {
+      setSelectedFlavors(selectedFlavors.filter(f => f.id !== flavor.id));
+    } else {
+      setSelectedFlavors([...selectedFlavors, {
+        id: flavor.id,
+        name: flavor.name,
+        price: flavor.price,
+      }]);
+    }
+  };
+
   const handleSave = () => {
-    onUpdate(item.id, observation, selectedAddons);
+    onUpdate(item.id, observation, selectedAddons, selectedFlavors);
     onOpenChange(false);
   };
 
@@ -86,6 +122,37 @@ export const EditCartItemDialog = ({ item, open, onOpenChange, onUpdate }: EditC
                 R$ {(item.promotionalPrice || item.price).toFixed(2)} x {item.quantity}
               </p>
             </div>
+
+            {availableFlavors.length > 0 && (
+              <div>
+                <Label className="text-base mb-3 block">Sabores</Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {availableFlavors.map((flavor) => (
+                    <div key={flavor.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1">
+                        <Checkbox
+                          checked={selectedFlavors.some(f => f.id === flavor.id)}
+                          onCheckedChange={() => handleFlavorToggle(flavor)}
+                        />
+                        <Label className="cursor-pointer font-normal">
+                          {flavor.name}
+                          {flavor.description && (
+                            <span className="text-xs text-muted-foreground block">
+                              {flavor.description}
+                            </span>
+                          )}
+                        </Label>
+                      </div>
+                      {flavor.price > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          + R$ {flavor.price.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {availableAddons.length > 0 && (
               <div>

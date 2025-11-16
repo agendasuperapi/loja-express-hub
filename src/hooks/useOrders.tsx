@@ -19,7 +19,8 @@ export const useOrders = () => {
           *,
           order_items (
             *,
-            order_item_addons (*)
+            order_item_addons (*),
+            order_item_flavors (*)
           ),
           stores (
             name,
@@ -139,6 +140,28 @@ export const useOrders = () => {
           .insert(addonsToInsert);
 
         if (addonsError) throw addonsError;
+      }
+
+      // 🍕 Inserir sabores
+      const flavorsToInsert: any[] = [];
+
+      validatedData.items.forEach((item, index) => {
+        const created = createdItems[index];
+        item.flavors?.forEach((flavor) => {
+          flavorsToInsert.push({
+            order_item_id: created.id,
+            flavor_name: flavor.name,
+            flavor_price: flavor.price,
+          });
+        });
+      });
+
+      if (flavorsToInsert.length > 0) {
+        const { error: flavorsError } = await supabase
+          .from("order_item_flavors")
+          .insert(flavorsToInsert);
+
+        if (flavorsError) throw flavorsError;
       }
 
       // 📵 Envio de WhatsApp pelo cliente desativado: será enviado automaticamente via banco de dados (trigger)

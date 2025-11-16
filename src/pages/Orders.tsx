@@ -241,6 +241,19 @@ export default function Orders() {
                           <div key={item.id} className="flex justify-between items-start">
                             <div className="flex-1">
                               <p className="font-medium">{item.product_name}</p>
+                              {item.order_item_flavors && item.order_item_flavors.length > 0 && (
+                                <div className="text-sm text-muted-foreground pl-4 mt-1">
+                                  <span className="font-medium">Sabores:</span>
+                                  {item.order_item_flavors.map((flavor: any, idx: number) => (
+                                    <div key={flavor.id} className="flex justify-between ml-2">
+                                      <span>• {flavor.flavor_name}</span>
+                                      {Number(flavor.flavor_price) > 0 && (
+                                        <span>R$ {Number(flavor.flavor_price).toFixed(2)}</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                               {item.order_item_addons && item.order_item_addons.length > 0 && (
                                 <div className="text-sm text-muted-foreground pl-4 mt-1">
                                   {item.order_item_addons.map((addon: any, idx: number) => (
