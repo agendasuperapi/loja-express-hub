@@ -22,7 +22,7 @@ const playNotificationSound = () => {
     oscillator.frequency.value = 800; // Frequência do bipe (Hz)
     oscillator.type = 'sine';
 
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.7, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
 
     oscillator.start(audioContext.currentTime);
