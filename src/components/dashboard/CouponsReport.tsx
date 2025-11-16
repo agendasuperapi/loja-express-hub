@@ -270,7 +270,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
         transition={{ delay: 0.4 }}
       >
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Tag className="h-5 w-5" />
@@ -280,28 +280,30 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                 Visualize o desempenho de cada cupom utilizado
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={exportToExcel}
                 disabled={couponStats.coupons.length === 0}
+                className="flex-1 sm:flex-none"
               >
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Excel
+                <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Excel</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={exportToPDF}
                 disabled={couponStats.coupons.length === 0}
+                className="flex-1 sm:flex-none"
               >
-                <FileText className="h-4 w-4 mr-2" />
-                PDF
+                <FileText className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">PDF</span>
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-6">
             {couponStats.coupons.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Tag className="h-12 w-12 mx-auto mb-4 opacity-20" />
@@ -309,6 +311,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                 <p className="text-sm">Os cupons utilizados aparecerão aqui</p>
               </div>
             ) : (
+              <div className="overflow-x-auto">
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -348,6 +351,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                     ))}
                   </TableBody>
                 </Table>
+              </div>
               </div>
             )}
           </CardContent>
