@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
+import { motion } from "framer-motion";
 
 // Unified invoker to Evolution function using supabase.functions.invoke
 const invokeEvolution = async (payload: any) => {
@@ -598,24 +599,98 @@ await invokeEvolution({
           )}
 
           {qrCode && !isConnected && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="font-semibold mb-2">Escaneie o QR Code</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Abra o WhatsApp no seu celular e escaneie este código
-                </p>
-                <div className="flex justify-center p-4 bg-white rounded-lg">
-                  <img 
-                    src={qrCode} 
-                    alt="QR Code WhatsApp" 
-                    className="w-64 h-64"
-                  />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6"
+            >
+              <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5 p-8">
+                {/* Header decorativo */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+                
+                <div className="text-center space-y-6">
+                  {/* Badge de status */}
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-sm font-medium text-primary">Aguardando Conexão</span>
+                  </div>
+
+                  {/* Título e descrição */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-2">
+                      <QrCode className="w-6 h-6 text-primary" />
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                        Escaneie o QR Code
+                      </h3>
+                    </div>
+                    <p className="text-muted-foreground max-w-md mx-auto">
+                      Abra o WhatsApp no seu celular e escaneie este código para conectar sua loja
+                    </p>
+                  </div>
+
+                  {/* QR Code com moldura moderna */}
+                  <div className="relative inline-block">
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-2xl" />
+                    
+                    {/* Container do QR Code */}
+                    <div className="relative flex justify-center p-6 bg-white dark:bg-gray-950 rounded-2xl shadow-2xl border-2 border-primary/20">
+                      <motion.div
+                        animate={{ 
+                          boxShadow: [
+                            "0 0 0 0 rgba(var(--primary), 0)",
+                            "0 0 0 10px rgba(var(--primary), 0.1)",
+                            "0 0 0 0 rgba(var(--primary), 0)"
+                          ]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="rounded-xl overflow-hidden"
+                      >
+                        <img 
+                          src={qrCode} 
+                          alt="QR Code WhatsApp" 
+                          className="w-72 h-72 object-contain"
+                        />
+                      </motion.div>
+                    </div>
+
+                    {/* Cantos decorativos */}
+                    <div className="absolute -top-2 -left-2 w-6 h-6 border-t-2 border-l-2 border-primary rounded-tl-lg" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 border-t-2 border-r-2 border-primary rounded-tr-lg" />
+                    <div className="absolute -bottom-2 -left-2 w-6 h-6 border-b-2 border-l-2 border-primary rounded-bl-lg" />
+                    <div className="absolute -bottom-2 -right-2 w-6 h-6 border-b-2 border-r-2 border-primary rounded-br-lg" />
+                  </div>
+
+                  {/* Instruções passo a passo */}
+                  <div className="grid gap-3 max-w-lg mx-auto">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-0.5">
+                        1
+                      </div>
+                      <p className="text-sm text-left">Abra o <strong>WhatsApp</strong> no seu celular</p>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-0.5">
+                        2
+                      </div>
+                      <p className="text-sm text-left">Toque em <strong>Mais opções</strong> (⋮) → <strong>Aparelhos conectados</strong></p>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex-shrink-0 mt-0.5">
+                        3
+                      </div>
+                      <p className="text-sm text-left">Toque em <strong>Conectar um aparelho</strong> e escaneie o código acima</p>
+                    </div>
+                  </div>
+
+                  {/* Nota sobre atualização automática */}
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>O QR Code é atualizado automaticamente a cada 10 segundos</span>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">
-                  O QR Code será atualizado automaticamente, até que você faça a conexão.
-                </p>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {isConnected && (
