@@ -1034,14 +1034,12 @@ export default function Cart() {
                         <span>Subtotal</span>
                         <span>R$ {subtotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Taxa de entrega</span>
-                        <span>{deliveryType === 'pickup' ? (
-                          <span className="text-muted-foreground">R$ {storeDeliveryFee.toFixed(2)} <span className="text-green-600">(Grátis na retirada)</span></span>
-                        ) : (
-                          `R$ ${deliveryFee.toFixed(2)}`
-                        )}</span>
-                      </div>
+                      {deliveryType !== 'pickup' && (
+                        <div className="flex justify-between text-sm">
+                          <span>Taxa de entrega</span>
+                          <span>R$ {deliveryFee.toFixed(2)}</span>
+                        </div>
+                      )}
                       {cart.couponDiscount > 0 && (
                         <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
                           <span className="flex items-center gap-1">
