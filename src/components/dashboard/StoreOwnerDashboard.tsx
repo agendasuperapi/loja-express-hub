@@ -2892,14 +2892,115 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         </TabsContent>
 
-        {/* Notifications Tab */}
-        <TabsContent value="notifications">
+        {/* Permissions Tab */}
+        <TabsContent value="notifications" className="space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             <NotificationSettings />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="space-y-6"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Tipos de Entrega Aceitos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_delivery">Entrega</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permite que os clientes recebam pedidos em casa
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_delivery"
+                    checked={storeForm.accepts_delivery}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, accepts_delivery: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_pickup">Retirada</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permite que os clientes retirem pedidos na loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_pickup"
+                    checked={storeForm.accepts_pickup}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, accepts_pickup: checked })
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Métodos de Pagamento Aceitos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_pix">PIX</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Aceita pagamento via PIX
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_pix"
+                    checked={storeForm.accepts_pix}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, accepts_pix: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_card">Cartão</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Aceita pagamento com cartão de crédito ou débito
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_card"
+                    checked={storeForm.accepts_card}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, accepts_card: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_cash">Dinheiro</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Aceita pagamento em dinheiro
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_cash"
+                    checked={storeForm.accepts_cash}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, accepts_cash: checked })
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </TabsContent>
 
@@ -3103,101 +3204,6 @@ export const StoreOwnerDashboard = () => {
                 </div>
               </div>
 
-              <Separator className="my-6" />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Tipos de Entrega Aceitos</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="accepts_delivery">Entrega</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Permite que os clientes recebam pedidos em casa
-                      </p>
-                    </div>
-                    <Switch
-                      id="accepts_delivery"
-                      checked={storeForm.accepts_delivery}
-                      onCheckedChange={(checked) => 
-                        setStoreForm({ ...storeForm, accepts_delivery: checked })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="accepts_pickup">Retirada</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Permite que os clientes retirem pedidos na loja
-                      </p>
-                    </div>
-                    <Switch
-                      id="accepts_pickup"
-                      checked={storeForm.accepts_pickup}
-                      onCheckedChange={(checked) => 
-                        setStoreForm({ ...storeForm, accepts_pickup: checked })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator className="my-6" />
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Métodos de Pagamento Aceitos</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="accepts_pix">PIX</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Aceita pagamento via PIX
-                      </p>
-                    </div>
-                    <Switch
-                      id="accepts_pix"
-                      checked={storeForm.accepts_pix}
-                      onCheckedChange={(checked) => 
-                        setStoreForm({ ...storeForm, accepts_pix: checked })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="accepts_card">Cartão</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Aceita pagamento com cartão de crédito ou débito
-                      </p>
-                    </div>
-                    <Switch
-                      id="accepts_card"
-                      checked={storeForm.accepts_card}
-                      onCheckedChange={(checked) => 
-                        setStoreForm({ ...storeForm, accepts_card: checked })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="accepts_cash">Dinheiro</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Aceita pagamento em dinheiro
-                      </p>
-                    </div>
-                    <Switch
-                      id="accepts_cash"
-                      checked={storeForm.accepts_cash}
-                      onCheckedChange={(checked) => 
-                        setStoreForm({ ...storeForm, accepts_cash: checked })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
 
               <Separator className="my-6" />
 
