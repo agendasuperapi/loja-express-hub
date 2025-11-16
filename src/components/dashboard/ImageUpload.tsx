@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Crop } from 'lucide-react';
+import { ImageCropDialog } from './ImageCropDialog';
 
 interface ImageUploadProps {
   bucket: 'store-logos' | 'store-banners' | 'product-images';
@@ -29,6 +30,17 @@ export const ImageUpload = ({
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+
+  const aspectRatioMap: Record<string, number> = {
+    'aspect-square': 1,
+    'aspect-[21/9]': 21 / 9,
+    'aspect-video': 16 / 9,
+  };
+
+  const numericAspectRatio = aspectRatioMap[aspectRatio] || 1;
 
   const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -87,59 +99,33 @@ export const ImageUpload = ({
     });
   };
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Arquivo inválido',
+        description: 'Por favor, selecione uma imagem',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Criar URL temporária para a imagem
+    const imageUrl = URL.createObjectURL(file);
+    setTempImageSrc(imageUrl);
+    setOriginalFile(file);
+    setCropDialogOpen(true);
+
+    // Reset do input
+    event.target.value = '';
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
     try {
       setUploading(true);
-      
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      // Validar tipo de arquivo
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Arquivo inválido',
-          description: 'Por favor, selecione uma imagem',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Definir dimensões recomendadas baseadas no tipo de bucket
-      const recommendedDimensions = {
-        'product-images': { width: 800, height: 800, label: 'Produtos (800x800px - Quadrada)' },
-        'store-logos': { width: 400, height: 400, label: 'Logo (400x400px - Quadrada)' },
-        'store-banners': { width: 1200, height: 400, label: 'Banner (1200x400px - 3:1)' },
-      };
-
-      const recommended = recommendedDimensions[bucket];
-
-      // Ler dimensões da imagem
-      const imageDimensions = await getImageDimensions(file);
-
-      // Verificar se as dimensões estão muito diferentes das recomendadas
-      const widthDiff = Math.abs(imageDimensions.width - recommended.width);
-      const heightDiff = Math.abs(imageDimensions.height - recommended.height);
-      const isVeryDifferent = widthDiff > recommended.width * 0.3 || heightDiff > recommended.height * 0.3;
-
-      if (isVeryDifferent) {
-        toast({
-          title: '⚠️ Dimensões não recomendadas',
-          description: `Imagem atual: ${imageDimensions.width}x${imageDimensions.height}px\nRecomendado: ${recommended.label}\n\nA imagem será redimensionada automaticamente.`,
-          duration: 6000,
-        });
-      }
-
-      // Definir dimensões máximas baseadas no tipo de bucket
-      const maxDimensions = {
-        'product-images': { width: 800, height: 800 },
-        'store-logos': { width: 400, height: 400 },
-        'store-banners': { width: 1200, height: 400 },
-      };
-
-      const { width: maxWidth, height: maxHeight } = maxDimensions[bucket];
-
-      // Redimensionar a imagem
-      const resizedBlob = await resizeImage(file, maxWidth, maxHeight);
 
       // Para product-images, usar productId.jpg ao invés de temp/random
       let fileName: string;
@@ -150,9 +136,9 @@ export const ImageUpload = ({
         fileName = `${folder}/${Math.random()}.${fileExt}`;
       }
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from(bucket)
-        .upload(fileName, resizedBlob, {
+        .upload(fileName, croppedBlob, {
           upsert: true,
           contentType: 'image/jpeg',
         });
@@ -169,8 +155,8 @@ export const ImageUpload = ({
       onUploadComplete(publicUrl);
 
       toast({
-        title: 'Upload concluído!',
-        description: 'Imagem enviada com sucesso.',
+        title: '✅ Upload concluído!',
+        description: 'Imagem enviada com sucesso nas dimensões corretas.',
       });
     } catch (error) {
       console.error('Erro no upload:', error);
@@ -181,6 +167,8 @@ export const ImageUpload = ({
       });
     } finally {
       setUploading(false);
+      setTempImageSrc(null);
+      setOriginalFile(null);
     }
   };
 
@@ -207,55 +195,76 @@ export const ImageUpload = ({
   };
 
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium text-foreground">{label}</Label>
-      <p className="text-xs text-muted-foreground">
-        {bucket === 'product-images' && 'Recomendado: 800x800px (quadrada)'}
-        {bucket === 'store-logos' && 'Recomendado: 400x400px (quadrada)'}
-        {bucket === 'store-banners' && 'Recomendado: 1200x400px (3:1)'}
-      </p>
-      
-      {previewUrl ? (
-        <div className="relative">
-          <div className={`${aspectRatio} ${sizeClasses[size]} rounded-lg overflow-hidden border border-border`}>
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
+    <>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-foreground">{label}</Label>
+        <p className="text-xs text-muted-foreground">
+          {bucket === 'product-images' && '📐 Dimensão final: 800x800px (quadrada)'}
+          {bucket === 'store-logos' && '📐 Dimensão final: 400x400px (quadrada)'}
+          {bucket === 'store-banners' && '📐 Dimensão final: 1200x400px (3:1)'}
+        </p>
+        
+        {previewUrl ? (
+          <div className="relative">
+            <div className={`${aspectRatio} ${sizeClasses[size]} rounded-lg overflow-hidden border border-border`}>
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-destructive/90"
+              onClick={handleRemove}
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute top-2 right-2"
-            onClick={handleRemove}
+        ) : (
+          <label
+            htmlFor={`file-${bucket}-${folder}`}
+            className="block cursor-pointer"
           >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      ) : (
-        <div className={`${aspectRatio} ${sizeClasses[size]} rounded-lg border-2 border-dashed border-border flex items-center justify-center`}>
-          <Label
-            htmlFor={`upload-${bucket}-${folder}`}
-            className="cursor-pointer flex flex-col items-center justify-center p-4 text-center"
-          >
-            <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              Clique para selecionar uma imagem
-            </span>
-          </Label>
-        </div>
+            <div className={`${aspectRatio} ${sizeClasses[size]} rounded-lg border-2 border-dashed border-border hover:border-primary transition-colors flex items-center justify-center bg-muted/50`}>
+              <div className="text-center p-4">
+                <Crop className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground mb-1">
+                  {uploading ? 'Enviando...' : 'Clique para selecionar'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Você poderá ajustar e recortar a imagem
+                </p>
+              </div>
+            </div>
+            <Input
+              id={`file-${bucket}-${folder}`}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+              disabled={uploading}
+            />
+          </label>
+        )}
+      </div>
+
+      {tempImageSrc && (
+        <ImageCropDialog
+          open={cropDialogOpen}
+          onClose={() => {
+            setCropDialogOpen(false);
+            setTempImageSrc(null);
+            setOriginalFile(null);
+          }}
+          imageSrc={tempImageSrc}
+          onCropComplete={handleCropComplete}
+          aspectRatio={numericAspectRatio}
+          bucketType={bucket}
+        />
       )}
-      
-      <Input
-        id={`upload-${bucket}-${folder}`}
-        type="file"
-        accept="image/*"
-        onChange={handleUpload}
-        disabled={uploading}
-        className="hidden"
-      />
-    </div>
+    </>
   );
 };
