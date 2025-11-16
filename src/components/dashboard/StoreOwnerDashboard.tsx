@@ -2948,23 +2948,26 @@ export const StoreOwnerDashboard = () => {
 
               <div className="space-y-2">
                 <Label>URL da Loja *</Label>
-                <Input
-                  value={storeForm.slug}
-                  onChange={(e) => {
-                    const sanitized = sanitizeSlug(e.target.value);
-                    setStoreForm({ ...storeForm, slug: sanitized });
-                  }}
-                  placeholder="minha-loja"
-                />
+                <div className="relative">
+                  <Input
+                    value={storeForm.slug}
+                    onChange={(e) => {
+                      const sanitized = sanitizeSlug(e.target.value);
+                      setStoreForm({ ...storeForm, slug: sanitized });
+                    }}
+                    placeholder="minha-loja"
+                    className="font-mono"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Apenas letras minúsculas, números e hífens
+                  Apenas letras minúsculas, números e hífens. Espaços serão convertidos em hífens.
                 </p>
 
                 {/* URL Preview */}
                 {storeForm.slug && (
-                  <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
-                    <Store className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <code className="text-sm text-foreground">
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <Store className="h-4 w-4 text-primary flex-shrink-0" />
+                    <code className="text-sm text-primary font-semibold">
                       appofertas.lovable.app/{storeForm.slug}
                     </code>
                   </div>
