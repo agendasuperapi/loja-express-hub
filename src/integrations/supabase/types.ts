@@ -897,6 +897,7 @@ export type Database = {
           phone: string | null
           pickup_address: string | null
           rating: number | null
+          show_avg_delivery_time: boolean | null
           slug: string
           status: Database["public"]["Enums"]["store_status"]
           total_reviews: number | null
@@ -927,6 +928,7 @@ export type Database = {
           phone?: string | null
           pickup_address?: string | null
           rating?: number | null
+          show_avg_delivery_time?: boolean | null
           slug: string
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null
@@ -957,6 +959,7 @@ export type Database = {
           phone?: string | null
           pickup_address?: string | null
           rating?: number | null
+          show_avg_delivery_time?: boolean | null
           slug?: string
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null

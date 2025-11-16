@@ -157,6 +157,7 @@ export const StoreOwnerDashboard = () => {
     delivery_fee: myStore?.delivery_fee || 0,
     min_order_value: myStore?.min_order_value || 0,
     avg_delivery_time: myStore?.avg_delivery_time || 30,
+    show_avg_delivery_time: (myStore as any)?.show_avg_delivery_time ?? true,
     accepts_delivery: myStore?.accepts_delivery ?? true,
     accepts_pickup: myStore?.accepts_pickup ?? true,
     accepts_pix: myStore?.accepts_pix ?? true,
@@ -257,6 +258,7 @@ export const StoreOwnerDashboard = () => {
         delivery_fee: myStore.delivery_fee || 0,
         min_order_value: myStore.min_order_value || 0,
         avg_delivery_time: myStore.avg_delivery_time || 30,
+        show_avg_delivery_time: (myStore as any).show_avg_delivery_time ?? true,
         accepts_delivery: myStore.accepts_delivery ?? true,
         accepts_pickup: myStore.accepts_pickup ?? true,
         accepts_pix: myStore.accepts_pix ?? true,
@@ -3197,6 +3199,22 @@ export const StoreOwnerDashboard = () => {
                       onChange={(e) => setStoreForm({ ...storeForm, avg_delivery_time: parseInt(e.target.value) || 30 })}
                     />
                   </div>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border rounded-lg mt-4">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_avg_delivery_time">Exibir Tempo de Entrega</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostrar o tempo médio de entrega na página da loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="show_avg_delivery_time"
+                    checked={storeForm.show_avg_delivery_time ?? true}
+                    onCheckedChange={(checked) => 
+                      setStoreForm({ ...storeForm, show_avg_delivery_time: checked })
+                    }
+                  />
                 </div>
               </div>
 

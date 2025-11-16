@@ -416,10 +416,10 @@ export default function StoreDetails() {
                     className="flex items-center gap-2 bg-amber-500/10 px-3 py-1.5 rounded-full"
                   >
                     <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-                    <span className="font-semibold">{store.rating || 5}</span>
+                  <span className="font-semibold">{store.rating || 5}</span>
                   </motion.div>
                     
-                    {store.slug !== 'drogaclaramoc' && (
+                    {store.slug !== 'drogaclaramoc' && (store as any).show_avg_delivery_time !== false && (
                       <motion.div 
                         whileHover={{ scale: 1.05 }}
                         className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full"
