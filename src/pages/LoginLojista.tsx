@@ -189,7 +189,7 @@ export default function LoginLojista() {
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="password">Senha *</Label>
                   <Input
                     id="password"
@@ -200,6 +200,12 @@ export default function LoginLojista() {
                     required
                     minLength={6}
                   />
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors inline-block"
+                  >
+                    Esqueceu sua senha?
+                  </Link>
                 </div>
 
                 <Button

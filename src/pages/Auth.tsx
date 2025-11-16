@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -189,12 +189,12 @@ export default function Auth() {
                 Senha
               </label>
               {isLogin && (
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-xs text-primary hover:underline"
                 >
                   Esqueci minha senha
-                </button>
+                </Link>
               )}
             </div>
             <div className="relative">
