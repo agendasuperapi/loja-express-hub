@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -692,7 +692,17 @@ export default function Cart() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="auth-password">Senha *</Label>
+                          <div className="flex items-center justify-between mb-2">
+                            <Label htmlFor="auth-password">Senha *</Label>
+                            {authMode === 'login' && (
+                              <Link
+                                to="/forgot-password"
+                                className="text-xs text-primary hover:underline"
+                              >
+                                Esqueci minha senha
+                              </Link>
+                            )}
+                          </div>
                           <Input
                             id="auth-password"
                             type="password"
