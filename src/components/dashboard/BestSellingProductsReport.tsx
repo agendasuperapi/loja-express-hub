@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { Package, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { supabase } from "@/integrations/supabase/client";
@@ -227,7 +228,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
       </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <ScrollArea className="h-[400px] sm:h-[600px]">
-            <div className="overflow-x-auto">
+            <ScrollableTable>
               <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
@@ -278,7 +279,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                 )}
               </TableBody>
               </Table>
-            </div>
+            </ScrollableTable>
           </ScrollArea>
 
           {/* Paginação */}

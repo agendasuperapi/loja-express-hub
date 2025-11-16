@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Users, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -266,7 +267,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
       </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <ScrollArea className="h-[400px] sm:h-[600px]">
-            <div className="overflow-x-auto">
+            <ScrollableTable>
               <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
@@ -317,7 +318,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
                 )}
         </TableBody>
               </Table>
-            </div>
+            </ScrollableTable>
           </ScrollArea>
 
     {/* Paginação */}

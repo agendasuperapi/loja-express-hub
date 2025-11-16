@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet } from "lucide-react";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -316,7 +317,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           <ScrollArea className="h-[400px] sm:h-[500px]">
-            <div className="overflow-x-auto">
+            <ScrollableTable>
               <Table className="min-w-[1000px]">
               <TableHeader>
                 <TableRow>
@@ -427,7 +428,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                 )}
               </TableBody>
               </Table>
-            </div>
+            </ScrollableTable>
           </ScrollArea>
 
           {filteredOrders.length > 0 && (

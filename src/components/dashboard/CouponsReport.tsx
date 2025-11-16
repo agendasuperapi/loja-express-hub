@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tag, TrendingUp, DollarSign, Ticket, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ScrollableTable } from '@/components/ui/scrollable-table';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { generateCouponsReport } from '@/lib/pdfReports';
@@ -311,7 +312,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                 <p className="text-sm">Os cupons utilizados aparecerão aqui</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <ScrollableTable>
               <div className="rounded-md border">
                 <Table className="min-w-[700px]">
                   <TableHeader>
@@ -352,7 +353,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                   </TableBody>
                 </Table>
               </div>
-              </div>
+              </ScrollableTable>
             )}
           </CardContent>
         </Card>
