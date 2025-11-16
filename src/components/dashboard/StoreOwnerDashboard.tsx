@@ -1142,7 +1142,7 @@ export const StoreOwnerDashboard = () => {
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={`https://appofertas.lovable.app/loja-${myStore?.slug || ''}`}
+                      value={`https://appofertas.lovable.app/${myStore?.slug || ''}`}
                       readOnly
                       className="flex-1 bg-muted/50"
                     />
@@ -1151,7 +1151,7 @@ export const StoreOwnerDashboard = () => {
                       size="icon"
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(`https://appofertas.lovable.app/loja-${myStore?.slug || ''}`);
+                          await navigator.clipboard.writeText(`https://appofertas.lovable.app/${myStore?.slug || ''}`);
                           toast({
                             title: "URL copiada!",
                             description: "A URL da sua loja foi copiada para a área de transferência.",
