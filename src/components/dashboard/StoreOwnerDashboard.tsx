@@ -2842,22 +2842,22 @@ export const StoreOwnerDashboard = () => {
               transition={{ delay: 0.3 }}
             >
               <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4 bg-muted/50">
-                  <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-                    <User className="w-4 h-4 mr-2" />
-                    Dados Pessoais
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-muted/50 h-auto p-2">
+                  <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <User className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Dados Pessoais</span>
                   </TabsTrigger>
-                  <TabsTrigger value="security" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Segurança
+                  <TabsTrigger value="security" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Lock className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Segurança</span>
                   </TabsTrigger>
-                  <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-                    <Menu className="w-4 h-4 mr-2" />
-                    Etapas do Pedido
+                  <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Menu className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Etapas do Pedido</span>
                   </TabsTrigger>
-                  <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Loja
+                  <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Settings className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Loja</span>
                   </TabsTrigger>
                 </TabsList>
 
