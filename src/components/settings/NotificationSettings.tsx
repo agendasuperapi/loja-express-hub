@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { Bell, Volume2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -16,6 +17,11 @@ export const NotificationSettings = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  const [notificationVolume, setNotificationVolume] = useState(() => {
+    const saved = localStorage.getItem('notification-volume');
+    return saved !== null ? JSON.parse(saved) : 100;
+  });
+
   useEffect(() => {
     localStorage.setItem('notification-sound-enabled', JSON.stringify(soundEnabled));
   }, [soundEnabled]);
@@ -23,6 +29,10 @@ export const NotificationSettings = () => {
   useEffect(() => {
     localStorage.setItem('browser-notification-enabled', JSON.stringify(browserNotificationEnabled));
   }, [browserNotificationEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('notification-volume', JSON.stringify(notificationVolume));
+  }, [notificationVolume]);
 
   const handleBrowserNotificationToggle = async (enabled: boolean) => {
     if (enabled) {
@@ -150,6 +160,35 @@ export const NotificationSettings = () => {
             id="browser-notifications"
             checked={browserNotificationEnabled}
             onCheckedChange={handleBrowserNotificationToggle}
+          />
+        </div>
+
+        <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Volume2 className="w-5 h-5 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="volume-slider" className="text-base font-medium">
+                  Volume do som
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Ajuste a intensidade do som de notificação
+                </p>
+              </div>
+            </div>
+            <span className="text-sm font-medium text-muted-foreground min-w-[3rem] text-right">
+              {notificationVolume}%
+            </span>
+          </div>
+          <Slider
+            id="volume-slider"
+            value={[notificationVolume]}
+            onValueChange={(value) => setNotificationVolume(value[0])}
+            max={100}
+            min={0}
+            step={1}
+            className="w-full"
+            disabled={!soundEnabled}
           />
         </div>
       </CardContent>
