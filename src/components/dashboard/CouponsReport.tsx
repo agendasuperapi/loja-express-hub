@@ -313,7 +313,7 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
             ) : (
               <div className="overflow-x-auto">
               <div className="rounded-md border">
-                <Table>
+                <Table className="min-w-[700px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Código do Cupom</TableHead>

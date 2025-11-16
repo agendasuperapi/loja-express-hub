@@ -226,9 +226,9 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
         </Button>
       </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <div className="overflow-x-auto">
           <ScrollArea className="h-[400px] sm:h-[600px]">
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Posição</TableHead>
@@ -276,10 +276,10 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                   );
                   })
                 )}
-            </TableBody>
-            </Table>
+              </TableBody>
+              </Table>
+            </div>
           </ScrollArea>
-          </div>
 
           {/* Paginação */}
           {totalPages > 1 && (
