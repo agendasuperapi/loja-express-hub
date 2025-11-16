@@ -267,14 +267,4 @@ All colors MUST be HSL.
   .glass-card {
     @apply glass rounded-xl shadow-lg;
   }
-
-  /* React Easy Crop Custom Styles */
-  .reactEasyCrop_Container {
-    @apply rounded-lg;
-  }
-
-  .reactEasyCrop_CropArea {
-    border: 2px solid hsl(var(--primary));
-    box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
-  }
 }
