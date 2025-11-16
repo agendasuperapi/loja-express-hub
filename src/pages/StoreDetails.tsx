@@ -396,7 +396,9 @@ export default function StoreDetails() {
                     >
                       <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                       <span className="font-semibold">{store.rating || 5}</span>
-                      <span className="text-muted-foreground">({store.total_reviews || 0})</span>
+                      {store.total_reviews > 0 && (
+                        <span className="text-muted-foreground">({store.total_reviews})</span>
+                      )}
                     </motion.div>
                     <motion.div
                       initial={{ scale: 0 }}
