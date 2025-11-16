@@ -312,9 +312,9 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                 <p className="text-sm">Os cupons utilizados aparecerão aqui</p>
               </div>
             ) : (
-              <ScrollableTable>
-              <div className="rounded-md border">
-                <Table className="min-w-[700px]">
+              <ScrollableTable maxHeight="h-[400px] sm:h-[600px]">
+                <div className="rounded-md border">
+                  <Table className="min-w-[700px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Código do Cupom</TableHead>
@@ -351,8 +351,8 @@ export function CouponsReport({ storeId, storeName = "Minha Loja" }: CouponsRepo
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
-              </div>
+                  </Table>
+                </div>
               </ScrollableTable>
             )}
           </CardContent>

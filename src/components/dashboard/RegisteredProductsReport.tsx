@@ -253,9 +253,8 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <ScrollArea className="h-[400px] sm:h-[600px]">
-            <ScrollableTable>
-              <Table className="min-w-[900px]">
+          <ScrollableTable>
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
@@ -312,7 +311,6 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
               </TableBody>
               </Table>
             </ScrollableTable>
-          </ScrollArea>
 
           {/* Paginação */}
           {totalPages > 1 && (

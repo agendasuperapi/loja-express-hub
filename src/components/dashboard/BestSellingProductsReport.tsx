@@ -227,9 +227,8 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
         </Button>
       </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <ScrollArea className="h-[400px] sm:h-[600px]">
-            <ScrollableTable>
-              <Table className="min-w-[700px]">
+          <ScrollableTable>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Posição</TableHead>
@@ -280,7 +279,6 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
               </TableBody>
               </Table>
             </ScrollableTable>
-          </ScrollArea>
 
           {/* Paginação */}
           {totalPages > 1 && (

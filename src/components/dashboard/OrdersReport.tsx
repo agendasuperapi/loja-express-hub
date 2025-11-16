@@ -316,9 +316,8 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <ScrollArea className="h-[400px] sm:h-[500px]">
-            <ScrollableTable>
-              <Table className="min-w-[1000px]">
+          <ScrollableTable maxHeight="h-[400px] sm:h-[500px]">
+            <Table className="min-w-[1000px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Pedido</TableHead>
@@ -429,7 +428,6 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               </TableBody>
               </Table>
             </ScrollableTable>
-          </ScrollArea>
 
           {filteredOrders.length > 0 && (
             <>

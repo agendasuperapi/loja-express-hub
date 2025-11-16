@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 interface ScrollableTableProps {
   children: React.ReactNode;
   className?: string;
+  maxHeight?: string;
 }
 
-export const ScrollableTable = ({ children, className }: ScrollableTableProps) => {
+export const ScrollableTable = ({ children, className, maxHeight = "h-[400px] sm:h-[600px]" }: ScrollableTableProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);
@@ -60,7 +61,11 @@ export const ScrollableTable = ({ children, className }: ScrollableTableProps) =
       
       <div
         ref={scrollRef}
-        className={cn("overflow-x-auto", className)}
+        className={cn("overflow-auto", maxHeight, className)}
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehaviorX: 'contain'
+        }}
       >
         {children}
       </div>

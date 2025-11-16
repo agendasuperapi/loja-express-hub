@@ -266,9 +266,8 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
         </div>
       </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <ScrollArea className="h-[400px] sm:h-[600px]">
-            <ScrollableTable>
-              <Table className="min-w-[800px]">
+          <ScrollableTable>
+            <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
@@ -317,9 +316,8 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
                   ))
                 )}
         </TableBody>
-              </Table>
-            </ScrollableTable>
-          </ScrollArea>
+            </Table>
+          </ScrollableTable>
 
     {/* Paginação */}
     {totalPages > 1 && (
