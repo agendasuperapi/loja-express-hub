@@ -34,8 +34,28 @@ const playNotificationSound = () => {
 
 // Solicitar permissão para notificações do navegador
 const requestNotificationPermission = async () => {
-  if ('Notification' in window && Notification.permission === 'default') {
-    await Notification.requestPermission();
+  if (!('Notification' in window)) {
+    console.warn('⚠️ Este navegador não suporta notificações');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
+    console.log('✅ Permissão de notificação já concedida');
+    return true;
+  }
+
+  if (Notification.permission === 'denied') {
+    console.warn('❌ Permissão de notificação negada pelo usuário');
+    return false;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    console.log('🔔 Resultado da solicitação de permissão:', permission);
+    return permission === 'granted';
+  } catch (error) {
+    console.error('❌ Erro ao solicitar permissão de notificação:', error);
+    return false;
   }
 };
 
@@ -83,14 +103,42 @@ export const useNewOrderNotification = (storeId: string | undefined) => {
             ? JSON.parse(browserNotificationEnabled) 
             : true;
 
-          if (shouldShowBrowserNotification && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification('🔔 Novo Pedido Recebido!', {
-              body: `Pedido #${order.order_number}\n${order.customer_name}\nR$ ${order.total.toFixed(2)}`,
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: `order-${order.id}`,
-              requireInteraction: true,
-            });
+          console.log('🔔 Verificação de notificação do navegador:', {
+            browserNotificationEnabled,
+            shouldShowBrowserNotification,
+            hasNotificationAPI: 'Notification' in window,
+            permission: 'Notification' in window ? Notification.permission : 'N/A'
+          });
+
+          if (shouldShowBrowserNotification && 'Notification' in window) {
+            if (Notification.permission === 'granted') {
+              try {
+                const notification = new Notification('🔔 Novo Pedido Recebido!', {
+                  body: `Pedido #${order.order_number}\n${order.customer_name}\nR$ ${order.total.toFixed(2)}`,
+                  icon: '/favicon.ico',
+                  badge: '/favicon.ico',
+                  tag: `order-${order.id}`,
+                  requireInteraction: true,
+                  silent: false,
+                });
+
+                notification.onclick = () => {
+                  window.focus();
+                  notification.close();
+                };
+
+                console.log('✅ Notificação do navegador enviada com sucesso');
+              } catch (error) {
+                console.error('❌ Erro ao criar notificação do navegador:', error);
+              }
+            } else {
+              console.warn('⚠️ Permissão de notificação não concedida. Status:', Notification.permission);
+              if (Notification.permission === 'denied') {
+                console.warn('💡 O usuário negou as notificações. Elas podem ser reativadas nas configurações do navegador.');
+              }
+            }
+          } else {
+            console.log('ℹ️ Notificações do navegador desabilitadas nas configurações ou não suportadas');
           }
           
           // Invalidar queries para atualizar a lista automaticamente
