@@ -188,7 +188,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold gradient-text">Produtos Mais Vendidos</h2>
+        <h2 className="text-2xl font-bold gradient-text">Relatório Produtos Cadastrados</h2>
         <p className="text-muted-foreground">Ranking dos produtos com melhor desempenho de vendas</p>
       </div>
       
