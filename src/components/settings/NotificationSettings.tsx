@@ -25,24 +25,72 @@ export const NotificationSettings = () => {
   }, [browserNotificationEnabled]);
 
   const handleBrowserNotificationToggle = async (enabled: boolean) => {
-    if (enabled && 'Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
+    if (enabled) {
+      if (!('Notification' in window)) {
         toast({
-          title: "Permissão negada",
-          description: "Você precisa permitir notificações no navegador para ativar esta opção.",
+          title: "Não suportado",
+          description: "Seu navegador não suporta notificações.",
           variant: "destructive",
         });
         return;
       }
+
+      if (Notification.permission === 'denied') {
+        toast({
+          title: "Permissão negada",
+          description: "Você precisa permitir notificações nas configurações do navegador. Procure por 'Notificações' nas configurações do site.",
+          variant: "destructive",
+          duration: 7000,
+        });
+        return;
+      }
+
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        console.log('🔔 Permissão solicitada:', permission);
+        
+        if (permission !== 'granted') {
+          toast({
+            title: "Permissão negada",
+            description: "Você precisa permitir notificações para ativar esta funcionalidade.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Testar notificação
+      try {
+        const testNotification = new Notification('✅ Notificações Ativadas!', {
+          body: 'Você receberá notificações de novos pedidos mesmo quando a aba não estiver em foco.',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          requireInteraction: false,
+        });
+
+        setTimeout(() => testNotification.close(), 5000);
+
+        toast({
+          title: "Notificações ativadas",
+          description: "Uma notificação de teste foi enviada.",
+        });
+      } catch (error) {
+        console.error('Erro ao testar notificação:', error);
+        toast({
+          title: "Erro ao ativar notificações",
+          description: "Tente novamente ou verifique as configurações do navegador.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      toast({
+        title: "Notificações desativadas",
+        description: "Você não receberá mais notificações do navegador.",
+      });
     }
+    
     setBrowserNotificationEnabled(enabled);
-    toast({
-      title: enabled ? "Notificações ativadas" : "Notificações desativadas",
-      description: enabled 
-        ? "Você receberá notificações do navegador sobre novos pedidos."
-        : "Você não receberá mais notificações do navegador.",
-    });
   };
 
   const handleSoundToggle = (enabled: boolean) => {
