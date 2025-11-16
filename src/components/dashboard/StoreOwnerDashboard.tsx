@@ -2487,8 +2487,8 @@ export const StoreOwnerDashboard = () => {
                     </DialogTitle>
                   </DialogHeader>
                   
-                  <ScrollArea className="flex-1 h-0 -mx-6 px-6">
-                    <div className="pr-4 space-y-4">
+                  <div className="flex-1 overflow-y-auto -mx-6 px-6">
+                    <div className="pr-4 space-y-4 pb-4">
                       <Tabs defaultValue="info" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                           <TabsTrigger value="info">Informações</TabsTrigger>
@@ -2684,7 +2684,7 @@ export const StoreOwnerDashboard = () => {
                         </TabsContent>
                       </Tabs>
                     </div>
-                  </ScrollArea>
+                  </div>
                   
                   <div className="flex-shrink-0 pt-4 border-t mt-4">
                     <Button
