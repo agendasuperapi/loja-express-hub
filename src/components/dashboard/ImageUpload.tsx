@@ -76,6 +76,17 @@ export const ImageUpload = ({
     });
   };
 
+  const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.width, height: img.height });
+      };
+      img.onerror = () => reject(new Error('Erro ao ler dimensões da imagem'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       setUploading(true);
@@ -91,6 +102,31 @@ export const ImageUpload = ({
           variant: 'destructive',
         });
         return;
+      }
+
+      // Definir dimensões recomendadas baseadas no tipo de bucket
+      const recommendedDimensions = {
+        'product-images': { width: 800, height: 800, label: 'Produtos (800x800px - Quadrada)' },
+        'store-logos': { width: 400, height: 400, label: 'Logo (400x400px - Quadrada)' },
+        'store-banners': { width: 1200, height: 400, label: 'Banner (1200x400px - 3:1)' },
+      };
+
+      const recommended = recommendedDimensions[bucket];
+
+      // Ler dimensões da imagem
+      const imageDimensions = await getImageDimensions(file);
+
+      // Verificar se as dimensões estão muito diferentes das recomendadas
+      const widthDiff = Math.abs(imageDimensions.width - recommended.width);
+      const heightDiff = Math.abs(imageDimensions.height - recommended.height);
+      const isVeryDifferent = widthDiff > recommended.width * 0.3 || heightDiff > recommended.height * 0.3;
+
+      if (isVeryDifferent) {
+        toast({
+          title: '⚠️ Dimensões não recomendadas',
+          description: `Imagem atual: ${imageDimensions.width}x${imageDimensions.height}px\nRecomendado: ${recommended.label}\n\nA imagem será redimensionada automaticamente.`,
+          duration: 6000,
+        });
       }
 
       // Definir dimensões máximas baseadas no tipo de bucket
@@ -172,7 +208,12 @@ export const ImageUpload = ({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-sm font-medium text-foreground">{label}</Label>
+      <p className="text-xs text-muted-foreground">
+        {bucket === 'product-images' && 'Recomendado: 800x800px (quadrada)'}
+        {bucket === 'store-logos' && 'Recomendado: 400x400px (quadrada)'}
+        {bucket === 'store-banners' && 'Recomendado: 1200x400px (3:1)'}
+      </p>
       
       {previewUrl ? (
         <div className="relative">
