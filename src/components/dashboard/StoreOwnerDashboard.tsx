@@ -40,6 +40,7 @@ import { BarChartCard } from "./BarChartCard";
 import { MiniChart } from "./MiniChart";
 import { OrderStatusManager } from "./OrderStatusManager";
 import { useOrderStatusNotification } from "@/hooks/useOrderStatusNotification";
+import { useNewOrderNotification } from "@/hooks/useNewOrderNotification";
 import { useOrderStatuses } from "@/hooks/useOrderStatuses";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -131,6 +132,9 @@ export const StoreOwnerDashboard = () => {
   
   // Enable automatic WhatsApp notifications
   useOrderStatusNotification(myStore?.id);
+  
+  // Enable real-time new order notifications with sound
+  useNewOrderNotification(myStore?.id);
   
   // Load custom order statuses
   const { statuses: customStatuses } = useOrderStatuses(myStore?.id);
