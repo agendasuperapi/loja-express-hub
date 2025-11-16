@@ -12,13 +12,14 @@ export const useStoreOrders = (storeId?: string) => {
         .from('orders')
         .select(`
           *,
-          order_items (
+          order_items!inner (
             *,
             order_item_addons (*),
             order_item_flavors (*)
           )
         `)
         .eq('store_id', storeId!)
+        .is('order_items.deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
