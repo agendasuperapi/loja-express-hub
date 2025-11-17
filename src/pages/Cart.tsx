@@ -75,14 +75,22 @@ export default function Cart() {
     }
   }, [user]);
 
-  // Scroll to delivery type section when reaching step 2
+  // Scroll to delivery type section when reaching step 2 (optimized for mobile)
   useEffect(() => {
     if (currentStep === 2 && deliveryTypeRef.current) {
       setTimeout(() => {
-        deliveryTypeRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start'
-        });
+        const element = deliveryTypeRef.current;
+        if (element) {
+          // Get element position
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for better visibility
+          
+          // Smooth scroll with offset
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
       }, 300);
     }
   }, [currentStep]);
