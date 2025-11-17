@@ -968,19 +968,26 @@ export const StoreOwnerDashboard = () => {
     const printWindow = window.open('', '', 'width=800,height=600');
     if (!printWindow) return;
 
+    // Função para escapar HTML
+    const escapeHtml = (text: string) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
     const orderItems = order.order_items || [];
     const itemsHtml = orderItems.map((item: any) => {
       const addons = item.order_item_addons?.map((addon: any) => 
-        `<div style="margin-left: 20px; font-size: 12px;">+ ${addon.addon_name} - R$ ${addon.addon_price.toFixed(2)}</div>`
+        `<div style="margin-left: 20px; font-size: 12px;">+ ${escapeHtml(addon.addon_name)} - R$ ${addon.addon_price.toFixed(2)}</div>`
       ).join('') || '';
       
       const flavors = item.order_item_flavors?.map((flavor: any) => 
-        `<div style="margin-left: 20px; font-size: 12px;">• ${flavor.flavor_name}</div>`
+        `<div style="margin-left: 20px; font-size: 12px;">• ${escapeHtml(flavor.flavor_name)}</div>`
       ).join('') || '';
 
       return `
         <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${item.product_name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${escapeHtml(item.product_name)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">R$ ${item.subtotal.toFixed(2)}</td>
         </tr>
         ${addons ? `<tr><td colspan="2" style="padding: 4px 8px;">${addons}</td></tr>` : ''}
@@ -1026,9 +1033,9 @@ export const StoreOwnerDashboard = () => {
                 - ${order.delivery_neighborhood}
               </div>
             ` : ''}
-            ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${order.notes}</div>` : ''}
-            ${(order as any).customer_notes ? `<div class="info-row"><strong>Observações Externas (Cliente vê):</strong> ${(order as any).customer_notes}</div>` : ''}
-            ${(order as any).store_notes ? `<div class="info-row"><strong>Observações Internas (Privadas):</strong> ${(order as any).store_notes}</div>` : ''}
+            ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${escapeHtml(order.notes)}</div>` : ''}
+            ${order.customer_notes ? `<div class="info-row" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; margin-top: 8px;"><strong>Observações Externas (Cliente vê):</strong><br/>${escapeHtml(order.customer_notes).replace(/\n/g, '<br/>')}</div>` : ''}
+            ${order.store_notes ? `<div class="info-row" style="background-color: #fff3e0; padding: 8px; border-radius: 4px; margin-top: 8px;"><strong>Observações Internas (Privadas):</strong><br/>${escapeHtml(order.store_notes).replace(/\n/g, '<br/>')}</div>` : ''}
           </div>
           
           <table>
