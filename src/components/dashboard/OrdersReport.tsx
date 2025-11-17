@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet } from "lucide-react";
+import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet, Clock } from "lucide-react";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { generateOrdersReport } from "@/lib/pdfReports";
+import { isStoreOpen } from "@/lib/storeUtils";
 import * as XLSX from 'xlsx';
 
 interface OrderReport {
@@ -53,12 +54,24 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'received' | 'pending'>('all');
+  const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [storeData, setStoreData] = useState<{ operating_hours: any; allow_orders_when_closed: boolean } | null>(null);
 
   const fetchOrders = async () => {
     try {
+      // Buscar dados da loja
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('operating_hours, allow_orders_when_closed')
+        .eq('id', storeId)
+        .single();
+
+      if (storeError) throw storeError;
+      setStoreData(store);
+
       let query = supabase
         .from('orders')
         .select('*')
@@ -118,6 +131,20 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     }
   }, [storeId, dateRange]);
 
+  // Função para verificar se um pedido foi feito fora do horário
+  const isScheduledOrder = (orderDate: string): boolean => {
+    if (!storeData) return false;
+    if (!storeData.allow_orders_when_closed) return false;
+
+    const orderTime = new Date(orderDate);
+    
+    // Criar um objeto com horários de operação simulando o momento do pedido
+    const wasOpen = isStoreOpen(storeData.operating_hours);
+    
+    // Se a loja permite pedidos agendados e não estava aberta no momento do pedido
+    return !wasOpen;
+  };
+
   const filteredOrders = useMemo(() => {
     let filtered = orders;
 
@@ -129,6 +156,38 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       filtered = filtered.filter(o => o.payment_received === true);
     } else if (paymentFilter === 'pending') {
       filtered = filtered.filter(o => o.payment_received !== true);
+    }
+
+    if (scheduledFilter === 'scheduled') {
+      filtered = filtered.filter(o => {
+        if (!storeData?.allow_orders_when_closed) return false;
+        
+        const orderDate = new Date(o.created_at);
+        const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+        const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
+        
+        const daySchedule = storeData.operating_hours?.[dayOfWeek];
+        if (!daySchedule) return false;
+        
+        // Pedido agendado: feito quando loja estava fechada
+        const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
+        return !wasOpen;
+      });
+    } else if (scheduledFilter === 'normal') {
+      filtered = filtered.filter(o => {
+        if (!storeData?.operating_hours) return true;
+        
+        const orderDate = new Date(o.created_at);
+        const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+        const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
+        
+        const daySchedule = storeData.operating_hours?.[dayOfWeek];
+        if (!daySchedule) return true;
+        
+        // Pedido normal: feito quando loja estava aberta
+        const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
+        return wasOpen;
+      });
     }
 
     if (searchTerm) {
@@ -143,7 +202,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     }
 
     return filtered;
-  }, [orders, searchTerm, statusFilter, paymentFilter]);
+  }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, storeData]);
 
   // Paginação
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -155,7 +214,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, dateRange]);
+  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, dateRange]);
 
   const exportToCSV = () => {
     const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
@@ -301,6 +360,23 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="received">Pgto Recebido</SelectItem>
                   <SelectItem value="pending">Pgto Pendente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-[170px]">
+              <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo de Pedido" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="scheduled">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Agendados
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="normal">Normais</SelectItem>
                 </SelectContent>
               </Select>
             </div>
