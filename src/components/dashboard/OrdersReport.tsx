@@ -131,17 +131,19 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     }
   }, [storeId, dateRange]);
 
-  // Função para verificar se um pedido foi feito fora do horário
-  const isScheduledOrder = (orderDate: string): boolean => {
-    if (!storeData) return false;
-    if (!storeData.allow_orders_when_closed) return false;
-
-    const orderTime = new Date(orderDate);
+  // Função para verificar se um pedido é agendado
+  const isOrderScheduled = (order: OrderReport): boolean => {
+    if (!storeData?.allow_orders_when_closed) return false;
     
-    // Criar um objeto com horários de operação simulando o momento do pedido
-    const wasOpen = isStoreOpen(storeData.operating_hours);
+    const orderDate = new Date(order.created_at);
+    const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+    const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
     
-    // Se a loja permite pedidos agendados e não estava aberta no momento do pedido
+    const daySchedule = storeData.operating_hours?.[dayOfWeek];
+    if (!daySchedule) return false;
+    
+    // Pedido agendado: feito quando loja estava fechada
+    const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
     return !wasOpen;
   };
 
@@ -431,13 +433,14 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   <TableHead>Pagamento</TableHead>
                   <TableHead>Status Pgto</TableHead>
                   <TableHead>Entrega</TableHead>
+                  <TableHead>Agendado</TableHead>
                   <TableHead>Cupom</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={13} className="text-center text-muted-foreground">
+                    <TableCell colSpan={14} className="text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" 
                         ? 'Nenhum pedido encontrado com os filtros selecionados' 
                         : 'Nenhum pedido no período selecionado'}
@@ -518,6 +521,16 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                           <div className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">
                             {order.delivery_neighborhood}
                           </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {isOrderScheduled(order) ? (
+                          <Badge variant="outline" className="gap-1">
+                            <Clock className="h-3 w-3" />
+                            Sim
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
