@@ -3243,6 +3243,33 @@ export const StoreOwnerDashboard = () => {
 
             <Card>
               <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Pedidos Agendados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="allow_orders_when_closed">Aceitar Pedidos Agendados</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permite que clientes façam pedidos mesmo quando a loja está fechada. 
+                      Os pedidos serão processados quando você abrir a loja.
+                    </p>
+                  </div>
+                  <Switch
+                    id="allow_orders_when_closed"
+                    checked={storeForm.allow_orders_when_closed}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('allow_orders_when_closed', checked)
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Configurações de PIX</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -3622,24 +3649,6 @@ export const StoreOwnerDashboard = () => {
                     />
                   </DialogContent>
                 </Dialog>
-              </div>
-
-              {/* Scheduled Orders Toggle */}
-              <div className="flex items-center justify-between py-4 px-4 rounded-lg bg-muted/30 border border-border mt-4">
-                <div className="flex-1 pr-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <p className="text-sm font-medium">Aceitar Pedidos Agendados</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Permite que clientes façam pedidos mesmo quando a loja está fechada. 
-                    Os pedidos serão processados quando você abrir a loja.
-                  </p>
-                </div>
-                <Switch
-                  checked={storeForm.allow_orders_when_closed}
-                  onCheckedChange={(checked) => setStoreForm({ ...storeForm, allow_orders_when_closed: checked })}
-                />
               </div>
 
               <Separator className="my-6" />
