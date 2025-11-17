@@ -17,12 +17,14 @@ import { useCart } from "@/contexts/CartContext";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoupons } from "@/hooks/useCoupons";
+import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
 import { normalizePhone } from "@/lib/phone";
+import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ export default function Cart() {
   const { cart, updateQuantity, removeFromCart, getTotal, clearCart, updateCartItem, applyCoupon, removeCoupon } = useCart();
   const { createOrder, isCreating, orders } = useOrders();
   const { validateCoupon } = useCoupons(cart.storeId || undefined);
+  const { zones: deliveryZones } = useDeliveryZones(cart.storeId || undefined);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [couponInput, setCouponInput] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -39,6 +42,8 @@ export default function Cart() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [deliveryCep, setDeliveryCep] = useState("");
+  const [deliveryCity, setDeliveryCity] = useState("");
   const [deliveryStreet, setDeliveryStreet] = useState("");
   const [deliveryNumber, setDeliveryNumber] = useState("");
   const [deliveryNeighborhood, setDeliveryNeighborhood] = useState("");
@@ -47,6 +52,8 @@ export default function Cart() {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'dinheiro' | 'cartao'>('pix');
   const [changeAmount, setChangeAmount] = useState("");
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup' | null>(null);
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
+  const [cepError, setCepError] = useState("");
   
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
@@ -71,6 +78,20 @@ export default function Cart() {
   const allowOrdersWhenClosed = (storeData as any)?.allow_orders_when_closed ?? false;
   const canAcceptOrders = storeIsOpen || allowOrdersWhenClosed;
   const isScheduledOrder = !storeIsOpen && allowOrdersWhenClosed;
+
+  // Calculate delivery fee based on city from delivery zones
+  const calculateDeliveryFee = () => {
+    if (!deliveryCity || !deliveryZones) return storeData?.delivery_fee || 5;
+    
+    const normalizedCity = deliveryCity.trim().toUpperCase();
+    const zone = deliveryZones.find(z => 
+      z.city.trim().toUpperCase() === normalizedCity && z.is_active
+    );
+    
+    return zone ? zone.delivery_fee : storeData?.delivery_fee || 5;
+  };
+  
+  const storeDeliveryFee = deliveryType === 'delivery' ? calculateDeliveryFee() : 0;
 
   // Auto-advance to step 2 if user is already logged in
   useEffect(() => {
@@ -214,10 +235,57 @@ export default function Cart() {
     });
   };
 
-  const storeDeliveryFee = (storeData as any)?.delivery_fee || 5;
   const deliveryFee = deliveryType === 'pickup' ? 0 : storeDeliveryFee;
   const subtotal = getTotal();
   const total = Math.max(0, subtotal + deliveryFee - (cart.couponDiscount || 0));
+
+  // Handle CEP search
+  const handleCepSearch = async () => {
+    if (!deliveryCep || !isValidCepFormat(deliveryCep)) {
+      setCepError("CEP inválido. Use o formato: 12345-678");
+      return;
+    }
+
+    setIsSearchingCep(true);
+    setCepError("");
+
+    try {
+      const data = await fetchCepData(deliveryCep);
+      
+      if (data) {
+        setDeliveryCity(data.localidade);
+        setDeliveryNeighborhood(data.bairro || "");
+        setDeliveryStreet(data.logradouro || "");
+        
+        toast({
+          title: "CEP encontrado!",
+          description: `${data.localidade} - ${data.uf}`,
+        });
+      } else {
+        setCepError("CEP não encontrado");
+        toast({
+          title: "CEP não encontrado",
+          description: "Verifique o CEP e tente novamente",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setCepError("Erro ao buscar CEP");
+      toast({
+        title: "Erro",
+        description: "Erro ao consultar o CEP. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const handleCepChange = (value: string) => {
+    const formatted = formatCep(value);
+    setDeliveryCep(formatted);
+    setCepError("");
+  };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -354,10 +422,10 @@ export default function Cart() {
         return;
       }
   
-      if (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood)) {
+      if (deliveryType === 'delivery' && (!deliveryCep || !deliveryCity || !deliveryStreet || !deliveryNumber || !deliveryNeighborhood)) {
         toast({
           title: "Campos obrigatórios",
-          description: "Por favor, preencha todos os campos obrigatórios de entrega.",
+          description: "Por favor, preencha todos os campos obrigatórios de entrega, incluindo CEP e cidade.",
           variant: "destructive",
         });
         return;
@@ -910,6 +978,60 @@ export default function Cart() {
                           
                           <div className="space-y-4">
                             <div>
+                              <Label htmlFor="cep">CEP *</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  id="cep"
+                                  value={deliveryCep}
+                                  onChange={(e) => handleCepChange(e.target.value)}
+                                  placeholder="00000-000"
+                                  maxLength={9}
+                                  required
+                                  className={cepError ? "border-destructive" : ""}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={handleCepSearch}
+                                  disabled={isSearchingCep || !deliveryCep}
+                                >
+                                  {isSearchingCep ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Search className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
+                              {cepError && (
+                                <p className="text-sm text-destructive mt-1">{cepError}</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Label htmlFor="city">Cidade *</Label>
+                              <Input
+                                id="city"
+                                value={deliveryCity}
+                                onChange={(e) => setDeliveryCity(e.target.value)}
+                                placeholder="Nome da cidade"
+                                required
+                                maxLength={100}
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="neighborhood">Bairro *</Label>
+                              <Input
+                                id="neighborhood"
+                                value={deliveryNeighborhood}
+                                onChange={(e) => setDeliveryNeighborhood(e.target.value)}
+                                placeholder="Nome do bairro"
+                                required
+                                maxLength={100}
+                              />
+                            </div>
+
+                            <div>
                               <Label htmlFor="street">Rua *</Label>
                               <Input
                                 id="street"
@@ -933,25 +1055,14 @@ export default function Cart() {
                               </div>
                               
                               <div>
-                                <Label htmlFor="neighborhood">Bairro *</Label>
+                                <Label htmlFor="complement">Complemento</Label>
                                 <Input
-                                  id="neighborhood"
-                                  value={deliveryNeighborhood}
-                                  onChange={(e) => setDeliveryNeighborhood(e.target.value)}
-                                  placeholder="Nome do bairro"
-                                  required
+                                  id="complement"
+                                  value={deliveryComplement}
+                                  onChange={(e) => setDeliveryComplement(e.target.value)}
+                                  placeholder="Apto, bloco, etc."
                                 />
                               </div>
-                            </div>
-                            
-                            <div>
-                              <Label htmlFor="complement">Complemento (opcional)</Label>
-                              <Input
-                                id="complement"
-                                value={deliveryComplement}
-                                onChange={(e) => setDeliveryComplement(e.target.value)}
-                                placeholder="Apto, bloco, etc."
-                              />
                             </div>
                           </div>
                         </>
