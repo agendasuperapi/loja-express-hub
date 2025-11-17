@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useDeliveryZones, DeliveryZone } from "@/hooks/useDeliveryZones";
-import { Plus, Edit, Trash2, MapPin, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Loader2, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
+import { toast } from "sonner";
 
 interface DeliveryZonesManagerProps {
   storeId: string | undefined;
@@ -19,16 +21,20 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [formData, setFormData] = useState({
+    cep: '',
     city: '',
     neighborhood: '',
     delivery_fee: 0,
     is_active: true,
   });
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
 
   const handleOpenDialog = (zone?: DeliveryZone) => {
     if (zone) {
       setEditingZone(zone);
       setFormData({
+        cep: '',
         city: zone.city,
         neighborhood: zone.neighborhood || '',
         delivery_fee: zone.delivery_fee,
@@ -37,13 +43,62 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     } else {
       setEditingZone(null);
       setFormData({
+        cep: '',
         city: '',
         neighborhood: '',
         delivery_fee: 0,
         is_active: true,
       });
     }
+    setCepError(null);
     setIsDialogOpen(true);
+  };
+
+  const handleCepSearch = async () => {
+    setCepError(null);
+    
+    if (!formData.cep.trim()) {
+      setCepError("Digite um CEP para buscar");
+      return;
+    }
+
+    if (!isValidCepFormat(formData.cep)) {
+      setCepError("CEP inválido. Use o formato: 12345-678");
+      return;
+    }
+
+    setIsSearchingCep(true);
+    
+    try {
+      const data = await fetchCepData(formData.cep);
+      
+      if (data) {
+        setFormData({
+          ...formData,
+          cep: formatCep(data.cep),
+          city: data.localidade,
+          neighborhood: data.bairro || '',
+        });
+        toast.success("CEP encontrado!", {
+          description: `${data.localidade} - ${data.uf}`,
+        });
+      } else {
+        setCepError("CEP não encontrado");
+        toast.error("CEP não encontrado");
+      }
+    } catch (error) {
+      setCepError("Erro ao buscar CEP");
+      toast.error("Erro ao buscar CEP");
+    } finally {
+      setIsSearchingCep(false);
+    }
+  };
+
+  const handleCepChange = (value: string) => {
+    // Permite apenas números e hífen, limita a 9 caracteres (12345-678)
+    const cleaned = value.replace(/[^\d-]/g, '').slice(0, 9);
+    setFormData({ ...formData, cep: cleaned });
+    setCepError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,6 +163,38 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cep">CEP (opcional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="cep"
+                    value={formData.cep}
+                    onChange={(e) => handleCepChange(e.target.value)}
+                    placeholder="12345-678"
+                    maxLength={9}
+                    className={cepError ? "border-destructive" : ""}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCepSearch}
+                    disabled={isSearchingCep || !formData.cep.trim()}
+                  >
+                    {isSearchingCep ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                {cepError && (
+                  <p className="text-sm text-destructive">{cepError}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Busque por CEP para preencher automaticamente cidade e bairro
+                </p>
+              </div>
+
               <div>
                 <Label htmlFor="city">Cidade *</Label>
                 <Input
@@ -116,6 +203,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder="Ex: São Paulo"
                   required
+                  maxLength={100}
                 />
               </div>
               
@@ -128,6 +216,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                   value={formData.neighborhood}
                   onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
                   placeholder="Ex: Centro, Vila Mariana..."
+                  maxLength={100}
                 />
               </div>
 
