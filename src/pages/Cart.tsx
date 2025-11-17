@@ -100,6 +100,14 @@ export default function Cart() {
     }
   }, [user]);
 
+  // Auto-select delivery when step 2 is shown with saved city
+  useEffect(() => {
+    if (currentStep === 2 && deliveryCity && deliveryType === null && storeData?.accepts_delivery) {
+      console.log('🚚 Selecionando entrega automaticamente com cidade:', deliveryCity);
+      setDeliveryType('delivery');
+    }
+  }, [currentStep, deliveryCity, deliveryType, storeData]);
+
   // Scroll to cart items section when reaching step 2 (optimized for mobile)
   useEffect(() => {
     if (currentStep === 2 && cartItemsRef.current) {
