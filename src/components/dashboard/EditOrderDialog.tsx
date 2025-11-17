@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ImageUpload } from "./ImageUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X } from "lucide-react";
+import { Package, MapPin, CreditCard, History, Trash2, Plus, Tag, X } from "lucide-react";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -482,7 +482,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         </DialogHeader>
 
         <Tabs defaultValue={initialTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-5 flex-shrink-0">
+          <TabsList className="grid w-full grid-cols-4 flex-shrink-0">
             <TabsTrigger value="items">
               <Package className="w-4 h-4 mr-2" />
               Itens
@@ -494,10 +494,6 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
             <TabsTrigger value="delivery">
               <MapPin className="w-4 h-4 mr-2" />
               Entrega
-            </TabsTrigger>
-            <TabsTrigger value="notes">
-              <StickyNote className="w-4 h-4 mr-2" />
-              Notas
             </TabsTrigger>
             <TabsTrigger value="history">
               <History className="w-4 h-4 mr-2" />
@@ -841,33 +837,6 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
                   </div>
                 </>
               )}
-            </TabsContent>
-
-            <TabsContent value="notes" className="space-y-4 pr-4">
-              <div>
-                <Label>Observações Externas (o cliente também vê)</Label>
-                <Textarea
-                  value={formData.customer_notes}
-                  onChange={(e) => setFormData({ ...formData, customer_notes: e.target.value })}
-                  placeholder="Informações visíveis para o cliente..."
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Estas observações serão exibidas para o cliente junto com o pedido
-                </p>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label>Observações Internas (apenas você vê)</Label>
-                <Textarea
-                  value={formData.store_notes}
-                  onChange={(e) => setFormData({ ...formData, store_notes: e.target.value })}
-                  placeholder="Anotações sobre este pedido..."
-                  rows={4}
-                />
-              </div>
             </TabsContent>
 
             <TabsContent value="history" className="space-y-4 pr-4">
