@@ -52,25 +52,50 @@ export function getStoreStatusText(operatingHours: OperatingHours | any): string
   if (!daySchedule) return 'Horário não disponível';
   
   if (daySchedule.is_closed) {
-    return 'Loja fechada - Fechado hoje';
+    // Find next open day
+    for (let i = 1; i <= 7; i++) {
+      const nextDayIndex = (now.getDay() + i) % 7;
+      const nextDay = DAYS_MAP[nextDayIndex];
+      const nextDaySchedule = operatingHours[nextDay];
+      
+      if (nextDaySchedule && !nextDaySchedule.is_closed) {
+        const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        return `Abre ${dayNames[nextDayIndex]} às ${nextDaySchedule.open}`;
+      }
+    }
+    return 'Horário não disponível';
   }
 
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   
   if (currentTime < daySchedule.open) {
-    return `Loja fechada - Abre às ${daySchedule.open}`;
+    return `Abre às ${daySchedule.open}`;
   }
   
   if (currentTime > daySchedule.close) {
-    return 'Loja fechada';
+    // Find next open time (tomorrow or next day)
+    for (let i = 1; i <= 7; i++) {
+      const nextDayIndex = (now.getDay() + i) % 7;
+      const nextDay = DAYS_MAP[nextDayIndex];
+      const nextDaySchedule = operatingHours[nextDay];
+      
+      if (nextDaySchedule && !nextDaySchedule.is_closed) {
+        const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        if (i === 1) {
+          return `Abre amanhã às ${nextDaySchedule.open}`;
+        }
+        return `Abre ${dayNames[nextDayIndex]} às ${nextDaySchedule.open}`;
+      }
+    }
+    return 'Horário não disponível';
   }
 
   // Check if in lunch break
   if (daySchedule.has_lunch_break && daySchedule.lunch_break_start && daySchedule.lunch_break_end) {
     if (currentTime >= daySchedule.lunch_break_start && currentTime <= daySchedule.lunch_break_end) {
-      return `Intervalo de almoço - Reabre às ${daySchedule.lunch_break_end}`;
+      return `Abre às ${daySchedule.lunch_break_end}`;
     }
   }
   
-  return `Aberto até ${daySchedule.close}`;
+  return `Abre às ${daySchedule.open}`;
 }
