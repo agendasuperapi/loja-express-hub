@@ -1034,7 +1034,7 @@ export const StoreOwnerDashboard = () => {
               </div>
             ` : ''}
             ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${escapeHtml(order.notes)}</div>` : ''}
-            ${order.customer_notes ? `<div class="info-row" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; margin-top: 8px;"><strong>Observações Externas:</strong><br/>${escapeHtml(order.customer_notes).replace(/\n/g, '<br/>')}</div>` : ''}
+            ${order.customer_notes ? `<div class="info-row" style="padding: 8px; margin-top: 8px;"><strong>Observações Externas:</strong><br/>${escapeHtml(order.customer_notes).replace(/\n/g, '<br/>')}</div>` : ''}
           </div>
           
           <table>
@@ -3631,7 +3631,7 @@ export const StoreOwnerDashboard = () => {
                   <Separator />
                   <div>
                     <h3 className="font-semibold mb-3">Observações Externas</h3>
-                    <p className="text-sm bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300">
+                    <p className="text-sm text-muted-foreground">
                       {(viewingOrder as any).customer_notes}
                     </p>
                     <p className="text-xs text-muted-foreground mt-2">
