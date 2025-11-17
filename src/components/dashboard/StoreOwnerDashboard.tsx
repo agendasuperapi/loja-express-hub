@@ -2115,8 +2115,34 @@ export const StoreOwnerDashboard = () => {
                     <Card className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-                          <div>
-                            <h3 className="font-semibold text-base md:text-lg">Pedido #{order.order_number}</h3>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-base md:text-lg">Pedido #{order.order_number}</h3>
+                              {(() => {
+                                // Verifica se o pedido foi feito fora do horário de funcionamento
+                                if (myStore?.operating_hours) {
+                                  const orderDate = new Date(order.created_at);
+                                  const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+                                  const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
+                                  
+                                  const daySchedule = myStore.operating_hours?.[dayOfWeek];
+                                  if (daySchedule) {
+                                    const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
+                                    const isScheduled = !wasOpen && myStore.allow_orders_when_closed;
+                                    
+                                    if (isScheduled) {
+                                      return (
+                                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300 flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          Agendado
+                                        </Badge>
+                                      );
+                                    }
+                                  }
+                                }
+                                return null;
+                              })()}
+                            </div>
                             <p className="text-xs md:text-sm text-muted-foreground">
                               {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                             </p>
