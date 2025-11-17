@@ -379,6 +379,20 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         };
       }
       
+      // Mudanças nas observações
+      if ((order as any).customer_notes !== formData.customer_notes) {
+        changes.customer_notes = {
+          before: (order as any).customer_notes || 'Nenhuma',
+          after: formData.customer_notes || 'Nenhuma'
+        };
+      }
+      if ((order as any).store_notes !== formData.store_notes) {
+        changes.store_notes = {
+          before: (order as any).store_notes || 'Nenhuma',
+          after: formData.store_notes || 'Nenhuma'
+        };
+      }
+      
       if (order.subtotal !== subtotal) {
         changes.subtotal = { before: order.subtotal, after: subtotal };
       }
@@ -401,6 +415,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         total,
         coupon_code: appliedCoupon?.code || null,
         coupon_discount: couponDiscount,
+        customer_notes: formData.customer_notes,
         store_notes: formData.store_notes,
         store_image_url: formData.store_image_url,
       };
