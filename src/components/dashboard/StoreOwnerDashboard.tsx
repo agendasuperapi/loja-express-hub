@@ -3163,9 +3163,18 @@ export const StoreOwnerDashboard = () => {
                     </div>
                     <Switch
                       checked={storeForm.show_pix_key_to_customer ?? true}
-                      onCheckedChange={(checked) =>
-                        setStoreForm({ ...storeForm, show_pix_key_to_customer: checked })
-                      }
+                      onCheckedChange={async (checked) => {
+                        setStoreForm({ ...storeForm, show_pix_key_to_customer: checked });
+                        if (myStore?.id) {
+                          await updateStore({
+                            id: myStore.id,
+                            name: myStore.name,
+                            slug: myStore.slug,
+                            category: myStore.category,
+                            show_pix_key_to_customer: checked,
+                          });
+                        }
+                      }}
                     />
                   </div>
                 )}

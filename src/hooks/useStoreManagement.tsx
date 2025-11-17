@@ -25,6 +25,8 @@ export interface StoreFormData {
   logo_url?: string;
   banner_url?: string;
   operating_hours?: any;
+  pix_key?: string;
+  show_pix_key_to_customer?: boolean;
 }
 
 export const useStoreManagement = () => {
