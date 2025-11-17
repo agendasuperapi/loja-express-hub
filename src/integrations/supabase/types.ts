@@ -896,6 +896,7 @@ export type Database = {
           owner_id: string
           phone: string | null
           pickup_address: string | null
+          pix_key: string | null
           rating: number | null
           show_avg_delivery_time: boolean | null
           slug: string
@@ -927,6 +928,7 @@ export type Database = {
           owner_id: string
           phone?: string | null
           pickup_address?: string | null
+          pix_key?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
           slug: string
@@ -958,6 +960,7 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           pickup_address?: string | null
+          pix_key?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
           slug?: string
