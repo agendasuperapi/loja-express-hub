@@ -197,7 +197,7 @@ export const CustomerDashboard = () => {
           <h2 className="text-2xl font-bold gradient-text">Minhas Estatísticas</h2>
           <p className="text-muted-foreground">Acompanhe seus pedidos e gastos</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
           <Select value={periodFilter} onValueChange={(value) => {
             if (value === "custom") {
               setShowCustomDatePicker(true);
@@ -205,7 +205,7 @@ export const CustomerDashboard = () => {
               setPeriodFilter(value);
             }
           }}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <CalendarIcon className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Período" />
             </SelectTrigger>
@@ -225,10 +225,12 @@ export const CustomerDashboard = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowCustomDatePicker(true)}
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto justify-center"
             >
               <CalendarIcon className="h-4 w-4" />
-              {format(customDateRange.from, "dd/MM/yy")} - {format(customDateRange.to, "dd/MM/yy")}
+              <span className="text-xs sm:text-sm">
+                {format(customDateRange.from, "dd/MM/yy")} - {format(customDateRange.to, "dd/MM/yy")}
+              </span>
             </Button>
           )}
         </div>
@@ -348,7 +350,7 @@ export const CustomerDashboard = () => {
               </motion.div>
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold gradient-text">{totalOrders}</div>
+              <div className="text-2xl sm:text-3xl font-bold gradient-text">{totalOrders}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Pedidos realizados
               </p>
@@ -374,7 +376,7 @@ export const CustomerDashboard = () => {
               </motion.div>
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold text-green-500">
+              <div className="text-2xl sm:text-3xl font-bold text-green-500">
                 R$ {totalSpent.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -402,7 +404,7 @@ export const CustomerDashboard = () => {
               </motion.div>
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold text-purple-500">
+              <div className="text-2xl sm:text-3xl font-bold text-purple-500">
                 R$ {averageOrder.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
@@ -430,7 +432,7 @@ export const CustomerDashboard = () => {
               </motion.div>
             </CardHeader>
             <CardContent className="relative z-10">
-              <div className="text-3xl font-bold text-pink-500">{favorites?.length || 0}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-pink-500">{favorites?.length || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Lojas salvas
               </p>
