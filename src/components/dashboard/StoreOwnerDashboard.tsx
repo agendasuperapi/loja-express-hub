@@ -3641,7 +3641,7 @@ export const StoreOwnerDashboard = () => {
                 <h3 className="text-lg font-semibold">Configurações de Entrega</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
+                  <div className="hidden">
                     <Label>Taxa de Entrega (R$)</Label>
                     <Input
                       type="number"
