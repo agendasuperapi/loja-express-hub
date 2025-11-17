@@ -1918,6 +1918,25 @@ export const StoreOwnerDashboard = () => {
                       <SelectItem value="pending">⏳ Pgto Pendente</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <Select 
+                    value={scheduledFilter} 
+                    onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
+                      <SelectValue placeholder="Tipo de Pedido" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="all">🕐 Todos os pedidos</SelectItem>
+                      <SelectItem value="scheduled">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Agendados
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="normal">📦 Normais</SelectItem>
+                    </SelectContent>
+                  </Select>
                   
                   {dateFilter === 'custom' && (
                     <Popover>
@@ -2064,39 +2083,8 @@ export const StoreOwnerDashboard = () => {
                 </div>
               )}
 
-              {/* Campo de Pesquisa e Filtros Adicionais */}
-              <div className="mt-4 space-y-3">
-                {/* Filtros de Pagamento e Agendados */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Select value={paymentStatusFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentStatusFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Status Pagamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os pagamentos</SelectItem>
-                      <SelectItem value="received">Pagos</SelectItem>
-                      <SelectItem value="pending">Pendentes</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[200px]">
-                      <SelectValue placeholder="Tipo de Pedido" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os pedidos</SelectItem>
-                      <SelectItem value="scheduled">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Agendados
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="normal">Normais</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Campo de Pesquisa */}
+              {/* Campo de Pesquisa */}
+              <div className="mt-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
