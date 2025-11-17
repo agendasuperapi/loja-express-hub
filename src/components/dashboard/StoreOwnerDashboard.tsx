@@ -16,7 +16,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt } from "lucide-react";
 import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
@@ -2068,6 +2068,22 @@ export const StoreOwnerDashboard = () => {
                           >
                             <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                             Visualizar
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // Ação para comprovantes
+                              toast({
+                                title: "Comprovantes",
+                                description: "Funcionalidade em desenvolvimento",
+                              });
+                            }}
+                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                          >
+                            <Receipt className="w-3 h-3 sm:w-4 sm:h-4" />
+                            Comprovantes
                           </Button>
                           
                           <Button
