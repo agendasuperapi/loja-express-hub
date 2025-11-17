@@ -311,9 +311,9 @@ export default function Orders() {
                           <Clock className="h-4 w-4 text-amber-500" />
                           <AlertDescription className="text-amber-700 dark:text-amber-400">
                             <div className="space-y-1">
-                              <p className="font-medium">📅 Este pedido está agendado</p>
-                              <p className="text-sm">Seu pedido será processado assim que a loja abrir.</p>
-                              <p className="text-sm font-medium">{storeStatusText}</p>
+                              <p className="font-medium">📅 Pedido Agendado</p>
+                              <p className="text-sm">Seu pedido foi agendado com sucesso! Assim que a loja reabrir, ele será processado. Agradecemos a preferência!</p>
+                              <p className="text-sm font-semibold mt-2">{storeStatusText}</p>
                             </div>
                           </AlertDescription>
                         </Alert>
