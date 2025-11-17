@@ -205,6 +205,7 @@ export const StoreOwnerDashboard = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
   const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
+  const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
@@ -674,8 +675,13 @@ export const StoreOwnerDashboard = () => {
       }
       
       return true;
+    }).sort((a, b) => {
+      // Ordenação por data
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return orderSortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
-  }, [orders, orderStatusFilter, paymentStatusFilter, scheduledFilter, dateFilter, customDateRange, orderSearchTerm, myStore]);
+  }, [orders, orderStatusFilter, paymentStatusFilter, scheduledFilter, orderSortBy, dateFilter, customDateRange, orderSearchTerm, myStore]);
 
   // Paginação dos pedidos
   const paginatedOrdersData = useMemo(() => {
@@ -1935,6 +1941,19 @@ export const StoreOwnerDashboard = () => {
                         </div>
                       </SelectItem>
                       <SelectItem value="normal">📦 Normais</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select 
+                    value={orderSortBy} 
+                    onValueChange={(value: 'newest' | 'oldest') => setOrderSortBy(value)}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
+                      <SelectValue placeholder="Ordenar por" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="newest">⬇️ Mais recente</SelectItem>
+                      <SelectItem value="oldest">⬆️ Mais antigo</SelectItem>
                     </SelectContent>
                   </Select>
                   
