@@ -74,7 +74,7 @@ export const useProfile = () => {
     },
     onError: (error: Error) => {
       const errorMessage = error instanceof z.ZodError 
-        ? error.errors[0]?.message || 'Dados inválidos'
+        ? error.issues[0]?.message || 'Dados inválidos'
         : error.message;
       
       toast({

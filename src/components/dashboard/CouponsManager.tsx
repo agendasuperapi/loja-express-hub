@@ -170,7 +170,7 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
       if (error instanceof z.ZodError) {
         toast({
           title: 'Erro de validação',
-          description: error.errors[0].message,
+          description: error.issues[0].message,
           variant: 'destructive',
         });
       }

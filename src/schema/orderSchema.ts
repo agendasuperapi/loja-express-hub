@@ -63,8 +63,8 @@ export const orderSchema = z.object({
     .refine(val => val.length >= 10 && val.length <= 15, {
       message: "Phone number must be between 10 and 15 digits after formatting"
     }),
-  deliveryType: z.enum(["pickup", "delivery"], {
-    errorMap: () => ({ message: "Delivery type must be either 'pickup' or 'delivery'" })
+  deliveryType: z.union([z.literal("pickup"), z.literal("delivery")], {
+    message: "Delivery type must be either 'pickup' or 'delivery'"
   }),
   paymentMethod: z.string()
     .trim()
