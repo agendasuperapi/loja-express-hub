@@ -190,7 +190,7 @@ export default function BecomePartner() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           if (err.path[0]) {
             newErrors[err.path[0] as string] = err.message;
           }
@@ -198,7 +198,7 @@ export default function BecomePartner() {
         setErrors(newErrors);
 
         // Scroll to first error and focus the field
-        const first = error.errors[0];
+        const first = error.issues[0];
         const firstField = first?.path?.[0] ? String(first.path[0]) : undefined;
         if (firstField) {
           setTimeout(() => {

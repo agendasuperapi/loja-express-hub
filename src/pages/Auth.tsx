@@ -99,7 +99,7 @@ export default function Auth() {
       if (error instanceof z.ZodError) {
         toast({
           title: 'Dados inválidos',
-          description: error.errors[0]?.message || 'Por favor, verifique os campos',
+          description: error.issues[0]?.message || 'Por favor, verifique os campos',
           variant: 'destructive',
         });
       }

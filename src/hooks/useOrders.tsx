@@ -216,7 +216,7 @@ export const useOrders = () => {
       console.error("❌ Order creation failed:", error);
 
       const errorMessage = error instanceof z.ZodError 
-        ? error.errors[0]?.message || 'Dados do pedido inválidos'
+        ? error.issues[0]?.message || 'Dados do pedido inválidos'
         : error?.details || error?.message || "Erro desconhecido ao criar pedido";
 
       toast({
