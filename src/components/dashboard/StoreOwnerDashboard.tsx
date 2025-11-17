@@ -2074,11 +2074,9 @@ export const StoreOwnerDashboard = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              // Ação para comprovantes
-                              toast({
-                                title: "Comprovantes",
-                                description: "Funcionalidade em desenvolvimento",
-                              });
+                              setEditingOrder(order);
+                              setIsEditOrderDialogOpen(true);
+                              setEditDialogInitialTab('receipt');
                             }}
                             className="flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
