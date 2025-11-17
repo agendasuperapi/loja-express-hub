@@ -168,13 +168,15 @@ export default function Cart() {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, phone, street, street_number, neighborhood, complement')
+          .select('full_name, phone, cep, city, street, street_number, neighborhood, complement')
           .eq('id', user.id)
           .maybeSingle();
 
         if (profile) {
           setCustomerName(profile.full_name || "");
           setCustomerPhone(profile.phone || "");
+          setDeliveryCep(profile.cep || "");
+          setDeliveryCity(profile.city || "");
           setDeliveryStreet(profile.street || "");
           setDeliveryNumber(profile.street_number || "");
           setDeliveryNeighborhood(profile.neighborhood || "");
