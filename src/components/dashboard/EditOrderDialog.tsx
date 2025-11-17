@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ImageUpload } from "./ImageUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X } from "lucide-react";
+import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X, Receipt } from "lucide-react";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -477,7 +477,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         </DialogHeader>
 
         <Tabs defaultValue={initialTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-5 flex-shrink-0">
+          <TabsList className="grid w-full grid-cols-6 flex-shrink-0">
             <TabsTrigger value="items">
               <Package className="w-4 h-4 mr-2" />
               Itens
@@ -485,6 +485,10 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
             <TabsTrigger value="payment">
               <CreditCard className="w-4 h-4 mr-2" />
               Pagamento
+            </TabsTrigger>
+            <TabsTrigger value="receipt">
+              <Receipt className="w-4 h-4 mr-2" />
+              Comprovante
             </TabsTrigger>
             <TabsTrigger value="delivery">
               <MapPin className="w-4 h-4 mr-2" />
@@ -772,6 +776,38 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
                 </div>
               </div>
 
+            </TabsContent>
+
+            <TabsContent value="receipt" className="space-y-4 pr-4">
+              <div>
+                <Label>Comprovante de Pagamento</Label>
+                <ImageUpload
+                  bucket="product-images"
+                  folder={`orders/${order.id}/receipts`}
+                  productId={order.id}
+                  currentImageUrl={formData.store_image_url}
+                  onUploadComplete={(url) => setFormData({ ...formData, store_image_url: url })}
+                  label="Comprovante"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Anexe o comprovante de pagamento do cliente (PIX, transferência, etc.)
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Pagamento Recebido</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Marque quando o pagamento for confirmado
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.payment_received}
+                  onCheckedChange={(checked) => setFormData({ ...formData, payment_received: checked })}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="delivery" className="space-y-4 pr-4">
