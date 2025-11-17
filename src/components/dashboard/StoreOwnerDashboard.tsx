@@ -2884,13 +2884,13 @@ export const StoreOwnerDashboard = () => {
                     <Settings className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Loja</span>
                   </TabsTrigger>
-                  <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
-                    <Shield className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
-                    <span className="truncate">Permissões</span>
-                  </TabsTrigger>
                   <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Menu className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Etapas do Pedido</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Shield className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Permissões</span>
                   </TabsTrigger>
                   <TabsTrigger value="security" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Lock className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
@@ -2906,6 +2906,17 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
           >
             <PersonalDataSettings />
+          </motion.div>
+        </TabsContent>
+
+        {/* Status Tab */}
+        <TabsContent value="status" className="space-y-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {myStore && <OrderStatusManager storeId={myStore.id} />}
           </motion.div>
         </TabsContent>
 
@@ -3058,17 +3069,6 @@ export const StoreOwnerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* Status Tab */}
-        <TabsContent value="status" className="space-y-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {myStore && <OrderStatusManager storeId={myStore.id} />}
           </motion.div>
         </TabsContent>
 
