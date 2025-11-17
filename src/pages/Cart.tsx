@@ -1019,7 +1019,7 @@ export default function Cart() {
                             <Alert>
                               <MapPin className="h-4 w-4" />
                               <AlertDescription className="text-sm">
-                                Preencha seu endereço completo para calcularmos o frete
+                                Preencha seu endereço completo. Os campos com asterisco (*) são obrigatórios.
                               </AlertDescription>
                             </Alert>
 
