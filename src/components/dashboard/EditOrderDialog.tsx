@@ -619,7 +619,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
                     <Textarea
                       value={item.observation || ''}
                       onChange={(e) => updateLocalOrderItem(item.id, { observation: e.target.value })}
-                      placeholder="Ex: Sem cebola..."
+                      placeholder="Observação..."
                       rows={2}
                     />
                   </div>
