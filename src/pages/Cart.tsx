@@ -1046,7 +1046,7 @@ export default function Cart() {
                               <Label htmlFor="cep" className="text-sm font-medium">
                                 CEP <span className="text-destructive">*</span>
                               </Label>
-                              <div className="flex gap-2 mt-1.5">
+                              <div className="relative mt-1.5">
                                 <Input
                                   id="cep"
                                   value={deliveryCep}
@@ -1056,20 +1056,9 @@ export default function Cart() {
                                   required
                                   className={cepError ? "border-destructive" : ""}
                                 />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={handleCepSearch}
-                                  disabled={isSearchingCep || !deliveryCep}
-                                  title="Buscar CEP"
-                                >
-                                  {isSearchingCep ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <Search className="w-4 h-4" />
-                                  )}
-                                </Button>
+                                {isSearchingCep && (
+                                  <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                )}
                               </div>
                               {cepError && (
                                 <p className="text-sm text-destructive mt-1.5">{cepError}</p>
