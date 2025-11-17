@@ -1025,7 +1025,6 @@ export const StoreOwnerDashboard = () => {
             <div class="info-row"><strong>Telefone:</strong> ${order.customer_phone}</div>
             <div class="info-row"><strong>Tipo:</strong> ${order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}</div>
             <div class="info-row"><strong>Pagamento:</strong> ${order.payment_method}</div>
-            <div class="info-row"><strong>Status:</strong> ${customStatuses.find((s: any) => s.status_key === order.status)?.status_label || order.status}</div>
             ${order.delivery_type === 'delivery' ? `
               <div class="info-row">
                 <strong>Endereço:</strong> ${order.delivery_street}, ${order.delivery_number}
