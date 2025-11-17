@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,14 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useDeliveryZones, DeliveryZone } from "@/hooks/useDeliveryZones";
-import { Plus, Edit, Trash2, MapPin, Loader2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Loader2, Search, Check, ChevronsUpDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface DeliveryZonesManagerProps {
   storeId: string | undefined;
+}
+
+interface City {
+  id: number;
+  nome: string;
+  microrregiao: {
+    mesorregiao: {
+      UF: {
+        sigla: string;
+      };
+    };
+  };
 }
 
 export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => {
@@ -29,6 +44,9 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   });
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
+  const [cities, setCities] = useState<City[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [openCityCombobox, setOpenCityCombobox] = useState(false);
 
   const handleOpenDialog = (zone?: DeliveryZone) => {
     if (zone) {
@@ -100,6 +118,26 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     setFormData({ ...formData, cep: cleaned });
     setCepError(null);
   };
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      setIsLoadingCities(true);
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome');
+        const data: City[] = await response.json();
+        setCities(data);
+      } catch (error) {
+        console.error('Erro ao buscar cidades:', error);
+        toast.error('Erro ao carregar lista de cidades');
+      } finally {
+        setIsLoadingCities(false);
+      }
+    };
+
+    if (isDialogOpen && cities.length === 0) {
+      fetchCities();
+    }
+  }, [isDialogOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,14 +235,54 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
 
               <div>
                 <Label htmlFor="city">Cidade *</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="Ex: São Paulo"
-                  required
-                  maxLength={100}
-                />
+                <Popover open={openCityCombobox} onOpenChange={setOpenCityCombobox}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openCityCombobox}
+                      className="w-full justify-between"
+                    >
+                      {formData.city || "Selecione a cidade..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Buscar cidade..." />
+                      <CommandList>
+                        <CommandEmpty>
+                          {isLoadingCities ? "Carregando cidades..." : "Nenhuma cidade encontrada."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {cities.map((city) => (
+                            <CommandItem
+                              key={city.id}
+                              value={`${city.nome} - ${city.microrregiao.mesorregiao.UF.sigla}`}
+                              onSelect={() => {
+                                setFormData({ 
+                                  ...formData, 
+                                  city: `${city.nome} - ${city.microrregiao.mesorregiao.UF.sigla}` 
+                                });
+                                setOpenCityCombobox(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.city === `${city.nome} - ${city.microrregiao.mesorregiao.UF.sigla}` 
+                                    ? "opacity-100" 
+                                    : "opacity-0"
+                                )}
+                              />
+                              {city.nome} - {city.microrregiao.mesorregiao.UF.sigla}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <div>
