@@ -2079,6 +2079,16 @@ export const StoreOwnerDashboard = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => handlePrintOrder(order)}
+                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                          >
+                            <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
+                            Imprimir
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => {
                               setReceiptOrder(order);
                               setIsReceiptDialogOpen(true);
@@ -2087,16 +2097,6 @@ export const StoreOwnerDashboard = () => {
                           >
                             <Receipt className="w-3 h-3 sm:w-4 sm:h-4" />
                             Comprovantes
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintOrder(order)}
-                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                          >
-                            <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
-                            Imprimir
                           </Button>
                           
                           {hasPermission('orders', 'edit_order_details') && (
