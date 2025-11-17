@@ -69,6 +69,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
     delivery_complement: order?.delivery_complement || '',
     delivery_fee: order?.delivery_fee || 0,
     store_notes: order?.store_notes || '',
+    customer_notes: order?.customer_notes || '',
     store_image_url: order?.store_image_url || '',
   });
 
@@ -85,6 +86,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         delivery_complement: order.delivery_complement || '',
         delivery_fee: order.delivery_fee || 0,
         store_notes: order.store_notes || '',
+        customer_notes: order.customer_notes || '',
         store_image_url: order.store_image_url || '',
       });
       setCouponCode(order.coupon_code || '');
@@ -824,12 +826,27 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
 
             <TabsContent value="notes" className="space-y-4 pr-4">
               <div>
+                <Label>Observações Externas (o cliente também vê)</Label>
+                <Textarea
+                  value={formData.customer_notes}
+                  onChange={(e) => setFormData({ ...formData, customer_notes: e.target.value })}
+                  placeholder="Informações visíveis para o cliente..."
+                  rows={4}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  Estas observações serão exibidas para o cliente junto com o pedido
+                </p>
+              </div>
+
+              <Separator />
+
+              <div>
                 <Label>Observações Internas (apenas você vê)</Label>
                 <Textarea
                   value={formData.store_notes}
                   onChange={(e) => setFormData({ ...formData, store_notes: e.target.value })}
                   placeholder="Anotações sobre este pedido..."
-                  rows={5}
+                  rows={4}
                 />
               </div>
 
