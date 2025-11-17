@@ -390,7 +390,7 @@ export default function Orders() {
                                   className={cn(
                                     "flex-1 text-sm px-3 py-2 rounded border cursor-pointer transition-all duration-200",
                                     copiedPixKey === order.id 
-                                      ? "bg-green-100 border-green-500 text-green-600 dark:bg-green-950 dark:text-green-400 scale-105" 
+                                      ? "bg-green-50 border-green-600 text-green-800 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300 scale-105" 
                                       : "bg-background border-border hover:bg-accent"
                                   )}
                                   onClick={() => {
