@@ -204,6 +204,7 @@ export const StoreOwnerDashboard = () => {
   }>({ isChecking: false, isAvailable: null, message: '' });
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
+  const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
@@ -631,6 +632,26 @@ export const StoreOwnerDashboard = () => {
       if (paymentStatusFilter === 'pending' && order.payment_received) {
         return false;
       }
+
+      // Filtro de pedidos agendados
+      if (scheduledFilter !== 'all' && myStore?.operating_hours) {
+        const orderDate = new Date(order.created_at);
+        const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+        const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
+        
+        const daySchedule = myStore.operating_hours?.[dayOfWeek];
+        if (daySchedule) {
+          const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
+          const isScheduled = !wasOpen && myStore.allow_orders_when_closed;
+          
+          if (scheduledFilter === 'scheduled' && !isScheduled) {
+            return false;
+          }
+          if (scheduledFilter === 'normal' && isScheduled) {
+            return false;
+          }
+        }
+      }
       
       // Filtro de data
       if (dateFilter === 'all') {
@@ -654,7 +675,7 @@ export const StoreOwnerDashboard = () => {
       
       return true;
     });
-  }, [orders, orderStatusFilter, paymentStatusFilter, dateFilter, customDateRange, orderSearchTerm]);
+  }, [orders, orderStatusFilter, paymentStatusFilter, scheduledFilter, dateFilter, customDateRange, orderSearchTerm, myStore]);
 
   // Paginação dos pedidos
   const paginatedOrdersData = useMemo(() => {
@@ -2043,8 +2064,39 @@ export const StoreOwnerDashboard = () => {
                 </div>
               )}
 
-              {/* Campo de Pesquisa */}
-              <div className="mt-4">
+              {/* Campo de Pesquisa e Filtros Adicionais */}
+              <div className="mt-4 space-y-3">
+                {/* Filtros de Pagamento e Agendados */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Select value={paymentStatusFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentStatusFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Status Pagamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os pagamentos</SelectItem>
+                      <SelectItem value="received">Pagos</SelectItem>
+                      <SelectItem value="pending">Pendentes</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Tipo de Pedido" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os pedidos</SelectItem>
+                      <SelectItem value="scheduled">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Agendados
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="normal">Normais</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Campo de Pesquisa */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
