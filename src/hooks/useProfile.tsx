@@ -12,6 +12,8 @@ const profileSchema = z.object({
     .refine(val => !val || val.length === 12 || val.length === 13, {
       message: 'Telefone deve ter 12 ou 13 dígitos com código do país'
     }).optional(),
+  cep: z.string().trim().max(9, 'CEP inválido').optional(),
+  city: z.string().trim().max(100, 'Nome da cidade muito longo').optional(),
   street: z.string().trim().max(200, 'Nome da rua muito longo').optional(),
   street_number: z.string().trim().max(20, 'Número muito longo').optional(),
   neighborhood: z.string().trim().max(100, 'Nome do bairro muito longo').optional(),
@@ -21,6 +23,8 @@ const profileSchema = z.object({
 export interface ProfileData {
   full_name?: string;
   phone?: string;
+  cep?: string;
+  city?: string;
   street?: string;
   street_number?: string;
   neighborhood?: string;
