@@ -2925,7 +2925,24 @@ export const StoreOwnerDashboard = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Permissões e Configurações de Acesso
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Configure as permissões de acesso, notificações, tipos de entrega e métodos de pagamento aceitos pela sua loja. 
+                Estas configurações controlam como sua loja opera e como você recebe atualizações sobre novos pedidos.
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
             <NotificationSettings />
           </motion.div>
