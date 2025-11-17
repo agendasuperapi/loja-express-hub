@@ -386,7 +386,18 @@ export default function Orders() {
                                 )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <code className="flex-1 text-sm bg-background px-3 py-2 rounded border border-border">
+                                <code 
+                                  className="flex-1 text-sm bg-background px-3 py-2 rounded border border-border cursor-pointer hover:bg-accent transition-colors"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(order.stores.pix_key);
+                                    setCopiedPixKey(order.id);
+                                    setTimeout(() => setCopiedPixKey(null), 2000);
+                                    toast({
+                                      title: "Chave PIX copiada!",
+                                      description: "Cole no seu app de pagamento",
+                                    });
+                                  }}
+                                >
                                   {formatPixKey(order.stores.pix_key)}
                                 </code>
                                 <Button
