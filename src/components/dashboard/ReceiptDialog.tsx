@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "./ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -20,11 +21,13 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
   const [loading, setLoading] = useState(false);
   const [storeImageUrl, setStoreImageUrl] = useState(order?.store_image_url || '');
   const [paymentReceived, setPaymentReceived] = useState(order?.payment_received || false);
+  const [storeNotes, setStoreNotes] = useState(order?.store_notes || '');
 
   useEffect(() => {
     if (order) {
       setStoreImageUrl(order.store_image_url || '');
       setPaymentReceived(order.payment_received || false);
+      setStoreNotes(order.store_notes || '');
     }
   }, [order]);
 
@@ -38,6 +41,7 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
         .update({
           store_image_url: storeImageUrl,
           payment_received: paymentReceived,
+          store_notes: storeNotes,
         })
         .eq('id', order.id);
 
@@ -99,6 +103,20 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
             <Switch
               checked={paymentReceived}
               onCheckedChange={setPaymentReceived}
+            />
+          </div>
+
+          <Separator />
+
+          <div>
+            <Label htmlFor="store-notes">Observações</Label>
+            <Textarea
+              id="store-notes"
+              value={storeNotes}
+              onChange={(e) => setStoreNotes(e.target.value)}
+              placeholder="Adicione observações sobre o pagamento..."
+              className="mt-2"
+              rows={4}
             />
           </div>
         </div>
