@@ -439,6 +439,8 @@ export default function Cart() {
         .update({
           full_name: customerName,
           phone: normalizePhone(customerPhone),
+          cep: deliveryType === 'delivery' ? deliveryCep : null,
+          city: deliveryType === 'delivery' ? deliveryCity : null,
           street: deliveryType === 'delivery' ? deliveryStreet : null,
           street_number: deliveryType === 'delivery' ? deliveryNumber : null,
           neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
