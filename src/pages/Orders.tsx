@@ -306,19 +306,6 @@ export default function Orders() {
                         </div>
                       </div>
 
-                      {isScheduledOrder && (
-                        <Alert className="mb-4 border-amber-500 bg-amber-500/10">
-                          <Clock className="h-4 w-4 text-amber-500" />
-                          <AlertDescription className="text-amber-700 dark:text-amber-400">
-                            <div className="space-y-1">
-                              <p className="font-medium">📅 Pedido Agendado</p>
-                              <p className="text-sm">Seu pedido foi agendado com sucesso! Assim que a loja reabrir, ele será processado. Agradecemos a preferência!</p>
-                              <p className="text-sm font-semibold mt-2">{storeStatusText}</p>
-                            </div>
-                          </AlertDescription>
-                        </Alert>
-                      )}
-
                       <Separator className="my-4" />
 
                       <div className="space-y-3">
@@ -554,6 +541,22 @@ export default function Orders() {
                           );
                         })()}
                       </div>
+
+                      {isScheduledOrder && (
+                        <>
+                          <Separator className="my-4" />
+                          <Alert className="border-amber-500 bg-amber-500/10">
+                            <Clock className="h-4 w-4 text-amber-500" />
+                            <AlertDescription className="text-amber-700 dark:text-amber-400">
+                              <div className="space-y-1">
+                                <p className="font-medium">📅 Pedido Agendado</p>
+                                <p className="text-sm">Seu pedido foi agendado com sucesso! Assim que a loja reabrir, ele será processado. Agradecemos a preferência!</p>
+                                <p className="text-sm font-semibold mt-2">{storeStatusText}</p>
+                              </div>
+                            </AlertDescription>
+                          </Alert>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>
