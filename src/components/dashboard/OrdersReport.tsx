@@ -31,6 +31,7 @@ interface OrderReport {
   coupon_code: string | null;
   coupon_discount: number | null;
   payment_method: string;
+  payment_received: boolean | null;
   delivery_type: string;
   delivery_street: string | null;
   delivery_number: string | null;
@@ -86,6 +87,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
         coupon_code: order.coupon_code || null,
         coupon_discount: order.coupon_discount || null,
         payment_method: order.payment_method,
+        payment_received: order.payment_received || false,
         delivery_type: order.delivery_type,
         delivery_street: order.delivery_street || null,
         delivery_number: order.delivery_number || null,
@@ -149,7 +151,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   }, [searchTerm, statusFilter, dateRange]);
 
   const exportToCSV = () => {
-    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Entrega', 'Cupom'];
+    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
     
     const rows = filteredOrders.map(order => [
       order.order_number,
@@ -162,6 +164,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       order.coupon_discount ? `R$ ${order.coupon_discount.toFixed(2)}` : '-',
       `R$ ${order.total.toFixed(2)}`,
       order.payment_method,
+      order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente',
       order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
       order.coupon_code || '-'
     ]);
@@ -201,7 +204,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   };
 
   const exportToExcel = () => {
-    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Entrega', 'Cupom'];
+    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
     
     const data = filteredOrders.map(order => ({
       'Pedido': order.order_number,
@@ -214,6 +217,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       'Desconto': order.coupon_discount || 0,
       'Total': order.total,
       'Pagamento': order.payment_method,
+      'Status Pgto': order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente',
       'Entrega': order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
       'Cupom': order.coupon_code || '-'
     }));
@@ -330,6 +334,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   <TableHead className="text-right">Desconto</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead>Pagamento</TableHead>
+                  <TableHead>Status Pgto</TableHead>
                   <TableHead>Entrega</TableHead>
                   <TableHead>Cupom</TableHead>
                 </TableRow>
@@ -337,7 +342,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={12} className="text-center text-muted-foreground">
+                    <TableCell colSpan={13} className="text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" 
                         ? 'Nenhum pedido encontrado com os filtros selecionados' 
                         : 'Nenhum pedido no período selecionado'}
@@ -401,6 +406,14 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                             Troco: R$ {order.change_amount.toFixed(2)}
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={order.payment_received ? 'default' : 'secondary'}
+                          className={order.payment_received ? 'bg-green-600' : 'bg-yellow-600'}
+                        >
+                          {order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
+                        </Badge>
                       </TableCell>
                       <TableCell className="capitalize">
                         <Badge variant={order.delivery_type === 'delivery' ? 'default' : 'secondary'}>
