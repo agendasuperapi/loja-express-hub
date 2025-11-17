@@ -1035,7 +1035,6 @@ export const StoreOwnerDashboard = () => {
             ` : ''}
             ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${escapeHtml(order.notes)}</div>` : ''}
             ${order.customer_notes ? `<div class="info-row" style="background-color: #e3f2fd; padding: 8px; border-radius: 4px; margin-top: 8px;"><strong>Observações Externas (Cliente vê):</strong><br/>${escapeHtml(order.customer_notes).replace(/\n/g, '<br/>')}</div>` : ''}
-            ${order.store_notes ? `<div class="info-row" style="background-color: #fff3e0; padding: 8px; border-radius: 4px; margin-top: 8px;"><strong>Observações Internas (Privadas):</strong><br/>${escapeHtml(order.store_notes).replace(/\n/g, '<br/>')}</div>` : ''}
           </div>
           
           <table>
