@@ -6,15 +6,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import { EditCartItemDialog } from "./EditCartItemDialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const CartSidebar = () => {
   const navigate = useNavigate();
-  const { cart, updateQuantity, removeFromCart, getTotal, getItemCount, updateCartItem } = useCart();
+  const { cart, updateQuantity, removeFromCart, getTotal, getItemCount, updateCartItem, validateAndSyncCart } = useCart();
   const [editingItem, setEditingItem] = useState<any>(null);
   const itemCount = getItemCount();
   const deliveryFee = 5;
   const total = getTotal() + (itemCount > 0 ? deliveryFee : 0);
+
+  useEffect(() => {
+    validateAndSyncCart();
+  }, []);
 
   return (
     <div className="hidden lg:block lg:col-span-1">

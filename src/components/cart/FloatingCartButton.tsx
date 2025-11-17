@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const FloatingCartButton = () => {
-  const { cart, getItemCount, getTotal } = useCart();
+  const { cart, getItemCount, getTotal, validateAndSyncCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const controls = useAnimation();
@@ -15,6 +15,11 @@ export const FloatingCartButton = () => {
   
   const itemCount = getItemCount();
   const total = getTotal();
+
+  const handleCartClick = async () => {
+    await validateAndSyncCart();
+    navigate('/cart');
+  };
 
   // Hide on cart page
   if (location.pathname === '/cart') {
@@ -51,7 +56,7 @@ export const FloatingCartButton = () => {
       >
         <motion.div animate={controls} className="w-full max-w-md">
           <Button
-            onClick={() => navigate('/cart')}
+            onClick={handleCartClick}
             className="w-full bg-gradient-primary hover:opacity-90 shadow-lg h-12 sm:h-14 text-sm sm:text-base font-semibold rounded-full border-2 border-orange-500 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] transition-all duration-500"
             size="lg"
           >
