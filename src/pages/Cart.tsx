@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCoupons } from "@/hooks/useCoupons";
 import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
@@ -976,12 +976,27 @@ export default function Cart() {
 
                       {deliveryType === 'delivery' && (
                         <>
-                          <h3 className="text-lg font-semibold mb-4">Endereço de Entrega</h3>
-                          
                           <div className="space-y-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <h3 className="text-lg font-semibold">Endereço de Entrega</h3>
+                              <Badge variant="outline" className="text-xs">
+                                * Obrigatório
+                              </Badge>
+                            </div>
+                            
+                            <Alert>
+                              <MapPin className="h-4 w-4" />
+                              <AlertDescription className="text-sm">
+                                Preencha seu endereço completo para calcularmos o frete
+                              </AlertDescription>
+                            </Alert>
+
+                            {/* CEP Field */}
                             <div>
-                              <Label htmlFor="cep">CEP *</Label>
-                              <div className="flex gap-2">
+                              <Label htmlFor="cep" className="text-sm font-medium">
+                                CEP <span className="text-destructive">*</span>
+                              </Label>
+                              <div className="flex gap-2 mt-1.5">
                                 <Input
                                   id="cep"
                                   value={deliveryCep}
@@ -994,8 +1009,10 @@ export default function Cart() {
                                 <Button
                                   type="button"
                                   variant="outline"
+                                  size="icon"
                                   onClick={handleCepSearch}
                                   disabled={isSearchingCep || !deliveryCep}
+                                  title="Buscar CEP"
                                 >
                                   {isSearchingCep ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -1005,64 +1022,87 @@ export default function Cart() {
                                 </Button>
                               </div>
                               {cepError && (
-                                <p className="text-sm text-destructive mt-1">{cepError}</p>
+                                <p className="text-sm text-destructive mt-1.5">{cepError}</p>
                               )}
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                Digite o CEP e clique em buscar para preencher automaticamente
+                              </p>
                             </div>
 
-                            <div>
-                              <Label htmlFor="city">Cidade *</Label>
-                              <Input
-                                id="city"
-                                value={deliveryCity}
-                                onChange={(e) => setDeliveryCity(e.target.value)}
-                                placeholder="Nome da cidade"
-                                required
-                                maxLength={100}
-                              />
+                            {/* City and Neighborhood in same row */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="city" className="text-sm font-medium">
+                                  Cidade <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                  id="city"
+                                  value={deliveryCity}
+                                  onChange={(e) => setDeliveryCity(e.target.value)}
+                                  placeholder="Ex: São Paulo"
+                                  required
+                                  maxLength={100}
+                                  className="mt-1.5"
+                                />
+                              </div>
+
+                              <div>
+                                <Label htmlFor="neighborhood" className="text-sm font-medium">
+                                  Bairro <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                  id="neighborhood"
+                                  value={deliveryNeighborhood}
+                                  onChange={(e) => setDeliveryNeighborhood(e.target.value)}
+                                  placeholder="Ex: Centro"
+                                  required
+                                  maxLength={100}
+                                  className="mt-1.5"
+                                />
+                              </div>
                             </div>
 
+                            {/* Street Field */}
                             <div>
-                              <Label htmlFor="neighborhood">Bairro *</Label>
-                              <Input
-                                id="neighborhood"
-                                value={deliveryNeighborhood}
-                                onChange={(e) => setDeliveryNeighborhood(e.target.value)}
-                                placeholder="Nome do bairro"
-                                required
-                                maxLength={100}
-                              />
-                            </div>
-
-                            <div>
-                              <Label htmlFor="street">Rua *</Label>
+                              <Label htmlFor="street" className="text-sm font-medium">
+                                Rua/Avenida <span className="text-destructive">*</span>
+                              </Label>
                               <Input
                                 id="street"
                                 value={deliveryStreet}
                                 onChange={(e) => setDeliveryStreet(e.target.value)}
-                                placeholder="Nome da rua"
+                                placeholder="Ex: Rua das Flores"
                                 required
+                                className="mt-1.5"
                               />
                             </div>
                             
+                            {/* Number and Complement */}
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor="number">Número *</Label>
+                                <Label htmlFor="number" className="text-sm font-medium">
+                                  Número <span className="text-destructive">*</span>
+                                </Label>
                                 <Input
                                   id="number"
                                   value={deliveryNumber}
                                   onChange={(e) => setDeliveryNumber(e.target.value)}
-                                  placeholder="123"
+                                  placeholder="Ex: 123"
                                   required
+                                  className="mt-1.5"
                                 />
                               </div>
                               
                               <div>
-                                <Label htmlFor="complement">Complemento</Label>
+                                <Label htmlFor="complement" className="text-sm font-medium">
+                                  Complemento
+                                </Label>
                                 <Input
                                   id="complement"
                                   value={deliveryComplement}
                                   onChange={(e) => setDeliveryComplement(e.target.value)}
-                                  placeholder="Apto, bloco, etc."
+                                  placeholder="Apto, Bloco..."
+                                  className="mt-1.5"
                                 />
                               </div>
                             </div>
