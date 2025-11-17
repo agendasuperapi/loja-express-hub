@@ -108,18 +108,8 @@ export default function Cart() {
         if (data) {
           setStoreData(data);
           
-          // Set default delivery type based on what store accepts
-          const acceptsPickup = (data as any).accepts_pickup ?? true;
-          const acceptsDelivery = (data as any).accepts_delivery ?? true;
+          // Remove auto-selection - user must choose delivery type manually
           
-          if (acceptsPickup && !acceptsDelivery) {
-            setDeliveryType('pickup');
-          } else if (acceptsDelivery && !acceptsPickup) {
-            setDeliveryType('delivery');
-          } else if (acceptsPickup) {
-            setDeliveryType('pickup'); // Default to pickup if both are available
-          }
-
           // Set default payment method based on what store accepts
           const acceptsPix = (data as any).accepts_pix ?? true;
           const acceptsCard = (data as any).accepts_card ?? true;
