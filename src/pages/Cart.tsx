@@ -112,7 +112,7 @@ export default function Cart() {
       if (cart.storeId) {
         const { data } = await supabase
           .from('stores')
-          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash, pickup_address, address')
+          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash, pickup_address, address, allow_orders_when_closed')
           .eq('id', cart.storeId)
           .single();
         

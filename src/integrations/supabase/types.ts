@@ -885,6 +885,7 @@ export type Database = {
           accepts_pickup: boolean | null
           accepts_pix: boolean | null
           address: string | null
+          allow_orders_when_closed: boolean | null
           avg_delivery_time: number | null
           banner_url: string | null
           category: string
@@ -918,6 +919,7 @@ export type Database = {
           accepts_pickup?: boolean | null
           accepts_pix?: boolean | null
           address?: string | null
+          allow_orders_when_closed?: boolean | null
           avg_delivery_time?: number | null
           banner_url?: string | null
           category: string
@@ -951,6 +953,7 @@ export type Database = {
           accepts_pickup?: boolean | null
           accepts_pix?: boolean | null
           address?: string | null
+          allow_orders_when_closed?: boolean | null
           avg_delivery_time?: number | null
           banner_url?: string | null
           category?: string
