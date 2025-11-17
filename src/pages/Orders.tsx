@@ -358,6 +358,16 @@ export default function Orders() {
                           {order.payment_method === 'dinheiro' && 'Dinheiro'}
                           {order.payment_method === 'cartao' && 'Cartão'}
                         </p>
+                        
+                        <div className="mt-2">
+                          <Badge 
+                            variant={(order as any).payment_received ? 'default' : 'secondary'}
+                            className={(order as any).payment_received ? 'bg-green-600' : 'bg-yellow-600'}
+                          >
+                            {(order as any).payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
+                          </Badge>
+                        </div>
+                        
                         {order.payment_method === 'dinheiro' && order.change_amount && (
                           <p className="text-sm text-muted-foreground">
                             Troco para: R$ {Number(order.change_amount).toFixed(2)}
