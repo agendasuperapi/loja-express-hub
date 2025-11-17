@@ -270,7 +270,7 @@ export default function Orders() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="border-orange-300">
+                  <Card className="border-2 border-orange-300">
                     <CardContent className="p-6">
                       {/* Store Name */}
                       {order.stores && (
