@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { ImageUpload } from "./ImageUpload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X, Receipt } from "lucide-react";
+import { Package, MapPin, CreditCard, StickyNote, Image as ImageIcon, History, Trash2, Plus, Tag, X, FileImage } from "lucide-react";
 import { useOrderHistory } from "@/hooks/useOrderHistory";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -487,7 +487,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
               Pagamento
             </TabsTrigger>
             <TabsTrigger value="receipt">
-              <Receipt className="w-4 h-4 mr-2" />
+              <FileImage className="w-4 h-4 mr-2" />
               Comprovante
             </TabsTrigger>
             <TabsTrigger value="delivery">
@@ -552,9 +552,8 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-4">
                   {orderItems.map((item, index) => (
-                <>
+                <React.Fragment key={item.id}>
                   <div 
-                    key={item.id} 
                     className={`border rounded-lg p-4 space-y-3 ${
                       item.pendingRemoval ? 'opacity-50 bg-destructive/5 border-destructive' : ''
                     }`}
@@ -649,7 +648,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
                   {index < orderItems.length - 1 && (
                     <Separator className="bg-orange-500 h-[3px] my-4" />
                   )}
-                </>
+                </React.Fragment>
               ))}
                 </div>
               </ScrollArea>
