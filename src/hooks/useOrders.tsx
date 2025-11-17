@@ -27,7 +27,8 @@ export const useOrders = () => {
             slug,
             pickup_address,
             address,
-            pix_key
+            pix_key,
+            show_pix_key_to_customer
           )
         `)
         .eq('customer_id', user!.id)
