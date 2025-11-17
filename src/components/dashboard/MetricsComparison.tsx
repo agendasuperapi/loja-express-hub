@@ -92,6 +92,14 @@ export const MetricsComparison = ({ orders, products }: MetricsComparisonProps) 
       ordersByHour[hour] = (ordersByHour[hour] || 0) + 1;
     });
 
+    // Payment status metrics
+    const receivedPayments = ordersData.filter(o => o.payment_received === true);
+    const pendingPayments = ordersData.filter(o => o.payment_received !== true);
+    const receivedPaymentsCount = receivedPayments.length;
+    const pendingPaymentsCount = pendingPayments.length;
+    const receivedPaymentsValue = receivedPayments.reduce((sum, order) => sum + (order.total || 0), 0);
+    const pendingPaymentsValue = pendingPayments.reduce((sum, order) => sum + (order.total || 0), 0);
+
     return {
       totalRevenue,
       totalOrders,
@@ -102,6 +110,10 @@ export const MetricsComparison = ({ orders, products }: MetricsComparisonProps) 
       paymentMethods,
       ordersByDay,
       ordersByHour,
+      receivedPaymentsCount,
+      pendingPaymentsCount,
+      receivedPaymentsValue,
+      pendingPaymentsValue,
     };
   };
 
@@ -431,6 +443,68 @@ export const MetricsComparison = ({ orders, products }: MetricsComparisonProps) 
                   <span className={cn("text-sm font-semibold", getChangeColor(calculateChange(metrics2.conversionRate, metrics1.conversionRate)))}>
                     {calculateChange(metrics2.conversionRate, metrics1.conversionRate).toFixed(1)}%
                   </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Status - Received */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-green-500" />
+                Pgto Recebido
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">P1:</span>
+                  <span className="text-lg font-bold text-green-500">R$ {metrics1.receivedPaymentsValue.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">P2:</span>
+                  <span className="text-lg font-bold text-green-500">R$ {metrics2.receivedPaymentsValue.toFixed(2)}</span>
+                </div>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Pedidos:</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">P1: {metrics1.receivedPaymentsCount} | P2: {metrics2.receivedPaymentsCount}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Status - Pending */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-500" />
+                Pgto Pendente
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">P1:</span>
+                  <span className="text-lg font-bold text-amber-500">R$ {metrics1.pendingPaymentsValue.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">P2:</span>
+                  <span className="text-lg font-bold text-amber-500">R$ {metrics2.pendingPaymentsValue.toFixed(2)}</span>
+                </div>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Pedidos:</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">P1: {metrics1.pendingPaymentsCount} | P2: {metrics2.pendingPaymentsCount}</span>
                 </div>
               </div>
             </CardContent>
