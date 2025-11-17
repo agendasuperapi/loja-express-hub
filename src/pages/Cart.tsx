@@ -60,6 +60,7 @@ export default function Cart() {
   
   const [storeData, setStoreData] = useState<any>(null);
   const deliveryTypeRef = useRef<HTMLDivElement>(null);
+  const cartItemsRef = useRef<HTMLDivElement>(null);
 
   // Reset email exists alert when email changes
   useEffect(() => {
@@ -75,11 +76,11 @@ export default function Cart() {
     }
   }, [user]);
 
-  // Scroll to delivery type section when reaching step 2 (optimized for mobile)
+  // Scroll to cart items section when reaching step 2 (optimized for mobile)
   useEffect(() => {
-    if (currentStep === 2 && deliveryTypeRef.current) {
+    if (currentStep === 2 && cartItemsRef.current) {
       setTimeout(() => {
-        const element = deliveryTypeRef.current;
+        const element = cartItemsRef.current;
         if (element) {
           // Get element position
           const elementPosition = element.getBoundingClientRect().top;
@@ -522,7 +523,7 @@ export default function Cart() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div ref={cartItemsRef} className="lg:col-span-2 space-y-4">
             <Button
               variant="outline"
               onClick={() => {
