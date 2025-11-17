@@ -44,6 +44,10 @@ export const useStoreOrders = (storeId?: string) => {
       // Verifica erro de rede/conexão
       if (error) {
         console.error('[updateOrderStatus] Erro de rede:', error);
+        const status = (error as any)?.context?.response?.status ?? (error as any)?.status ?? (error as any)?.cause?.status;
+        if (status === 401) {
+          throw new Error('Não autorizado. Sua sessão pode ter expirado. Faça login novamente.');
+        }
         throw new Error(error.message || 'Falha na comunicação com o servidor');
       }
 

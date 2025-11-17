@@ -99,7 +99,22 @@ Deno.serve(async (req) => {
       .single();
 
     const isStoreOwner = !storeErr && store && store.owner_id === user.id;
-    const statusKey = String(status);
+
+    // Normalize and validate status
+    const rawStatus = String(status);
+    const statusMap: Record<string, string> = {
+      out_for_delivery: 'in_delivery',
+    };
+    const normalizedStatus = statusMap[rawStatus] ?? rawStatus;
+    const allowedStatuses = new Set(['pending','confirmed','preparing','ready','in_delivery','delivered','cancelled']);
+    if (!allowedStatuses.has(normalizedStatus)) {
+      console.error('[update-order-status] Status inválido recebido:', rawStatus);
+      return new Response(JSON.stringify({ error: 'Status inválido.' }), {
+        status: 400,
+        headers: corsHeaders,
+      });
+    }
+    const statusKey = normalizedStatus;
 
     // If not store owner, check employee permissions
     if (!isStoreOwner) {
