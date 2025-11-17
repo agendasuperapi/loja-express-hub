@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
 import { EditOrderDialog } from "./EditOrderDialog";
+import { ReceiptDialog } from "./ReceiptDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -227,6 +228,8 @@ export const StoreOwnerDashboard = () => {
   const [editDialogInitialTab, setEditDialogInitialTab] = useState<string>("items");
   const [viewingOrder, setViewingOrder] = useState<any>(null);
   const [isViewOrderDialogOpen, setIsViewOrderDialogOpen] = useState(false);
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [receiptOrder, setReceiptOrder] = useState<any>(null);
 
   // Ajustar filtro padrão baseado em permissões
   useEffect(() => {
@@ -2074,9 +2077,8 @@ export const StoreOwnerDashboard = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setEditingOrder(order);
-                              setIsEditOrderDialogOpen(true);
-                              setEditDialogInitialTab('receipt');
+                              setReceiptOrder(order);
+                              setIsReceiptDialogOpen(true);
                             }}
                             className="flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
@@ -3818,6 +3820,16 @@ export const StoreOwnerDashboard = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Dialog */}
+      <ReceiptDialog
+        open={isReceiptDialogOpen}
+        onOpenChange={setIsReceiptDialogOpen}
+        order={receiptOrder}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['store-orders'] });
+        }}
+      />
     </div>
   );
 };
