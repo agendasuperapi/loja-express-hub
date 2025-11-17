@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useOrders } from "@/hooks/useOrders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Clock, CheckCircle, XCircle, Calendar as CalendarIcon, Store, Copy, Check } from "lucide-react";
-import { formatPixKey } from "@/lib/pixValidation";
+import { formatPixKey, validatePixKey } from "@/lib/pixValidation";
 import { toast } from "@/hooks/use-toast";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -350,35 +350,49 @@ export default function Orders() {
                           </p>
                         )}
                         
-                        {order.payment_method === 'pix' && order.stores?.pix_key && (
-                          <div className="mt-4 p-4 bg-muted rounded-lg border border-border">
-                            <p className="text-sm font-medium mb-2">Chave PIX para pagamento:</p>
-                            <div className="flex items-center gap-2">
-                              <code className="flex-1 text-sm bg-background px-3 py-2 rounded border border-border">
-                                {formatPixKey(order.stores.pix_key)}
-                              </code>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(order.stores.pix_key);
-                                  setCopiedPixKey(order.id);
-                                  setTimeout(() => setCopiedPixKey(null), 2000);
-                                  toast({
-                                    title: "Chave PIX copiada!",
-                                    description: "Cole no seu app de pagamento",
-                                  });
-                                }}
-                              >
-                                {copiedPixKey === order.id ? (
-                                  <Check className="w-4 h-4" />
-                                ) : (
-                                  <Copy className="w-4 h-4" />
-                                )}
-                              </Button>
+                        {order.payment_method === 'pix' && order.stores?.pix_key && (() => {
+                          const pixValidation = validatePixKey(order.stores.pix_key);
+                          
+                          if (!pixValidation.isValid) {
+                            return (
+                              <div className="mt-4 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                                <p className="text-sm text-destructive">
+                                  Chave PIX inválida cadastrada pela loja. Entre em contato com o estabelecimento.
+                                </p>
+                              </div>
+                            );
+                          }
+                          
+                          return (
+                            <div className="mt-4 p-4 bg-muted rounded-lg border border-border">
+                              <p className="text-sm font-medium mb-2">Chave PIX para pagamento:</p>
+                              <div className="flex items-center gap-2">
+                                <code className="flex-1 text-sm bg-background px-3 py-2 rounded border border-border">
+                                  {formatPixKey(order.stores.pix_key)}
+                                </code>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(order.stores.pix_key);
+                                    setCopiedPixKey(order.id);
+                                    setTimeout(() => setCopiedPixKey(null), 2000);
+                                    toast({
+                                      title: "Chave PIX copiada!",
+                                      description: "Cole no seu app de pagamento",
+                                    });
+                                  }}
+                                >
+                                  {copiedPixKey === order.id ? (
+                                    <Check className="w-4 h-4" />
+                                  ) : (
+                                    <Copy className="w-4 h-4" />
+                                  )}
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     </CardContent>
                   </Card>
