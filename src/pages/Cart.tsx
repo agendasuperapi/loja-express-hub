@@ -91,7 +91,10 @@ export default function Cart() {
     return zone ? zone.delivery_fee : storeData?.delivery_fee || 5;
   };
   
-  const storeDeliveryFee = deliveryType === 'delivery' ? calculateDeliveryFee() : 0;
+  // Calculate delivery fee automatically if city is available, even without delivery type selected
+  const storeDeliveryFee = (deliveryType === 'delivery' || (deliveryCity && storeData?.accepts_delivery)) 
+    ? calculateDeliveryFee() 
+    : 0;
 
   // Auto-advance to step 2 if user is already logged in
   useEffect(() => {
@@ -99,14 +102,6 @@ export default function Cart() {
       setCurrentStep(2);
     }
   }, [user]);
-
-  // Auto-select delivery when step 2 is shown with saved city
-  useEffect(() => {
-    if (currentStep === 2 && deliveryCity && deliveryType === null && storeData?.accepts_delivery) {
-      console.log('🚚 Selecionando entrega automaticamente com cidade:', deliveryCity);
-      setDeliveryType('delivery');
-    }
-  }, [currentStep, deliveryCity, deliveryType, storeData]);
 
   // Scroll to cart items section when reaching step 2 (optimized for mobile)
   useEffect(() => {
