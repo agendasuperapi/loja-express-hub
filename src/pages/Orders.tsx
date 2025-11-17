@@ -350,7 +350,7 @@ export default function Orders() {
                           </p>
                         )}
                         
-                        {order.payment_method === 'pix' && order.stores?.pix_key && (() => {
+                        {order.payment_method === 'pix' && order.stores?.pix_key && order.stores?.show_pix_key_to_customer !== false && (() => {
                           const pixValidation = validatePixKey(order.stores.pix_key);
                           
                           if (!pixValidation.isValid) {
