@@ -391,7 +391,7 @@ export default function Orders() {
                                     "flex-1 text-sm px-3 py-2 rounded border cursor-pointer select-none transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-0 selection:bg-green-200 selection:text-green-900 dark:selection:bg-green-900/60 dark:selection:text-green-200 active:bg-green-50",
                                     copiedPixKey === order.id 
                                       ? "bg-green-50 border-green-600 text-green-800 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300 scale-105" 
-                                      : "bg-background border-border hover:bg-accent"
+                                      : "bg-background border-border hover:bg-muted"
                                   )}
                                   onClick={() => {
                                     navigator.clipboard.writeText(order.stores.pix_key);
