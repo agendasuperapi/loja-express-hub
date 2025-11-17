@@ -3046,6 +3046,29 @@ export const StoreOwnerDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurações de Exibição</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_avg_delivery_time">Exibir Tempo de Entrega</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostrar o tempo médio de entrega na página da loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="show_avg_delivery_time"
+                    checked={storeForm.show_avg_delivery_time ?? true}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('show_avg_delivery_time', checked)
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </TabsContent>
 
@@ -3287,22 +3310,6 @@ export const StoreOwnerDashboard = () => {
                       onChange={(e) => setStoreForm({ ...storeForm, avg_delivery_time: parseInt(e.target.value) || 30 })}
                     />
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg mt-4">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="show_avg_delivery_time">Exibir Tempo de Entrega</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Mostrar o tempo médio de entrega na página da loja
-                    </p>
-                  </div>
-                  <Switch
-                    id="show_avg_delivery_time"
-                    checked={storeForm.show_avg_delivery_time ?? true}
-                    onCheckedChange={(checked) => 
-                      setStoreForm({ ...storeForm, show_avg_delivery_time: checked })
-                    }
-                  />
                 </div>
               </div>
 
