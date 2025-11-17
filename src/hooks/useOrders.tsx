@@ -5,10 +5,38 @@ import { toast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { orderSchema, CreateOrderData } from '@/schema/orderSchema';
 import { normalizePhone } from '@/lib/phone';
+import { useEffect } from 'react';
 
 export const useOrders = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Realtime subscription para atualizações automáticas
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `customer_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('[Realtime] Order change detected:', payload);
+          // Invalidar query para recarregar os dados
+          queryClient.invalidateQueries({ queryKey: ['orders', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const ordersQuery = useQuery({
     queryKey: ['orders', user?.id],

@@ -28,12 +28,14 @@ const statusConfig = {
 };
 
 type FilterType = 'day' | 'week' | 'month' | 'custom';
+type PaymentFilterType = 'all' | 'pending' | 'received';
 
 export default function Orders() {
   const navigate = useNavigate();
   const { orders, isLoading } = useOrders();
   const [filterType, setFilterType] = useState<FilterType>('day');
   const [customDate, setCustomDate] = useState<Date>();
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilterType>('all');
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null);
 
@@ -75,9 +77,19 @@ export default function Orders() {
 
     return orders.filter((order) => {
       const orderDate = new Date(order.created_at);
-      return isWithinInterval(orderDate, { start: startDate, end: endDate });
+      const dateMatch = isWithinInterval(orderDate, { start: startDate, end: endDate });
+      
+      // Filtro de pagamento
+      let paymentMatch = true;
+      if (paymentFilter === 'pending') {
+        paymentMatch = !(order as any).payment_received;
+      } else if (paymentFilter === 'received') {
+        paymentMatch = (order as any).payment_received === true;
+      }
+      
+      return dateMatch && paymentMatch;
     });
-  }, [orders, filterType, customDate]);
+  }, [orders, filterType, customDate, paymentFilter]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,60 +129,98 @@ export default function Orders() {
         >
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filterType === 'day' ? 'default' : 'outline'}
-                  onClick={() => setFilterType('day')}
-                  size="sm"
-                >
-                  Hoje
-                </Button>
-                <Button
-                  variant={filterType === 'week' ? 'default' : 'outline'}
-                  onClick={() => setFilterType('week')}
-                  size="sm"
-                >
-                  Esta Semana
-                </Button>
-                <Button
-                  variant={filterType === 'month' ? 'default' : 'outline'}
-                  onClick={() => setFilterType('month')}
-                  size="sm"
-                >
-                  Este Mês
-                </Button>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
+              <div className="space-y-4">
+                {/* Filtros de Data */}
+                <div>
+                  <p className="text-sm font-medium mb-2">Período</p>
+                  <div className="flex flex-wrap gap-2">
                     <Button
-                      variant={filterType === 'custom' ? 'default' : 'outline'}
+                      variant={filterType === 'day' ? 'default' : 'outline'}
+                      onClick={() => setFilterType('day')}
                       size="sm"
-                      className="justify-start"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customDate && filterType === 'custom' 
-                        ? format(customDate, "dd/MM/yyyy")
-                        : "Data Personalizada"
-                      }
+                      Hoje
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customDate}
-                      onSelect={(date) => {
-                        setCustomDate(date);
-                        if (date) setFilterType('custom');
-                      }}
-                      initialFocus
-                      locale={ptBR}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                    <Button
+                      variant={filterType === 'week' ? 'default' : 'outline'}
+                      onClick={() => setFilterType('week')}
+                      size="sm"
+                    >
+                      Esta Semana
+                    </Button>
+                    <Button
+                      variant={filterType === 'month' ? 'default' : 'outline'}
+                      onClick={() => setFilterType('month')}
+                      size="sm"
+                    >
+                      Este Mês
+                    </Button>
+                    
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={filterType === 'custom' ? 'default' : 'outline'}
+                          size="sm"
+                          className="justify-start"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customDate && filterType === 'custom' 
+                            ? format(customDate, "dd/MM/yyyy")
+                            : "Data Personalizada"
+                          }
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customDate}
+                          onSelect={(date) => {
+                            setCustomDate(date);
+                            if (date) setFilterType('custom');
+                          }}
+                          initialFocus
+                          locale={ptBR}
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
 
-                <div className="ml-auto flex items-center text-sm text-muted-foreground">
-                  {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido' : 'pedidos'}
+                    <div className="ml-auto flex items-center text-sm text-muted-foreground">
+                      {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido' : 'pedidos'}
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Filtros de Pagamento */}
+                <div>
+                  <p className="text-sm font-medium mb-2">Status de Pagamento</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={paymentFilter === 'all' ? 'default' : 'outline'}
+                      onClick={() => setPaymentFilter('all')}
+                      size="sm"
+                    >
+                      Todos
+                    </Button>
+                    <Button
+                      variant={paymentFilter === 'pending' ? 'default' : 'outline'}
+                      onClick={() => setPaymentFilter('pending')}
+                      size="sm"
+                      className={paymentFilter === 'pending' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
+                    >
+                      Pagamento Pendente
+                    </Button>
+                    <Button
+                      variant={paymentFilter === 'received' ? 'default' : 'outline'}
+                      onClick={() => setPaymentFilter('received')}
+                      size="sm"
+                      className={paymentFilter === 'received' ? 'bg-green-600 hover:bg-green-700' : ''}
+                    >
+                      Pagamento Recebido
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>

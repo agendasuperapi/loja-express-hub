@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { useCoupons } from "@/hooks/useCoupons";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface OrderItem {
   id: string;
@@ -46,6 +47,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
   const [showAddProduct, setShowAddProduct] = useState(false);
   const { history, addHistory } = useOrderHistory(order?.id);
   const { validateCoupon } = useCoupons(order?.store_id);
+  const queryClient = useQueryClient();
   
   const [couponCode, setCouponCode] = useState(order?.coupon_code || '');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -453,6 +455,9 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
 
       // Recarregar itens do pedido antes de fechar
       await loadOrderItems();
+      
+      // Invalidar query de orders para atualização automática
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       
       onUpdate();
       onOpenChange(false);
