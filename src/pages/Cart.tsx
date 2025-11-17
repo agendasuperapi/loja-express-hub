@@ -166,17 +166,36 @@ export default function Cart() {
   useEffect(() => {
     const loadUserProfile = async () => {
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('full_name, phone, cep, city, street, street_number, neighborhood, complement')
           .eq('id', user.id)
           .maybeSingle();
 
+        if (error) {
+          console.error('Error loading profile:', error);
+          return;
+        }
+
         if (profile) {
+          console.log('📋 Carregando perfil do usuário:', profile);
+          
           setCustomerName(profile.full_name || "");
           setCustomerPhone(profile.phone || "");
-          setDeliveryCep(profile.cep || "");
-          setDeliveryCity(profile.city || "");
+          
+          // Format CEP with hyphen if it exists
+          if (profile.cep) {
+            const formattedCep = formatCep(profile.cep);
+            console.log('📍 CEP carregado:', profile.cep, '-> formatado:', formattedCep);
+            setDeliveryCep(formattedCep);
+          }
+          
+          // Load city
+          if (profile.city) {
+            console.log('🏙️ Cidade carregada:', profile.city);
+            setDeliveryCity(profile.city);
+          }
+          
           setDeliveryStreet(profile.street || "");
           setDeliveryNumber(profile.street_number || "");
           setDeliveryNeighborhood(profile.neighborhood || "");
@@ -434,18 +453,26 @@ export default function Cart() {
       }
   
       // Update user profile with current data
+      const cleanedCep = deliveryType === 'delivery' && deliveryCep 
+        ? deliveryCep.replace(/\D/g, '') 
+        : null;
+      
+      const profileData = {
+        full_name: customerName,
+        phone: normalizePhone(customerPhone),
+        cep: cleanedCep,
+        city: deliveryType === 'delivery' ? deliveryCity.trim() : null,
+        street: deliveryType === 'delivery' ? deliveryStreet : null,
+        street_number: deliveryType === 'delivery' ? deliveryNumber : null,
+        neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
+        complement: deliveryType === 'delivery' ? deliveryComplement : null,
+      };
+      
+      console.log('💾 Salvando perfil do usuário:', profileData);
+      
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          full_name: customerName,
-          phone: normalizePhone(customerPhone),
-          cep: deliveryType === 'delivery' ? deliveryCep : null,
-          city: deliveryType === 'delivery' ? deliveryCity : null,
-          street: deliveryType === 'delivery' ? deliveryStreet : null,
-          street_number: deliveryType === 'delivery' ? deliveryNumber : null,
-          neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
-          complement: deliveryType === 'delivery' ? deliveryComplement : null,
-        })
+        .update(profileData)
         .eq('id', user.id);
   
       if (profileError) {
