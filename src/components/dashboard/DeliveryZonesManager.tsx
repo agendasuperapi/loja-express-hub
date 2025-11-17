@@ -120,12 +120,40 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   };
 
   useEffect(() => {
+    const CACHE_KEY = 'brazilian_cities_cache';
+    const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 dias em milissegundos
+
     const fetchCities = async () => {
       setIsLoadingCities(true);
       try {
+        // Verificar se existe cache válido
+        const cachedData = localStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+          const { data, timestamp } = JSON.parse(cachedData);
+          const now = Date.now();
+          
+          // Se o cache ainda é válido (menos de 7 dias), usar os dados em cache
+          if (now - timestamp < CACHE_DURATION) {
+            console.log('📦 Usando cidades do cache local');
+            setCities(data);
+            setIsLoadingCities(false);
+            return;
+          }
+        }
+
+        // Se não há cache ou está expirado, buscar da API
+        console.log('🌐 Buscando cidades da API do IBGE');
         const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome');
         const data: City[] = await response.json();
+        
+        // Salvar no cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data,
+          timestamp: Date.now()
+        }));
+        
         setCities(data);
+        toast.success('Lista de cidades carregada com sucesso');
       } catch (error) {
         console.error('Erro ao buscar cidades:', error);
         toast.error('Erro ao carregar lista de cidades');
@@ -137,7 +165,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     if (isDialogOpen && cities.length === 0) {
       fetchCities();
     }
-  }, [isDialogOpen]);
+  }, [isDialogOpen, cities.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
