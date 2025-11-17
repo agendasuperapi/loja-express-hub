@@ -497,6 +497,12 @@ export const StoreOwnerDashboard = () => {
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const completedOrders = filteredOrders?.filter(o => o.status === 'delivered').length || 0;
   const pendingOrders = filteredOrders?.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status)).length || 0;
+  
+  // Calculate payment metrics
+  const receivedPaymentsCount = filteredOrders?.filter(o => o.payment_received === true).length || 0;
+  const pendingPaymentsCount = filteredOrders?.filter(o => o.payment_received !== true).length || 0;
+  const receivedPaymentsValue = filteredOrders?.filter(o => o.payment_received === true).reduce((sum, order) => sum + Number(order.total), 0) || 0;
+  const pendingPaymentsValue = filteredOrders?.filter(o => o.payment_received !== true).reduce((sum, order) => sum + Number(order.total), 0) || 0;
 
   // Calculate previous period metrics
   const previousTotalOrders = previousPeriodOrders?.length || 0;
@@ -1578,6 +1584,51 @@ export const StoreOwnerDashboard = () => {
                     <p className="text-xs text-muted-foreground mt-1">
                       Taxa: {totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : 0}%
                     </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+
+            {/* Payment Status Card */}
+            <div className="grid gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Card className="hover-scale overflow-hidden relative border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-sm font-medium">Status de Pagamento</CardTitle>
+                    <DollarSign className="h-5 w-5 text-amber-500" />
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          <span className="text-xs text-muted-foreground">Pgto Recebido</span>
+                        </div>
+                        <div className="text-2xl font-bold text-green-500">
+                          R$ {receivedPaymentsValue.toFixed(2)}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {receivedPaymentsCount} {receivedPaymentsCount === 1 ? 'pedido' : 'pedidos'}
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                          <span className="text-xs text-muted-foreground">Pgto Pendente</span>
+                        </div>
+                        <div className="text-2xl font-bold text-amber-500">
+                          R$ {pendingPaymentsValue.toFixed(2)}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {pendingPaymentsCount} {pendingPaymentsCount === 1 ? 'pedido' : 'pedidos'}
+                        </p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
