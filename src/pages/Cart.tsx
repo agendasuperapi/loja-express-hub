@@ -345,6 +345,7 @@ export default function Cart() {
       }
   
       if (!deliveryType) {
+        deliveryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         toast({
           title: "Tipo de entrega não selecionado",
           description: "Por favor, selecione se deseja entrega ou retirada na loja.",
