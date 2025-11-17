@@ -23,6 +23,7 @@ import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
+import { NotesDialog } from "./NotesDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -230,6 +231,8 @@ export const StoreOwnerDashboard = () => {
   const [isViewOrderDialogOpen, setIsViewOrderDialogOpen] = useState(false);
   const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
   const [receiptOrder, setReceiptOrder] = useState<any>(null);
+  const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
+  const [notesOrder, setNotesOrder] = useState<any>(null);
 
   // Ajustar filtro padrão baseado em permissões
   useEffect(() => {
@@ -2101,9 +2104,8 @@ export const StoreOwnerDashboard = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setEditingOrder(order);
-                                setIsEditOrderDialogOpen(true);
-                                setEditDialogInitialTab('notes');
+                                setNotesOrder(order);
+                                setIsNotesDialogOpen(true);
                               }}
                               className="flex items-center justify-center gap-2 w-full sm:w-auto"
                             >
@@ -3791,9 +3793,8 @@ export const StoreOwnerDashboard = () => {
                     variant="outline"
                     onClick={() => {
                       setIsViewOrderDialogOpen(false);
-                      setEditingOrder(viewingOrder);
-                      setIsEditOrderDialogOpen(true);
-                      setEditDialogInitialTab('notes');
+                      setNotesOrder(viewingOrder);
+                      setIsNotesDialogOpen(true);
                     }}
                     className="flex items-center gap-2"
                   >
@@ -3826,6 +3827,16 @@ export const StoreOwnerDashboard = () => {
         open={isReceiptDialogOpen}
         onOpenChange={setIsReceiptDialogOpen}
         order={receiptOrder}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['store-orders'] });
+        }}
+      />
+
+      {/* Notes Dialog */}
+      <NotesDialog
+        open={isNotesDialogOpen}
+        onOpenChange={setIsNotesDialogOpen}
+        order={notesOrder}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['store-orders'] });
         }}
