@@ -172,7 +172,6 @@ export const StoreOwnerDashboard = () => {
     pickup_address: myStore?.pickup_address || '',
     phone: myStore?.phone || '',
     menu_label: myStore?.menu_label || 'Cardápio',
-    pix_key: (myStore as any)?.pix_key || '',
   });
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
@@ -274,7 +273,6 @@ export const StoreOwnerDashboard = () => {
         pickup_address: myStore.pickup_address || '',
         phone: myStore.phone || '',
         menu_label: myStore.menu_label || 'Cardápio',
-        pix_key: (myStore as any).pix_key || '',
       });
     }
   }, [myStore]);
@@ -821,7 +819,6 @@ export const StoreOwnerDashboard = () => {
         pickup_address: storeForm.pickup_address,
         phone: storeForm.phone,
         menu_label: storeForm.menu_label,
-        pix_key: storeForm.pix_key,
       } as any);
 
       // Se o slug foi alterado, limpar caches e localStorage
@@ -3208,19 +3205,6 @@ export const StoreOwnerDashboard = () => {
                   value={storeForm.phone}
                   onChange={(value) => setStoreForm({ ...storeForm, phone: value })}
                 />
-              </div>
-
-              <div>
-                <Label>Chave PIX</Label>
-                <Input
-                  type="text"
-                  placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                  value={storeForm.pix_key}
-                  onChange={(e) => setStoreForm({ ...storeForm, pix_key: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Chave PIX para recebimento de pagamentos dos clientes
-                </p>
               </div>
 
               <Separator className="my-6" />
