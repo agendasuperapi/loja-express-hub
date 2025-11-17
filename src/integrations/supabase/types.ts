@@ -91,7 +91,7 @@ export type Database = {
           created_at: string
           delivery_fee: number
           id: string
-          is_active: boolean | null
+          is_active: boolean
           neighborhood: string | null
           store_id: string
           updated_at: string
@@ -101,7 +101,7 @@ export type Database = {
           created_at?: string
           delivery_fee?: number
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           neighborhood?: string | null
           store_id: string
           updated_at?: string
@@ -111,7 +111,7 @@ export type Database = {
           created_at?: string
           delivery_fee?: number
           id?: string
-          is_active?: boolean | null
+          is_active?: boolean
           neighborhood?: string | null
           store_id?: string
           updated_at?: string
