@@ -114,6 +114,17 @@ export const PERMISSION_MODULES: PermissionModule[] = [
     ],
   },
   {
+    key: 'delivery',
+    label: 'Entregas',
+    description: 'Gerenciamento de zonas de entrega e taxas',
+    permissions: [
+      { key: 'view', label: 'Visualizar', description: 'Ver zonas de entrega', defaultValue: true },
+      { key: 'create', label: 'Criar', description: 'Criar novas zonas', defaultValue: false },
+      { key: 'update', label: 'Editar', description: 'Editar zonas existentes', defaultValue: false },
+      { key: 'delete', label: 'Excluir', description: 'Excluir zonas', defaultValue: false },
+    ],
+  },
+  {
     key: 'coupons',
     label: 'Cupons de Desconto',
     description: 'Gerenciamento de cupons promocionais',

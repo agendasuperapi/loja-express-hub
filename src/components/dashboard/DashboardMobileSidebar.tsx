@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store } from "lucide-react";
+import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store, Truck } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ export const DashboardMobileSidebar = ({
     ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
     ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
+    ...(hasPermission('delivery', 'view') ? [{ id: 'entregas', label: 'entregas', icon: Truck }] : []),
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
 

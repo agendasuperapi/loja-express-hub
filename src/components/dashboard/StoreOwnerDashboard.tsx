@@ -66,6 +66,7 @@ import { RegisteredProductsReport } from "./RegisteredProductsReport";
 import { OrdersReport } from "./OrdersReport";
 import { ReportsFilters } from "./ReportsFilters";
 import { useDateRangeFilter } from "@/hooks/useDateRangeFilter";
+import { DeliveryZonesManager } from "./DeliveryZonesManager";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -2722,6 +2723,17 @@ export const StoreOwnerDashboard = () => {
             className="p-8"
           >
             <EmployeesManager storeId={myStore.id} />
+          </motion.div>
+        )}
+
+        {activeTab === 'entregas' && myStore?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="p-8"
+          >
+            <DeliveryZonesManager storeId={myStore.id} />
           </motion.div>
         )}
 

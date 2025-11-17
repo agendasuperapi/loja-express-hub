@@ -85,6 +85,47 @@ export type Database = {
           },
         ]
       }
+      delivery_zones: {
+        Row: {
+          city: string
+          created_at: string
+          delivery_fee: number
+          id: string
+          is_active: boolean | null
+          neighborhood: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          delivery_fee?: number
+          id?: string
+          is_active?: boolean | null
+          neighborhood?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          delivery_fee?: number
+          id?: string
+          is_active?: boolean | null
+          neighborhood?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_zones_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_activity_log: {
         Row: {
           action: string
