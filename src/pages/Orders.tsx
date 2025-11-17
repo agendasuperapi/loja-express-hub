@@ -359,14 +359,26 @@ export default function Orders() {
                           {order.payment_method === 'cartao' && 'Cartão'}
                         </p>
                         
-                        <div className="mt-2">
-                          <Badge 
-                            variant={(order as any).payment_received ? 'default' : 'secondary'}
-                            className={(order as any).payment_received ? 'bg-green-600' : 'bg-yellow-600'}
-                          >
-                            {(order as any).payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
-                          </Badge>
-                        </div>
+                        {(() => {
+                          const paymentReceived = (order as any).payment_received;
+                          console.log('[Payment Status Debug]', {
+                            orderId: order.id,
+                            orderNumber: order.order_number,
+                            payment_received: paymentReceived,
+                            fullOrder: order
+                          });
+                          
+                          return (
+                            <div className="mt-2">
+                              <Badge 
+                                variant={paymentReceived ? 'default' : 'secondary'}
+                                className={paymentReceived ? 'bg-green-600 text-white' : 'bg-yellow-600 text-white'}
+                              >
+                                {paymentReceived ? 'Pagamento recebido' : 'Pagamento pendente'}
+                              </Badge>
+                            </div>
+                          );
+                        })()}
                         
                         {order.payment_method === 'dinheiro' && order.change_amount && (
                           <p className="text-sm text-muted-foreground">
