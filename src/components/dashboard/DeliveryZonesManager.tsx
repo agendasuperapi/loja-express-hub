@@ -15,6 +15,11 @@ import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+// Função para remover acentos e normalizar texto para busca
+const removeAccents = (str: string): string => {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+};
+
 interface DeliveryZonesManagerProps {
   storeId: string | undefined;
 }
@@ -288,11 +293,13 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                             .map((city) => {
                               const uf = city.microrregiao?.mesorregiao?.UF?.sigla || '';
                               const cityName = `${city.nome} - ${uf}`;
+                              // Valor de busca normalizado sem acentos para melhor compatibilidade
+                              const searchValue = `${removeAccents(city.nome)} ${removeAccents(uf)} ${cityName}`;
                               
                               return (
                                 <CommandItem
                                   key={city.id}
-                                  value={cityName}
+                                  value={searchValue}
                                   onSelect={() => {
                                     setFormData({ 
                                       ...formData, 
