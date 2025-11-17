@@ -26,11 +26,14 @@ const playNotificationSound = () => {
     oscillator.frequency.value = 800; // Frequência do bipe (Hz)
     oscillator.type = 'sine';
 
+    // Som mais longo com padrão de dois bipes
     gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+    gainNode.gain.setValueAtTime(volume, audioContext.currentTime + 0.5);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.9);
 
     oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
+    oscillator.stop(audioContext.currentTime + 1.5);
   } catch (error) {
     console.error('Erro ao tocar som de notificação:', error);
   }
