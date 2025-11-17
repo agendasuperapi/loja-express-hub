@@ -899,6 +899,7 @@ export type Database = {
           pix_key: string | null
           rating: number | null
           show_avg_delivery_time: boolean | null
+          show_pix_key_to_customer: boolean | null
           slug: string
           status: Database["public"]["Enums"]["store_status"]
           total_reviews: number | null
@@ -931,6 +932,7 @@ export type Database = {
           pix_key?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
+          show_pix_key_to_customer?: boolean | null
           slug: string
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null
@@ -963,6 +965,7 @@ export type Database = {
           pix_key?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
+          show_pix_key_to_customer?: boolean | null
           slug?: string
           status?: Database["public"]["Enums"]["store_status"]
           total_reviews?: number | null
