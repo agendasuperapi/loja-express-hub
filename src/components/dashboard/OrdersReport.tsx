@@ -435,23 +435,23 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Total de Pedidos</p>
-                  <p className="text-2xl font-bold">{filteredOrders.length}</p>
+                  <p className="text-xl font-bold">{filteredOrders.length}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Valor Total</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-xl font-bold text-green-600">
                     R$ {filteredOrders.reduce((sum, order) => sum + order.total, 0).toFixed(2)}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Ticket Médio</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xl font-bold">
                     R$ {(filteredOrders.reduce((sum, order) => sum + order.total, 0) / filteredOrders.length).toFixed(2)}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground">Descontos Aplicados</p>
-                  <p className="text-2xl font-bold text-orange-600">
+                  <p className="text-xl font-bold text-orange-600">
                     R$ {filteredOrders.reduce((sum, order) => sum + (order.coupon_discount || 0), 0).toFixed(2)}
                   </p>
                 </div>
