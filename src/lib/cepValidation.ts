@@ -7,11 +7,21 @@ export const cepSchema = z.string()
   .transform((val) => val.replace(/\D/g, '')) // Remove hífen
   .refine((val) => val.length === 8, "CEP deve ter 8 dígitos");
 
-// Formatar CEP com hífen
+// Formatar CEP com hífen (aplica máscara enquanto digita)
 export const formatCep = (cep: string): string => {
+  // Remove tudo que não é número
   const cleaned = cep.replace(/\D/g, '');
-  if (cleaned.length !== 8) return cep;
-  return `${cleaned.slice(0, 5)}-${cleaned.slice(5)}`;
+  
+  // Limita a 8 dígitos
+  const limited = cleaned.slice(0, 8);
+  
+  // Aplica a máscara progressivamente
+  if (limited.length <= 5) {
+    return limited;
+  }
+  
+  // Formato: 12345-678
+  return `${limited.slice(0, 5)}-${limited.slice(5)}`;
 };
 
 // Interface de resposta da API ViaCEP
