@@ -305,10 +305,33 @@ export default function Cart() {
     }
   };
 
-  const handleCepChange = (value: string) => {
+  const handleCepChange = async (value: string) => {
     const formatted = formatCep(value);
     setDeliveryCep(formatted);
     setCepError("");
+    
+    // Busca automática quando o CEP estiver completo (8 dígitos)
+    const cleanedCep = formatted.replace(/\D/g, '');
+    if (cleanedCep.length === 8 && isValidCepFormat(formatted)) {
+      setIsSearchingCep(true);
+      
+      try {
+        const data = await fetchCepData(formatted);
+        
+        if (data) {
+          setDeliveryCity(data.localidade);
+          setDeliveryStreet(data.logradouro);
+          setDeliveryNeighborhood(data.bairro);
+          setCepError("");
+        } else {
+          setCepError("CEP não encontrado");
+        }
+      } catch (error) {
+        setCepError("Erro ao buscar CEP");
+      } finally {
+        setIsSearchingCep(false);
+      }
+    }
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -1052,7 +1075,7 @@ export default function Cart() {
                                 <p className="text-sm text-destructive mt-1.5">{cepError}</p>
                               )}
                               <p className="text-xs text-muted-foreground mt-1.5">
-                                Digite o CEP e clique em buscar para preencher automaticamente
+                                O endereço será preenchido automaticamente ao digitar o CEP completo
                               </p>
                             </div>
 
