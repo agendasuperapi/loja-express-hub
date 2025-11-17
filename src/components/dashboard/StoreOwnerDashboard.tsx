@@ -1998,6 +1998,18 @@ export const StoreOwnerDashboard = () => {
                             <span className="text-muted-foreground">Pagamento:</span>
                             <span className="font-medium capitalize">{order.payment_method}</span>
                           </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Status Pgto:</span>
+                            <Badge 
+                              className={
+                                (order as any).payment_received 
+                                  ? "bg-green-600 text-white hover:bg-green-700" 
+                                  : "bg-yellow-600 text-white hover:bg-yellow-700"
+                              }
+                            >
+                              {(order as any).payment_received ? "Pagamento recebido" : "Pagamento pendente"}
+                            </Badge>
+                          </div>
                           {(order as any).coupon_code && (
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">Cupom:</span>
@@ -3589,6 +3601,18 @@ export const StoreOwnerDashboard = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Pagamento:</span>
                     <span className="font-medium capitalize">{viewingOrder.payment_method}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Status Pgto:</span>
+                    <Badge 
+                      className={
+                        viewingOrder.payment_received 
+                          ? "bg-green-600 text-white hover:bg-green-700" 
+                          : "bg-yellow-600 text-white hover:bg-yellow-700"
+                      }
+                    >
+                      {viewingOrder.payment_received ? "Pagamento recebido" : "Pagamento pendente"}
+                    </Badge>
                   </div>
                   {viewingOrder.change_amount > 0 && (
                     <div className="flex justify-between">
