@@ -70,6 +70,7 @@ export default function Cart() {
   const storeStatusText = storeData ? getStoreStatusText(storeData.operating_hours) : '';
   const allowOrdersWhenClosed = (storeData as any)?.allow_orders_when_closed ?? false;
   const canAcceptOrders = storeIsOpen || allowOrdersWhenClosed;
+  const isScheduledOrder = !storeIsOpen && allowOrdersWhenClosed;
 
   // Auto-advance to step 2 if user is already logged in
   useEffect(() => {
@@ -1116,7 +1117,11 @@ export default function Cart() {
                       <Alert className="border-amber-500 bg-amber-500/10">
                         <Clock className="h-4 w-4 text-amber-500" />
                         <AlertDescription className="text-amber-700 dark:text-amber-400">
-                          <strong>📅 Pedido Agendado:</strong> A loja está fechada no momento, mas seu pedido será processado quando abrir. {storeStatusText}
+                          <div className="space-y-1">
+                            <p><strong>📅 Pedido Agendado</strong></p>
+                            <p className="text-sm">A loja está fechada no momento. Seu pedido será processado assim que a loja abrir.</p>
+                            <p className="text-sm font-medium">{storeStatusText}</p>
+                          </div>
                         </AlertDescription>
                       </Alert>
                     )}

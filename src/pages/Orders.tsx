@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useOrders } from "@/hooks/useOrders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, Clock, CheckCircle, XCircle, Calendar as CalendarIcon, Store, Copy, Check, CreditCard, Mail, Phone, Key } from "lucide-react";
@@ -16,6 +17,7 @@ import { toast } from "@/hooks/use-toast";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 
 const statusConfig = {
   pending: { label: 'Pendente', icon: Clock, color: 'bg-yellow-500' },
@@ -252,6 +254,14 @@ export default function Orders() {
             {filteredOrders.map((order, index) => {
               const status = statusConfig[order.status as keyof typeof statusConfig];
               const StatusIcon = status.icon;
+              
+              // Check if this is a scheduled order
+              const store = (order as any).stores;
+              const storeIsCurrentlyOpen = store?.operating_hours ? isStoreOpen(store.operating_hours) : true;
+              const storeStatusText = store?.operating_hours ? getStoreStatusText(store.operating_hours) : '';
+              const allowOrdersWhenClosed = store?.allow_orders_when_closed ?? false;
+              const isScheduledOrder = !storeIsCurrentlyOpen && allowOrdersWhenClosed && 
+                                        (order.status === 'pending' || order.status === 'confirmed');
 
               return (
                 <motion.div
@@ -271,7 +281,7 @@ export default function Orders() {
                         </div>
                       )}
                       
-                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-3">
                         <div>
                           <h3 className="text-xl font-bold mb-1">
                             Pedido {order.order_number}
@@ -281,11 +291,33 @@ export default function Orders() {
                           </p>
                         </div>
                         
-                        <Badge className={`${status.color} text-white`}>
-                          <StatusIcon className="w-4 h-4 mr-1" />
-                          {status.label}
-                        </Badge>
+                        <div className="flex flex-col gap-2">
+                          <Badge className={`${status.color} text-white w-fit`}>
+                            <StatusIcon className="w-4 h-4 mr-1" />
+                            {status.label}
+                          </Badge>
+                          
+                          {isScheduledOrder && (
+                            <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400 w-fit">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pedido Agendado
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+
+                      {isScheduledOrder && (
+                        <Alert className="mb-4 border-amber-500 bg-amber-500/10">
+                          <Clock className="h-4 w-4 text-amber-500" />
+                          <AlertDescription className="text-amber-700 dark:text-amber-400">
+                            <div className="space-y-1">
+                              <p className="font-medium">📅 Este pedido está agendado</p>
+                              <p className="text-sm">Seu pedido será processado assim que a loja abrir.</p>
+                              <p className="text-sm font-medium">{storeStatusText}</p>
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
 
                       <Separator className="my-4" />
 
