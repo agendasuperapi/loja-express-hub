@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface CartAddon {
   id: string;
@@ -60,6 +62,7 @@ interface CartContextType {
   getItemCount: () => number;
   applyCoupon: (code: string, discount: number) => void;
   removeCoupon: () => void;
+  validateAndSyncCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -250,6 +253,79 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const validateAndSyncCart = async () => {
+    if (!cart.storeId || cart.items.length === 0) return;
+
+    try {
+      // Buscar produtos atuais da loja
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, name, price, promotional_price, is_available, image_url')
+        .eq('store_id', cart.storeId)
+        .eq('is_available', true);
+
+      if (error) throw error;
+
+      const removedItems: string[] = [];
+      const updatedItems: string[] = [];
+      let hasChanges = false;
+
+      setCart(prev => {
+        const newItems = prev.items.filter(item => {
+          const product = products?.find(p => p.id === item.productId);
+          
+          // Produto não existe mais ou não está disponível
+          if (!product) {
+            removedItems.push(item.productName);
+            hasChanges = true;
+            return false;
+          }
+
+          // Verificar se preço mudou
+          const currentPrice = product.promotional_price || product.price;
+          const cartPrice = item.promotionalPrice || item.price;
+          
+          if (currentPrice !== cartPrice) {
+            updatedItems.push(item.productName);
+            hasChanges = true;
+            item.price = product.price;
+            item.promotionalPrice = product.promotional_price || undefined;
+          }
+
+          // Atualizar imagem se mudou
+          if (product.image_url !== item.imageUrl) {
+            item.imageUrl = product.image_url || undefined;
+            hasChanges = true;
+          }
+
+          return true;
+        });
+
+        if (!hasChanges) return prev;
+
+        return {
+          ...prev,
+          items: newItems.length > 0 ? newItems : [],
+          storeId: newItems.length > 0 ? prev.storeId : null,
+          storeName: newItems.length > 0 ? prev.storeName : null,
+          storeSlug: newItems.length > 0 ? prev.storeSlug : null,
+          couponCode: newItems.length > 0 ? prev.couponCode : null,
+          couponDiscount: newItems.length > 0 ? prev.couponDiscount : 0,
+        };
+      });
+
+      // Mostrar mensagens sobre as mudanças
+      if (removedItems.length > 0) {
+        toast.warning(`${removedItems.length} ${removedItems.length === 1 ? 'item removido' : 'itens removidos'} do carrinho (indisponível)`);
+      }
+      if (updatedItems.length > 0) {
+        toast.info(`${updatedItems.length} ${updatedItems.length === 1 ? 'item atualizado' : 'itens atualizados'} com novos preços`);
+      }
+    } catch (error) {
+      console.error('Erro ao validar carrinho:', error);
+    }
+  };
+
   return (
     <CartContext.Provider value={{
       cart,
@@ -262,6 +338,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       getItemCount,
       applyCoupon,
       removeCoupon,
+      validateAndSyncCart,
     }}>
       {children}
     </CartContext.Provider>
