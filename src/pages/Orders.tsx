@@ -387,7 +387,12 @@ export default function Orders() {
                               </div>
                               <div className="flex items-center gap-2">
                                 <code 
-                                  className="flex-1 text-sm bg-background px-3 py-2 rounded border border-border cursor-pointer hover:bg-accent transition-colors"
+                                  className={cn(
+                                    "flex-1 text-sm px-3 py-2 rounded border cursor-pointer transition-colors",
+                                    copiedPixKey === order.id 
+                                      ? "bg-green-500/20 border-green-500 text-green-700 dark:text-green-400" 
+                                      : "bg-background border-border hover:bg-accent"
+                                  )}
                                   onClick={() => {
                                     navigator.clipboard.writeText(order.stores.pix_key);
                                     setCopiedPixKey(order.id);
