@@ -201,9 +201,9 @@ export const ImageUpload = ({
   };
 
   const sizeClasses = {
-    sm: 'max-w-[200px]',
-    md: 'max-w-[300px]',
-    lg: 'max-w-[400px]'
+    sm: 'max-w-[150px]',
+    md: 'max-w-[220px]',
+    lg: 'max-w-[350px]'
   };
 
   return (
