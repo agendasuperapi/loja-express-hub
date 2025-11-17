@@ -1025,6 +1025,7 @@ export const StoreOwnerDashboard = () => {
             <div class="info-row"><strong>Telefone:</strong> ${order.customer_phone}</div>
             <div class="info-row"><strong>Tipo:</strong> ${order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}</div>
             <div class="info-row"><strong>Pagamento:</strong> ${order.payment_method}</div>
+            <div class="info-row"><strong>Status Pgto:</strong> ${order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}</div>
             ${order.delivery_type === 'delivery' ? `
               <div class="info-row">
                 <strong>Endereço:</strong> ${order.delivery_street}, ${order.delivery_number}
