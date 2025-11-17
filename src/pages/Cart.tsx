@@ -1319,18 +1319,18 @@ export default function Cart() {
                       </Alert>
                     )}
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <Button
                         variant="outline"
                         size="lg"
                         onClick={() => setCurrentStep(1)}
-                        className="flex-1"
+                        className="flex-1 text-sm sm:text-base"
                       >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Voltar
                       </Button>
                       <Button
-                        className="flex-1 bg-gradient-primary"
+                        className="flex-1 bg-gradient-primary text-sm sm:text-base"
                         size="lg"
                         onClick={handleCheckout}
                         disabled={
@@ -1342,13 +1342,15 @@ export default function Cart() {
                           (deliveryType === 'delivery' && (!deliveryStreet || !deliveryNumber || !deliveryNeighborhood))
                         }
                       >
-                        {!canAcceptOrders 
-                          ? 'Pedidos Indisponíveis' 
-                          : !storeIsOpen && canAcceptOrders
-                            ? '📅 Agendar Pedido'
-                            : isCreating 
-                              ? 'Finalizando...' 
-                              : 'Finalizar Pedido'}
+                        <span className="truncate">
+                          {!canAcceptOrders 
+                            ? 'Pedidos Indisponíveis' 
+                            : !storeIsOpen && canAcceptOrders
+                              ? '📅 Agendar Pedido'
+                              : isCreating 
+                                ? 'Finalizando...' 
+                                : 'Finalizar Pedido'}
+                        </span>
                       </Button>
                     </div>
                   </motion.div>
