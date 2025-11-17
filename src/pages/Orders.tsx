@@ -337,14 +337,14 @@ export default function Orders() {
 
                       <Separator className="my-4" />
 
-                      {order.customer_notes && (
+                      {(order as any).customer_notes && (
                         <>
                           <div className="space-y-2 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-900">
                             <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                               Observações da Loja:
                             </p>
                             <p className="text-sm text-blue-700 dark:text-blue-300 whitespace-pre-wrap">
-                              {order.customer_notes}
+                              {(order as any).customer_notes}
                             </p>
                           </div>
                           <Separator className="my-4" />

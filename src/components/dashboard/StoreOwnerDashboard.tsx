@@ -1026,7 +1026,9 @@ export const StoreOwnerDashboard = () => {
                 - ${order.delivery_neighborhood}
               </div>
             ` : ''}
-            ${order.notes ? `<div class="info-row"><strong>Observações:</strong> ${order.notes}</div>` : ''}
+            ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${order.notes}</div>` : ''}
+            ${(order as any).customer_notes ? `<div class="info-row"><strong>Observações Externas (Cliente vê):</strong> ${(order as any).customer_notes}</div>` : ''}
+            ${(order as any).store_notes ? `<div class="info-row"><strong>Observações Internas (Privadas):</strong> ${(order as any).store_notes}</div>` : ''}
           </div>
           
           <table>
@@ -3611,8 +3613,38 @@ export const StoreOwnerDashboard = () => {
                 <>
                   <Separator />
                   <div>
-                    <h3 className="font-semibold mb-3">Observações</h3>
+                    <h3 className="font-semibold mb-3">Observações do Cliente</h3>
                     <p className="text-sm text-muted-foreground">{viewingOrder.notes}</p>
+                  </div>
+                </>
+              )}
+
+              {/* Observações Externas (Cliente vê) */}
+              {(viewingOrder as any).customer_notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-3">Observações Externas</h3>
+                    <p className="text-sm bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300">
+                      {(viewingOrder as any).customer_notes}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ℹ️ O cliente também vê estas observações
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {/* Observações Internas (Privadas) */}
+              {(viewingOrder as any).store_notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold mb-3">Observações Internas</h3>
+                    <p className="text-sm text-muted-foreground">{(viewingOrder as any).store_notes}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      🔒 Apenas você vê estas observações
+                    </p>
                   </div>
                 </>
               )}
