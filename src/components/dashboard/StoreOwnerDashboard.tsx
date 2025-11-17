@@ -220,6 +220,7 @@ export const StoreOwnerDashboard = () => {
   } = useDateRangeFilter();
   const [periodFilter, setPeriodFilter] = useState<string>("all");
   const [statsStatusFilter, setStatsStatusFilter] = useState<string>("all");
+  const [statsPaymentFilter, setStatsPaymentFilter] = useState<'all' | 'received' | 'pending'>('all');
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
@@ -402,18 +403,25 @@ export const StoreOwnerDashboard = () => {
         }
         break;
       default:
-        return orders.filter(order => 
-          statsStatusFilter === "all" || order.status === statsStatusFilter
-        );
+        return orders.filter(order => {
+          const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
+          const matchesPayment = statsPaymentFilter === 'all' || 
+            (statsPaymentFilter === 'received' && order.payment_received === true) ||
+            (statsPaymentFilter === 'pending' && order.payment_received !== true);
+          return matchesStatus && matchesPayment;
+        });
     }
 
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       const matchesDate = isWithinInterval(orderDate, { start: startDate, end: endDate });
       const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
-      return matchesDate && matchesStatus;
+      const matchesPayment = statsPaymentFilter === 'all' || 
+        (statsPaymentFilter === 'received' && order.payment_received === true) ||
+        (statsPaymentFilter === 'pending' && order.payment_received !== true);
+      return matchesDate && matchesStatus && matchesPayment;
     });
-  }, [orders, periodFilter, customDateRange, statsStatusFilter]);
+  }, [orders, periodFilter, customDateRange, statsStatusFilter, statsPaymentFilter]);
 
   // Calculate previous period for comparison
   const previousPeriodOrders = useMemo(() => {
@@ -1317,6 +1325,17 @@ export const StoreOwnerDashboard = () => {
                         <SelectItem value="cancelled">Cancelado</SelectItem>
                       </>
                     )}
+                  </SelectContent>
+                </Select>
+
+                <Select value={statsPaymentFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setStatsPaymentFilter(value)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Status Pgto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">💳 Todos</SelectItem>
+                    <SelectItem value="received">✅ Recebido</SelectItem>
+                    <SelectItem value="pending">⏳ Pendente</SelectItem>
                   </SelectContent>
                 </Select>
 
