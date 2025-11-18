@@ -4,7 +4,7 @@
  * for social media crawlers (WhatsApp, Facebook, etc.)
  */
 export const getShareableProductUrl = (shortId: string): string => {
-  return `https://appofertas.lovable.app/p/${shortId}`;
+  return `https://mgpzowiahnwcmcaelogf.supabase.co/p/${shortId}`;
 };
 
 /**
