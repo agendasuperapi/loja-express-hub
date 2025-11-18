@@ -6,18 +6,18 @@ import { z } from 'zod';
 
 // Validation schema for profile data
 const profileSchema = z.object({
-  full_name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo').optional(),
+  full_name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo').optional().or(z.literal('')),
   phone: z.string()
     .transform(val => val?.replace(/\D/g, '') || '')
-    .refine(val => !val || val.length === 12 || val.length === 13, {
-      message: 'Telefone deve ter 12 ou 13 dígitos com código do país'
-    }).optional(),
-  cep: z.string().trim().max(9, 'CEP inválido').optional(),
-  city: z.string().trim().max(100, 'Nome da cidade muito longo').optional(),
-  street: z.string().trim().max(200, 'Nome da rua muito longo').optional(),
-  street_number: z.string().trim().max(20, 'Número muito longo').optional(),
-  neighborhood: z.string().trim().max(100, 'Nome do bairro muito longo').optional(),
-  complement: z.string().trim().max(100, 'Complemento muito longo').optional(),
+    .refine(val => !val || val.length >= 10, {
+      message: 'Telefone deve ter pelo menos 10 dígitos'
+    }).optional().or(z.literal('')),
+  cep: z.string().trim().max(9, 'CEP inválido').optional().or(z.literal('')),
+  city: z.string().trim().max(100, 'Nome da cidade muito longo').optional().or(z.literal('')),
+  street: z.string().trim().max(200, 'Nome da rua muito longo').optional().or(z.literal('')),
+  street_number: z.string().trim().max(20, 'Número muito longo').optional().or(z.literal('')),
+  neighborhood: z.string().trim().max(100, 'Nome do bairro muito longo').optional().or(z.literal('')),
+  complement: z.string().trim().max(100, 'Complemento muito longo').optional().or(z.literal('')),
 });
 
 export interface ProfileData {
