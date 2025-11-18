@@ -68,10 +68,12 @@ export function getStoreStatusText(operatingHours: OperatingHours | any): string
 
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   
+  // Se ainda não abriu hoje
   if (currentTime < daySchedule.open) {
     return `Abre às ${daySchedule.open}`;
   }
   
+  // Se já fechou hoje
   if (currentTime > daySchedule.close) {
     // Find next open time (tomorrow or next day)
     for (let i = 1; i <= 7; i++) {
@@ -97,5 +99,6 @@ export function getStoreStatusText(operatingHours: OperatingHours | any): string
     }
   }
   
-  return `Abre às ${daySchedule.open}`;
+  // Se está aberta agora (entre open e close, fora do intervalo de almoço)
+  return `Fecha às ${daySchedule.close}`;
 }
