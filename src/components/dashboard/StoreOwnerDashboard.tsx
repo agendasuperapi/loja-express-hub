@@ -3688,14 +3688,6 @@ export const StoreOwnerDashboard = () => {
                 />
               </div>
 
-              <div>
-                <Label>Endereço para Retirada</Label>
-                <Input
-                  value={storeForm.pickup_address}
-                  onChange={(e) => setStoreForm({ ...storeForm, pickup_address: e.target.value })}
-                  placeholder="Endereço onde os clientes farão a retirada dos produtos..."
-                />
-              </div>
 
               <ImageUpload
                 bucket="store-logos"
