@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { EmailInput } from "@/components/ui/email-input";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Lock, Check, X, Loader2 } from "lucide-react";
+import { User, Lock, Check, X, Loader2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LoginModalProps {
@@ -40,6 +40,7 @@ export function LoginModal({
   const [fullName, setFullName] = useState(initialFullName);
   const [phone, setPhone] = useState(initialPhone);
   const [emailExistsError, setEmailExistsError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Update fields when initial values change
   useEffect(() => {
@@ -56,6 +57,17 @@ export function LoginModal({
       setIsLogin(false);
     }
   }, [forceMode]);
+
+  // Auto-hide password after typing stops
+  useEffect(() => {
+    if (showPassword && password.length > 0) {
+      const timer = setTimeout(() => {
+        setShowPassword(false);
+      }, 1000); // Hide after 1 second of inactivity
+
+      return () => clearTimeout(timer);
+    }
+  }, [password, showPassword]);
 
   const checkEmailExists = async (emailToCheck: string) => {
     try {
@@ -200,14 +212,29 @@ export function LoginModal({
                   <Lock className="text-muted-foreground" size={16} />
                 </div>
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setShowPassword(true); // Show password while typing
+                  }}
                   required
                   minLength={6}
-                  className="h-10 sm:h-12 pl-14 sm:pl-16 text-sm sm:text-base"
+                  className="h-10 sm:h-12 pl-14 sm:pl-16 pr-12 text-sm sm:text-base"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
+                  ) : (
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                </button>
               </div>
             </div>
 
