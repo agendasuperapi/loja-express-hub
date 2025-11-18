@@ -1330,7 +1330,7 @@ export default function Cart() {
                         Voltar
                       </Button>
                       <Button
-                        className="flex-1 bg-gradient-primary text-sm sm:text-base h-20 sm:h-12"
+                        className="flex-1 bg-gradient-primary text-sm sm:text-base h-24 sm:h-12"
                         onClick={handleCheckout}
                         disabled={
                           !canAcceptOrders || 
