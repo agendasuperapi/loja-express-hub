@@ -497,21 +497,26 @@ export default function Cart() {
         return;
       }
   
-      // Update user profile with current data
+      // Update user profile with current data (sem apagar endereço salvo quando for retirada)
       const cleanedCep = deliveryType === 'delivery' && deliveryCep 
         ? deliveryCep.replace(/\D/g, '') 
-        : null;
+        : undefined;
       
-      const profileData = {
+      const profileData: any = {
         full_name: customerName,
         phone: normalizePhone(customerPhone),
-        cep: cleanedCep,
-        city: deliveryType === 'delivery' ? deliveryCity.trim() : null,
-        street: deliveryType === 'delivery' ? deliveryStreet : null,
-        street_number: deliveryType === 'delivery' ? deliveryNumber : null,
-        neighborhood: deliveryType === 'delivery' ? deliveryNeighborhood : null,
-        complement: deliveryType === 'delivery' ? deliveryComplement : null,
       };
+
+      if (deliveryType === 'delivery') {
+        Object.assign(profileData, {
+          cep: cleanedCep,
+          city: deliveryCity.trim(),
+          street: deliveryStreet,
+          street_number: deliveryNumber,
+          neighborhood: deliveryNeighborhood,
+          complement: deliveryComplement || null,
+        });
+      }
       
       console.log('💾 Salvando perfil do usuário:', profileData);
       
