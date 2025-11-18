@@ -2734,6 +2734,10 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
             className="p-6 space-y-4"
           >
+            <div>
+              <h2 className="text-2xl font-semibold mb-6">Configurações de entrega</h2>
+            </div>
+            
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Tipos de Entrega Aceitos</CardTitle>
