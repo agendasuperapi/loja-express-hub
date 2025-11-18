@@ -1324,14 +1324,13 @@ export default function Cart() {
                         variant="outline"
                         size="lg"
                         onClick={() => setCurrentStep(1)}
-                        className="flex-1 text-sm sm:text-base"
+                        className="hidden sm:flex flex-1 text-sm sm:text-base"
                       >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Voltar
                       </Button>
                       <Button
-                        className="flex-1 bg-gradient-primary text-sm sm:text-base"
-                        size="lg"
+                        className="flex-1 bg-gradient-primary text-sm sm:text-base h-14 sm:h-12"
                         onClick={handleCheckout}
                         disabled={
                           !canAcceptOrders || 
