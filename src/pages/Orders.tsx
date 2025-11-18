@@ -502,10 +502,10 @@ export default function Orders() {
                                   </Badge>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <code 
                                   className={cn(
-                                    "flex-1 text-sm px-3 py-2 rounded border cursor-pointer select-none transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-0 selection:bg-green-200 selection:text-green-900 dark:selection:bg-green-900/60 dark:selection:text-green-200 active:bg-green-50",
+                                    "flex-1 min-w-0 text-xs sm:text-sm px-2 sm:px-3 py-2 rounded border cursor-pointer select-none transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-0 selection:bg-green-200 selection:text-green-900 dark:selection:bg-green-900/60 dark:selection:text-green-200 active:bg-green-50 break-all",
                                     copiedPixKey === order.id 
                                       ? "bg-green-50 border-green-600 text-green-800 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300 scale-105" 
                                       : "bg-background border-border hover:bg-muted"
@@ -522,7 +522,7 @@ export default function Orders() {
                                 >
                                   {copiedPixKey === order.id ? (
                                     <span className="font-semibold flex items-center gap-2">
-                                      <Check className="w-4 h-4" />
+                                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                       Copiado!
                                     </span>
                                   ) : (
@@ -532,6 +532,7 @@ export default function Orders() {
                                 <Button
                                   size="sm"
                                   variant="outline"
+                                  className="h-9 w-9 sm:h-10 sm:w-10 p-0 shrink-0"
                                   onClick={() => {
                                     navigator.clipboard.writeText(order.stores.pix_key);
                                     setCopiedPixKey(order.id);
@@ -543,9 +544,9 @@ export default function Orders() {
                                   }}
                                 >
                                   {copiedPixKey === order.id ? (
-                                    <Check className="w-4 h-4" />
+                                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   ) : (
-                                    <Copy className="w-4 h-4" />
+                                    <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   )}
                                 </Button>
                               </div>
