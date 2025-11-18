@@ -116,6 +116,7 @@ export const useOrders = () => {
           change_amount: validatedData.changeAmount || null,
           coupon_code: validatedData.couponCode || null,
           coupon_discount: couponDiscount,
+          notes: validatedData.notes || null,
         } as any)
         .select()
         .single();

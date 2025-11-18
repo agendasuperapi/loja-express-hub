@@ -107,6 +107,12 @@ export const orderSchema = z.object({
     .min(0, "Coupon discount must be non-negative")
     .optional(),
 
+  notes: z.string()
+    .trim()
+    .max(500, "Notes must be less than 500 characters")
+    .optional()
+    .transform(val => val || undefined),
+
   items: z.array(orderItemSchema)
     .min(1, "Order must have at least one item")
     .max(50, "Order cannot have more than 50 items"),

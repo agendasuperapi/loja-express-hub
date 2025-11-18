@@ -18,6 +18,7 @@ import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoupons } from "@/hooks/useCoupons";
 import { useDeliveryZones } from "@/hooks/useDeliveryZones";
+import { usePickupLocations } from "@/hooks/usePickupLocations";
 import { supabase } from "@/integrations/supabase/client";
 import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ export default function Cart() {
   const { createOrder, isCreating, orders } = useOrders();
   const { validateCoupon } = useCoupons(cart.storeId || undefined);
   const { zones: deliveryZones } = useDeliveryZones(cart.storeId || undefined);
+  const { data: pickupLocations = [] } = usePickupLocations(cart.storeId || undefined);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [couponInput, setCouponInput] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -52,6 +54,7 @@ export default function Cart() {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'dinheiro' | 'cartao'>('pix');
   const [changeAmount, setChangeAmount] = useState("");
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup' | null>(null);
+  const [selectedPickupLocation, setSelectedPickupLocation] = useState<string>("");
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [cepError, setCepError] = useState("");
   
@@ -73,6 +76,13 @@ export default function Cart() {
   useEffect(() => {
     setShowEmailExistsAlert(false);
   }, [authEmail]);
+  // Auto-select pickup location if there's only one
+  useEffect(() => {
+    if (deliveryType === 'pickup' && pickupLocations.length === 1) {
+      setSelectedPickupLocation(pickupLocations[0].id);
+    }
+  }, [deliveryType, pickupLocations]);
+
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
   const storeStatusText = storeData ? getStoreStatusText(storeData.operating_hours) : '';
   const allowOrdersWhenClosed = (storeData as any)?.allow_orders_when_closed ?? false;
@@ -469,6 +479,15 @@ export default function Cart() {
         return;
       }
   
+      if (deliveryType === 'pickup' && pickupLocations.length > 1 && !selectedPickupLocation) {
+        toast({
+          title: "Local de retirada",
+          description: "Por favor, selecione o local onde deseja retirar seu pedido.",
+          variant: "destructive",
+        });
+        return;
+      }
+  
       if (deliveryType === 'delivery' && (!deliveryCep || !deliveryCity || !deliveryStreet || !deliveryNumber || !deliveryNeighborhood)) {
         toast({
           title: "Campos obrigatórios",
@@ -530,6 +549,12 @@ export default function Cart() {
           couponDiscount: cart.couponDiscount
         });
         
+        // Get pickup location details if applicable
+        const selectedLocation = pickupLocations.find(loc => loc.id === selectedPickupLocation);
+        const pickupNotes = deliveryType === 'pickup' && selectedLocation
+          ? `RETIRADA: ${selectedLocation.name} - ${selectedLocation.address}`
+          : undefined;
+        
         await createOrder({
           storeId: cart.storeId!,
           items: cart.items.map(item => ({
@@ -566,6 +591,7 @@ export default function Cart() {
           changeAmount: paymentMethod === 'dinheiro' && changeAmount ? Number(parseFloat(changeAmount)) : undefined,
           couponCode: cart.couponCode || undefined,
           couponDiscount: cart.couponDiscount || undefined,
+          notes: pickupNotes || notes || undefined,
         });
   
         console.log('✅ Order created successfully, clearing cart...');
@@ -1018,15 +1044,50 @@ export default function Cart() {
                       </div>
 
                       {deliveryType === 'pickup' && (
-                        <Alert className="mb-6">
-                          <Store className="h-4 w-4" />
-                          <AlertDescription>
-                            <div className="font-semibold mb-1">Endereço para retirada:</div>
-                            <div className="text-sm">
-                              {(storeData as any)?.pickup_address || (storeData as any)?.address || 'Endereço não disponível'}
+                        <div className="mb-6">
+                          {pickupLocations.length === 0 ? (
+                            <Alert>
+                              <Store className="h-4 w-4" />
+                              <AlertDescription>
+                                <div className="font-semibold mb-1">Endereço para retirada:</div>
+                                <div className="text-sm">
+                                  {(storeData as any)?.pickup_address || (storeData as any)?.address || 'Endereço não disponível'}
+                                </div>
+                              </AlertDescription>
+                            </Alert>
+                          ) : pickupLocations.length === 1 ? (
+                            <Alert>
+                              <MapPin className="h-4 w-4" />
+                              <AlertDescription>
+                                <div className="font-semibold mb-1">Endereço para retirada:</div>
+                                <div className="text-sm font-medium">{pickupLocations[0].name}</div>
+                                <div className="text-sm">{pickupLocations[0].address}</div>
+                              </AlertDescription>
+                            </Alert>
+                          ) : (
+                            <div className="space-y-2">
+                              <Label htmlFor="pickup-location">Escolha o local de retirada *</Label>
+                              <Select
+                                value={selectedPickupLocation}
+                                onValueChange={setSelectedPickupLocation}
+                              >
+                                <SelectTrigger id="pickup-location">
+                                  <SelectValue placeholder="Selecione um local de retirada" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {pickupLocations.map((location) => (
+                                    <SelectItem key={location.id} value={location.id}>
+                                      <div>
+                                        <div className="font-medium">{location.name}</div>
+                                        <div className="text-xs text-muted-foreground">{location.address}</div>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
-                          </AlertDescription>
-                        </Alert>
+                          )}
+                        </div>
                       )}
 
                       {deliveryType === 'delivery' && (
