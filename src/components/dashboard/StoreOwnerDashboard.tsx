@@ -2776,8 +2776,8 @@ export const StoreOwnerDashboard = () => {
               </CardContent>
             </Card>
 
-            <DeliveryZonesManager storeId={myStore.id} />
             <PickupLocationsManager storeId={myStore.id} />
+            <DeliveryZonesManager storeId={myStore.id} />
           </motion.div>
         )}
 
