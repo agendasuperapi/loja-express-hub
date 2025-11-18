@@ -42,6 +42,7 @@ export default function Orders() {
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilterType>('all');
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null);
+  const [copiedPixPayload, setCopiedPixPayload] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastVisitedStore');
@@ -573,6 +574,40 @@ export default function Orders() {
                                 <p className="text-xs text-muted-foreground">
                                   Valor: R$ {order.total.toFixed(2)}
                                 </p>
+                                
+                                {/* PIX Copia e Cola Button */}
+                                <Button
+                                  variant={copiedPixPayload === order.id ? "default" : "outline"}
+                                  className="w-full mt-3"
+                                  onClick={() => {
+                                    const pixPayload = generatePixQrCode({
+                                      pixKey: order.stores.pix_key,
+                                      description: `Pedido #${order.order_number}`,
+                                      merchantName: order.stores.name,
+                                      amount: order.total,
+                                      txId: order.order_number
+                                    });
+                                    navigator.clipboard.writeText(pixPayload);
+                                    setCopiedPixPayload(order.id);
+                                    setTimeout(() => setCopiedPixPayload(null), 3000);
+                                    toast({
+                                      title: "PIX Copia e Cola copiado!",
+                                      description: "Cole no seu app de pagamento para pagar",
+                                    });
+                                  }}
+                                >
+                                  {copiedPixPayload === order.id ? (
+                                    <>
+                                      <Check className="w-4 h-4 mr-2" />
+                                      Código PIX Copiado!
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-4 h-4 mr-2" />
+                                      PIX Copia e Cola
+                                    </>
+                                  )}
+                                </Button>
                               </div>
                             </div>
                           );
