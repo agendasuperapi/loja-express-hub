@@ -233,6 +233,14 @@ serve(async (req) => {
       if (order.delivery_complement) deliveryAddress += `\nComplemento: ${order.delivery_complement}`;
     }
 
+    // Format unified address (delivery or pickup)
+    let unifiedAddress = '';
+    if (order.delivery_type === 'delivery') {
+      unifiedAddress = deliveryAddress;
+    } else {
+      unifiedAddress = store.pickup_address || '';
+    }
+
     // Format payment method
     const paymentMethodMap: { [key: string]: string } = {
       'pix': 'PIX',
@@ -256,6 +264,7 @@ serve(async (req) => {
     message = message.replace(/\{\{store_phone\}\}/g, store.phone || '');
     message = message.replace(/\{\{store_address\}\}/g, store.address || '');
     message = message.replace(/\{\{pickup_address\}\}/g, store.pickup_address || '');
+    message = message.replace(/\{\{address\}\}/g, unifiedAddress);
     message = message.replace(/\{\{items\}\}/g, itemsList);
     message = message.replace(/\{\{delivery_address\}\}/g, deliveryAddress);
     message = message.replace(/\{\{payment_method\}\}/g, paymentMethod);

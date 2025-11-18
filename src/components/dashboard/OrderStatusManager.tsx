@@ -279,6 +279,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                         • <code>{'{{store_phone}}'}</code> - Telefone da loja<br />
                         • <code>{'{{store_address}}'}</code> - Endereço da loja<br />
                         • <code>{'{{pickup_address}}'}</code> - Endereço de retirada<br />
+                        • <code>{'{{address}}'}</code> - Endereço (entrega ou retirada automaticamente)<br />
                         • <code>{'{{items}}'}</code> - Lista completa de produtos<br />
                         • <code>{'{{delivery_address}}'}</code> - Endereço de entrega<br />
                         • <code>{'{{payment_method}}'}</code> - Forma de pagamento<br />
