@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 // Função para remover acentos e normalizar texto para busca
 const removeAccents = (str: string): string => {
@@ -52,6 +53,27 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   const [cities, setCities] = useState<City[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [openCityCombobox, setOpenCityCombobox] = useState(false);
+  const [defaultDeliveryFee, setDefaultDeliveryFee] = useState<number>(0);
+  const [isSavingDefaultFee, setIsSavingDefaultFee] = useState(false);
+
+  // Buscar taxa de entrega padrão da loja
+  useEffect(() => {
+    const fetchDefaultFee = async () => {
+      if (!storeId) return;
+      
+      const { data, error } = await supabase
+        .from('stores')
+        .select('delivery_fee')
+        .eq('id', storeId)
+        .single();
+      
+      if (!error && data) {
+        setDefaultDeliveryFee(data.delivery_fee || 0);
+      }
+    };
+    
+    fetchDefaultFee();
+  }, [storeId]);
 
   const handleOpenDialog = (zone?: DeliveryZone) => {
     if (zone) {
@@ -200,6 +222,28 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     }
   };
 
+  const handleSaveDefaultFee = async () => {
+    if (!storeId) return;
+    
+    setIsSavingDefaultFee(true);
+    
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({ delivery_fee: defaultDeliveryFee })
+        .eq('id', storeId);
+      
+      if (error) throw error;
+      
+      toast.success('Taxa de entrega padrão atualizada com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao atualizar taxa de entrega padrão');
+      console.error(error);
+    } finally {
+      setIsSavingDefaultFee(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -215,6 +259,45 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
       transition={{ duration: 0.5 }}
       className="p-8 space-y-6"
     >
+      {/* Card de Taxa de Entrega Padrão */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Taxa de Entrega Padrão</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Esta taxa será usada quando o cliente não estiver em uma zona específica
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 items-end">
+            <div className="flex-1 max-w-xs">
+              <Label htmlFor="default-fee">Taxa (R$)</Label>
+              <Input
+                id="default-fee"
+                type="number"
+                step="0.01"
+                min="0"
+                value={defaultDeliveryFee}
+                onChange={(e) => setDefaultDeliveryFee(Number(e.target.value))}
+                placeholder="0.00"
+              />
+            </div>
+            <Button 
+              onClick={handleSaveDefaultFee}
+              disabled={isSavingDefaultFee}
+            >
+              {isSavingDefaultFee ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Taxa'
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold gradient-text">Zonas de Entrega</h2>
