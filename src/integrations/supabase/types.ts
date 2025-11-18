@@ -989,6 +989,11 @@ export type Database = {
           phone: string | null
           pickup_address: string | null
           pix_key: string | null
+          pix_message_button_text: string | null
+          pix_message_description: string | null
+          pix_message_enabled: boolean | null
+          pix_message_footer: string | null
+          pix_message_title: string | null
           rating: number | null
           show_avg_delivery_time: boolean | null
           show_pix_key_to_customer: boolean | null
@@ -1023,6 +1028,11 @@ export type Database = {
           phone?: string | null
           pickup_address?: string | null
           pix_key?: string | null
+          pix_message_button_text?: string | null
+          pix_message_description?: string | null
+          pix_message_enabled?: boolean | null
+          pix_message_footer?: string | null
+          pix_message_title?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
           show_pix_key_to_customer?: boolean | null
@@ -1057,6 +1067,11 @@ export type Database = {
           phone?: string | null
           pickup_address?: string | null
           pix_key?: string | null
+          pix_message_button_text?: string | null
+          pix_message_description?: string | null
+          pix_message_enabled?: boolean | null
+          pix_message_footer?: string | null
+          pix_message_title?: string | null
           rating?: number | null
           show_avg_delivery_time?: boolean | null
           show_pix_key_to_customer?: boolean | null

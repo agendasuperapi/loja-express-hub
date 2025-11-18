@@ -266,11 +266,8 @@ serve(async (req) => {
       return order.delivery_type === 'delivery' ? ifContent : elseContent;
     });
 
-    // Clean phone number
-    let phone = order.customer_phone.replace(/\D/g, '');
-    if (!phone.startsWith('55')) {
-      phone = '55' + phone;
-    }
+    // Phone is already normalized in database (includes 55)
+    const phone = order.customer_phone;
 
     console.log('Sending message to:', phone, 'via instance:', storeInstance.evolution_instance_id);
 
