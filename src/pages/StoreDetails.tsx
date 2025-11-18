@@ -434,7 +434,7 @@ export default function StoreDetails() {
                         <Clock className="w-3.5 h-3.5 mr-1.5" />
                         {canAcceptOrders
                           ? storeIsOpen 
-                            ? `✅ Aberto - ${storeStatus}`
+                            ? `Aberto - ${storeStatus}`
                             : "📅 Aceitando pedidos agendados"
                           : `🔒 Fechado - ${storeStatus}`
                         }
