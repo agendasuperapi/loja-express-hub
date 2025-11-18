@@ -2,20 +2,27 @@
   RewriteEngine On
   RewriteBase /
 
-  # Não reescreve se for arquivo ou pasta real
+  # 1. Não reescreve se for arquivo ou pasta real
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # BOT de rede social acessando produto ou loja
-  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|Slackbot|LinkedInBot [NC]
-
-  # /p/short_id  (produtos)
+  # 2. Condição para BOTs de rede social (User-Agent)
+  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|Telegram|Discordbot|instagram|crawler|spider [NC]
+  
+  # 3. Regras de reescrita para BOTs (Meta Tags)
+  
+  # /p/short_id (produtos)
   RewriteRule ^p/([a-zA-Z0-9_-]+)$ share.php?tipo=produto&id=$1 [QSA,L]
 
-  # /nomedaloja  (lojas)
+  # /nomedaloja (lojas)
   RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?tipo=loja&username=$1 [QSA,L]
 
-  # Todo o resto -> app web
+  # 4. Todo o resto -> app web (SPA)
   RewriteRule ^.*$ /index.html [L]
+</IfModule>
+
+# Configuração de Headers (opcional, mas recomendada)
+<IfModule mod_headers.c>
+  Header set X-Frame-Options "SAMEORIGIN"
 </IfModule>
