@@ -16,7 +16,7 @@ import { useStoreManagement } from "@/hooks/useStoreManagement";
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck } from "lucide-react";
 import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
@@ -2727,64 +2727,6 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === 'entregas' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-6 space-y-4"
-          >
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Configurações de entrega</h2>
-            </div>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Tipos de Entrega Aceitos</CardTitle>
-                <CardDescription className="text-xs">
-                  Configure quais tipos de entrega sua loja aceita
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-3">
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="accepts_delivery" className="text-sm font-medium">Entrega</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Permite que os clientes recebam pedidos em casa
-                    </p>
-                  </div>
-                  <Switch
-                    id="accepts_delivery"
-                    checked={storeForm.accepts_delivery}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_delivery', checked)
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="accepts_pickup" className="text-sm font-medium">Retirada</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Permite que os clientes retirem pedidos na loja
-                    </p>
-                  </div>
-                  <Switch
-                    id="accepts_pickup"
-                    checked={storeForm.accepts_pickup}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_pickup', checked)
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <PickupLocationsManager storeId={myStore.id} />
-            <DeliveryZonesManager storeId={myStore.id} />
-          </motion.div>
-        )}
-
         {activeTab === 'whatsapp' && myStore?.id && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -3191,7 +3133,7 @@ export const StoreOwnerDashboard = () => {
               transition={{ delay: 0.3 }}
             >
               <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-muted/50 h-auto p-2">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-2 bg-muted/50 h-auto p-2">
                   <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <User className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Dados Pessoais</span>
@@ -3199,6 +3141,10 @@ export const StoreOwnerDashboard = () => {
                   <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Settings className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Loja</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="entregas" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <Truck className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Entregas</span>
                   </TabsTrigger>
                   <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Menu className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
@@ -3770,6 +3716,65 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
           >
             <SecuritySettings />
+          </motion.div>
+        </TabsContent>
+
+        {/* Entregas Tab */}
+        <TabsContent value="entregas">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-4"
+          >
+            <div>
+              <h2 className="text-2xl font-semibold mb-6">Configurações de entrega</h2>
+            </div>
+            
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Tipos de Entrega Aceitos</CardTitle>
+                <CardDescription className="text-xs">
+                  Configure quais tipos de entrega sua loja aceita
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_delivery" className="text-sm font-medium">Entrega</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Permite que os clientes recebam pedidos em casa
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_delivery"
+                    checked={storeForm.accepts_delivery}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('accepts_delivery', checked)
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_pickup" className="text-sm font-medium">Retirada</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Permite que os clientes retirem pedidos na loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_pickup"
+                    checked={storeForm.accepts_pickup}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('accepts_pickup', checked)
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <PickupLocationsManager storeId={myStore.id} />
+            <DeliveryZonesManager storeId={myStore.id} />
           </motion.div>
         </TabsContent>
       </Tabs>
