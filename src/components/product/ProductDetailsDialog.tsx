@@ -367,11 +367,10 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         </Button>
         <Button
           onClick={handleAddToCart}
-          className="flex-1 text-base h-14"
-          size="lg"
+          className="flex-1 text-sm h-12"
           disabled={hasFlavors && selectedFlavors.size === 0}
         >
-          <ShoppingCart className="w-5 h-5 mr-2" />
+          <ShoppingCart className="w-4 h-4 mr-2" />
           Adicionar ao Carrinho
         </Button>
       </div>
