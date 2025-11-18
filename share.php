@@ -1,108 +1,70 @@
 <?php
+/**
+ * Arquivo: share.php (FINAL)
+ * Descrição: Atua como um proxy para a Edge Function do Supabase que gera as meta tags.
+ * Modificado para enviar um User-Agent de bot e seguir redirecionamentos,
+ * garantindo que a Edge Function retorne o HTML das meta tags.
+ */
 
+// URL base da sua Edge Function do Supabase (a mesma usada no vercel.json)
+$supabase_function_url = "https://mgpzowiahnwcmcaelogf.supabase.co/functions/v1/meta-tags-proxy";
+
+// 1. Obter os parâmetros da URL reescrita pelo .htaccess
 $tipo = $_GET['tipo'] ?? null;
+$id = $_GET['id'] ?? null;
+$username = $_GET['username'] ?? null;
 
-if ($tipo === "produto") {
+// 2. Construir a URL completa para a função do Supabase
+$final_url = $supabase_function_url;
 
-  // --- PRODUTO ---
-  $id = $_GET['id'] ?? null;
-  if (!$id) {
-    http_response_code(400);
-    echo "ID do produto não fornecido.";
-    exit;
-  }
-
-  // CHAMA RPC DO PRODUTO
-  $api_url = 'https://hzmixuvrnzpypriagecv.supabase.co/rest/v1/rpc/fc_share_produto';
-  $post_data = ['param_id' => $id];
-
-} else if ($tipo === "loja") {
-
-  // --- LOJA ---
-  $username = $_GET['username'] ?? null;
-  if (!$username) {
-    http_response_code(400);
-    echo "Username não fornecido.";
-    exit;
-  }
-
-  // CHAMA RPC DO ESTABELECIMENTO
-  $api_url = 'https://hzmixuvrnzpypriagecv.supabase.co/rest/v1/rpc/fc_share_estabelecimento';
-  $post_data = ['param_username' => $username];
-
+if ($tipo === 'produto' && $id) {
+    // Caso de produto: /p/:short_id
+    $final_url .= "?product=" . urlencode($id);
+} elseif ($tipo === 'loja' && $username) {
+    // Caso de loja: /:store_slug
+    $final_url .= "?store=" . urlencode($username);
 } else {
-  http_response_code(400);
-  echo "Tipo inválido.";
-  exit;
+    // Se não houver parâmetros válidos, retorna 404
+    http_response_code(404);
+    exit("Parâmetros de compartilhamento inválidos.");
 }
 
+// 3. Fazer a requisição HTTP para a função do Supabase
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $final_url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_HEADER, 0);
 
-// --- CHAMADA SUPABASE ---
+// *** SOLUÇÃO PARA O CÓDIGO 302 ***
+// A Edge Function redireciona se não reconhecer um bot.
+// 1. Definimos um User-Agent conhecido como bot para forçar a Edge Function a retornar o HTML.
+curl_setopt($ch, CURLOPT_USERAGENT, "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)");
+// 2. Garantimos que o cURL siga qualquer redirecionamento, caso a Edge Function ainda o faça.
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+// *********************************
 
-$headers = [
-  'Content-Type: application/json',
-  'apikey: ' . 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6bWl4dXZybnpweXByaWFnZWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ5NjkzMTQsImV4cCI6MjA0MDU0NTMxNH0.VHtjYivpM8c9RLmKimwRiLgnb8zqGrZ88Q8vpVLZcZ0'
-];
+$response = curl_exec($ch);
+$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+$curl_error = curl_error($ch);
+curl_close($ch);
 
-$options = [
-  'http' => [
-    'method' => 'POST',
-    'header' => implode("\r\n", $headers),
-    'content' => json_encode($post_data)
-  ]
-];
-
-$context = stream_context_create($options);
-$response = file_get_contents($api_url, false, $context);
-$data = json_decode($response, true);
-
-if (!$data || $data[0]['result'] !== 'True') {
-  http_response_code(404);
-  echo "Não encontrado.";
-  exit;
+// 4. Tratar a resposta
+if ($curl_error) {
+    // Erro na requisição cURL
+    http_response_code(500);
+    exit("Erro ao conectar com o serviço de meta tags: " . $curl_error);
 }
 
-$info = $data[0];
+// 5. Enviar o código de status e o conteúdo da resposta da função do Supabase
+http_response_code($http_code);
 
-
-if ($tipo === "produto") {
-
-  $titulo = htmlspecialchars($info['nome_produto']);
-  $preco  = number_format($info['preco'], 2, ',', '.');
-  $descricao = "💰 R$ {$preco}";
-  $imagem = $info['foto_produto'];
-  $link_final = "https://ofertas.app/p/" . $info['id'];
-
+// Repassamos o Content-Type e o conteúdo para o bot de rede social.
+if (strpos($content_type, 'text/html') !== false) {
+    header("Content-Type: text/html; charset=utf-8");
+    echo $response;
 } else {
-
-  $titulo = htmlspecialchars($info['nome']);
-  $descricao = htmlspecialchars($info['descricao'] ?? $info['segmento']);
-  $imagem = $info['foto_perfil'];
-  $link_final = "https://ofertas.app/" . $info['username'];
+    echo $response;
 }
 
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title><?= $titulo ?></title>
-
-  <meta property="og:title" content="<?= $titulo ?>" />
-  <meta property="og:description" content="<?= $descricao ?>" />
-  <meta property="og:image" content="<?= $imagem ?>" />
-  <meta property="og:url" content="<?= $link_final ?>" />
-  <meta property="og:type" content="website" />
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="<?= $titulo ?>">
-  <meta name="twitter:description" content="<?= $descricao ?>">
-  <meta name="twitter:image" content="<?= $imagem ?>">
-</head>
-<body>
-  Carregando...
-  <script>
-    window.location.href = "<?= $link_final ?>";
-  </script>
-</body>
-</html>
