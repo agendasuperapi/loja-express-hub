@@ -670,7 +670,7 @@ export default function Cart() {
             <ArrowLeft className="w-4 h-4" />
             Voltar
           </Button>
-          <h1 className="text-2xl md:text-4xl font-bold gradient-text mb-2">Meu Carrinho</h1>
+          <h1 className="text-xl md:text-4xl font-bold gradient-text mb-2">Meu Carrinho</h1>
           <p className="text-muted-foreground">
             {cart.storeName}
           </p>
