@@ -21,8 +21,8 @@ export default function Profile() {
           className="max-w-2xl mx-auto"
         >
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-4xl font-bold gradient-text">Meu Perfil</h1>
-            <Button 
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text">Meu Perfil</h1>
+            <Button
               variant="outline" 
               size="sm"
               onClick={signOut}
