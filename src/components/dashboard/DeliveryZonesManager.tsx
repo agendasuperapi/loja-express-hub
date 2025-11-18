@@ -9,32 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useDeliveryZones, DeliveryZone } from "@/hooks/useDeliveryZones";
-import { Plus, Edit, Trash2, MapPin, Loader2, Search, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Loader2, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-// Função para remover acentos e normalizar texto para busca
-const removeAccents = (str: string): string => {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-};
-
 interface DeliveryZonesManagerProps {
   storeId: string | undefined;
-}
-
-interface City {
-  id: number;
-  nome: string;
-  microrregiao: {
-    mesorregiao: {
-      UF: {
-        sigla: string;
-      };
-    };
-  };
 }
 
 export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => {
@@ -50,9 +33,6 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   });
   const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
-  const [cities, setCities] = useState<City[]>([]);
-  const [isLoadingCities, setIsLoadingCities] = useState(false);
-  const [openCityCombobox, setOpenCityCombobox] = useState(false);
   const [defaultDeliveryFee, setDefaultDeliveryFee] = useState<number>(0);
   const [isSavingDefaultFee, setIsSavingDefaultFee] = useState(false);
 
@@ -146,53 +126,6 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     setCepError(null);
   };
 
-  useEffect(() => {
-    const CACHE_KEY = 'brazilian_cities_cache';
-    const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 dias em milissegundos
-
-    const fetchCities = async () => {
-      setIsLoadingCities(true);
-      try {
-        // Verificar se existe cache válido
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        if (cachedData) {
-          const { data, timestamp } = JSON.parse(cachedData);
-          const now = Date.now();
-          
-          // Se o cache ainda é válido (menos de 7 dias), usar os dados em cache
-          if (now - timestamp < CACHE_DURATION) {
-            console.log('📦 Usando cidades do cache local');
-            setCities(data);
-            setIsLoadingCities(false);
-            return;
-          }
-        }
-
-        // Se não há cache ou está expirado, buscar da API
-        console.log('🌐 Buscando cidades da API do IBGE');
-        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome');
-        const data: City[] = await response.json();
-        
-        // Salvar no cache
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data,
-          timestamp: Date.now()
-        }));
-        
-        setCities(data);
-        toast.success('Lista de cidades carregada com sucesso');
-      } catch (error) {
-        console.error('Erro ao buscar cidades:', error);
-        toast.error('Erro ao carregar lista de cidades');
-      } finally {
-        setIsLoadingCities(false);
-      }
-    };
-
-    if (isDialogOpen && cities.length === 0) {
-      fetchCities();
-    }
-  }, [isDialogOpen, cities.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,63 +284,14 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
 
               <div>
                 <Label htmlFor="city">Cidade *</Label>
-                <Popover open={openCityCombobox} onOpenChange={setOpenCityCombobox}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openCityCombobox}
-                      className="w-full justify-between"
-                    >
-                      {formData.city || "Selecione a cidade..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Buscar cidade..." />
-                      <CommandList>
-                        <CommandEmpty>
-                          {isLoadingCities ? "Carregando cidades..." : "Nenhuma cidade encontrada."}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {cities
-                            .filter(city => city?.microrregiao?.mesorregiao?.UF?.sigla)
-                            .map((city) => {
-                              const uf = city.microrregiao?.mesorregiao?.UF?.sigla || '';
-                              const cityName = `${city.nome} - ${uf}`;
-                              // Valor de busca normalizado sem acentos para melhor compatibilidade
-                              const searchValue = `${removeAccents(city.nome)} ${removeAccents(uf)} ${cityName}`;
-                              
-                              return (
-                                <CommandItem
-                                  key={city.id}
-                                  value={searchValue}
-                                  onSelect={() => {
-                                    setFormData({ 
-                                      ...formData, 
-                                      city: cityName
-                                    });
-                                    setOpenCityCombobox(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      formData.city === cityName
-                                        ? "opacity-100" 
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  {cityName}
-                                </CommandItem>
-                              );
-                            })}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  placeholder="Ex: São Paulo - SP"
+                  required
+                  maxLength={100}
+                />
               </div>
               
               <div>
