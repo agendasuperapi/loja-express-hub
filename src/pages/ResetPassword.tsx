@@ -16,8 +16,8 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(true);
   const [isValidToken, setIsValidToken] = useState(false);
 
   useEffect(() => {
