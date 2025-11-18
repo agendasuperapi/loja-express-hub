@@ -382,14 +382,26 @@ export default function Orders() {
                           <p className="text-sm text-muted-foreground">
                             Você poderá retirar seu pedido diretamente na loja após a confirmação.
                           </p>
-                          {(order.stores?.pickup_address || order.stores?.address) && (
-                            <div className="mt-2 p-3 bg-muted rounded-lg">
-                              <p className="text-sm font-medium mb-1">Endereço para retirada:</p>
-                              <p className="text-sm text-muted-foreground">
-                                {order.stores.pickup_address || order.stores.address}
-                              </p>
-                            </div>
-                          )}
+                          {(() => {
+                            // Extrair endereço de retirada das notes se existir
+                            const pickupInfo = order.notes?.startsWith('RETIRADA:') 
+                              ? order.notes.replace('RETIRADA: ', '')
+                              : null;
+                            
+                            const pickupAddress = pickupInfo || order.stores?.pickup_address || order.stores?.address;
+                            
+                            if (pickupAddress) {
+                              return (
+                                <div className="mt-2 p-3 bg-muted rounded-lg">
+                                  <p className="text-sm font-medium mb-1">Endereço para retirada:</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {pickupAddress}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       ) : (
                         <div className="space-y-2">
