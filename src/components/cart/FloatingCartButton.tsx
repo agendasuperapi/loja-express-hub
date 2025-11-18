@@ -52,7 +52,7 @@ export const FloatingCartButton = () => {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed bottom-2 md:bottom-8 inset-x-0 z-50 flex justify-center px-4"
+        className="fixed bottom-2 md:bottom-16 inset-x-0 z-50 flex justify-center px-4"
       >
         <motion.div animate={controls} className="w-full max-w-md">
           <Button
