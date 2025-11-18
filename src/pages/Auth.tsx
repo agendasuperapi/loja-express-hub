@@ -58,7 +58,7 @@ export default function Auth() {
     if (showPassword && password.length > 0) {
       const timer = setTimeout(() => {
         setShowPassword(false);
-      }, 2000); // Hide after 2 seconds of inactivity
+      }, 1000); // Hide after 1 second of inactivity
 
       return () => clearTimeout(timer);
     }
