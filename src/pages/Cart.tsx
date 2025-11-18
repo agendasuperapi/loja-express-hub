@@ -81,14 +81,14 @@ export default function Cart() {
 
   // Calculate delivery fee based on city from delivery zones
   const calculateDeliveryFee = () => {
-    if (!deliveryCity || !deliveryZones) return storeData?.delivery_fee || 5;
+    if (!deliveryCity || !deliveryZones) return storeData?.delivery_fee ?? 0;
     
     const normalizedCity = deliveryCity.trim().toUpperCase();
     const zone = deliveryZones.find(z => 
       z.city.trim().toUpperCase() === normalizedCity && z.is_active
     );
     
-    return zone ? zone.delivery_fee : storeData?.delivery_fee || 5;
+    return zone ? zone.delivery_fee : storeData?.delivery_fee ?? 0;
   };
   
   // Calculate delivery fee automatically if city is available, even without delivery type selected
