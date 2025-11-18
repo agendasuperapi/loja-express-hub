@@ -768,41 +768,45 @@ export default function Cart() {
                           ) : null}
                         </p>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Minus className="w-4 h-4" />
+                              <Minus className="w-3.5 h-3.5" />
                             </Button>
-                            <span className="w-8 text-center font-semibold">
+                            <span className="w-7 text-center font-semibold text-sm">
                               {item.quantity}
                             </span>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-3.5 h-3.5" />
                             </Button>
                           </div>
                           
-                          <div className="flex gap-2">
+                          <div className="flex gap-1.5 sm:gap-2">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => setEditingItem(item)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Pencil className="w-4 h-4" />
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => removeFromCart(item.id)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           </div>
                         </div>
