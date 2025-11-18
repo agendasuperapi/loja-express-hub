@@ -264,7 +264,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                           whatsapp_message: e.target.value
                         })}
                         placeholder="Olá {{customer_name}}! Seu pedido #{{order_number}} está sendo preparado..."
-                        rows={4}
+                        rows={10}
                       />
                       <Alert>
                         <AlertCircle className="h-4 w-4" />
