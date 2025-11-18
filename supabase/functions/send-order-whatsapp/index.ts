@@ -142,7 +142,7 @@ serve(async (req) => {
     // Get store details
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
-      .select('name, phone, address, pickup_address, pix_key, pix_message_enabled, pix_message_title, pix_message_description, pix_message_footer, pix_message_button_text')
+      .select('name, phone, address, pickup_address, slug, pix_key, pix_message_enabled, pix_message_title, pix_message_description, pix_message_footer, pix_message_button_text')
       .eq('id', order.store_id)
       .single();
 
@@ -263,6 +263,7 @@ serve(async (req) => {
     message = message.replace(/\{\{store_name\}\}/g, store.name || '');
     message = message.replace(/\{\{store_phone\}\}/g, store.phone || '');
     message = message.replace(/\{\{store_address\}\}/g, store.address || '');
+    message = message.replace(/\{\{store_url\}\}/g, store.slug ? `https://nuvenshop.app/${store.slug}` : '');
     message = message.replace(/\{\{pickup_address\}\}/g, store.pickup_address || '');
     message = message.replace(/\{\{address\}\}/g, unifiedAddress);
     message = message.replace(/\{\{items\}\}/g, itemsList);
