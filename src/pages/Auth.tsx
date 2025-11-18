@@ -53,6 +53,17 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  // Auto-hide password after typing stops
+  useEffect(() => {
+    if (showPassword && password.length > 0) {
+      const timer = setTimeout(() => {
+        setShowPassword(false);
+      }, 2000); // Hide after 2 seconds of inactivity
+
+      return () => clearTimeout(timer);
+    }
+  }, [password, showPassword]);
+
   // Formatar telefone com máscara
   const formatPhoneNumber = (value: string) => {
     // Remove tudo que não é número
@@ -206,7 +217,10 @@ export default function Auth() {
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setShowPassword(true); // Show password while typing
+                }}
                 required
                 minLength={6}
                 className="h-12 pl-16 pr-12"
