@@ -18,6 +18,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
+import { QRCodeCanvas } from "qrcode.react";
 
 const statusConfig = {
   pending: { label: 'Pendente', icon: Clock, color: 'bg-yellow-500' },
@@ -549,6 +550,18 @@ export default function Orders() {
                                     <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   )}
                                 </Button>
+                              </div>
+                              
+                              {/* QR Code for PIX */}
+                              <div className="mt-4 flex justify-center">
+                                <div className="bg-white p-4 rounded-lg border border-border">
+                                  <QRCodeCanvas 
+                                    value={order.stores.pix_key}
+                                    size={200}
+                                    level="H"
+                                    includeMargin={true}
+                                  />
+                                </div>
                               </div>
                             </div>
                           );
