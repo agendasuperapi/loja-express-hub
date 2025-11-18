@@ -113,10 +113,10 @@ export default function Orders() {
             {lastStore && (
               <Button
                 onClick={() => navigate(`/${lastStore.slug}`)}
-                className="bg-gradient-primary"
+                className="bg-gradient-primary text-xs sm:text-sm px-3 sm:px-4 h-9 sm:h-10 max-w-full"
               >
-                <Store className="w-4 h-4 mr-2" />
-                Voltar para {lastStore.name}
+                <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 shrink-0" />
+                <span className="truncate">Voltar para {lastStore.name}</span>
               </Button>
             )}
           </div>
