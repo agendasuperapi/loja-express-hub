@@ -2734,6 +2734,45 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
             className="p-8 space-y-6"
           >
+            <Card>
+              <CardHeader>
+                <CardTitle>Tipos de Entrega Aceitos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_delivery">Entrega</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permite que os clientes recebam pedidos em casa
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_delivery"
+                    checked={storeForm.accepts_delivery}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('accepts_delivery', checked)
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="accepts_pickup">Retirada</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permite que os clientes retirem pedidos na loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="accepts_pickup"
+                    checked={storeForm.accepts_pickup}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('accepts_pickup', checked)
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <DeliveryZonesManager storeId={myStore.id} />
             <PickupLocationsManager storeId={myStore.id} />
           </motion.div>
@@ -3223,45 +3262,6 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-6"
           >
-            <Card>
-              <CardHeader>
-                <CardTitle>Tipos de Entrega Aceitos</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="accepts_delivery">Entrega</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Permite que os clientes recebam pedidos em casa
-                    </p>
-                  </div>
-                  <Switch
-                    id="accepts_delivery"
-                    checked={storeForm.accepts_delivery}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_delivery', checked)
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="accepts_pickup">Retirada</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Permite que os clientes retirem pedidos na loja
-                    </p>
-                  </div>
-                  <Switch
-                    id="accepts_pickup"
-                    checked={storeForm.accepts_pickup}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_pickup', checked)
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Métodos de Pagamento Aceitos</CardTitle>
