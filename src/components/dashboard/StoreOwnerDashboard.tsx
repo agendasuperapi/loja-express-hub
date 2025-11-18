@@ -878,8 +878,8 @@ export const StoreOwnerDashboard = () => {
     if (isSlugChanging) {
       const confirmed = window.confirm(
         `⚠️ ATENÇÃO: Você está mudando a URL da sua loja!\n\n` +
-        `URL antiga: appofertas.lovable.app/${oldSlug}\n` +
-        `URL nova: appofertas.lovable.app/${newSlug}\n\n` +
+        `URL antiga: ofertas.app/${oldSlug}\n` +
+        `URL nova: ofertas.app/${newSlug}\n\n` +
         `IMPORTANTE:\n` +
         `• Links antigos compartilhados não funcionarão mais\n` +
         `• WhatsApp NÃO será afetado (usa ID da loja, não a URL)\n` +
@@ -947,7 +947,7 @@ export const StoreOwnerDashboard = () => {
         
         toast({
           title: "✅ URL atualizada com sucesso!",
-          description: `Nova URL: appofertas.lovable.app/${newSlug}\n\n✓ WhatsApp mantido (usa ID da loja)`,
+          description: `Nova URL: ofertas.app/${newSlug}\n\n✓ WhatsApp mantido (usa ID da loja)`,
         });
       }
     } catch (error) {
@@ -3488,7 +3488,7 @@ export const StoreOwnerDashboard = () => {
                   <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
                     <Store className="h-4 w-4 text-primary flex-shrink-0" />
                     <code className="text-sm text-primary font-semibold">
-                      appofertas.lovable.app/{storeForm.slug}
+                      ofertas.app/{storeForm.slug}
                     </code>
                   </div>
                 )}

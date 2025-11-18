@@ -407,7 +407,7 @@ export default function BecomePartner() {
                         <div className="flex items-center gap-2">
                           <Store className="w-4 h-4 text-primary" />
                           <code className="text-sm font-mono text-foreground">
-                            appofertas.lovable.app/{formData.slug}
+                            ofertas.app/{formData.slug}
                           </code>
                         </div>
                         
