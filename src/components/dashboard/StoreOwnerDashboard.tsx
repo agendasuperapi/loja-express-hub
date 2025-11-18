@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -2737,6 +2737,9 @@ export const StoreOwnerDashboard = () => {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Tipos de Entrega Aceitos</CardTitle>
+                <CardDescription className="text-xs">
+                  Configure quais tipos de entrega sua loja aceita
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-3">
                 <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
