@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,9 +10,7 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Phone, MapPin, Mail, Search, Loader2 } from "lucide-react";
-import { fetchCepData, formatCep, isValidCepFormat } from "@/lib/cepValidation";
-import { toast } from "@/hooks/use-toast";
+import { User, Phone, Mail } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -38,42 +36,6 @@ const profileSchema = z.object({
     .max(20, "Telefone deve ter no máximo 20 caracteres")
     .optional()
     .or(z.literal("")),
-  cep: z
-    .string()
-    .trim()
-    .max(9, "CEP inválido")
-    .optional()
-    .or(z.literal("")),
-  city: z
-    .string()
-    .trim()
-    .max(100, "Cidade deve ter no máximo 100 caracteres")
-    .optional()
-    .or(z.literal("")),
-  street: z
-    .string()
-    .trim()
-    .max(200, "Rua deve ter no máximo 200 caracteres")
-    .optional()
-    .or(z.literal("")),
-  street_number: z
-    .string()
-    .trim()
-    .max(20, "Número deve ter no máximo 20 caracteres")
-    .optional()
-    .or(z.literal("")),
-  neighborhood: z
-    .string()
-    .trim()
-    .max(100, "Bairro deve ter no máximo 100 caracteres")
-    .optional()
-    .or(z.literal("")),
-  complement: z
-    .string()
-    .trim()
-    .max(200, "Complemento deve ter no máximo 200 caracteres")
-    .optional()
-    .or(z.literal("")),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -81,20 +43,12 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export const PersonalDataSettings = () => {
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { user } = useAuth();
-  const [isSearchingCep, setIsSearchingCep] = useState(false);
-  const [cepError, setCepError] = useState<string>("");
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: "",
       phone: "",
-      cep: "",
-      city: "",
-      street: "",
-      street_number: "",
-      neighborhood: "",
-      complement: "",
     },
   });
 
@@ -103,54 +57,9 @@ export const PersonalDataSettings = () => {
       form.reset({
         full_name: profile.full_name || "",
         phone: profile.phone || "",
-        cep: profile.cep || "",
-        city: profile.city || "",
-        street: profile.street || "",
-        street_number: profile.street_number || "",
-        neighborhood: profile.neighborhood || "",
-        complement: profile.complement || "",
       });
     }
   }, [profile, form]);
-
-  const handleCepSearch = async () => {
-    const cep = form.getValues("cep");
-    
-    if (!cep || !isValidCepFormat(cep)) {
-      setCepError("CEP inválido");
-      return;
-    }
-
-    setIsSearchingCep(true);
-    setCepError("");
-
-    const data = await fetchCepData(cep);
-
-    if (data) {
-      form.setValue("city", data.localidade);
-      form.setValue("neighborhood", data.bairro);
-      form.setValue("street", data.logradouro);
-      toast({
-        title: "CEP encontrado!",
-        description: "Endereço preenchido automaticamente.",
-      });
-    } else {
-      setCepError("CEP não encontrado");
-      toast({
-        title: "CEP não encontrado",
-        description: "Verifique o CEP digitado.",
-        variant: "destructive",
-      });
-    }
-
-    setIsSearchingCep(false);
-  };
-
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCep(e.target.value);
-    form.setValue("cep", formatted);
-    setCepError("");
-  };
 
   const onSubmit = (data: ProfileFormData) => {
     updateProfile(data);
@@ -243,145 +152,6 @@ export const PersonalDataSettings = () => {
               </div>
             </div>
 
-            {/* Address Section */}
-            <div className="space-y-4 pt-4 border-t border-border">
-              <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm font-medium">Endereço de Entrega</span>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="cep"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CEP</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        <Input
-                          {...field}
-                          placeholder="00000-000"
-                          maxLength={9}
-                          disabled={isUpdating}
-                          onChange={handleCepChange}
-                          className={cepError ? "border-destructive" : ""}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={handleCepSearch}
-                          disabled={isSearchingCep || isUpdating}
-                        >
-                          {isSearchingCep ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Search className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    {cepError && (
-                      <p className="text-sm text-destructive">{cepError}</p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cidade</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nome da cidade"
-                        maxLength={100}
-                        disabled={isUpdating}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rua</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nome da rua"
-                        disabled={isUpdating}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="street_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="123"
-                          disabled={isUpdating}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bairro</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Nome do bairro"
-                          disabled={isUpdating}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="complement"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Complemento</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Apartamento, bloco, etc. (opcional)"
-                        disabled={isUpdating}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <Button type="submit" className="w-full mt-6" disabled={isUpdating}>
               {isUpdating ? "Salvando..." : "Salvar Alterações"}
