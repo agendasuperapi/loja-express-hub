@@ -493,10 +493,10 @@ export default function Orders() {
                           
                           return (
                             <div className="mt-4 p-4 bg-muted rounded-lg border border-border">
-                              <div className="flex items-center gap-2 mb-2">
-                                <p className="text-sm font-medium">Chave PIX para pagamento:</p>
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <p className="text-xs sm:text-sm font-medium whitespace-nowrap">Chave PIX:</p>
                                 {config && (
-                                  <Badge className={`${config.color} text-white text-xs`}>
+                                  <Badge className={`${config.color} text-white text-xs whitespace-nowrap`}>
                                     <TypeIcon className="w-3 h-3 mr-1" />
                                     {config.label}
                                   </Badge>
