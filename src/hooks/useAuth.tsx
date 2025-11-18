@@ -174,13 +174,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    toast.success('Logout realizado com sucesso!');
-    
-    // Redirect based on user role
-    navigate(isStoreOwnerOrEmployee ? '/login-lojista' : '/');
+  await supabase.auth.signOut();
+  setUser(null);
+  setSession(null);
+  toast.success('Logout realizado com sucesso!');
+  
+  // Redirect based on user role
+  navigate(isStoreOwnerOrEmployee ? '/login-lojista' : '/auth');
   };
 
   return (
