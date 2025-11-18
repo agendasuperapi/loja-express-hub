@@ -71,18 +71,37 @@ export function generatePixQrCode({
   amount,
   txId,
 }: PixQrCodeParams): string {
-  // Normalizar chave PIX (remover espaços e caracteres especiais se for telefone/CPF)
-  const cleanPixKey = pixKey.replace(/[^\w@.+-]/g, '');
+  // Normalizar chave PIX
+  const cleanPixKey = pixKey.trim();
+  
+  // Normalizar nome e cidade (apenas letras, números e espaços)
+  const cleanMerchantName = merchantName
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^A-Z0-9 ]/gi, '')
+    .toUpperCase()
+    .substring(0, 25);
+    
+  const cleanMerchantCity = merchantCity
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Z0-9 ]/gi, '')
+    .toUpperCase()
+    .substring(0, 15);
   
   // ID 00: Payload Format Indicator
   let payload = formatEMV('00', '01');
   
   // ID 26: Merchant Account Information
-  let merchantAccount = formatEMV('00', 'BR.GOV.BCB.PIX'); // GUI
-  merchantAccount += formatEMV('01', cleanPixKey); // Chave PIX
+  let merchantAccount = formatEMV('00', 'BR.GOV.BCB.PIX');
+  merchantAccount += formatEMV('01', cleanPixKey);
   
   if (description) {
-    merchantAccount += formatEMV('02', description.substring(0, 25));
+    const cleanDescription = description
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .substring(0, 25);
+    merchantAccount += formatEMV('02', cleanDescription);
   }
   
   payload += formatEMV('26', merchantAccount);
@@ -93,28 +112,31 @@ export function generatePixQrCode({
   // ID 53: Transaction Currency (986 = BRL)
   payload += formatEMV('53', '986');
   
-  // ID 54: Transaction Amount (opcional)
+  // ID 54: Transaction Amount (opcional, mas importante incluir)
   if (amount && amount > 0) {
-    payload += formatEMV('54', amount.toFixed(2));
+    // Formatar valor sem zeros à esquerda desnecessários
+    const formattedAmount = amount.toFixed(2).replace(/^0+(?=\d)/, '');
+    payload += formatEMV('54', formattedAmount);
   }
   
   // ID 58: Country Code
   payload += formatEMV('58', 'BR');
   
   // ID 59: Merchant Name
-  payload += formatEMV('59', merchantName.substring(0, 25).toUpperCase());
+  payload += formatEMV('59', cleanMerchantName);
   
   // ID 60: Merchant City
-  payload += formatEMV('60', merchantCity.substring(0, 15).toUpperCase());
+  payload += formatEMV('60', cleanMerchantCity);
   
-  // ID 62: Additional Data Field Template
+  // ID 62: Additional Data Field Template (Transaction ID)
   if (txId) {
-    const additionalData = formatEMV('05', txId.substring(0, 25));
+    const cleanTxId = txId.replace('#', '').substring(0, 25);
+    const additionalData = formatEMV('05', cleanTxId);
     payload += formatEMV('62', additionalData);
   }
   
   // ID 63: CRC16
-  payload += '6304'; // ID + Length
+  payload += '6304';
   const crcValue = crc16(payload);
   payload += crcValue;
   

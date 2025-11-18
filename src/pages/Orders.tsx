@@ -561,7 +561,7 @@ export default function Orders() {
                                   <QRCodeCanvas 
                                     value={generatePixQrCode({
                                       pixKey: order.stores.pix_key,
-                                      description: `Pedido #${order.order_number}`,
+                                      description: `Pedido ${order.order_number}`,
                                       merchantName: order.stores.name,
                                       amount: order.total,
                                       txId: order.order_number
@@ -582,7 +582,7 @@ export default function Orders() {
                                   onClick={() => {
                                     const pixPayload = generatePixQrCode({
                                       pixKey: order.stores.pix_key,
-                                      description: `Pedido #${order.order_number}`,
+                                      description: `Pedido ${order.order_number}`,
                                       merchantName: order.stores.name,
                                       amount: order.total,
                                       txId: order.order_number
