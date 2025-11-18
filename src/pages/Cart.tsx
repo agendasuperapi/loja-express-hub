@@ -20,7 +20,7 @@ import { useCoupons } from "@/hooks/useCoupons";
 import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { usePickupLocations } from "@/hooks/usePickupLocations";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
@@ -64,6 +64,7 @@ export default function Cart() {
   const [authPassword, setAuthPassword] = useState("");
   const [authFullName, setAuthFullName] = useState("");
   const [authPhone, setAuthPhone] = useState("");
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEmailExistsAlert, setShowEmailExistsAlert] = useState(false);
@@ -76,6 +77,17 @@ export default function Cart() {
   useEffect(() => {
     setShowEmailExistsAlert(false);
   }, [authEmail]);
+  
+  // Auto-hide password after typing stops
+  useEffect(() => {
+    if (showAuthPassword && authPassword.length > 0) {
+      const timer = setTimeout(() => {
+        setShowAuthPassword(false);
+      }, 1000); // Hide after 1 second of inactivity
+
+      return () => clearTimeout(timer);
+    }
+  }, [authPassword, showAuthPassword]);
   // Auto-select pickup location if there's only one
   useEffect(() => {
     if (deliveryType === 'pickup' && pickupLocations.length === 1) {
@@ -905,14 +917,33 @@ export default function Cart() {
                               </Link>
                             )}
                           </div>
-                          <Input
-                            id="auth-password"
-                            type="password"
-                            value={authPassword}
-                            onChange={(e) => setAuthPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                          />
+                          <div className="relative">
+                            <Input
+                              id="auth-password"
+                              type={showAuthPassword ? "text" : "password"}
+                              value={authPassword}
+                              onChange={(e) => {
+                                setAuthPassword(e.target.value);
+                                setShowAuthPassword(true);
+                              }}
+                              placeholder="••••••••"
+                              required
+                              className="pr-12"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowAuthPassword(!showAuthPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showAuthPassword ? "Ocultar senha" : "Mostrar senha"}
+                              tabIndex={-1}
+                            >
+                              {showAuthPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
                         </div>
 
                         <Button
