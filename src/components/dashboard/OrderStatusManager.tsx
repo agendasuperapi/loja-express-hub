@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface OrderStatus {
   id: string;
@@ -198,120 +199,122 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
               </DialogHeader>
 
               {editingStatus && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="status_key">Chave do Status</Label>
-                      <Input
-                        id="status_key"
-                        value={editingStatus.status_key}
-                        onChange={(e) => setEditingStatus({
-                          ...editingStatus,
-                          status_key: e.target.value.toLowerCase().replace(/\s+/g, '_')
-                        })}
-                        placeholder="ex: preparando"
-                        disabled={!editingStatus.id.startsWith('new_')}
-                      />
+                <ScrollArea className="max-h-[60vh] pr-4">
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="status_key">Chave do Status</Label>
+                        <Input
+                          id="status_key"
+                          value={editingStatus.status_key}
+                          onChange={(e) => setEditingStatus({
+                            ...editingStatus,
+                            status_key: e.target.value.toLowerCase().replace(/\s+/g, '_')
+                          })}
+                          placeholder="ex: preparando"
+                          disabled={!editingStatus.id.startsWith('new_')}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="status_label">Nome da Etapa</Label>
+                        <Input
+                          id="status_label"
+                          value={editingStatus.status_label}
+                          onChange={(e) => setEditingStatus({
+                            ...editingStatus,
+                            status_label: e.target.value
+                          })}
+                          placeholder="ex: Preparando"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="status_label">Nome da Etapa</Label>
-                      <Input
-                        id="status_label"
-                        value={editingStatus.status_label}
+                      <Label htmlFor="status_color">Cor</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="status_color"
+                          type="color"
+                          value={editingStatus.status_color}
+                          onChange={(e) => setEditingStatus({
+                            ...editingStatus,
+                            status_color: e.target.value
+                          })}
+                          className="w-20"
+                        />
+                        <Input
+                          value={editingStatus.status_color}
+                          onChange={(e) => setEditingStatus({
+                            ...editingStatus,
+                            status_color: e.target.value
+                          })}
+                          placeholder="#3B82F6"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="whatsapp_message">Mensagem do WhatsApp</Label>
+                      <Textarea
+                        id="whatsapp_message"
+                        value={editingStatus.whatsapp_message || ''}
                         onChange={(e) => setEditingStatus({
                           ...editingStatus,
-                          status_label: e.target.value
+                          whatsapp_message: e.target.value
                         })}
-                        placeholder="ex: Preparando"
+                        placeholder="Olá {{customer_name}}! Seu pedido #{{order_number}} está sendo preparado..."
+                        rows={4}
                       />
+                      <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Variáveis disponíveis:</strong><br />
+                          • <code>{'{{customer_name}}'}</code> - Nome do cliente<br />
+                          • <code>{'{{order_number}}'}</code> - Número do pedido<br />
+                          • <code>{'{{total}}'}</code> - Valor total<br />
+                          • <code>{'{{subtotal}}'}</code> - Subtotal dos produtos<br />
+                          • <code>{'{{delivery_fee}}'}</code> - Taxa de entrega<br />
+                          • <code>{'{{delivery_type}}'}</code> - Tipo de entrega (Entrega/Retirada)<br />
+                          • <code>{'{{delivery_location_label}}'}</code> - LOCAL DE ENTREGA ou LOCAL DE RETIRADA<br />
+                          • <code>{'{{store_name}}'}</code> - Nome da loja<br />
+                          • <code>{'{{store_phone}}'}</code> - Telefone da loja<br />
+                          • <code>{'{{store_address}}'}</code> - Endereço da loja<br />
+                          • <code>{'{{store_url}}'}</code> - URL da loja<br />
+                          • <code>{'{{pickup_address}}'}</code> - Endereço de retirada<br />
+                          • <code>{'{{address}}'}</code> - Endereço (entrega ou retirada automaticamente)<br />
+                          • <code>{'{{items}}'}</code> - Lista completa de produtos<br />
+                          • <code>{'{{delivery_address}}'}</code> - Endereço de entrega<br />
+                          • <code>{'{{payment_method}}'}</code> - Forma de pagamento<br />
+                          • <code>{'{{change_amount}}'}</code> - Troco para<br />
+                          • <code>{'{{notes}}'}</code> - Observações do pedido
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_active"
+                        checked={editingStatus.is_active}
+                        onCheckedChange={(checked) => setEditingStatus({
+                          ...editingStatus,
+                          is_active: checked
+                        })}
+                      />
+                      <Label htmlFor="is_active">Etapa ativa</Label>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleSaveStatus}>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="status_color">Cor</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="status_color"
-                        type="color"
-                        value={editingStatus.status_color}
-                        onChange={(e) => setEditingStatus({
-                          ...editingStatus,
-                          status_color: e.target.value
-                        })}
-                        className="w-20"
-                      />
-                      <Input
-                        value={editingStatus.status_color}
-                        onChange={(e) => setEditingStatus({
-                          ...editingStatus,
-                          status_color: e.target.value
-                        })}
-                        placeholder="#3B82F6"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp_message">Mensagem do WhatsApp</Label>
-                    <Textarea
-                      id="whatsapp_message"
-                      value={editingStatus.whatsapp_message || ''}
-                      onChange={(e) => setEditingStatus({
-                        ...editingStatus,
-                        whatsapp_message: e.target.value
-                      })}
-                      placeholder="Olá {{customer_name}}! Seu pedido #{{order_number}} está sendo preparado..."
-                      rows={4}
-                    />
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Variáveis disponíveis:</strong><br />
-                        • <code>{'{{customer_name}}'}</code> - Nome do cliente<br />
-                        • <code>{'{{order_number}}'}</code> - Número do pedido<br />
-                        • <code>{'{{total}}'}</code> - Valor total<br />
-                        • <code>{'{{subtotal}}'}</code> - Subtotal dos produtos<br />
-                        • <code>{'{{delivery_fee}}'}</code> - Taxa de entrega<br />
-                        • <code>{'{{delivery_type}}'}</code> - Tipo de entrega (Entrega/Retirada)<br />
-                        • <code>{'{{delivery_location_label}}'}</code> - LOCAL DE ENTREGA ou LOCAL DE RETIRADA<br />
-                        • <code>{'{{store_name}}'}</code> - Nome da loja<br />
-                        • <code>{'{{store_phone}}'}</code> - Telefone da loja<br />
-                        • <code>{'{{store_address}}'}</code> - Endereço da loja<br />
-                        • <code>{'{{store_url}}'}</code> - URL da loja<br />
-                        • <code>{'{{pickup_address}}'}</code> - Endereço de retirada<br />
-                        • <code>{'{{address}}'}</code> - Endereço (entrega ou retirada automaticamente)<br />
-                        • <code>{'{{items}}'}</code> - Lista completa de produtos<br />
-                        • <code>{'{{delivery_address}}'}</code> - Endereço de entrega<br />
-                        • <code>{'{{payment_method}}'}</code> - Forma de pagamento<br />
-                        • <code>{'{{change_amount}}'}</code> - Troco para<br />
-                        • <code>{'{{notes}}'}</code> - Observações do pedido
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="is_active"
-                      checked={editingStatus.is_active}
-                      onCheckedChange={(checked) => setEditingStatus({
-                        ...editingStatus,
-                        is_active: checked
-                      })}
-                    />
-                    <Label htmlFor="is_active">Etapa ativa</Label>
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleSaveStatus}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Salvar
-                    </Button>
-                  </div>
-                </div>
+                </ScrollArea>
               )}
             </DialogContent>
           </Dialog>
