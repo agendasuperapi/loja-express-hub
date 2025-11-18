@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { QRCodeCanvas } from "qrcode.react";
+import { generatePixQrCode } from "@/lib/pixQrCode";
 
 const statusConfig = {
   pending: { label: 'Pendente', icon: Clock, color: 'bg-yellow-500' },
@@ -553,15 +554,25 @@ export default function Orders() {
                               </div>
                               
                               {/* QR Code for PIX */}
-                              <div className="mt-4 flex justify-center">
-                                <div className="bg-white p-4 rounded-lg border border-border">
+                              <div className="mt-4 flex flex-col items-center gap-2">
+                                <p className="text-xs text-muted-foreground">Escaneie o QR Code PIX para pagar</p>
+                                <div className="bg-white p-4 rounded-lg border-2 border-border shadow-sm">
                                   <QRCodeCanvas 
-                                    value={order.stores.pix_key}
+                                    value={generatePixQrCode({
+                                      pixKey: order.stores.pix_key,
+                                      description: `Pedido #${order.order_number}`,
+                                      merchantName: order.stores.name,
+                                      amount: order.total,
+                                      txId: order.order_number
+                                    })}
                                     size={200}
                                     level="H"
                                     includeMargin={true}
                                   />
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Valor: R$ {order.total.toFixed(2)}
+                                </p>
                               </div>
                             </div>
                           );
