@@ -67,7 +67,6 @@ import { OrdersReport } from "./OrdersReport";
 import { ReportsFilters } from "./ReportsFilters";
 import { useDateRangeFilter } from "@/hooks/useDateRangeFilter";
 import { DeliveryZonesManager } from "./DeliveryZonesManager";
-import { PickupLocationsManager } from "./PickupLocationsManager";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -2735,7 +2734,6 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <DeliveryZonesManager storeId={myStore.id} />
-            <PickupLocationsManager storeId={myStore.id} />
           </motion.div>
         )}
 

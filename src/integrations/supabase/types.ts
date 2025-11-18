@@ -924,6 +924,44 @@ export type Database = {
         }
         Relationships: []
       }
+      store_pickup_locations: {
+        Row: {
+          address: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_pickup_locations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           accepts_card: boolean | null
