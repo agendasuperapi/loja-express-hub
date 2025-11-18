@@ -63,12 +63,12 @@ export const FloatingCartButton = () => {
             <div className="flex items-center justify-between w-full px-2 sm:px-4">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <div className="relative">
-                  <ShoppingCart className={`w-6 h-6 sm:w-6 sm:h-6 ${isMobile ? 'animate-pulse-slow' : ''}`} />
+                  <ShoppingCart className={`w-8 h-8 sm:w-6 sm:h-6 ${isMobile ? 'animate-pulse-slow' : ''}`} />
                   <motion.span
                     key={itemCount}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 bg-white text-primary text-xs font-bold rounded-full w-5 h-5 sm:w-5 sm:h-5 flex items-center justify-center"
+                    className="absolute -top-2 -right-2 bg-white text-primary text-xs font-bold rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center"
                   >
                     {itemCount}
                   </motion.span>
