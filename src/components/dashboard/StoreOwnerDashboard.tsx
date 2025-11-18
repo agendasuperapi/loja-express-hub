@@ -2732,17 +2732,17 @@ export const StoreOwnerDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
+            className="p-6 space-y-4"
           >
             <Card>
-              <CardHeader>
-                <CardTitle>Tipos de Entrega Aceitos</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Tipos de Entrega Aceitos</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+              <CardContent className="space-y-3 pt-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
                   <div className="space-y-0.5">
-                    <Label htmlFor="accepts_delivery">Entrega</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label htmlFor="accepts_delivery" className="text-sm font-medium">Entrega</Label>
+                    <p className="text-xs text-muted-foreground">
                       Permite que os clientes recebam pedidos em casa
                     </p>
                   </div>
@@ -2755,10 +2755,10 @@ export const StoreOwnerDashboard = () => {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
                   <div className="space-y-0.5">
-                    <Label htmlFor="accepts_pickup">Retirada</Label>
-                    <p className="text-sm text-muted-foreground">
+                    <Label htmlFor="accepts_pickup" className="text-sm font-medium">Retirada</Label>
+                    <p className="text-xs text-muted-foreground">
                       Permite que os clientes retirem pedidos na loja
                     </p>
                   </div>

@@ -112,24 +112,24 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <MapPin className="h-4 w-4" />
           Endereços de Retirada
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           Gerencie os locais onde os clientes podem retirar seus pedidos
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 pt-3">
         {locations.map((location) => (
           <div
             key={location.id}
-            className="flex items-start gap-4 p-4 border rounded-lg"
+            className="flex items-start gap-3 p-3 border rounded-lg bg-background"
           >
             <div className="flex-1 space-y-1">
-              <div className="font-medium">{location.name}</div>
-              <div className="text-sm text-muted-foreground">{location.address}</div>
+              <div className="text-sm font-medium">{location.name}</div>
+              <div className="text-xs text-muted-foreground">{location.address}</div>
             </div>
             <div className="flex items-center gap-2">
               <Switch
@@ -140,19 +140,20 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
               />
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
+                className="h-8 w-8 p-0"
                 onClick={() => deleteLocationMutation.mutate(location.id)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3 w-3" />
               </Button>
             </div>
           </div>
         ))}
 
         {isAdding ? (
-          <div className="space-y-4 p-4 border rounded-lg">
+          <div className="space-y-3 p-3 border rounded-lg bg-muted/50">
             <div className="space-y-2">
-              <Label htmlFor="location-name">Nome do Local</Label>
+              <Label htmlFor="location-name" className="text-xs">Nome do Local</Label>
               <Input
                 id="location-name"
                 placeholder="Ex: Loja Centro"
@@ -160,10 +161,11 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                 onChange={(e) =>
                   setNewLocation({ ...newLocation, name: e.target.value })
                 }
+                className="h-8 text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location-address">Endereço Completo</Label>
+              <Label htmlFor="location-address" className="text-xs">Endereço Completo</Label>
               <Input
                 id="location-address"
                 placeholder="Rua, número, bairro, cidade"
@@ -171,12 +173,15 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                 onChange={(e) =>
                   setNewLocation({ ...newLocation, address: e.target.value })
                 }
+                className="h-8 text-sm"
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleAddLocation}>Salvar</Button>
+              <Button onClick={handleAddLocation} size="sm" className="h-8">Salvar</Button>
               <Button
                 variant="outline"
+                size="sm"
+                className="h-8"
                 onClick={() => {
                   setIsAdding(false);
                   setNewLocation({ name: "", address: "" });
@@ -189,11 +194,12 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
         ) : (
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full h-9"
+            size="sm"
             onClick={() => setIsAdding(true)}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Endereço de Retirada
+            <Plus className="h-3 w-3 mr-1" />
+            Adicionar Endereço
           </Button>
         )}
       </CardContent>
