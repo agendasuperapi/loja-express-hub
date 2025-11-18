@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     console.log('Processing request:', { productShortId, userAgent, isCrawler: isCrawler(userAgent) });
 
     // Build the actual product URL
-    const productUrl = productShortId ? `https://mgpzowiahnwcmcaelogf.supabase.co/p/${productShortId}` : 'https://mgpzowiahnwcmcaelogf.supabase.co';
+    const productUrl = productShortId ? `https://ofertas.app/p/${productShortId}` : 'https://ofertas.app';
 
     // If not a crawler and no shortId, redirect to home
     if (!productShortId) {
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
   <meta property="og:description" content="Faça seu pedido online" />
   <meta property="og:site_name" content="Ofertas App" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta http-equiv="refresh" content="0; url=https://mgpzowiahnwcmcaelogf.supabase.co" />
+  <meta http-equiv="refresh" content="0; url=https://ofertas.app" />
 </head>
 <body>
   <h1>Produto não encontrado</h1>
@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
   <meta property="og:description" content="Faça seu pedido online" />
   <meta property="og:site_name" content="Ofertas App" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta http-equiv="refresh" content="0; url=https://mgpzowiahnwcmcaelogf.supabase.co" />
+  <meta http-equiv="refresh" content="0; url=https://ofertas.app" />
 </head>
 <body>
   <h1>Produto não encontrado</h1>

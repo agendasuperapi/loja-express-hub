@@ -728,7 +728,7 @@ export const StoreOwnerDashboard = () => {
 
   const filteredOrdersByDate = filterOrdersByDate(orders);
 
-  const storeUrl = myStore ? `https://mgpzowiahnwcmcaelogf.supabase.co/${myStore.slug}` : '';
+  const storeUrl = myStore ? `https://ofertas.app/${myStore.slug}` : '';
 
   const handleCopyUrl = async () => {
     if (storeUrl) {
@@ -1282,7 +1282,7 @@ export const StoreOwnerDashboard = () => {
                 <CardContent>
                   <div className="flex items-center gap-2">
                     <Input
-                      value={`https://mgpzowiahnwcmcaelogf.supabase.co/${myStore?.slug || ''}`}
+                      value={`https://ofertas.app/${myStore?.slug || ''}`}
                       readOnly
                       className="flex-1 bg-muted/50"
                     />
@@ -1291,7 +1291,7 @@ export const StoreOwnerDashboard = () => {
                       size="icon"
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(`https://mgpzowiahnwcmcaelogf.supabase.co/${myStore?.slug || ''}`);
+                          await navigator.clipboard.writeText(`https://ofertas.app/${myStore?.slug || ''}`);
                           toast({
                             title: "URL copiada!",
                             description: "A URL da sua loja foi copiada para a área de transferência.",

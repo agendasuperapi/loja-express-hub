@@ -25,7 +25,7 @@ export default function ForgotPassword() {
       const validatedData: ForgotPasswordData = forgotPasswordSchema.parse({ email });
 
       const { error } = await supabase.auth.resetPasswordForEmail(validatedData.email, {
-        redirectTo: `https://mgpzowiahnwcmcaelogf.supabase.co/reset-password`,
+        redirectTo: `https://ofertas.app/reset-password`,
       });
 
       if (error) throw error;

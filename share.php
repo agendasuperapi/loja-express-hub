@@ -71,14 +71,14 @@ if ($tipo === "produto") {
   $preco  = number_format($info['preco'], 2, ',', '.');
   $descricao = "💰 R$ {$preco}";
   $imagem = $info['foto_produto'];
-  $link_final = "https://mgpzowiahnwcmcaelogf.supabase.co/p/" . $info['id'];
+  $link_final = "https://ofertas.app/p/" . $info['id'];
 
 } else {
 
   $titulo = htmlspecialchars($info['nome']);
   $descricao = htmlspecialchars($info['descricao'] ?? $info['segmento']);
   $imagem = $info['foto_perfil'];
-  $link_final = "https://mgpzowiahnwcmcaelogf.supabase.co/" . $info['username'];
+  $link_final = "https://ofertas.app/" . $info['username'];
 }
 
 ?>

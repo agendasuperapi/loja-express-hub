@@ -121,7 +121,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   };
 
   const handleShare = async () => {
-    const shareUrl = `https://mgpzowiahnwcmcaelogf.supabase.co/p/${product.short_id}`;
+    const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(currentPrice).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 
     try {

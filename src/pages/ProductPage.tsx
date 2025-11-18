@@ -91,7 +91,7 @@ export default function ProductPage() {
   const handleShare = async () => {
     if (!product) return;
 
-    const shareUrl = `https://mgpzowiahnwcmcaelogf.supabase.co/p/${product.short_id}`;
+    const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${product.stores.name}`;
 
     try {
@@ -146,7 +146,7 @@ export default function ProductPage() {
   const pageTitle = `${product.name} - ${product.stores.name}`;
   const pageDescription = product.description || `${product.name} disponível por R$ ${currentPrice.toFixed(2)}`;
   const pageImage = product.image_url || product.stores.logo_url || '';
-  const pageUrl = `https://mgpzowiahnwcmcaelogf.supabase.co/p/${product.short_id}`;
+  const pageUrl = `https://ofertas.app/p/${product.short_id}`;
 
   return (
     <>

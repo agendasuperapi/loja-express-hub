@@ -88,7 +88,7 @@ export default function StoreDetails() {
     if (!store) return;
     
     // Nova URL limpa usando short_id
-    const shareUrl = `https://mgpzowiahnwcmcaelogf.supabase.co/p/${product.short_id}`;
+    const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
 
