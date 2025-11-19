@@ -68,6 +68,7 @@ import { ReportsFilters } from "./ReportsFilters";
 import { useDateRangeFilter } from "@/hooks/useDateRangeFilter";
 import { DeliveryZonesManager } from "./DeliveryZonesManager";
 import { PickupLocationsManager } from "./PickupLocationsManager";
+import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -3163,7 +3164,7 @@ export const StoreOwnerDashboard = () => {
               transition={{ delay: 0.3 }}
             >
               <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-2 bg-muted/50 h-auto p-2">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 gap-2 bg-muted/50 h-auto p-2">
                   <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <User className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Dados Pessoais</span>
@@ -3175,6 +3176,10 @@ export const StoreOwnerDashboard = () => {
                   <TabsTrigger value="entregas" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Truck className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Entregas</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="pix" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <DollarSign className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">PIX</span>
                   </TabsTrigger>
                   <TabsTrigger value="status" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Menu className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
@@ -3846,6 +3851,28 @@ export const StoreOwnerDashboard = () => {
 
             <PickupLocationsManager storeId={myStore.id} />
             <DeliveryZonesManager storeId={myStore.id} />
+          </motion.div>
+        </TabsContent>
+
+        {/* PIX Configuration Tab */}
+        <TabsContent value="pix">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <WhatsAppMessageConfig 
+              store={myStore} 
+              onUpdate={async (data) => {
+                await updateStore({
+                  id: myStore.id,
+                  name: myStore.name,
+                  slug: myStore.slug,
+                  category: myStore.category,
+                  ...data,
+                });
+              }}
+            />
           </motion.div>
         </TabsContent>
       </Tabs>
