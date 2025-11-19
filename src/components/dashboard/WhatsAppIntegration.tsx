@@ -5,14 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, FileText, Eye } from "lucide-react";
+import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
 import { motion } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
 
 // Unified invoker to Evolution function using supabase.functions.invoke
 const invokeEvolution = async (payload: any) => {
@@ -515,20 +513,8 @@ await invokeEvolution({
   };
 
   return (
-    <Tabs defaultValue="connection" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="connection">
-          <MessageSquare className="w-4 h-4 mr-2" />
-          Conexão
-        </TabsTrigger>
-        <TabsTrigger value="message">
-          <FileText className="w-4 h-4 mr-2" />
-          Mensagem PIX
-        </TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="connection" className="space-y-6">
-        <Card>
+    <div className="space-y-6">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -820,7 +806,7 @@ await invokeEvolution({
               {connectionLogs.length > 0 && (
                 <div className="p-4 bg-muted rounded-lg space-y-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <FileText className="w-4 h-4" />
+                    <MessageSquare className="w-4 h-4" />
                     <h4 className="font-semibold text-sm">Log de Conexão</h4>
                     <Button 
                       variant="ghost" 
@@ -855,21 +841,6 @@ await invokeEvolution({
           )}
         </CardContent>
       </Card>
-      </TabsContent>
-
-      <TabsContent value="message">
-        {store && onStoreUpdate ? (
-          <WhatsAppMessageConfig store={store} onUpdate={onStoreUpdate} />
-        ) : (
-          <Card>
-            <CardContent className="py-8">
-              <p className="text-center text-muted-foreground">
-                Carregando configurações da loja...
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </TabsContent>
-    </Tabs>
+    </div>
   );
 };
