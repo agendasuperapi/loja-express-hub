@@ -368,7 +368,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mb-1">Página de Pedidos</Badge>
               </div>
-              <CardTitle className="text-lg text-orange-600">Botão na Tela do Cliente</CardTitle>
+              <CardTitle className="text-lg text-orange-600">Botão na pagina de Pedidos do Cliente.</CardTitle>
               <CardDescription>
                 Personalize o texto do botão "PIX Copia e Cola" que aparece na página de acompanhamento de pedidos
               </CardDescription>
