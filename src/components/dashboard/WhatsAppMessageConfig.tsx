@@ -168,13 +168,17 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
           )}
 
           {/* PIX Chave Fixa */}
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline">PIX Chave Fixa</Badge>
-              <p className="text-sm text-muted-foreground">
-                Envia a chave PIX cadastrada para o cliente copiar
-              </p>
-            </div>
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="mb-1">PIX Chave Fixa</Badge>
+              </div>
+              <CardTitle className="text-lg">Mensagem com Chave PIX</CardTitle>
+              <CardDescription>
+                Configure a mensagem que será enviada com sua chave PIX cadastrada para o cliente copiar e realizar o pagamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
             <div className="space-y-2">
               <Label htmlFor="title">Título da Mensagem</Label>
@@ -258,16 +262,21 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
                 disabled={!store.pix_key}
               />
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* PIX Copia e Cola Gerado */}
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline">PIX Copia e Cola Gerado</Badge>
-              <p className="text-sm text-muted-foreground">
-                Envia código EMV gerado automaticamente para o pedido
-              </p>
-            </div>
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="mb-1">PIX Copia e Cola Gerado</Badge>
+              </div>
+              <CardTitle className="text-lg">Código PIX Dinâmico</CardTitle>
+              <CardDescription>
+                Configure a mensagem que será enviada com o código EMV gerado automaticamente para cada pedido específico
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
             <div className="space-y-2">
               <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
@@ -351,16 +360,21 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
                 disabled={!store.pix_key}
               />
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Configuração do botão na página de pedidos */}
-          <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline">Página de Pedidos</Badge>
-              <p className="text-sm text-muted-foreground">
-                Configuração do botão na tela de acompanhamento
-              </p>
-            </div>
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="mb-1">Página de Pedidos</Badge>
+              </div>
+              <CardTitle className="text-lg">Botão na Tela do Cliente</CardTitle>
+              <CardDescription>
+                Personalize o texto do botão "PIX Copia e Cola" que aparece na página de acompanhamento de pedidos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
 
             <div className="space-y-2">
               <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola"</Label>
@@ -375,7 +389,8 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
                 Texto do botão que aparece na página de pedidos (Máximo de 50 caracteres)
               </p>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {(formData.pix_message_enabled || formData.pix_copiacola_message_enabled) && (
             <Alert>
