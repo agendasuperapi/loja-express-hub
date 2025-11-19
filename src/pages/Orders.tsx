@@ -604,7 +604,7 @@ export default function Orders() {
                                   ) : (
                                     <>
                                       <Copy className="w-4 h-4 mr-2" />
-                                      PIX Copia e Cola
+                                      {(order.stores as any).pix_copiacola_button_text || "PIX Copia e Cola"}
                                     </>
                                   )}
                                 </Button>

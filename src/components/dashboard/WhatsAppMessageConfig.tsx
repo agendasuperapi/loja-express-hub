@@ -19,6 +19,7 @@ interface Store {
   pix_message_footer?: string;
   pix_message_button_text?: string;
   pix_message_enabled?: boolean;
+  pix_copiacola_button_text?: string;
 }
 
 interface WhatsAppMessageConfigProps {
@@ -37,6 +38,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
     pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar o código PIX, favor enviar o comprovante após o pagamento.",
     pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
     pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
+    pix_copiacola_button_text: store.pix_copiacola_button_text || "PIX Copia e Cola",
     pix_message_enabled: store.pix_message_enabled || false,
   });
 
@@ -46,6 +48,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
       pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar o código PIX, favor enviar o comprovante após o pagamento.",
       pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
       pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
+      pix_copiacola_button_text: store.pix_copiacola_button_text || "PIX Copia e Cola",
       pix_message_enabled: store.pix_message_enabled || false,
     });
   }, [store]);
@@ -169,7 +172,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="buttonText">Texto do Botão</Label>
+              <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
               <Input
                 id="buttonText"
                 placeholder="Ex: 📋 COPIAR CHAVE PIX"
@@ -178,7 +181,21 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
                 maxLength={50}
               />
               <p className="text-xs text-muted-foreground">
-                Máximo de 50 caracteres
+                Texto do botão na mensagem enviada pelo WhatsApp (Máximo de 50 caracteres)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola" (Página de Pedidos)</Label>
+              <Input
+                id="copiacolaButtonText"
+                placeholder="Ex: PIX Copia e Cola"
+                value={formData.pix_copiacola_button_text}
+                onChange={(e) => setFormData({ ...formData, pix_copiacola_button_text: e.target.value })}
+                maxLength={50}
+              />
+              <p className="text-xs text-muted-foreground">
+                Texto do botão que aparece na página de pedidos para copiar o código PIX (Máximo de 50 caracteres)
               </p>
             </div>
 
