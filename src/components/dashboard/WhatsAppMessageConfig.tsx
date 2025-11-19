@@ -50,7 +50,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
     pix_message_enabled: store.pix_message_enabled || false,
     // PIX Copia e Cola Gerado
     pix_copiacola_message_title: store.pix_copiacola_message_title || "💳 Código PIX Gerado",
-    pix_copiacola_message_description: store.pix_copiacola_message_description || "Use o código PIX Copia e Cola gerado automaticamente para este pedido. Clique no botão abaixo para copiar.",
+    pix_copiacola_message_description: store.pix_copiacola_message_description || "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
     pix_copiacola_message_footer: store.pix_copiacola_message_footer || "Código válido para este pedido específico.",
     pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || "📋 COPIAR CÓDIGO PIX",
     pix_copiacola_message_enabled: store.pix_copiacola_message_enabled || false,
@@ -68,7 +68,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
       pix_message_enabled: store.pix_message_enabled || false,
       // PIX Copia e Cola Gerado
       pix_copiacola_message_title: store.pix_copiacola_message_title || "💳 Código PIX Gerado",
-      pix_copiacola_message_description: store.pix_copiacola_message_description || "Use o código PIX Copia e Cola gerado automaticamente para este pedido. Clique no botão abaixo para copiar.",
+      pix_copiacola_message_description: store.pix_copiacola_message_description || "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
       pix_copiacola_message_footer: store.pix_copiacola_message_footer || "Código válido para este pedido específico.",
       pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || "📋 COPIAR CÓDIGO PIX",
       pix_copiacola_message_enabled: store.pix_copiacola_message_enabled || false,
