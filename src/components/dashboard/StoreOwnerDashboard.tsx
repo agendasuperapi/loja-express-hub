@@ -740,11 +740,20 @@ export const StoreOwnerDashboard = () => {
 
   const handleCreateProduct = () => {
     if (!myStore) return;
-
+    
     if (!productForm.category.trim()) {
       toast({
         title: 'Categoria obrigatória',
         description: 'Por favor, selecione uma categoria para o produto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
+      toast({
+        title: 'Preço promocional inválido',
+        description: 'O preço promocional não pode ser maior que o preço normal.',
         variant: 'destructive',
       });
       return;
@@ -796,6 +805,15 @@ export const StoreOwnerDashboard = () => {
       toast({
         title: 'Categoria obrigatória',
         description: 'Por favor, selecione uma categoria para o produto.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
+      toast({
+        title: 'Preço promocional inválido',
+        description: 'O preço promocional não pode ser maior que o preço normal.',
         variant: 'destructive',
       });
       return;
