@@ -3375,125 +3375,6 @@ export const StoreOwnerDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Configurações de PIX</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pix_key">Chave PIX</Label>
-                  <div className="relative">
-                    <Input
-                      id="pix_key"
-                      type="text"
-                      placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                      value={storeForm.pix_key}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setStoreForm({ ...storeForm, pix_key: value });
-                        
-                        // Validate in real-time
-                        const validation = validatePixKey(value);
-                        setPixValidation(validation);
-                      }}
-                      className={cn(
-                        "pr-10",
-                        storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {storeForm.pix_key && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {pixValidation.isValid ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-destructive" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {storeForm.pix_key && pixValidation.message && (
-                    <p className={cn(
-                      "text-xs mt-1",
-                      pixValidation.isValid ? "text-green-600" : "text-destructive"
-                    )}>
-                      {pixValidation.message}
-                    </p>
-                  )}
-                  {!storeForm.pix_key && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Chave PIX para recebimento de pagamentos dos clientes
-                    </p>
-                  )}
-                </div>
-
-                <Button
-                  onClick={async () => {
-                    if (!myStore?.id) return;
-                    
-                    if (storeForm.pix_key && !pixValidation.isValid) {
-                      toast({
-                        title: "Chave PIX inválida",
-                        description: pixValidation.message,
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    
-                    try {
-                      await updateStore({
-                        id: myStore.id,
-                        name: myStore.name,
-                        slug: myStore.slug,
-                        category: myStore.category,
-                        pix_key: storeForm.pix_key || null,
-                      });
-                      
-                      toast({
-                        title: "Chave PIX salva!",
-                        description: "Sua chave PIX foi atualizada com sucesso.",
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "Erro ao salvar",
-                        description: "Não foi possível salvar a chave PIX. Tente novamente.",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                  disabled={storeForm.pix_key ? !pixValidation.isValid : false}
-                  className="w-full"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Salvar Chave PIX
-                </Button>
-
-                {storeForm.pix_key && (
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
-                    <div className="space-y-0.5">
-                      <Label className="text-base font-medium">Mostrar chave PIX ao cliente</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Exibir a chave PIX para o cliente após finalizar o pedido
-                      </p>
-                    </div>
-                    <Switch
-                      checked={storeForm.show_pix_key_to_customer ?? true}
-                      onCheckedChange={async (checked) => {
-                        setStoreForm({ ...storeForm, show_pix_key_to_customer: checked });
-                        if (myStore?.id) {
-                          await updateStore({
-                            id: myStore.id,
-                            name: myStore.name,
-                            slug: myStore.slug,
-                            category: myStore.category,
-                            show_pix_key_to_customer: checked,
-                          });
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </motion.div>
         </TabsContent>
 
@@ -3900,7 +3781,127 @@ export const StoreOwnerDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <WhatsAppMessageConfig 
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Configurações de PIX</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pix_key">Chave PIX</Label>
+                  <div className="relative">
+                    <Input
+                      id="pix_key"
+                      type="text"
+                      placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
+                      value={storeForm.pix_key}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setStoreForm({ ...storeForm, pix_key: value });
+                        
+                        // Validate in real-time
+                        const validation = validatePixKey(value);
+                        setPixValidation(validation);
+                      }}
+                      className={cn(
+                        "pr-10",
+                        storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive"
+                      )}
+                    />
+                    {storeForm.pix_key && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {pixValidation.isValid ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-destructive" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {storeForm.pix_key && pixValidation.message && (
+                    <p className={cn(
+                      "text-xs mt-1",
+                      pixValidation.isValid ? "text-green-600" : "text-destructive"
+                    )}>
+                      {pixValidation.message}
+                    </p>
+                  )}
+                  {!storeForm.pix_key && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Chave PIX para recebimento de pagamentos dos clientes
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  onClick={async () => {
+                    if (!myStore?.id) return;
+                    
+                    if (storeForm.pix_key && !pixValidation.isValid) {
+                      toast({
+                        title: "Chave PIX inválida",
+                        description: pixValidation.message,
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
+                    try {
+                      await updateStore({
+                        id: myStore.id,
+                        name: myStore.name,
+                        slug: myStore.slug,
+                        category: myStore.category,
+                        pix_key: storeForm.pix_key || null,
+                      });
+                      
+                      toast({
+                        title: "Chave PIX salva!",
+                        description: "Sua chave PIX foi atualizada com sucesso.",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Erro ao salvar",
+                        description: "Não foi possível salvar a chave PIX. Tente novamente.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  disabled={storeForm.pix_key ? !pixValidation.isValid : false}
+                  className="w-full"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar Chave PIX
+                </Button>
+
+                {storeForm.pix_key && (
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
+                    <div className="space-y-0.5">
+                      <Label className="text-base font-medium">Mostrar chave PIX ao cliente</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Exibir a chave PIX para o cliente após finalizar o pedido
+                      </p>
+                    </div>
+                    <Switch
+                      checked={storeForm.show_pix_key_to_customer ?? true}
+                      onCheckedChange={async (checked) => {
+                        setStoreForm({ ...storeForm, show_pix_key_to_customer: checked });
+                        if (myStore?.id) {
+                          await updateStore({
+                            id: myStore.id,
+                            name: myStore.name,
+                            slug: myStore.slug,
+                            category: myStore.category,
+                            show_pix_key_to_customer: checked,
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <WhatsAppMessageConfig
               store={myStore} 
               onUpdate={async (data) => {
                 await updateStore({
