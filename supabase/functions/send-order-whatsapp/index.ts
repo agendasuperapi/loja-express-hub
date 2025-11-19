@@ -390,11 +390,12 @@ serve(async (req) => {
       console.warn('⚠️ Erro ao registrar no log (não crítico):', logError);
     }
 
-    // 💳 ENVIAR MENSAGEM COM BOTÃO PIX CHAVE FIXA (se configurado e método for PIX)
+    // 💳 ENVIAR MENSAGEM COM BOTÃO PIX CHAVE FIXA (apenas na primeira mensagem - pending)
     if (
       store.pix_message_enabled &&
       store.pix_key &&
-      order.payment_method === 'pix'
+      order.payment_method === 'pix' &&
+      orderStatus === 'pending'
     ) {
       console.log('💳 Enviando mensagem PIX chave fixa com botão...');
       
@@ -459,11 +460,12 @@ serve(async (req) => {
       }
     }
 
-    // 💳 ENVIAR MENSAGEM COM PIX COPIA E COLA GERADO (se configurado e método for PIX)
+    // 💳 ENVIAR MENSAGEM COM PIX COPIA E COLA GERADO (apenas na primeira mensagem - pending)
     if (
       store.pix_copiacola_message_enabled &&
       store.pix_key &&
-      order.payment_method === 'pix'
+      order.payment_method === 'pix' &&
+      orderStatus === 'pending'
     ) {
       console.log('💳 Gerando e enviando código PIX Copia e Cola...');
       
