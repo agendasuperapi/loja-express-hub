@@ -575,6 +575,10 @@ export default function Orders() {
                                   Valor: R$ {order.total.toFixed(2)}
                                 </p>
                                 
+                                <p className="text-xs text-muted-foreground text-center px-4 break-all font-mono">
+                                  00020126520014BR.GOV.BCB.PIX0111098280626400215Pedido 69793898520400005303986540510.005802BR5912PAULO MARCIO6009SAO PAULO6212050869793898630461E0
+                                </p>
+                                
                                 {/* PIX Copia e Cola Button */}
                                 <Button
                                   variant={copiedPixPayload === order.id ? "default" : "outline"}
