@@ -240,7 +240,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
 
             <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
               <div className="space-y-0.5">
-                <Label className="text-base">Ativar Envio Automático (Chave Fixa)</Label>
+                <Label className="text-base">Ativar Envio Automático no WhatsApp da (Chave Fixa)</Label>
                 <p className="text-sm text-muted-foreground">
                   Enviar chave PIX após confirmação do pedido
                 </p>
