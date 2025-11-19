@@ -90,7 +90,7 @@ export default function StoreDetails() {
     // Nova URL limpa usando short_id
     const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     
-    const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
+    const shareText = `${product.name}\nR$ ${Number(product.promotional_price || product.price).toFixed(2)}\n\n${product.description || ''}\n\n${store.name}`;
 
     try {
       if (navigator.share && navigator.canShare) {
