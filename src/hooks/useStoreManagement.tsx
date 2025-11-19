@@ -32,6 +32,12 @@ export interface StoreFormData {
   pix_message_footer?: string;
   pix_message_button_text?: string;
   pix_message_enabled?: boolean;
+  pix_copiacola_message_title?: string;
+  pix_copiacola_message_description?: string;
+  pix_copiacola_message_footer?: string;
+  pix_copiacola_message_button_text?: string;
+  pix_copiacola_button_text?: string;
+  pix_copiacola_message_enabled?: boolean;
 }
 
 export const useStoreManagement = () => {
