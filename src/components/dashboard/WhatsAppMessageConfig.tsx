@@ -44,7 +44,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
   const [formData, setFormData] = useState({
     // PIX Chave Fixa
     pix_message_title: store.pix_message_title || "💳 Pagamento via PIX",
-    pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX, favor enviar o comprovante após o pagamento.",
+    pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX,\nfavor enviar o comprovante após o pagamento.",
     pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
     pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
     pix_message_enabled: store.pix_message_enabled || false,
@@ -62,7 +62,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
     setFormData({
       // PIX Chave Fixa
       pix_message_title: store.pix_message_title || "💳 Pagamento via PIX",
-      pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX, favor enviar o comprovante após o pagamento.",
+      pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX,\nfavor enviar o comprovante após o pagamento.",
       pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
       pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
       pix_message_enabled: store.pix_message_enabled || false,
