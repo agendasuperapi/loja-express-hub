@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -195,12 +195,15 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
       {/* Card de Taxa de Entrega Padrão */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Taxa de Entrega Padrão</CardTitle>
-          <p className="text-xs text-muted-foreground">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MapPin className="h-4 w-4" />
+            Taxa de Entrega Padrão
+          </CardTitle>
+          <CardDescription className="text-xs">
             Esta taxa será usada quando o cliente não estiver em uma zona específica
-          </p>
+          </CardDescription>
         </CardHeader>
-        <CardContent className="pt-3">
+        <CardContent className="space-y-3 pt-3">
           <div className="flex gap-3 items-end">
             <div className="flex-1 max-w-xs">
               <Label htmlFor="default-fee" className="text-xs">Taxa (R$)</Label>
@@ -234,19 +237,27 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-lg font-bold gradient-text">Zonas de Entrega</h2>
-          <p className="text-xs text-muted-foreground">Configure cidades e bairros com taxas de entrega</p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenDialog()} size="sm">
-              <Plus className="w-3 h-3 mr-1" />
-              Adicionar
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
+      {/* Card de Zonas de Entrega */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MapPin className="h-4 w-4" />
+                Zonas de Entrega
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Configure cidades e bairros com taxas de entrega
+              </CardDescription>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => handleOpenDialog()} size="sm">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Adicionar
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
             <DialogHeader>
               <DialogTitle>
                 {editingZone ? 'Editar Zona de Entrega' : 'Nova Zona de Entrega'}
@@ -344,34 +355,33 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                   {editingZone ? 'Salvar' : 'Criar'}
                 </Button>
               </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-3">
+          {zones && zones.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <MapPin className="w-12 h-12 text-muted-foreground mb-3" />
+              <h3 className="text-base font-semibold mb-2">Nenhuma zona de entrega cadastrada</h3>
+              <p className="text-xs text-muted-foreground text-center mb-3">
+                Comece adicionando cidades e bairros com suas respectivas taxas de entrega
+              </p>
+              <Button onClick={() => handleOpenDialog()} size="sm">
+                <Plus className="w-3 h-3 mr-1" />
+                Adicionar primeira zona
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(zonesByCity).map(([city, cityZones]) => {
+                const defaultZone = cityZones.find(z => !z.neighborhood);
+                const neighborhoodZones = cityZones.filter(z => z.neighborhood);
 
-      {zones && zones.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <MapPin className="w-12 h-12 text-muted-foreground mb-3" />
-            <h3 className="text-base font-semibold mb-2">Nenhuma zona de entrega cadastrada</h3>
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Comece adicionando cidades e bairros com suas respectivas taxas de entrega
-            </p>
-            <Button onClick={() => handleOpenDialog()} size="sm">
-              <Plus className="w-3 h-3 mr-1" />
-              Adicionar primeira zona
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {Object.entries(zonesByCity).map(([city, cityZones]) => {
-            const defaultZone = cityZones.find(z => !z.neighborhood);
-            const neighborhoodZones = cityZones.filter(z => z.neighborhood);
-
-            return (
-              <Card key={city}>
-                <CardHeader className="pb-3">
+                return (
+                  <Card key={city}>
+                    <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-primary" />
@@ -464,11 +474,13 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                     </p>
                   )}
                 </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </motion.div>
   );
 };
