@@ -173,7 +173,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mb-1">PIX Chave Fixa</Badge>
               </div>
-              <CardTitle className="text-lg">Mensagem com Chave PIX</CardTitle>
+              <CardTitle className="text-lg text-orange-600">Mensagem com Chave PIX</CardTitle>
               <CardDescription>
                 Configure a mensagem que será enviada com sua chave PIX cadastrada para o cliente copiar e realizar o pagamento
               </CardDescription>
@@ -271,7 +271,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mb-1">PIX Copia e Cola Gerado</Badge>
               </div>
-              <CardTitle className="text-lg">Código PIX Dinâmico</CardTitle>
+              <CardTitle className="text-lg text-orange-600">Código PIX Dinâmico</CardTitle>
               <CardDescription>
                 Configure a mensagem que será enviada com o código EMV gerado automaticamente para cada pedido específico
               </CardDescription>
@@ -369,7 +369,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mb-1">Página de Pedidos</Badge>
               </div>
-              <CardTitle className="text-lg">Botão na Tela do Cliente</CardTitle>
+              <CardTitle className="text-lg text-orange-600">Botão na Tela do Cliente</CardTitle>
               <CardDescription>
                 Personalize o texto do botão "PIX Copia e Cola" que aparece na página de acompanhamento de pedidos
               </CardDescription>
