@@ -470,7 +470,7 @@ export default function Orders() {
                           </p>
                         )}
                         
-                        {order.payment_method === 'pix' && order.stores?.pix_key && order.stores?.show_pix_key_to_customer !== false && (() => {
+                        {order.payment_method === 'pix' && order.stores?.pix_key && (order.stores as any)?.pix_message_enabled && (() => {
                           const pixValidation = validatePixKey(order.stores.pix_key);
                           
                           if (!pixValidation.isValid) {
@@ -553,9 +553,15 @@ export default function Orders() {
                                   )}
                                 </Button>
                               </div>
-                              
+                            </div>
+                          );
+                        })()}
+                        
+                        {order.payment_method === 'pix' && order.stores?.pix_key && (order.stores as any)?.pix_copiacola_message_enabled && (() => {
+                          return (
+                            <div className="mt-4 p-4 bg-muted rounded-lg border border-border">
                               {/* QR Code for PIX */}
-                              <div className="mt-4 flex flex-col items-center gap-2">
+                              <div className="flex flex-col items-center gap-2">
                                 <p className="text-xs text-muted-foreground">Escaneie o QR Code PIX para pagar</p>
                                 <div className="bg-white p-4 rounded-lg border-2 border-border shadow-sm">
                                   <QRCodeCanvas 
@@ -578,7 +584,7 @@ export default function Orders() {
                                 <div className="text-xs text-muted-foreground text-center px-2 space-y-1">
                                   <p>1️⃣ Copie o código PIX abaixo.</p>
                                   <p>2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.</p>
-                                  <p>3️⃣ Toque em "PIX Copia e Cola", cole o código e confirme o pagamento. 💳✨</p>
+                                  <p>3️⃣ Toque em "PIX Copia e Cola", cole o código e confirme o pagamento.</p>
                                 </div>
                                 
                                 {/* PIX Copia e Cola Button */}
