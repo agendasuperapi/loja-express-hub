@@ -470,7 +470,7 @@ export default function Orders() {
                           </p>
                         )}
                         
-                        {order.payment_method === 'pix' && order.stores?.pix_key && order.stores?.show_pix_key_to_customer !== false && (() => {
+                        {order.payment_method === 'pix' && order.stores?.pix_key && (order.stores as any)?.pix_message_enabled === true && (() => {
                           const pixValidation = validatePixKey(order.stores.pix_key);
                           const store = order.stores as any;
                           const customTitle = store.pix_message_title;
@@ -580,7 +580,7 @@ export default function Orders() {
                           );
                         })()}
                         
-                        {order.payment_method === 'pix' && order.stores?.pix_key && (order.stores as any)?.pix_copiacola_message_enabled && (() => {
+                        {order.payment_method === 'pix' && order.stores?.pix_key && (order.stores as any)?.pix_copiacola_message_enabled === true && (() => {
                           const store = order.stores as any;
                           const customTitle = store.pix_copiacola_message_title;
                           const customDescription = store.pix_copiacola_message_description;

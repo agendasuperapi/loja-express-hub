@@ -57,6 +57,17 @@ export const useOrders = () => {
             address,
             pix_key,
             show_pix_key_to_customer,
+            pix_message_enabled,
+            pix_message_title,
+            pix_message_description,
+            pix_message_footer,
+            pix_message_button_text,
+            pix_copiacola_message_enabled,
+            pix_copiacola_message_title,
+            pix_copiacola_message_description,
+            pix_copiacola_message_footer,
+            pix_copiacola_message_button_text,
+            pix_copiacola_button_text,
             operating_hours,
             allow_orders_when_closed
           )
