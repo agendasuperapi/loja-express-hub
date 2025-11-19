@@ -29,6 +29,7 @@ const isCrawler = (userAgent: string): boolean => {
 const extractShortId = (url: URL, req: Request): string | null => {
   // 1) Standard query param
   const qp = url.searchParams.get('short_id')
+    || url.searchParams.get('product')
     || url.searchParams.get('id')
     || url.searchParams.get('s');
   if (qp) return qp;
