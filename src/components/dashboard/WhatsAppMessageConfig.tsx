@@ -338,7 +338,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
 
             <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
               <div className="space-y-0.5">
-                <Label className="text-base">Ativar Envio Automático (Código Gerado)</Label>
+                <Label className="text-base">Ativar Envio Automático no Whatsapp do (Código Copia e Cola)</Label>
                 <p className="text-sm text-muted-foreground">
                   Enviar código PIX Copia e Cola após confirmação
                 </p>
