@@ -273,7 +273,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               </div>
               <CardTitle className="text-lg text-orange-600">PIX Copia e Cola</CardTitle>
               <CardDescription>
-                Configure a mensagem que será enviada com o código EMV gerado automaticamente para cada pedido específico
+                Configure a mensagem que será enviada junta com o código do Pix copia e cola.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
