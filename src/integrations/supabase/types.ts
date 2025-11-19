@@ -988,6 +988,12 @@ export type Database = {
           owner_id: string
           phone: string | null
           pickup_address: string | null
+          pix_copiacola_button_text: string | null
+          pix_copiacola_message_button_text: string | null
+          pix_copiacola_message_description: string | null
+          pix_copiacola_message_enabled: boolean | null
+          pix_copiacola_message_footer: string | null
+          pix_copiacola_message_title: string | null
           pix_key: string | null
           pix_message_button_text: string | null
           pix_message_description: string | null
@@ -1027,6 +1033,12 @@ export type Database = {
           owner_id: string
           phone?: string | null
           pickup_address?: string | null
+          pix_copiacola_button_text?: string | null
+          pix_copiacola_message_button_text?: string | null
+          pix_copiacola_message_description?: string | null
+          pix_copiacola_message_enabled?: boolean | null
+          pix_copiacola_message_footer?: string | null
+          pix_copiacola_message_title?: string | null
           pix_key?: string | null
           pix_message_button_text?: string | null
           pix_message_description?: string | null
@@ -1066,6 +1078,12 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           pickup_address?: string | null
+          pix_copiacola_button_text?: string | null
+          pix_copiacola_message_button_text?: string | null
+          pix_copiacola_message_description?: string | null
+          pix_copiacola_message_enabled?: boolean | null
+          pix_copiacola_message_footer?: string | null
+          pix_copiacola_message_title?: string | null
           pix_key?: string | null
           pix_message_button_text?: string | null
           pix_message_description?: string | null

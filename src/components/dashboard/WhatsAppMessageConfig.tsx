@@ -294,7 +294,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
-                Máximo de 500 caracteres
+                💡 Variável disponível: {'{'}{'{'}<strong>botao_pix_copiacola</strong>{'}'}{'}'}
               </p>
             </div>
 

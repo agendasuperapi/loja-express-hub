@@ -141,7 +141,7 @@ serve(async (req) => {
 
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
-      .select('name, phone, address, pickup_address, slug, pix_key, pix_message_enabled, pix_message_title, pix_message_description, pix_message_footer, pix_message_button_text')
+      .select('name, phone, address, pickup_address, slug, pix_key, pix_message_enabled, pix_message_title, pix_message_description, pix_message_footer, pix_message_button_text, pix_copiacola_message_button_text')
       .eq('id', order.store_id)
       .single();
  
@@ -285,6 +285,7 @@ serve(async (req) => {
     message = message.replace(/\{\{delivery_address\}\}/g, deliveryAddress);
     message = message.replace(/\{\{payment_method\}\}/g, paymentMethod);
     message = message.replace(/\{\{change_amount\}\}/g, order.change_amount?.toFixed(2) || '0.00');
+    message = message.replace(/\{\{botao_pix_copiacola\}\}/g, store.pix_copiacola_message_button_text || '📋 COPIAR CÓDIGO PIX');
     message = message.replace(/\{\{notes\}\}/g, order.notes || '');
 
     // Handle conditional blocks
