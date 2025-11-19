@@ -552,7 +552,12 @@ export default function Orders() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-9 w-9 sm:h-10 sm:w-10 p-0 shrink-0"
+                                  className={cn(
+                                    "h-9 w-9 sm:h-10 sm:w-10 p-0 shrink-0 transition-all duration-200",
+                                    copiedPixKey === order.id 
+                                      ? "bg-green-50 border-green-600 text-green-800 hover:bg-green-100 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300" 
+                                      : ""
+                                  )}
                                   onClick={() => {
                                     navigator.clipboard.writeText(order.stores.pix_key);
                                     setCopiedPixKey(order.id);
@@ -634,7 +639,12 @@ export default function Orders() {
                                   {/* PIX Copia e Cola Button */}
                                   <Button
                                     variant={copiedPixPayload === order.id ? "default" : "outline"}
-                                    className="w-full mt-3"
+                                    className={cn(
+                                      "w-full mt-3 transition-all duration-200",
+                                      copiedPixPayload === order.id 
+                                        ? "bg-green-600 hover:bg-green-700 text-white border-green-600" 
+                                        : ""
+                                    )}
                                     onClick={() => {
                                       const pixPayload = generatePixQrCode({
                                         pixKey: order.stores.pix_key,
