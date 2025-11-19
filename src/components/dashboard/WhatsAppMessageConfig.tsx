@@ -271,7 +271,7 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="mb-1">PIX Copia e Cola Gerado</Badge>
               </div>
-              <CardTitle className="text-lg text-orange-600">Código PIX Dinâmico</CardTitle>
+              <CardTitle className="text-lg text-orange-600">PIX Copia e Cola</CardTitle>
               <CardDescription>
                 Configure a mensagem que será enviada com o código EMV gerado automaticamente para cada pedido específico
               </CardDescription>
