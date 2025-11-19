@@ -384,7 +384,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                     <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-primary" />
+                      <MapPin className="w-4 h-4 text-foreground" />
                       <CardTitle className="text-base">{city}</CardTitle>
                     </div>
                   </div>
@@ -395,7 +395,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                       <div className="flex items-center gap-3">
                         <div>
                           <p className="text-sm font-medium">Taxa padrão da cidade</p>
-                          <p className="text-lg font-bold text-primary">
+                          <p className="text-lg font-bold text-foreground">
                             R$ {defaultZone.delivery_fee.toFixed(2)}
                           </p>
                         </div>
@@ -437,7 +437,7 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
                               <div>
                                 <p className="text-sm font-medium">{zone.neighborhood}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Taxa: <span className="text-primary font-semibold">R$ {zone.delivery_fee.toFixed(2)}</span>
+                                  Taxa: <span className="text-foreground font-semibold">R$ {zone.delivery_fee.toFixed(2)}</span>
                                 </p>
                               </div>
                               {!zone.is_active && (
