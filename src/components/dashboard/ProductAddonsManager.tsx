@@ -118,15 +118,6 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
         >
           <Edit className="w-4 h-4" />
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onDuplicate(addon.id)}
-          disabled={isDuplicating}
-          title="Duplicar"
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
       </div>
     </div>
   );
