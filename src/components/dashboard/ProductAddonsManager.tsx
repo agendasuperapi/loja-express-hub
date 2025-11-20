@@ -164,8 +164,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [selectedTemplateCategories, setSelectedTemplateCategories] = useState<Record<string, boolean>>({});
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedAddonsToImport, setSelectedAddonsToImport] = useState<string[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [customTemplates, setCustomTemplates] = useState<any[]>([]);
   const [loadingCustomTemplates, setLoadingCustomTemplates] = useState(false);
@@ -496,11 +496,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     });
   };
 
-  const handleToggleTemplateCategory = (categoryName: string, checked: boolean) => {
-    setSelectedTemplateCategories(prev => ({
-      ...prev,
-      [categoryName]: checked
-    }));
+  const handleSelectTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    // Automatically select all addons
+    const allAddons = template.categories.flatMap((cat: any, catIdx: number) =>
+      cat.addons.map((_: any, addonIdx: number) => `${catIdx}-${addonIdx}`)
+    );
+    setSelectedAddonsToImport(allAddons);
+  };
+
+  const handleToggleAddon = (addonKey: string) => {
+    setSelectedAddonsToImport(prev =>
+      prev.includes(addonKey)
+        ? prev.filter(key => key !== addonKey)
+        : [...prev, addonKey]
+    );
+  };
+
+  const handleCancelImportTemplate = () => {
+    setSelectedTemplate(null);
+    setSelectedAddonsToImport([]);
   };
 
   const loadCustomTemplates = async () => {
@@ -510,6 +525,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         .from('store_addon_templates')
         .select('*')
         .eq('store_id', storeId)
+        .eq('is_custom', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -529,24 +545,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const handleImportTemplates = async () => {
     if (!selectedTemplate) return;
 
-    // Check if it's a custom template or pre-configured template
-    const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
-    const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
-    const template = customTemplate || preConfiguredTemplate;
-    if (!template) return;
-
     setIsImporting(true);
 
     try {
-      // Get selected categories
-      const selectedCategories = template.categories.filter(
-        cat => selectedTemplateCategories[cat.name]
-      );
-
-      if (selectedCategories.length === 0) {
+      if (selectedAddonsToImport.length === 0) {
         toast({
-          title: 'Nenhuma categoria selecionada',
-          description: 'Selecione pelo menos uma categoria para importar.',
+          title: 'Nenhum adicional selecionado',
+          description: 'Selecione pelo menos um adicional para importar.',
           variant: 'destructive',
         });
         return;
@@ -555,7 +560,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       let successCount = 0;
       let errorCount = 0;
 
-      for (const category of selectedCategories) {
+      for (const categoryIdx in selectedTemplate.categories) {
+        const category = selectedTemplate.categories[categoryIdx];
+        
+        // Get addons to import from this category
+        const addonsToImport = category.addons.filter((_: any, addonIdx: number) =>
+          selectedAddonsToImport.includes(`${categoryIdx}-${addonIdx}`)
+        );
+
+        if (addonsToImport.length === 0) continue;
+
         // Check if category already exists
         let categoryId = categories.find(c => c.name === category.name)?.id;
 
@@ -573,15 +587,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
           if (categoryError) {
             console.error('Error creating category:', categoryError);
-            errorCount++;
+            errorCount += addonsToImport.length;
             continue;
           }
 
           categoryId = newCategory.id;
         }
 
-        // Create all addons in this category
-        for (const addon of category.addons) {
+        // Create selected addons in this category
+        for (const addon of addonsToImport) {
           try {
             await createAddon({
               name: addon.name,
@@ -606,7 +620,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       // Reset state
       setIsImportDialogOpen(false);
       setSelectedTemplate(null);
-      setSelectedTemplateCategories({});
+      setSelectedAddonsToImport([]);
     } catch (error) {
       console.error('Error importing templates:', error);
       toast({
@@ -1280,188 +1294,187 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     </Dialog>
 
     {/* Import Templates Dialog */}
-    <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-      <DialogContent className="max-w-4xl max-h-[90vh] w-[calc(100vw-2rem)] sm:w-full">
+    <Dialog open={isImportDialogOpen} onOpenChange={(open) => {
+      setIsImportDialogOpen(open);
+      if (!open) {
+        setSelectedTemplate(null);
+        setSelectedAddonsToImport([]);
+      }
+    }}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Download className="w-5 h-5" />
-            <span className="hidden sm:inline">Importar Templates de Adicionais</span>
-            <span className="sm:hidden">Importar Templates</span>
+          <DialogTitle className="flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            {selectedTemplate ? 'Selecionar Adicionais' : 'Importar Templates de Adicionais'}
           </DialogTitle>
-          <DialogDescription className="text-sm">
-            Selecione um template e as categorias que deseja importar. As categorias serão criadas automaticamente se não existirem.
+          <DialogDescription>
+            {selectedTemplate
+              ? 'Marque os adicionais que deseja importar para este produto'
+              : 'Selecione um template para visualizar seus adicionais'
+            }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto max-h-[calc(90vh-200px)] px-1">
-          {/* Template Selection */}
-          <div className="space-y-4">
-            <Label className="text-base font-semibold">Escolha um Template</Label>
-            
-            {/* Custom Templates Section */}
+        {!selectedTemplate ? (
+          <div className="space-y-3">
             {loadingCustomTemplates ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="w-8 h-8 animate-spin mx-auto mb-2" />
-                <p>Carregando templates...</p>
-              </div>
+              <p className="text-center py-4 text-muted-foreground">Carregando templates...</p>
             ) : customTemplates.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {customTemplates.map((template) => (
-                  <button
+              customTemplates.map((template) => {
+                const addonCount = template.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0;
+                const hasNoAddons = addonCount === 0;
+
+                return (
+                  <div
                     key={template.id}
-                    onClick={() => {
-                      setSelectedTemplate(template.id);
-                      setSelectedTemplateCategories({});
-                    }}
-                    className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
-                      selectedTemplate === template.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
+                    className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                      hasNoAddons
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'hover:bg-muted/50 cursor-pointer'
                     }`}
+                    onClick={() => !hasNoAddons && handleSelectTemplate(template)}
                   >
-                    <div className="flex items-start gap-2 sm:gap-3">
-                      <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon || '📦'}</span>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <Badge variant="secondary" className="text-xs">
-                            {template.categories?.length || 0} categorias
+                    <div className="text-3xl">{template.icon || '📦'}</div>
+                    <div className="flex-1">
+                      <p className="font-medium">{template.name}</p>
+                      {template.description && (
+                        <p className="text-sm text-muted-foreground">{template.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          {addonCount} adicional(is)
+                        </p>
+                        {hasNoAddons && (
+                          <Badge variant="destructive" className="text-xs">
+                            Sem adicionais
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {template.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0} adicionais
-                          </Badge>
-                        </div>
+                        )}
                       </div>
                     </div>
-                  </button>
-                ))}
-              </div>
+                  </div>
+                );
+              })
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Nenhum template próprio encontrado</p>
-                <p className="text-sm">Crie templates na aba de Templates para reutilizá-los aqui</p>
+                <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="font-medium">Nenhum template encontrado</p>
+                <p className="text-sm mt-1">Crie templates na aba Templates para reutilizá-los aqui</p>
               </div>
             )}
           </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+              <div className="text-3xl">{selectedTemplate.icon || '📦'}</div>
+              <div className="flex-1">
+                <p className="font-medium">{selectedTemplate.name}</p>
+                {selectedTemplate.description && (
+                  <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelImportTemplate}
+              >
+                Voltar
+              </Button>
+            </div>
 
-          {/* Category Selection */}
-          {selectedTemplate && (
-            <>
-              <Separator />
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <Label className="text-base font-semibold">Selecione as Categorias</Label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium">Adicionais disponíveis:</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    {selectedAddonsToImport.length} de{' '}
+                    {selectedTemplate.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0}{' '}
+                    selecionados
+                  </span>
                   <Button
-                    size="sm"
                     variant="outline"
+                    size="sm"
                     onClick={() => {
-                      const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
-                      const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
-                      const template = customTemplate || preConfiguredTemplate;
-                      if (template) {
-                        const allSelected = template.categories.every(
-                          cat => selectedTemplateCategories[cat.name]
-                        );
-                        const newSelection: Record<string, boolean> = {};
-                        template.categories.forEach(cat => {
-                          newSelection[cat.name] = !allSelected;
-                        });
-                        setSelectedTemplateCategories(newSelection);
-                      }
+                      const allAddons = selectedTemplate.categories.flatMap((cat: any, catIdx: number) =>
+                        cat.addons.map((_: any, addonIdx: number) => `${catIdx}-${addonIdx}`)
+                      );
+                      setSelectedAddonsToImport(allAddons);
                     }}
-                    className="w-full sm:w-auto"
+                    className="h-7 text-xs"
                   >
-                    {(() => {
-                      const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
-                      const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
-                      const template = customTemplate || preConfiguredTemplate;
-                      return template?.categories.every((cat: any) => selectedTemplateCategories[cat.name])
-                        ? 'Desmarcar Todas'
-                        : 'Selecionar Todas';
-                    })()}
+                    Selecionar Todos
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedAddonsToImport([])}
+                    className="h-7 text-xs"
+                  >
+                    Desmarcar Todos
                   </Button>
                 </div>
+              </div>
 
-                <div className="grid gap-3">
-                  {(() => {
-                    const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
-                    const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
-                    const template = customTemplate || preConfiguredTemplate;
-                    return template?.categories.map((category: any) => (
+              {selectedTemplate.categories?.map((category: any, catIdx: number) => (
+                <div key={catIdx} className="space-y-2">
+                  <div className="flex items-center gap-2 mt-3 mb-2">
+                    <FolderTree className="w-4 h-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">{category.name}</Label>
+                    <Badge variant="secondary" className="text-xs">
+                      {category.addons.length}
+                    </Badge>
+                  </div>
+                  {category.addons.map((addon: any, addonIdx: number) => {
+                    const addonKey = `${catIdx}-${addonIdx}`;
+                    return (
                       <div
-                        key={category.name}
-                        className="border rounded-lg p-3 sm:p-4 hover:bg-muted/30 transition-colors"
+                        key={addonKey}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-start gap-3">
-                          <Checkbox
-                            checked={selectedTemplateCategories[category.name] || false}
-                            onCheckedChange={(checked) =>
-                              handleToggleTemplateCategory(category.name, Boolean(checked))
-                            }
-                            className="mt-1 flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2 flex-wrap">
-                              <FolderTree className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                              <span className="font-semibold">{category.name}</span>
-                              <Badge variant="secondary" className="text-xs">
-                                {category.addons.length} adicionais
-                              </Badge>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                              {category.addons.map((addon, idx) => (
-                                <div
-                                  key={idx}
-                                  className="text-xs p-2 bg-muted/50 rounded flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
-                                >
-                                  <span className="truncate font-medium">{addon.name}</span>
-                                  <span className="text-muted-foreground whitespace-nowrap text-xs">
-                                    R$ {addon.price.toFixed(2)}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                        <Checkbox
+                          checked={selectedAddonsToImport.includes(addonKey)}
+                          onCheckedChange={() => handleToggleAddon(addonKey)}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{addon.name}</p>
+                            <span className="text-sm text-muted-foreground">
+                              R$ {(addon.price || 0).toFixed(2)}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    ));
-                  })()}
+                    );
+                  })}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
+              ))}
+            </div>
 
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t">
-          <Button 
-            variant="outline" 
-            onClick={() => setIsImportDialogOpen(false)}
-            className="w-full sm:w-auto"
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleImportTemplates}
-            disabled={!selectedTemplate || Object.values(selectedTemplateCategories).every(v => !v) || isImporting}
-            className="w-full sm:w-auto"
-          >
-            {isImporting ? (
-              <>
-                <Package className="w-4 h-4 mr-2 animate-spin" />
-                <span className="hidden sm:inline">Importando...</span>
-                <span className="sm:hidden">Importando...</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Importar Selecionados</span>
-                <span className="sm:hidden">Importar</span>
-              </>
-            )}
-          </Button>
-        </div>
+            <div className="flex gap-2 pt-2">
+              <Button
+                onClick={handleImportTemplates}
+                disabled={selectedAddonsToImport.length === 0 || isImporting}
+                className="flex-1"
+              >
+                {isImporting ? (
+                  <>
+                    <Package className="w-4 h-4 mr-2 animate-spin" />
+                    Importando...
+                  </>
+                ) : (
+                  <>
+                    Importar {selectedAddonsToImport.length} Adicional(is)
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCancelImportTemplate}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
 
