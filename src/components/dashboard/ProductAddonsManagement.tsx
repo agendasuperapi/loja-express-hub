@@ -349,10 +349,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         {!isAdding && (
-          <Button onClick={() => setIsAdding(true)} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Adicional
-          </Button>
+          <div className="flex justify-end">
+            <Button onClick={() => setIsAdding(true)} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Adicional
+            </Button>
+          </div>
         )}
 
         {isAdding && (
