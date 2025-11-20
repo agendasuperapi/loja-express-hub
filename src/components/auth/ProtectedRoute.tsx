@@ -22,23 +22,24 @@ export const ProtectedRoute = ({
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Wait for both auth and role loading to complete
     if (authLoading || roleLoading) return;
 
+    // Only redirect after loading is complete
     if (requireAuth && !user) {
-      // Use custom redirect path or default to /auth
       const defaultRedirect = requireRole === 'store_owner' ? '/login-lojista' : '/auth';
       navigate(redirectPath || defaultRedirect);
       return;
     }
 
     if (requireRole && !hasRole(requireRole)) {
-      // If user is authenticated but doesn't have the role
       const defaultRedirect = requireRole === 'store_owner' ? '/login-lojista' : '/';
       navigate(redirectPath || defaultRedirect);
       return;
     }
   }, [user, authLoading, roleLoading, requireAuth, requireRole, hasRole, navigate, redirectPath]);
 
+  // Show loading state while checking auth
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -47,6 +48,7 @@ export const ProtectedRoute = ({
     );
   }
 
+  // After loading, check auth requirements
   if (requireAuth && !user) {
     return null;
   }

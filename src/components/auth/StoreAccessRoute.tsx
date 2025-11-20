@@ -42,17 +42,22 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
   const isLoading = authLoading || roleLoading || isEmployee === null;
 
   useEffect(() => {
+    // Wait for all loading states to complete before any navigation
     if (isLoading) return;
+    
+    // Only navigate after we have complete information
     if (!user) {
       navigate(redirectPath);
       return;
     }
+    
     const owner = hasRole('store_owner');
     if (!owner && !isEmployee) {
       navigate(redirectPath);
     }
   }, [user, isLoading, hasRole, isEmployee, navigate, redirectPath]);
 
+  // Show loading while checking authentication and permissions
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -61,6 +66,7 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
     );
   }
 
+  // After loading, verify access
   if (!user) return null;
 
   const owner = hasRole('store_owner');
