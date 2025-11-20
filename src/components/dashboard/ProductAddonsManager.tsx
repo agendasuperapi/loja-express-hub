@@ -126,7 +126,7 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
   );
 };
 
-export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManagerProps) => {
+export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, duplicateAddon, isCreating, isDeleting, isDuplicating } = useProductAddons(productId);
   const { categories } = useAddonCategories(storeId);
   const [isAdding, setIsAdding] = useState(false);
