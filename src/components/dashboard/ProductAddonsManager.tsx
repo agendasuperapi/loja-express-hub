@@ -1171,25 +1171,40 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar adicional..."
-              value={storeAddonsSearch}
-              onChange={(e) => setStoreAddonsSearch(e.target.value)}
-              className="pl-9"
-            />
-            {storeAddonsSearch && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7"
-                onClick={() => setStoreAddonsSearch('')}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+          {/* Search and Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar adicional..."
+                value={storeAddonsSearch}
+                onChange={(e) => setStoreAddonsSearch(e.target.value)}
+                className="pl-9"
+              />
+              {storeAddonsSearch && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7"
+                  onClick={() => setStoreAddonsSearch('')}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const availableAddons = filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name));
+                availableAddons.forEach(addon => handleCopyStoreAddon(addon));
+              }}
+              disabled={filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name)).length === 0}
+              className="shrink-0"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Todos
+            </Button>
           </div>
 
           {/* Store Addons List */}
