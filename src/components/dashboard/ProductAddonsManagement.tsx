@@ -434,6 +434,10 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
   const [loadingCustom, setLoadingCustom] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [openCategoryPopover, setOpenCategoryPopover] = useState<number | null>(null);
+  const [importFromProductOpen, setImportFromProductOpen] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [loadingProducts, setLoadingProducts] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -699,6 +703,104 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     setFormData({ ...formData, flavors: updatedFlavors });
   };
 
+  const loadProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar produtos",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const handleImportFromProduct = async (product: any) => {
+    try {
+      // Buscar add-ons do produto
+      const { data: addons, error: addonsError } = await supabase
+        .from('product_addons')
+        .select(`
+          *,
+          addon_categories (
+            id,
+            name
+          )
+        `)
+        .eq('product_id', product.id)
+        .order('display_order');
+
+      if (addonsError) throw addonsError;
+
+      // Buscar sabores do produto
+      const { data: flavors, error: flavorsError } = await supabase
+        .from('product_flavors')
+        .select('*')
+        .eq('product_id', product.id);
+
+      if (flavorsError) throw flavorsError;
+
+      // Agrupar add-ons por categoria
+      const categoriesMap = new Map();
+      
+      (addons || []).forEach((addon: any) => {
+        const categoryName = addon.addon_categories?.name || 'Sem Categoria';
+        if (!categoriesMap.has(categoryName)) {
+          categoriesMap.set(categoryName, []);
+        }
+        categoriesMap.get(categoryName).push({
+          name: addon.name,
+          price: addon.price
+        });
+      });
+
+      const categories = Array.from(categoriesMap.entries()).map(([name, addons]) => ({
+        name,
+        addons
+      }));
+
+      // Mapear sabores
+      const templateFlavors = (flavors || []).map((flavor: any) => ({
+        name: flavor.name,
+        description: flavor.description || '',
+        price: flavor.price
+      }));
+
+      // Criar template com as configurações do produto
+      setFormData({
+        name: `Template de ${product.name}`,
+        description: `Importado do produto: ${product.name}`,
+        icon: '📦',
+        categories: categories.length > 0 ? categories : [{ name: '', addons: [{ name: '', price: 0 }] }],
+        flavors: templateFlavors.length > 0 ? templateFlavors : [{ name: '', description: '', price: 0 }]
+      });
+
+      setImportFromProductOpen(false);
+      setEditFormOpen(true);
+
+      toast({
+        title: "Template importado!",
+        description: `Configurações do produto "${product.name}" foram carregadas. Revise e salve o template.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao importar",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const allTemplates = customTemplates;
 
   return (
@@ -712,20 +814,32 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                 Crie e gerencie seus próprios templates personalizados
               </CardDescription>
             </div>
-            <Button onClick={() => {
-              setEditingTemplate(null);
-              setFormData({
-                name: '',
-                description: '',
-                icon: '📦',
-                categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
-                flavors: [{ name: '', description: '', price: 0 }]
-              });
-              setEditFormOpen(true);
-            }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Template
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  loadProducts();
+                  setImportFromProductOpen(true);
+                }}
+                variant="outline"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Importar de Produto
+              </Button>
+              <Button onClick={() => {
+                setEditingTemplate(null);
+                setFormData({
+                  name: '',
+                  description: '',
+                  icon: '📦',
+                  categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
+                  flavors: [{ name: '', description: '', price: 0 }]
+                });
+                setEditFormOpen(true);
+              }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Template
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -1190,6 +1304,70 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             </Button>
             <Button onClick={handleSaveCustomTemplate}>
               {editingTemplate ? 'Salvar Alterações' : 'Criar Template'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para Importar de Produto */}
+      <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Importar Template de Produto</DialogTitle>
+            <CardDescription>
+              Selecione um produto para criar um template baseado em seus add-ons e sabores
+            </CardDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {loadingProducts ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Carregando produtos...
+              </div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhum produto encontrado na loja
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {products.map((product) => (
+                  <Card 
+                    key={product.id} 
+                    className="cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => handleImportFromProduct(product)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        {product.image_url && (
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-medium">{product.name}</h4>
+                          <p className="text-sm text-muted-foreground">{product.category}</p>
+                          {product.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="outline">
+                          R$ {product.price?.toFixed(2)}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => setImportFromProductOpen(false)}>
+              Cancelar
             </Button>
           </div>
         </DialogContent>
