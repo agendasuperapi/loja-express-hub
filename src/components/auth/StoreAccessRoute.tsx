@@ -43,22 +43,32 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
 
   useEffect(() => {
     // Wait for all loading states to complete before any navigation
-    if (isLoading) return;
-    
+    if (isLoading) {
+      console.log('[StoreAccessRoute] Still loading', { authLoading, roleLoading, isEmployee, user });
+      return;
+    }
+
+    console.log('[StoreAccessRoute] Evaluating access', { user, isEmployee, roleLoading, authLoading, redirectPath });
+
     // Only navigate after we have complete information
     if (!user) {
+      console.log('[StoreAccessRoute] No user, redirecting to', redirectPath);
       navigate(redirectPath);
       return;
     }
     
     const owner = hasRole('store_owner');
+    console.log('[StoreAccessRoute] Role check', { owner, isEmployee });
+
     if (!owner && !isEmployee) {
+      console.log('[StoreAccessRoute] No permission, redirecting to', redirectPath);
       navigate(redirectPath);
     }
-  }, [user, isLoading, hasRole, isEmployee, navigate, redirectPath]);
+  }, [user, isLoading, hasRole, isEmployee, navigate, redirectPath, authLoading, roleLoading]);
 
   // Show loading while checking authentication and permissions
   if (isLoading) {
+    console.log('[StoreAccessRoute] Rendering loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -67,10 +77,16 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
   }
 
   // After loading, verify access
-  if (!user) return null;
+  if (!user) {
+    console.log('[StoreAccessRoute] Render blocked: no user after loading');
+    return null;
+  }
 
   const owner = hasRole('store_owner');
-  if (!owner && !isEmployee) return null;
+  if (!owner && !isEmployee) {
+    console.log('[StoreAccessRoute] Render blocked: insufficient permissions');
+    return null;
+  }
 
   return <>{children}</>;
 };
