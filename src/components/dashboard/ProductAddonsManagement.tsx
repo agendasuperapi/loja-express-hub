@@ -380,12 +380,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="addon-category">Categoria</Label>
-              <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
+              <Select value={formData.category_id || "uncategorized"} onValueChange={(value) => setFormData({ ...formData, category_id: value === "uncategorized" ? "" : value })}>
                 <SelectTrigger id="addon-category">
                   <SelectValue placeholder="Selecione uma categoria (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sem categoria</SelectItem>
+                  <SelectItem value="uncategorized">Sem categoria</SelectItem>
                   {categories?.filter(c => c.is_active).map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
