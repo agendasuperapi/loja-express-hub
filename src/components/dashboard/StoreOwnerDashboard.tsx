@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
 import { ProductAddonsManagement, TemplatesTab, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
+import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
@@ -2613,7 +2614,7 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <Tabs defaultValue="lista" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Lista de Produtos
@@ -2629,6 +2630,10 @@ export const StoreOwnerDashboard = () => {
                 <TabsTrigger value="adicionais" className="flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Adicionais
+                </TabsTrigger>
+                <TabsTrigger value="sabores" className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Sabores
                 </TabsTrigger>
               </TabsList>
 
@@ -3235,6 +3240,10 @@ export const StoreOwnerDashboard = () => {
                     </TabsContent>
                   </Tabs>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="sabores">
+                <ProductFlavorsManagement storeId={myStore.id} />
               </TabsContent>
             </Tabs>
           </motion.div>
