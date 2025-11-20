@@ -8,6 +8,12 @@ export interface CategoryTemplate {
   addons: AddonItem[];
 }
 
+export interface FlavorTemplate {
+  name: string;
+  description?: string;
+  price: number;
+}
+
 export interface BusinessTemplate {
   id: string;
   name: string;
@@ -15,6 +21,7 @@ export interface BusinessTemplate {
   icon: string;
   description: string;
   categories: CategoryTemplate[];
+  flavors?: FlavorTemplate[];
 }
 
 export const addonTemplates: BusinessTemplate[] = [

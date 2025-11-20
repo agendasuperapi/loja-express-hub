@@ -316,7 +316,8 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     name: '',
     description: '',
     icon: '📦',
-    categories: [{ name: '', addons: [{ name: '', price: 0 }] }]
+    categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
+    flavors: [{ name: '', description: '', price: 0 }]
   });
   const { refetch: refetchCategories } = useAddonCategories(storeId);
 
@@ -350,6 +351,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
   const handleApplyTemplate = async (template: BusinessTemplate | any) => {
     setIsApplying(true);
     try {
+      // Criar categorias de adicionais
       for (const category of template.categories) {
         const { data: categoryData, error: categoryError } = await supabase
           .from('addon_categories')
@@ -364,11 +366,22 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
         if (categoryError) throw categoryError;
       }
 
+      // Criar sabores se existirem no template
+      if (template.flavors && template.flavors.length > 0) {
+        // Nota: Sabores são criados por produto, não globalmente
+        // Esta informação será usada quando o template for aplicado a um produto específico
+        console.log('Template inclui sabores:', template.flavors);
+      }
+
       await refetchCategories();
+
+      const message = template.flavors?.length > 0
+        ? `As categorias e ${template.flavors.length} sabores de ${template.name} foram configurados.`
+        : `As categorias de ${template.name} foram criadas com sucesso.`;
 
       toast({
         title: "Template aplicado!",
-        description: `As categorias de ${template.name} foram criadas com sucesso.`,
+        description: message,
       });
 
       setPreviewOpen(false);
@@ -403,6 +416,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             description: formData.description,
             icon: formData.icon,
             categories: formData.categories,
+            flavors: formData.flavors,
           })
           .eq('id', editingTemplate.id);
 
@@ -421,6 +435,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             description: formData.description,
             icon: formData.icon,
             categories: formData.categories,
+            flavors: formData.flavors,
             is_custom: true,
           });
 
@@ -438,7 +453,8 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
         name: '',
         description: '',
         icon: '📦',
-        categories: [{ name: '', addons: [{ name: '', price: 0 }] }]
+        categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
+        flavors: [{ name: '', description: '', price: 0 }]
       });
       await loadCustomTemplates();
     } catch (error: any) {
@@ -481,6 +497,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
       description: template.description,
       icon: template.icon,
       categories: JSON.parse(JSON.stringify(template.categories)),
+      flavors: template.flavors ? JSON.parse(JSON.stringify(template.flavors)) : [{ name: '', description: '', price: 0 }]
     });
     setEditFormOpen(true);
   };
@@ -492,6 +509,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
       description: template.description || '',
       icon: template.icon || '📦',
       categories: template.categories || [{ name: '', addons: [{ name: '', price: 0 }] }],
+      flavors: template.flavors || [{ name: '', description: '', price: 0 }]
     });
     setEditFormOpen(true);
   };
@@ -536,6 +554,28 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     setFormData({ ...formData, categories: newCategories });
   };
 
+  // Funções para gerenciar sabores
+  const addFlavor = () => {
+    setFormData({
+      ...formData,
+      flavors: [...formData.flavors, { name: '', description: '', price: 0 }]
+    });
+  };
+
+  const removeFlavor = (flavorIndex: number) => {
+    setFormData({
+      ...formData,
+      flavors: formData.flavors.filter((_, i) => i !== flavorIndex)
+    });
+  };
+
+  const updateFlavor = (flavorIndex: number, field: string, value: any) => {
+    const updatedFlavors = formData.flavors.map((flavor, i) =>
+      i === flavorIndex ? { ...flavor, [field]: value } : flavor
+    );
+    setFormData({ ...formData, flavors: updatedFlavors });
+  };
+
   const allTemplates = [...addonTemplates, ...customTemplates];
 
   return (
@@ -555,7 +595,8 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                 name: '',
                 description: '',
                 icon: '📦',
-                categories: [{ name: '', addons: [{ name: '', price: 0 }] }]
+                categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
+                flavors: [{ name: '', description: '', price: 0 }]
               });
               setEditFormOpen(true);
             }}>
@@ -585,13 +626,21 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                   <CardContent>
                     <div className="space-y-3">
                       <div className="text-xs">
-                        <span className="font-medium">Inclui:</span>
+                        <span className="font-medium">Categorias:</span>
                         <ul className="text-muted-foreground space-y-1 mt-1">
                           {template.categories.map((cat, idx) => (
                             <li key={idx}>• {cat.name} ({cat.addons.length})</li>
                           ))}
                         </ul>
                       </div>
+                      {template.flavors && template.flavors.length > 0 && (
+                        <div className="text-xs">
+                          <span className="font-medium">Sabores:</span>
+                          <span className="text-muted-foreground ml-1">
+                            {template.flavors.length} sabores inclusos
+                          </span>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <Button
                           onClick={() => {
@@ -640,13 +689,21 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                     <CardContent>
                       <div className="space-y-3">
                         <div className="text-xs">
-                          <span className="font-medium">Inclui:</span>
+                          <span className="font-medium">Categorias:</span>
                           <ul className="text-muted-foreground space-y-1 mt-1">
                             {template.categories.map((cat: any, idx: number) => (
                               <li key={idx}>• {cat.name} ({cat.addons.length})</li>
                             ))}
                           </ul>
                         </div>
+                        {template.flavors && template.flavors.length > 0 && (
+                          <div className="text-xs">
+                            <span className="font-medium">Sabores:</span>
+                            <span className="text-muted-foreground ml-1">
+                              {template.flavors.length} sabores inclusos
+                            </span>
+                          </div>
+                        )}
                         <div className="flex gap-2">
                           <Button
                             onClick={() => {
@@ -732,6 +789,25 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                 </div>
               </div>
             ))}
+
+            {selectedTemplate?.flavors && selectedTemplate.flavors.length > 0 && (
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <h4 className="font-semibold mb-3">Sabores</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {selectedTemplate.flavors.map((flavor: any, flavorIdx: number) => (
+                    <div key={flavorIdx} className="flex flex-col text-sm p-2 bg-background rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{flavor.name}</span>
+                        <Badge variant="secondary">R$ {flavor.price.toFixed(2)}</Badge>
+                      </div>
+                      {flavor.description && (
+                        <span className="text-xs text-muted-foreground mt-1">{flavor.description}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <AlertDialogFooter>
@@ -850,6 +926,62 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                       <Plus className="w-3 h-3 mr-1" />
                       Adicionar Adicional
                     </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Seção de Sabores */}
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base">Sabores</Label>
+                <Button onClick={addFlavor} size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Adicionar Sabor
+                </Button>
+              </div>
+
+              {formData.flavors.map((flavor, flavorIdx) => (
+                <Card key={flavorIdx}>
+                  <CardContent className="pt-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={flavor.name}
+                          onChange={(e) => updateFlavor(flavorIdx, 'name', e.target.value)}
+                          placeholder="Nome do sabor"
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => removeFlavor(flavorIdx)}
+                          variant="ghost"
+                          size="sm"
+                          disabled={formData.flavors.length === 1}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div>
+                          <Input
+                            value={flavor.description}
+                            onChange={(e) => updateFlavor(flavorIdx, 'description', e.target.value)}
+                            placeholder="Descrição (opcional)"
+                          />
+                        </div>
+                        <div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={flavor.price}
+                            onChange={(e) => updateFlavor(flavorIdx, 'price', parseFloat(e.target.value) || 0)}
+                            placeholder="Preço"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

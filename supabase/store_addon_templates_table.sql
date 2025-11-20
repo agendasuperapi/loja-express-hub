@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.store_addon_templates (
   description text,
   icon text DEFAULT '📦',
   categories jsonb NOT NULL DEFAULT '[]'::jsonb,
+  flavors jsonb DEFAULT '[]'::jsonb,
   is_custom boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now()
