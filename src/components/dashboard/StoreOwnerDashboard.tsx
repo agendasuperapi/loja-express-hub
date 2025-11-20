@@ -137,7 +137,7 @@ export const StoreOwnerDashboard = () => {
     return perm ? hasPermission('orders', perm) : false;
   };
 
-  const { categories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useCategories(myStore?.id);
+  const { categories, loading: loadingCategories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useCategories(myStore?.id);
   
   // Enable automatic WhatsApp notifications
   useOrderStatusNotification(myStore?.id);
@@ -742,6 +742,17 @@ export const StoreOwnerDashboard = () => {
       totalOrders: filteredOrdersForTab.length
     };
   }, [filteredOrdersForTab, currentOrderPage, ordersPerPage]);
+
+  // Filter categories based on status
+  const filteredCategories = useMemo(() => {
+    if (!categories) return [];
+    
+    if (categoryStatusFilter === 'all') return categories;
+    if (categoryStatusFilter === 'active') return categories.filter(c => c.is_active);
+    if (categoryStatusFilter === 'inactive') return categories.filter(c => !c.is_active);
+    
+    return categories;
+  }, [categories, categoryStatusFilter]);
 
   const filterOrdersByDate = (orders: any[] | undefined) => {
     if (!orders) return [];
@@ -2516,259 +2527,6 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === 'categorias' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-bold gradient-text">Categorias</h2>
-                <p className="text-muted-foreground">Organize os produtos da sua loja</p>
-              </div>
-              {hasPermission('categories', 'create') && (
-                <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="lg">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Nova Categoria
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Nova Categoria</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <Label>Nome da Categoria</Label>
-                        <Input
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
-                        />
-                      </div>
-                      <Button
-                        onClick={async () => {
-                          if (newCategoryName.trim()) {
-                            await addCategory(newCategoryName.trim());
-                            setNewCategoryName('');
-                            setIsCategoryDialogOpen(false);
-                          }
-                        }}
-                        className="w-full"
-                      >
-                        Adicionar Categoria
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-
-            {/* Filtro de Status das Categorias */}
-            <div className="flex items-center gap-2 mb-4">
-              <Tag className="w-4 h-4 text-muted-foreground" />
-              <Select value={categoryStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setCategoryStatusFilter(value)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filtrar por status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Categorias Ativas</SelectItem>
-                  <SelectItem value="inactive">Categorias Inativas</SelectItem>
-                  <SelectItem value="all">Todas as Categorias</SelectItem>
-                </SelectContent>
-              </Select>
-              {categoryStatusFilter !== 'active' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCategoryStatusFilter('active')}
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
-                </Button>
-              )}
-            </div>
-
-            {/* Categories Grid */}
-            {categories.filter(cat => {
-              if (categoryStatusFilter === 'active') return cat.is_active;
-              if (categoryStatusFilter === 'inactive') return !cat.is_active;
-              return true;
-            }).length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12 text-center">
-                  <FolderTree className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    {categoryStatusFilter === 'active' && 'Nenhuma categoria ativa'}
-                    {categoryStatusFilter === 'inactive' && 'Nenhuma categoria inativa'}
-                    {categoryStatusFilter === 'all' && 'Nenhuma categoria cadastrada'}
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    {categoryStatusFilter === 'all' 
-                      ? 'Comece criando categorias para organizar seus produtos'
-                      : 'Não há categorias com este status'}
-                  </p>
-                  {categoryStatusFilter === 'all' && (
-                    <Button onClick={() => setIsCategoryDialogOpen(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Criar Primeira Categoria
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categories
-                  .filter(cat => {
-                    if (categoryStatusFilter === 'active') return cat.is_active;
-                    if (categoryStatusFilter === 'inactive') return !cat.is_active;
-                    return true;
-                  })
-                  .map((category, index) => (
-                  <motion.div
-                    key={category.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className={cn(
-                      "hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg",
-                      !category.is_active && "opacity-60 bg-muted/20"
-                    )}>
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <FolderTree className="w-6 h-6 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-lg">{category.name}</h3>
-                                {!category.is_active && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Desativada
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {products?.filter(p => p.category === category.name).length || 0} produtos
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {hasPermission('categories', 'update') && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setEditingCategory(category);
-                                  setEditCategoryName(category.name);
-                                  setIsEditCategoryDialogOpen(true);
-                                }}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            )}
-                            {hasPermission('categories', 'delete') && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => deleteCategory(category.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-
-                        {hasPermission('categories', 'toggle_status') && (
-                          <div className="flex items-center justify-between py-3 px-4 rounded-lg bg-muted/30 mb-4">
-                            <div>
-                              <p className="text-sm font-medium">
-                                {category.is_active ? 'Categoria ativa' : 'Categoria desativada'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {category.is_active 
-                                  ? 'Visível no cardápio' 
-                                  : 'Produtos ocultos do cardápio'}
-                              </p>
-                            </div>
-                            <Switch
-                              checked={category.is_active}
-                              onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
-                            />
-                          </div>
-                        )}
-                        
-                        {products && products.filter(p => p.category === category.name).length > 0 && (
-                          <div className="pt-4 border-t">
-                            <p className="text-xs text-muted-foreground mb-2">Produtos nesta categoria:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {products
-                                .filter(p => p.category === category.name)
-                                .slice(0, 3)
-                                .map(product => (
-                                  <Badge key={product.id} variant="secondary" className="text-xs">
-                                    {product.name}
-                                  </Badge>
-                                ))}
-                              {products.filter(p => p.category === category.name).length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{products.filter(p => p.category === category.name).length - 3} mais
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {/* Dialog de edição de categoria */}
-            <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Editar Categoria</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Nome da Categoria</Label>
-                    <Input
-                      value={editCategoryName}
-                      onChange={(e) => setEditCategoryName(e.target.value)}
-                      placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
-                    />
-                  </div>
-                  <Button
-                    onClick={async () => {
-                      if (editCategoryName.trim() && editingCategory) {
-                        await updateCategory(editingCategory.id, editCategoryName.trim());
-                        // Invalidar as queries de produtos para recarregar com os nomes atualizados
-                        queryClient.invalidateQueries({ queryKey: ['my-products', myStore?.id] });
-                        queryClient.invalidateQueries({ queryKey: ['products', myStore?.id] });
-                        setIsEditCategoryDialogOpen(false);
-                        setEditingCategory(null);
-                        setEditCategoryName('');
-                      }
-                    }}
-                    className="w-full"
-                  >
-                    Salvar Alterações
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </motion.div>
-        )}
-
-
         {activeTab === 'cupons' && myStore?.id && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2855,9 +2613,19 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <Tabs defaultValue="lista" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="lista">Lista de Produtos</TabsTrigger>
-                <TabsTrigger value="adicionais">Categorias & Adicionais</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="lista" className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Lista de Produtos
+                </TabsTrigger>
+                <TabsTrigger value="categorias" className="flex items-center gap-2">
+                  <FolderTree className="w-4 h-4" />
+                  Categorias de Produtos
+                </TabsTrigger>
+                <TabsTrigger value="adicionais" className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Adicionais
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="lista" className="space-y-6">
@@ -3208,6 +2976,232 @@ export const StoreOwnerDashboard = () => {
                 </motion.div>
               ))}
             </div>
+              </TabsContent>
+
+              <TabsContent value="categorias" className="space-y-6">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold gradient-text">Categorias de Produtos</h2>
+                    <p className="text-muted-foreground">Organize os produtos da sua loja</p>
+                  </div>
+                  {hasPermission('categories', 'create') && (
+                    <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="lg">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Nova Categoria
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Nova Categoria</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Nome da Categoria</Label>
+                            <Input
+                              value={newCategoryName}
+                              onChange={(e) => setNewCategoryName(e.target.value)}
+                              placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
+                            />
+                          </div>
+                          <Button
+                            onClick={async () => {
+                              if (newCategoryName.trim()) {
+                                await addCategory(newCategoryName.trim());
+                                setNewCategoryName('');
+                                setIsCategoryDialogOpen(false);
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            Adicionar Categoria
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+
+                {/* Filtro de Status das Categorias */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Tag className="w-4 h-4 text-muted-foreground" />
+                  <Select value={categoryStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setCategoryStatusFilter(value)}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filtrar por status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Categorias Ativas</SelectItem>
+                      <SelectItem value="inactive">Categorias Inativas</SelectItem>
+                      <SelectItem value="all">Todas as Categorias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {categoryStatusFilter !== 'active' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCategoryStatusFilter('active')}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+
+                {loadingCategories ? (
+                  <div className="flex justify-center p-8">
+                    <div className="animate-spin">⏳</div>
+                  </div>
+                ) : filteredCategories && filteredCategories.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredCategories.map((category) => (
+                      <motion.div
+                        key={category.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="group"
+                      >
+                        <Card className="hover:shadow-lg transition-shadow">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10">
+                                  <FolderTree className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                  <CardTitle className="text-lg">{category.name}</CardTitle>
+                                  <p className="text-sm text-muted-foreground">
+                                    {products?.filter(p => p.category === category.name).length || 0} produtos
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge variant={category.is_active ? "default" : "secondary"}>
+                                {category.is_active ? "Ativa" : "Inativa"}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            {hasPermission('categories', 'update') && (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => {
+                                    setEditingCategory(category);
+                                    setEditCategoryName(category.name);
+                                    setIsEditCategoryDialogOpen(true);
+                                  }}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar
+                                </Button>
+                                {hasPermission('categories', 'delete') && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => deleteCategory(category.id)}
+                                    className="hover:border-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                            
+                            {hasPermission('categories', 'update') && (
+                              <div className="flex items-center justify-between pt-2 border-t">
+                                <Label htmlFor={`category-status-${category.id}`} className="text-sm cursor-pointer">
+                                  {category.is_active ? "Categoria ativa" : "Categoria inativa"}
+                                </Label>
+                                <Switch
+                                  id={`category-status-${category.id}`}
+                                  checked={category.is_active}
+                                  onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
+                                />
+                              </div>
+                            )}
+                            
+                            {products && products.filter(p => p.category === category.name).length > 0 && (
+                              <div className="pt-4 border-t">
+                                <p className="text-xs text-muted-foreground mb-2">Produtos nesta categoria:</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {products
+                                    .filter(p => p.category === category.name)
+                                    .slice(0, 3)
+                                    .map(product => (
+                                      <Badge key={product.id} variant="secondary" className="text-xs">
+                                        {product.name}
+                                      </Badge>
+                                    ))}
+                                  {products.filter(p => p.category === category.name).length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{products.filter(p => p.category === category.name).length - 3} mais
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="border-dashed">
+                    <CardContent className="py-12 text-center">
+                      <FolderTree className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-lg font-semibold mb-2">Nenhuma categoria encontrada</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {categoryStatusFilter !== 'all' 
+                          ? "Nenhuma categoria corresponde ao filtro selecionado"
+                          : "Comece criando sua primeira categoria de produtos"
+                        }
+                      </p>
+                      {hasPermission('categories', 'create') && categoryStatusFilter === 'all' && (
+                        <Button onClick={() => setIsCategoryDialogOpen(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Primeira Categoria
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Dialog de edição de categoria */}
+                <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Editar Categoria</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Nome da Categoria</Label>
+                        <Input
+                          value={editCategoryName}
+                          onChange={(e) => setEditCategoryName(e.target.value)}
+                          placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
+                        />
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          if (editCategoryName.trim() && editingCategory) {
+                            await updateCategory(editingCategory.id, editCategoryName.trim());
+                            queryClient.invalidateQueries({ queryKey: ['my-products', myStore?.id] });
+                            queryClient.invalidateQueries({ queryKey: ['products', myStore?.id] });
+                            setIsEditCategoryDialogOpen(false);
+                            setEditingCategory(null);
+                            setEditCategoryName('');
+                          }
+                        }}
+                        className="w-full"
+                      >
+                        Salvar Alterações
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </TabsContent>
 
               <TabsContent value="adicionais">

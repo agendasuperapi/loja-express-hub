@@ -39,9 +39,9 @@ export const DashboardMobileSidebar = ({
   };
 
   const cadastrosSubItems = [
-    ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
-    ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
-    ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
+    ...(hasPermission('coupons', 'view')
+      ? [{ id: 'cupons', label: 'cupons', icon: Tag }]
+      : []),
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
 
