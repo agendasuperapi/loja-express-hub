@@ -461,12 +461,24 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         </Dialog>
 
         {/* Dialog: Importar Template */}
-        <Dialog open={importTemplateOpen} onOpenChange={setImportTemplateOpen}>
+        <Dialog open={importTemplateOpen} onOpenChange={(open) => {
+          setImportTemplateOpen(open);
+          if (!open) {
+            setSelectedTemplate(null);
+            setSelectedFlavors([]);
+          }
+        }}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Importar de Template</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                {selectedTemplate ? 'Selecionar Sabores' : 'Importar Templates de Sabores'}
+              </DialogTitle>
               <DialogDescription>
-                Selecione um template para importar seus sabores
+                {selectedTemplate 
+                  ? 'Marque os sabores que deseja importar para este produto'
+                  : 'Selecione um template para visualizar seus sabores'
+                }
               </DialogDescription>
             </DialogHeader>
             {!selectedTemplate ? (
