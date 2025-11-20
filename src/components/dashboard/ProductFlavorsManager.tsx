@@ -224,7 +224,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             <CardDescription>Gerencie os sabores disponíveis para este produto</CardDescription>
           </div>
           {!isAdding && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
               <Button 
                 size="sm" 
                 variant="outline"
@@ -232,9 +232,11 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   loadTemplates();
                   setImportTemplateOpen(true);
                 }}
+                className="w-full sm:w-auto"
               >
-                <Package className="w-4 h-4 mr-2" />
-                Importar Template
+                <Package className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Importar Template</span>
+                <span className="sm:hidden">Template</span>
               </Button>
               <Button 
                 size="sm" 
@@ -243,21 +245,30 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   loadProducts();
                   setImportFromProductOpen(true);
                 }}
+                className="w-full sm:w-auto"
               >
-                <Package className="w-4 h-4 mr-2" />
-                Importar de Produto
+                <Package className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Importar de Produto</span>
+                <span className="sm:hidden">Produto</span>
               </Button>
               <Button 
                 size="sm" 
                 variant="outline"
                 onClick={() => setSearchFlavorsOpen(true)}
+                className="w-full sm:w-auto"
               >
-                <Search className="w-4 h-4 mr-2" />
-                Buscar Sabores
+                <Search className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Buscar Sabores</span>
+                <span className="sm:hidden">Buscar</span>
               </Button>
-              <Button size="sm" onClick={() => setIsAdding(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Sabor
+              <Button 
+                size="sm" 
+                onClick={() => setIsAdding(true)}
+                className="w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Novo Sabor</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </div>
           )}
