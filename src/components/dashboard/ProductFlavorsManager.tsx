@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, DollarSign, Package, Search } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { Badge } from "@/components/ui/badge";
@@ -13,11 +13,101 @@ import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ProductFlavorsManagerProps {
   productId: string;
   storeId?: string;
 }
+
+interface SortableFlavorItemProps {
+  flavor: any;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}
+
+const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDelete, isDeleting }: SortableFlavorItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: flavor.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-background"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-5 h-5 text-muted-foreground" />
+      </div>
+      <Checkbox
+        checked={isSelected}
+        onCheckedChange={onToggleSelect}
+      />
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <p className="font-medium">{flavor.name}</p>
+          <span className="text-sm text-muted-foreground">
+            R$ {flavor.price.toFixed(2)}
+          </span>
+        </div>
+        {flavor.description && (
+          <p className="text-sm text-muted-foreground">{flavor.description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <Badge variant={flavor.is_available ? "default" : "secondary"}>
+          {flavor.is_available ? 'Disponível' : 'Indisponível'}
+        </Badge>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onEdit}
+        >
+          <Edit className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onDelete}
+          disabled={isDeleting}
+        >
+          <Trash2 className="w-4 h-4 text-destructive" />
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsManagerProps) => {
   const { flavors, createFlavor, updateFlavor, deleteFlavor, isCreating, isDeleting } = useProductFlavors(productId);
@@ -39,6 +129,14 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
+  const [selectedFlavorIds, setSelectedFlavorIds] = useState<string[]>([]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleSubmit = () => {
     if (!formData.name.trim()) return;
@@ -246,6 +344,79 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && flavors) {
+      const oldIndex = flavors.findIndex((f) => f.id === active.id);
+      const newIndex = flavors.findIndex((f) => f.id === over.id);
+
+      const reorderedFlavors = arrayMove(flavors, oldIndex, newIndex);
+
+      // Update display_order for each flavor
+      try {
+        for (let i = 0; i < reorderedFlavors.length; i++) {
+          const { error } = await supabase
+            .from('product_flavors')
+            .update({ display_order: i } as any)
+            .eq('id', reorderedFlavors[i].id);
+
+          if (error) throw error;
+        }
+
+        toast({
+          title: 'Ordem atualizada!',
+          description: 'A ordem dos sabores foi atualizada com sucesso.',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Erro ao reordenar',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleToggleFlavorSelect = (flavorId: string) => {
+    setSelectedFlavorIds(prev =>
+      prev.includes(flavorId)
+        ? prev.filter(id => id !== flavorId)
+        : [...prev, flavorId]
+    );
+  };
+
+  const handleSelectAllFlavors = () => {
+    if (flavors) {
+      setSelectedFlavorIds(flavors.map(f => f.id));
+    }
+  };
+
+  const handleDeselectAllFlavors = () => {
+    setSelectedFlavorIds([]);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedFlavorIds.length === 0) return;
+
+    try {
+      for (const flavorId of selectedFlavorIds) {
+        await deleteFlavor(flavorId);
+      }
+      setSelectedFlavorIds([]);
+      toast({
+        title: 'Sabores removidos!',
+        description: `${selectedFlavorIds.length} sabor(es) foram removidos.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao remover sabores',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -367,46 +538,72 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
           </div>
         )}
 
+        {flavors && flavors.length > 0 && (
+          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={selectedFlavorIds.length === flavors.length}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    handleSelectAllFlavors();
+                  } else {
+                    handleDeselectAllFlavors();
+                  }
+                }}
+              />
+              <span className="text-sm font-medium">
+                {selectedFlavorIds.length > 0
+                  ? `${selectedFlavorIds.length} selecionado(s)`
+                  : 'Selecionar todos'}
+              </span>
+            </div>
+            {selectedFlavorIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeselectAllFlavors}
+                >
+                  Desmarcar Todos
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir Selecionados
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="space-y-2">
           {flavors && flavors.length > 0 ? (
-            flavors.map((flavor) => (
-              <div
-                key={flavor.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={flavors.map(f => f.id)}
+                strategy={verticalListSortingStrategy}
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium">{flavor.name}</p>
-                    <span className="text-sm text-muted-foreground">
-                      R$ {flavor.price.toFixed(2)}
-                    </span>
-                  </div>
-                  {flavor.description && (
-                    <p className="text-sm text-muted-foreground">{flavor.description}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={flavor.is_available ? "default" : "secondary"}>
-                    {flavor.is_available ? 'Disponível' : 'Indisponível'}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEdit(flavor)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteFlavor(flavor.id)}
-                    disabled={isDeleting}
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ))
+                {flavors.map((flavor) => (
+                  <SortableFlavorItem
+                    key={flavor.id}
+                    flavor={flavor}
+                    isSelected={selectedFlavorIds.includes(flavor.id)}
+                    onToggleSelect={() => handleToggleFlavorSelect(flavor.id)}
+                    onEdit={() => handleEdit(flavor)}
+                    onDelete={() => deleteFlavor(flavor.id)}
+                    isDeleting={isDeleting}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum sabor cadastrado

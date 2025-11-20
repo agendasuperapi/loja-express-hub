@@ -9,6 +9,7 @@ export interface ProductFlavor {
   description?: string;
   price: number;
   is_available: boolean;
+  display_order?: number;
   created_at: string;
   updated_at: string;
 }
@@ -31,7 +32,8 @@ export const useProductFlavors = (productId?: string) => {
         .from('product_flavors')
         .select('*')
         .eq('product_id', productId!)
-        .order('name', { ascending: true });
+        .order('display_order', { ascending: true })
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       return data as ProductFlavor[];
