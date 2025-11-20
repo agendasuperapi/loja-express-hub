@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Check for existing session FIRST
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
+        console.log('[Auth] getSession result:', session);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -37,9 +38,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (mounted) {
+          console.log('[Auth] onAuthStateChange:', { event, session });
           setSession(session);
           setUser(session?.user ?? null);
-          // Only set loading false if it was previously set by getSession
           setLoading(false);
         }
       }
