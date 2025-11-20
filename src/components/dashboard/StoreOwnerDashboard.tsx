@@ -2633,7 +2633,7 @@ export const StoreOwnerDashboard = () => {
                 </TabsTrigger>
                 <TabsTrigger value="sabores" className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Sabores
+                  + Sabores
                 </TabsTrigger>
               </TabsList>
 
