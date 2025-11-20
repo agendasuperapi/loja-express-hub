@@ -3218,7 +3218,7 @@ export const StoreOwnerDashboard = () => {
                     <TabsList className="grid w-full grid-cols-2 mb-6">
                       <TabsTrigger value="categorias" className="flex items-center gap-2">
                         <FolderTree className="w-4 h-4" />
-                        Categorias
+                        Categorias Adicionais
                       </TabsTrigger>
                       <TabsTrigger value="globais" className="flex items-center gap-2">
                         <Plus className="w-4 h-4" />
