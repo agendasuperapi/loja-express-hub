@@ -938,43 +938,80 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         <Dialog open={searchFlavorsOpen} onOpenChange={setSearchFlavorsOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Buscar Sabores da Loja</DialogTitle>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Buscar Sabores da Loja</span>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!storeFlavors || storeFlavors.length === 0) return;
+                    
+                    try {
+                      for (const flavor of storeFlavors) {
+                        const isInProduct = flavors?.some(f => f.name === flavor.name);
+                        if (!isInProduct) {
+                          await handleAddStoreFlavor(flavor);
+                        }
+                      }
+                      toast({
+                        title: 'Sabores adicionados!',
+                        description: 'Todos os sabores disponíveis foram adicionados.',
+                      });
+                      setSearchFlavorsOpen(false);
+                    } catch (error: any) {
+                      toast({
+                        title: 'Erro ao adicionar sabores',
+                        description: error.message,
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  disabled={!storeFlavors || storeFlavors.length === 0}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Todos
+                </Button>
+              </DialogTitle>
               <DialogDescription>
                 Todos os sabores únicos cadastrados em sua loja
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
               {storeFlavors && storeFlavors.length > 0 ? (
-                storeFlavors.map((flavor) => (
-                  <div
-                    key={flavor.id}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium">{flavor.name}</p>
-                      {flavor.description && (
-                        <p className="text-sm text-muted-foreground">{flavor.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-sm text-muted-foreground">
-                          R$ {flavor.price.toFixed(2)}
-                        </p>
-                        {flavor.product_name && (
-                          <Badge variant="outline" className="text-xs">
-                            {flavor.product_name}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAddStoreFlavor(flavor)}
+                storeFlavors.map((flavor) => {
+                  const isInProduct = flavors?.some(f => f.name === flavor.name);
+                  
+                  return (
+                    <div
+                      key={flavor.id}
+                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Adicionar
-                    </Button>
-                  </div>
-                ))
+                      <div className="flex-1">
+                        <p className="font-medium">{flavor.name}</p>
+                        {flavor.description && (
+                          <p className="text-sm text-muted-foreground">{flavor.description}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-muted-foreground">
+                            R$ {flavor.price.toFixed(2)}
+                          </p>
+                          {flavor.product_name && (
+                            <Badge variant="outline" className="text-xs">
+                              {flavor.product_name}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddStoreFlavor(flavor)}
+                        disabled={isInProduct}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar
+                      </Button>
+                    </div>
+                  );
+                })
               ) : (
                 <p className="text-center py-4 text-muted-foreground">
                   Nenhum sabor encontrado na loja
