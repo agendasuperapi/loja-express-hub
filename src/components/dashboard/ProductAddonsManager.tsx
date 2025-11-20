@@ -167,6 +167,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedTemplateCategories, setSelectedTemplateCategories] = useState<Record<string, boolean>>({});
   const [isImporting, setIsImporting] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState<any[]>([]);
+  const [loadingCustomTemplates, setLoadingCustomTemplates] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -498,10 +500,36 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     }));
   };
 
+  const loadCustomTemplates = async () => {
+    setLoadingCustomTemplates(true);
+    try {
+      const { data, error } = await supabase
+        .from('store_addon_templates')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setCustomTemplates(data || []);
+    } catch (error: any) {
+      console.error('Error loading custom templates:', error);
+      toast({
+        title: 'Erro ao carregar templates',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingCustomTemplates(false);
+    }
+  };
+
   const handleImportTemplates = async () => {
     if (!selectedTemplate) return;
 
-    const template = addonTemplates.find(t => t.id === selectedTemplate);
+    // Check if it's a custom template or pre-configured template
+    const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
+    const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
+    const template = customTemplate || preConfiguredTemplate;
     if (!template) return;
 
     setIsImporting(true);
@@ -705,7 +733,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  onClick={() => setIsImportDialogOpen(true)}
+                  onClick={() => {
+                    loadCustomTemplates();
+                    setIsImportDialogOpen(true);
+                  }}
                   className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
                 >
                   <Download className="w-4 h-4 mr-2" />
@@ -1186,6 +1217,48 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           {/* Template Selection */}
           <div className="space-y-4">
             <Label className="text-base font-semibold">Escolha um Template</Label>
+            
+            {/* Custom Templates Section */}
+            {customTemplates.length > 0 && (
+              <>
+                <div className="text-sm font-medium text-muted-foreground mb-2">Templates Próprios</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  {customTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => {
+                        setSelectedTemplate(template.id);
+                        setSelectedTemplateCategories({});
+                      }}
+                      className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                        selectedTemplate === template.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon || '📦'}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <Badge variant="secondary" className="text-xs">
+                              {template.categories?.length || 0} categorias
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {template.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0} adicionais
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <Separator />
+              </>
+            )}
+            
+            {/* Pre-configured Templates Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {addonTemplates.map((template) => (
                 <button
@@ -1231,7 +1304,9 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      const template = addonTemplates.find(t => t.id === selectedTemplate);
+                      const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
+                      const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
+                      const template = customTemplate || preConfiguredTemplate;
                       if (template) {
                         const allSelected = template.categories.every(
                           cat => selectedTemplateCategories[cat.name]
@@ -1245,18 +1320,23 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     }}
                     className="w-full sm:w-auto"
                   >
-                    {addonTemplates
-                      .find(t => t.id === selectedTemplate)
-                      ?.categories.every(cat => selectedTemplateCategories[cat.name])
-                      ? 'Desmarcar Todas'
-                      : 'Selecionar Todas'}
+                    {(() => {
+                      const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
+                      const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
+                      const template = customTemplate || preConfiguredTemplate;
+                      return template?.categories.every((cat: any) => selectedTemplateCategories[cat.name])
+                        ? 'Desmarcar Todas'
+                        : 'Selecionar Todas';
+                    })()}
                   </Button>
                 </div>
 
                 <div className="grid gap-3">
-                  {addonTemplates
-                    .find(t => t.id === selectedTemplate)
-                    ?.categories.map((category) => (
+                  {(() => {
+                    const customTemplate = customTemplates.find(t => t.id === selectedTemplate);
+                    const preConfiguredTemplate = addonTemplates.find(t => t.id === selectedTemplate);
+                    const template = customTemplate || preConfiguredTemplate;
+                    return template?.categories.map((category: any) => (
                       <div
                         key={category.name}
                         className="border rounded-lg p-3 sm:p-4 hover:bg-muted/30 transition-colors"
@@ -1293,7 +1373,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                           </div>
                         </div>
                       </div>
-                    ))}
+                    ));
+                  })()}
                 </div>
               </div>
             </>
