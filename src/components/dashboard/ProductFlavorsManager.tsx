@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductFlavorsManagerProps {
   productId: string;
@@ -36,6 +37,8 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [templates, setTemplates] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
 
   const handleSubmit = () => {
     if (!formData.name.trim()) return;
@@ -157,12 +160,30 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
     }
   };
 
-  const handleImportFromTemplate = async (template: any) => {
+  const handleSelectTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    const allFlavors = (template.flavors || []).map((f: any, idx: number) => `${idx}`);
+    setSelectedFlavors(allFlavors);
+  };
+
+  const handleToggleFlavor = (flavorIndex: string) => {
+    setSelectedFlavors(prev => 
+      prev.includes(flavorIndex) 
+        ? prev.filter(idx => idx !== flavorIndex)
+        : [...prev, flavorIndex]
+    );
+  };
+
+  const handleConfirmImportTemplate = async () => {
+    if (!selectedTemplate) return;
+
     try {
-      const flavors = template.flavors || [];
+      const flavorsToImport = (selectedTemplate.flavors || []).filter(
+        (_: any, idx: number) => selectedFlavors.includes(`${idx}`)
+      );
       
-      if (flavors.length > 0) {
-        for (const flavor of flavors) {
+      if (flavorsToImport.length > 0) {
+        for (const flavor of flavorsToImport) {
           await createFlavor({
             product_id: productId,
             name: flavor.name,
@@ -174,17 +195,20 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         
         toast({
           title: 'Sabores importados!',
-          description: `${flavors.length} sabor(es) foram importados do template.`,
+          description: `${flavorsToImport.length} sabor(es) foram importados do template.`,
         });
       } else {
         toast({
-          title: 'Nenhum sabor no template',
-          description: 'O template selecionado não possui sabores.',
+          title: 'Nenhum sabor selecionado',
+          description: 'Selecione pelo menos um sabor para importar.',
           variant: 'destructive',
         });
+        return;
       }
       
       setImportTemplateOpen(false);
+      setSelectedTemplate(null);
+      setSelectedFlavors([]);
     } catch (error: any) {
       toast({
         title: 'Erro ao importar template',
@@ -192,6 +216,11 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         variant: 'destructive',
       });
     }
+  };
+
+  const handleCancelImportTemplate = () => {
+    setSelectedTemplate(null);
+    setSelectedFlavors([]);
   };
 
   const handleAddStoreFlavor = async (flavor: any) => {
@@ -440,53 +469,121 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 Selecione um template para importar seus sabores
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-3">
-              {loadingTemplates ? (
-                <p className="text-center py-4 text-muted-foreground">Carregando templates...</p>
-              ) : templates.length > 0 ? (
-                templates.map((template) => {
-                  console.log('Template:', template.name, 'Flavors:', template.flavors);
-                  const flavorCount = Array.isArray(template.flavors) ? template.flavors.length : 0;
-                  const hasNoFlavors = flavorCount === 0;
-                  
-                  return (
-                    <div
-                      key={template.id}
-                      className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
-                        hasNoFlavors 
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : 'hover:bg-muted/50 cursor-pointer'
-                      }`}
-                      onClick={() => !hasNoFlavors && handleImportFromTemplate(template)}
-                    >
-                      <div className="text-3xl">{template.icon || '📦'}</div>
-                      <div className="flex-1">
-                        <p className="font-medium">{template.name}</p>
-                        {template.description && (
-                          <p className="text-sm text-muted-foreground">{template.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">
-                            {flavorCount} sabor(es)
-                          </p>
-                          {hasNoFlavors && (
-                            <Badge variant="destructive" className="text-xs">
-                              Sem sabores
-                            </Badge>
+            {!selectedTemplate ? (
+              <div className="space-y-3">
+                {loadingTemplates ? (
+                  <p className="text-center py-4 text-muted-foreground">Carregando templates...</p>
+                ) : templates.length > 0 ? (
+                  templates.map((template) => {
+                    const flavorCount = Array.isArray(template.flavors) ? template.flavors.length : 0;
+                    const hasNoFlavors = flavorCount === 0;
+                    
+                    return (
+                      <div
+                        key={template.id}
+                        className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                          hasNoFlavors 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:bg-muted/50 cursor-pointer'
+                        }`}
+                        onClick={() => !hasNoFlavors && handleSelectTemplate(template)}
+                      >
+                        <div className="text-3xl">{template.icon || '📦'}</div>
+                        <div className="flex-1">
+                          <p className="font-medium">{template.name}</p>
+                          {template.description && (
+                            <p className="text-sm text-muted-foreground">{template.description}</p>
                           )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-muted-foreground">
+                              {flavorCount} sabor(es)
+                            </p>
+                            {hasNoFlavors && (
+                              <Badge variant="destructive" className="text-xs">
+                                Sem sabores
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">Nenhum template encontrado</p>
-                  <p className="text-sm mt-1">Crie templates na aba Templates para reutilizá-los aqui</p>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="font-medium">Nenhum template encontrado</p>
+                    <p className="text-sm mt-1">Crie templates na aba Templates para reutilizá-los aqui</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                  <div className="text-3xl">{selectedTemplate.icon || '📦'}</div>
+                  <div className="flex-1">
+                    <p className="font-medium">{selectedTemplate.name}</p>
+                    {selectedTemplate.description && (
+                      <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
+                    )}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleCancelImportTemplate}
+                  >
+                    Voltar
+                  </Button>
                 </div>
-              )}
-            </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium">Sabores disponíveis:</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {selectedFlavors.length} de {selectedTemplate.flavors?.length || 0} selecionados
+                    </span>
+                  </div>
+                  
+                  {(selectedTemplate.flavors || []).map((flavor: any, index: number) => (
+                    <div 
+                      key={index}
+                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedFlavors.includes(`${index}`)}
+                        onCheckedChange={() => handleToggleFlavor(`${index}`)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{flavor.name}</p>
+                          <span className="text-sm text-muted-foreground">
+                            R$ {(flavor.price || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        {flavor.description && (
+                          <p className="text-sm text-muted-foreground">{flavor.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    onClick={handleConfirmImportTemplate}
+                    disabled={selectedFlavors.length === 0}
+                    className="flex-1"
+                  >
+                    Importar {selectedFlavors.length} Sabor(es)
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCancelImportTemplate}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
