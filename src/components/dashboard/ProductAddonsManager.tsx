@@ -1242,13 +1242,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                           </div>
                           <Button
                             size="sm"
-                            variant="ghost"
                             onClick={() => handleCopyStoreAddon(addon)}
                             disabled={isInProduct}
                             className="w-full sm:w-auto"
                           >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copiar
+                            <Plus className="w-4 h-4 mr-2" />
+                            Adicionar
                           </Button>
                         </div>
                       );
@@ -1287,13 +1286,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             </div>
                             <Button
                               size="sm"
-                              variant="ghost"
                               onClick={() => handleCopyStoreAddon(addon)}
                               disabled={isInProduct}
                               className="w-full sm:w-auto"
                             >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copiar
+                              <Plus className="w-4 h-4 mr-2" />
+                              Adicionar
                             </Button>
                           </div>
                         );
