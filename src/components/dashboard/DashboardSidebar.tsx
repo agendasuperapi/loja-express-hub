@@ -19,6 +19,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [produtosOpen, setProdutosOpen] = useState(false);
 
   // Função para verificar se o funcionário tem permissão
   const hasPermission = (module: string, action: string = 'view'): boolean => {
@@ -30,11 +31,16 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     return modulePermissions[action] === true;
   };
 
+  const produtosSubItems = [
+    { id: 'produtos', label: 'gerenciar produtos', icon: Package },
+    { id: 'sabores', label: 'sabores', icon: Package },
+    { id: 'adicionais', label: 'adicionais', icon: Package },
+    { id: 'categorias-adicionais', label: 'categorias de adicionais', icon: FolderTree },
+  ];
+
   const cadastrosSubItems = [
-    ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
     ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
-    ...(hasPermission('categories', 'view') ? [{ id: 'categorias-adicionais', label: 'categorias de adicionais', icon: FolderTree }] : []),
     // Funcionários só são visíveis para donos de loja
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
@@ -59,6 +65,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     { id: 'home', label: 'home', icon: Home, show: true },
     ...(hasPermission('reports') ? [{ id: 'metricas', label: 'métricas', icon: TrendingUp, show: true }] : []),
     ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
+    ...(hasPermission('products', 'view') && produtosSubItems.length > 0 ? [{ id: 'produtos-menu', label: 'produtos', icon: Package, hasSubmenu: true, show: true }] : []),
     ...(relatoriosSubItems.length > 0 ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, hasSubmenu: true, show: true }] : []),
     ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
     ...(hasPermission('settings', 'manage_whatsapp') ? [{ id: 'whatsapp', label: 'whatsapp', icon: MessageSquare, show: true }] : []),
@@ -95,9 +102,9 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
           const isActive = activeTab === item.id;
           
           if (item.hasSubmenu) {
-            const isOpen = item.id === 'cadastros' ? cadastrosOpen : relatoriosOpen;
-            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : setRelatoriosOpen;
-            const subItems = item.id === 'cadastros' ? cadastrosSubItems : relatoriosSubItems;
+            const isOpen = item.id === 'cadastros' ? cadastrosOpen : item.id === 'relatorios' ? relatoriosOpen : produtosOpen;
+            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : item.id === 'relatorios' ? setRelatoriosOpen : setProdutosOpen;
+            const subItems = item.id === 'cadastros' ? cadastrosSubItems : item.id === 'relatorios' ? relatoriosSubItems : produtosSubItems;
             
             return (
               <div key={item.id}>

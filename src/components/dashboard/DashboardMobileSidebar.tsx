@@ -28,6 +28,7 @@ export const DashboardMobileSidebar = ({
   const [open, setOpen] = useState(false);
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [produtosOpen, setProdutosOpen] = useState(false);
 
   const hasPermission = (module: string, action: string = 'view'): boolean => {
     if (!isEmployee || !employeePermissions) return true;
@@ -38,11 +39,16 @@ export const DashboardMobileSidebar = ({
     return modulePermissions[action] === true;
   };
 
+  const produtosSubItems = [
+    { id: 'produtos', label: 'gerenciar produtos', icon: Package },
+    { id: 'sabores', label: 'sabores', icon: Package },
+    { id: 'adicionais', label: 'adicionais', icon: Package },
+    { id: 'categorias-adicionais', label: 'categorias de adicionais', icon: FolderTree },
+  ];
+
   const cadastrosSubItems = [
-    ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
     ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
-    ...(hasPermission('categories', 'view') ? [{ id: 'categorias-adicionais', label: 'categorias de adicionais', icon: FolderTree }] : []),
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];
 
@@ -125,6 +131,40 @@ export const DashboardMobileSidebar = ({
                 <ShoppingCart className="w-5 h-5" />
                 <span className="capitalize">Pedidos</span>
               </Button>
+            )}
+
+            {/* Produtos */}
+            {hasPermission('products', 'view') && produtosSubItems.length > 0 && (
+              <Collapsible open={produtosOpen} onOpenChange={setProdutosOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between h-12"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Package className="w-5 h-5" />
+                      <span className="capitalize">Produtos</span>
+                    </div>
+                    <ChevronDown className={cn(
+                      "w-4 h-4 transition-transform",
+                      produtosOpen && "rotate-180"
+                    )} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  {produtosSubItems.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={activeTab === item.id ? 'default' : 'ghost'}
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={() => handleNavigation(item.id)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span className="capitalize text-sm">{item.label}</span>
+                    </Button>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
             {/* Relatórios */}
