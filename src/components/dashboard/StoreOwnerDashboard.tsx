@@ -2632,8 +2632,8 @@ export const StoreOwnerDashboard = () => {
                   Adicionais
                 </TabsTrigger>
                 <TabsTrigger value="sabores" className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  + Sabores
+                  <Plus className="w-4 h-4" />
+                  Sabores
                 </TabsTrigger>
               </TabsList>
 
