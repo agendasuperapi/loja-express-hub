@@ -221,8 +221,13 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
 // Aba de Adicionais Globais
 export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const { categories } = useAddonCategories(storeId);
-  const { addons, isLoading } = useStoreAddons(storeId);
+  const { addons, isLoading, createAddon, updateAddon, deleteAddon } = useStoreAddons(storeId);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({ name: "", price: "0", category_id: "", is_available: true });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
 
   const filteredAddons = addons?.filter(addon => {
     if (categoryFilter === "all") return true;
@@ -237,6 +242,97 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
     return acc;
   }, {} as Record<string, typeof addons>);
 
+  const handleSubmit = async () => {
+    if (!formData.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, informe o nome do adicional.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const price = parseFloat(formData.price);
+    if (isNaN(price) || price < 0) {
+      toast({
+        title: "Preço inválido",
+        description: "Por favor, informe um preço válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingId) {
+      await updateAddon({
+        id: editingId,
+        name: formData.name,
+        price,
+        category_id: formData.category_id || null,
+        is_available: formData.is_available,
+      });
+    } else {
+      // Para criar adicional global, precisamos de um product_id temporário
+      // Vamos usar um produto existente da loja ou criar um produto placeholder
+      const { data: existingProduct } = await supabase
+        .from('products')
+        .select('id')
+        .eq('store_id', storeId)
+        .limit(1)
+        .single();
+
+      if (!existingProduct) {
+        toast({
+          title: "Produto necessário",
+          description: "Crie ao menos um produto antes de adicionar adicionais globais.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await createAddon({
+        product_id: existingProduct.id,
+        name: formData.name,
+        price,
+        category_id: formData.category_id || null,
+        is_available: formData.is_available,
+      });
+    }
+
+    setFormData({ name: "", price: "0", category_id: "", is_available: true });
+    setIsAdding(false);
+    setEditingId(null);
+  };
+
+  const handleEdit = (addon: any) => {
+    setEditingId(addon.id);
+    setFormData({
+      name: addon.name,
+      price: addon.price.toString(),
+      category_id: addon.category_id || "",
+      is_available: addon.is_available,
+    });
+    setIsAdding(true);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingId(null);
+    setFormData({ name: "", price: "0", category_id: "", is_available: true });
+  };
+
+  const handleDeleteClick = (addonId: string) => {
+    setAddonToDelete(addonId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (addonToDelete) {
+      await deleteAddon(addonToDelete);
+      setAddonToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-center py-8 text-muted-foreground">Carregando adicionais...</div>;
   }
@@ -250,6 +346,75 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)} className="w-full">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Adicional
+          </Button>
+        )}
+
+        {isAdding && (
+          <div className="p-4 border rounded-lg space-y-4 bg-muted/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="addon-name">Nome do Adicional</Label>
+                <Input
+                  id="addon-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Ex: Borda de Catupiry"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="addon-price">Preço (R$)</Label>
+                <Input
+                  id="addon-price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="addon-category">Categoria</Label>
+              <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
+                <SelectTrigger id="addon-category">
+                  <SelectValue placeholder="Selecione uma categoria (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sem categoria</SelectItem>
+                  {categories?.filter(c => c.is_active).map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="addon-available"
+                checked={formData.is_available}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+              />
+              <Label htmlFor="addon-available">Disponível</Label>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSubmit} className="flex-1">
+                <Check className="w-4 h-4 mr-2" />
+                {editingId ? "Atualizar" : "Salvar"}
+              </Button>
+              <Button onClick={handleCancel} variant="outline" className="flex-1">
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label>Filtrar por categoria</Label>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -295,9 +460,25 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                           R$ {addon.price.toFixed(2)}
                         </div>
                       </div>
-                      <Badge variant={addon.is_available ? "default" : "secondary"}>
-                        {addon.is_available ? "Disponível" : "Indisponível"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={addon.is_available ? "default" : "secondary"}>
+                          {addon.is_available ? "Disponível" : "Indisponível"}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEdit(addon)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(addon.id)}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -306,6 +487,23 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
           )}
         </div>
       </CardContent>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este adicional? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
