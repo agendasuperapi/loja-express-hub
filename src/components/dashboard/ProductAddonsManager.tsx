@@ -495,12 +495,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               </CardDescription>
             </div>
             {!isAdding && (
-              <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 w-full md:w-auto">
                 <Button 
                   size="sm" 
                   variant="outline" 
                   onClick={() => setIsImportDialogOpen(true)}
-                  className="w-full sm:w-auto justify-start sm:justify-center"
+                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Importar Templates</span>
@@ -510,7 +510,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   size="sm" 
                   variant="outline" 
                   onClick={() => setIsStoreAddonsOpen(true)}
-                  className="w-full sm:w-auto justify-start sm:justify-center"
+                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
                 >
                   <Store className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Adicionais da Loja</span>
@@ -519,7 +519,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                 <Button 
                   size="sm" 
                   onClick={() => setIsAdding(true)}
-                  className="w-full sm:w-auto justify-start sm:justify-center"
+                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Adicional
