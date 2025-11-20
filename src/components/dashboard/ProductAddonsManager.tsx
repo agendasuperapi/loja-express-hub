@@ -4,12 +4,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DndContext,
   closestCenter,
@@ -37,10 +47,12 @@ interface SortableAddonProps {
   addon: any;
   onEdit: (addon: any) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
   isDeleting: boolean;
+  isDuplicating: boolean;
 }
 
-const SortableAddon = ({ addon, onEdit, onDelete, isDeleting }: SortableAddonProps) => {
+const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDuplicating }: SortableAddonProps) => {
   const {
     attributes,
     listeners,
@@ -82,19 +94,30 @@ const SortableAddon = ({ addon, onEdit, onDelete, isDeleting }: SortableAddonPro
           </p>
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-1">
         <Button
           size="sm"
           variant="ghost"
           onClick={() => onEdit(addon)}
+          title="Editar"
         >
           <Edit className="w-4 h-4" />
         </Button>
         <Button
           size="sm"
           variant="ghost"
+          onClick={() => onDuplicate(addon.id)}
+          disabled={isDuplicating}
+          title="Duplicar"
+        >
+          <Copy className="w-4 h-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
           onClick={() => onDelete(addon.id)}
           disabled={isDeleting}
+          title="Deletar"
         >
           <Trash2 className="w-4 h-4 text-destructive" />
         </Button>
@@ -104,11 +127,13 @@ const SortableAddon = ({ addon, onEdit, onDelete, isDeleting }: SortableAddonPro
 };
 
 export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManagerProps) => {
-  const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
+  const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, duplicateAddon, isCreating, isDeleting, isDuplicating } = useProductAddons(productId);
   const { categories } = useAddonCategories(storeId);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     price: 0,
@@ -128,10 +153,24 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
 
   const filteredAddons = useMemo(() => {
     if (!addons) return [];
-    if (categoryFilter === 'all') return addons;
-    if (categoryFilter === 'uncategorized') return addons.filter(a => !a.category_id);
-    return addons.filter(a => a.category_id === categoryFilter);
-  }, [addons, categoryFilter]);
+    
+    let filtered = addons;
+    
+    // Filter by category
+    if (categoryFilter === 'uncategorized') {
+      filtered = filtered.filter(a => !a.category_id);
+    } else if (categoryFilter !== 'all') {
+      filtered = filtered.filter(a => a.category_id === categoryFilter);
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(a => a.name.toLowerCase().includes(term));
+    }
+    
+    return filtered;
+  }, [addons, categoryFilter, searchTerm]);
 
   const addonsByCategory = useMemo(() => {
     if (!addons) return {};
@@ -200,23 +239,52 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
     reorderAddons(updates);
   };
 
+  const handleDeleteClick = (id: string, name: string) => {
+    setConfirmDelete({ id, name });
+  };
+
+  const handleConfirmDelete = () => {
+    if (confirmDelete) {
+      deleteAddon(confirmDelete.id);
+      setConfirmDelete(null);
+    }
+  };
+
+  const handleDuplicate = (id: string) => {
+    duplicateAddon(id);
+  };
+
+  const totalAddons = addons?.length || 0;
+  const availableAddons = addons?.filter(a => a.is_available).length || 0;
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Adicionais</CardTitle>
-            <CardDescription>Gerencie os adicionais deste produto</CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <CardTitle>Adicionais</CardTitle>
+                {totalAddons > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {totalAddons}
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>
+                Gerencie os adicionais deste produto
+                {totalAddons > 0 && ` • ${availableAddons} disponíveis`}
+              </CardDescription>
+            </div>
+            {!isAdding && (
+              <Button size="sm" onClick={() => setIsAdding(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Adicional
+              </Button>
+            )}
           </div>
-          {!isAdding && (
-            <Button size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Adicional
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+        </CardHeader>
+        <CardContent className="space-y-4">
         {isAdding && (
           <div ref={formRef} className="space-y-3 p-4 border rounded-lg bg-muted/30">
             <div className="space-y-2">
@@ -287,33 +355,66 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
           </div>
         )}
 
-        {/* Filter by category */}
-        {activeCategories.length > 0 && !isAdding && addons && addons.length > 0 && (
-          <div className="flex items-center gap-2">
-            <FolderTree className="w-4 h-4 text-muted-foreground" />
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar por categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
-                <SelectItem value="uncategorized">Sem categoria</SelectItem>
-                {activeCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {categoryFilter !== 'all' && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setCategoryFilter('all')}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Limpar
-              </Button>
+        {/* Search and Filters */}
+        {!isAdding && addons && addons.length > 0 && (
+          <div className="space-y-3">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar adicional por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+              {searchTerm && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Category filter */}
+            {activeCategories.length > 0 && (
+              <div className="flex items-center gap-2">
+                <FolderTree className="w-4 h-4 text-muted-foreground" />
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filtrar por categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    <SelectItem value="uncategorized">Sem categoria</SelectItem>
+                    {activeCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {categoryFilter !== 'all' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setCategoryFilter('all')}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Results count */}
+            {(searchTerm || categoryFilter !== 'all') && (
+              <p className="text-sm text-muted-foreground">
+                {filteredAddons.length} {filteredAddons.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
+              </p>
             )}
           </div>
         )}
@@ -353,8 +454,10 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
                             key={addon.id}
                             addon={addon}
                             onEdit={handleEdit}
-                            onDelete={deleteAddon}
+                            onDelete={(id) => handleDeleteClick(id, addon.name)}
+                            onDuplicate={handleDuplicate}
                             isDeleting={isDeleting}
+                            isDuplicating={isDuplicating}
                           />
                         ))}
                       </SortableContext>
@@ -381,8 +484,10 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
                               key={addon.id}
                               addon={addon}
                               onEdit={handleEdit}
-                              onDelete={deleteAddon}
+                              onDelete={(id) => handleDeleteClick(id, addon.name)}
+                              onDuplicate={handleDuplicate}
                               isDeleting={isDeleting}
+                              isDuplicating={isDuplicating}
                             />
                           ))}
                         </SortableContext>
@@ -401,8 +506,10 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
                       key={addon.id}
                       addon={addon}
                       onEdit={handleEdit}
-                      onDelete={deleteAddon}
+                      onDelete={(id) => handleDeleteClick(id, addon.name)}
+                      onDuplicate={handleDuplicate}
                       isDeleting={isDeleting}
+                      isDuplicating={isDuplicating}
                     />
                   ))}
                 </SortableContext>
@@ -412,5 +519,24 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
         )}
       </CardContent>
     </Card>
+
+    {/* Delete Confirmation Dialog */}
+    <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+          <AlertDialogDescription>
+            Tem certeza que deseja excluir o adicional <strong>"{confirmDelete?.name}"</strong>? Esta ação não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            Excluir
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 };

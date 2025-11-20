@@ -144,6 +144,49 @@ export const useProductAddons = (productId?: string) => {
     },
   });
 
+  const duplicateAddonMutation = useMutation({
+    mutationFn: async (addonId: string) => {
+      // Get the original addon
+      const { data: originalAddon, error: fetchError } = await supabase
+        .from('product_addons')
+        .select('*')
+        .eq('id', addonId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Create duplicate with modified name
+      const { data, error } = await supabase
+        .from('product_addons')
+        .insert({
+          product_id: originalAddon.product_id,
+          name: `${originalAddon.name} (Cópia)`,
+          price: originalAddon.price,
+          is_available: originalAddon.is_available,
+          category_id: originalAddon.category_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      toast({
+        title: 'Adicional duplicado!',
+        description: 'O adicional foi duplicado com sucesso.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao duplicar adicional',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     addons: addonsQuery.data,
     isLoading: addonsQuery.isLoading,
@@ -151,9 +194,11 @@ export const useProductAddons = (productId?: string) => {
     updateAddon: updateAddonMutation.mutate,
     deleteAddon: deleteAddonMutation.mutate,
     reorderAddons: reorderAddonsMutation.mutate,
+    duplicateAddon: duplicateAddonMutation.mutate,
     isCreating: createAddonMutation.isPending,
     isUpdating: updateAddonMutation.isPending,
     isDeleting: deleteAddonMutation.isPending,
     isReordering: reorderAddonsMutation.isPending,
+    isDuplicating: duplicateAddonMutation.isPending,
   };
 };
