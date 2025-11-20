@@ -1219,78 +1219,51 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Label className="text-base font-semibold">Escolha um Template</Label>
             
             {/* Custom Templates Section */}
-            {customTemplates.length > 0 && (
-              <>
-                <div className="text-sm font-medium text-muted-foreground mb-2">Templates Próprios</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  {customTemplates.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => {
-                        setSelectedTemplate(template.id);
-                        setSelectedTemplateCategories({});
-                      }}
-                      className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
-                        selectedTemplate === template.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon || '📦'}</span>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
-                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {template.categories?.length || 0} categorias
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {template.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0} adicionais
-                            </Badge>
-                          </div>
+            {loadingCustomTemplates ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="w-8 h-8 animate-spin mx-auto mb-2" />
+                <p>Carregando templates...</p>
+              </div>
+            ) : customTemplates.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {customTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => {
+                      setSelectedTemplate(template.id);
+                      setSelectedTemplateCategories({});
+                    }}
+                    className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                      selectedTemplate === template.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon || '📦'}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge variant="secondary" className="text-xs">
+                            {template.categories?.length || 0} categorias
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {template.categories?.reduce((sum: number, cat: any) => sum + (cat.addons?.length || 0), 0) || 0} adicionais
+                          </Badge>
                         </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
-                <Separator />
-              </>
-            )}
-            
-            {/* Pre-configured Templates Section */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {addonTemplates.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => {
-                    setSelectedTemplate(template.id);
-                    setSelectedTemplateCategories({});
-                  }}
-                  className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
-                    selectedTemplate === template.id
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
-                      <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs">
-                          {template.categories.length} categorias
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {template.categories.reduce((sum, cat) => sum + cat.addons.length, 0)} adicionais
-                        </Badge>
-                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Nenhum template próprio encontrado</p>
+                <p className="text-sm">Crie templates na aba de Templates para reutilizá-los aqui</p>
+              </div>
+            )}
           </div>
 
           {/* Category Selection */}
