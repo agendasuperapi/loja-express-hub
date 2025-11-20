@@ -46,7 +46,19 @@ export const useStoreAddons = (storeId?: string) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as StoreAddon[] || [];
+      
+      // De-duplicar adicionais por nome e categoria
+      // Se houver adicionais com mesmo nome e categoria em produtos diferentes,
+      // mantém apenas o mais recente
+      const uniqueAddons = new Map<string, StoreAddon>();
+      (data || []).forEach((addon: StoreAddon) => {
+        const key = `${addon.name}-${addon.category_id || 'null'}`;
+        if (!uniqueAddons.has(key)) {
+          uniqueAddons.set(key, addon);
+        }
+      });
+      
+      return Array.from(uniqueAddons.values());
     },
     enabled: !!storeId,
   });
