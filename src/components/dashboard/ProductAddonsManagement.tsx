@@ -48,7 +48,7 @@ export const ProductAddonsManagement = ({ storeId }: ProductAddonsManagementProp
 };
 
 // Aba de Categorias
-const CategoriesTab = ({ storeId }: { storeId: string }) => {
+export const CategoriesTab = ({ storeId }: { storeId: string }) => {
   const { categories, loading, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useAddonCategories(storeId);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -210,7 +210,7 @@ const CategoriesTab = ({ storeId }: { storeId: string }) => {
 };
 
 // Aba de Adicionais Globais
-const AddonsTab = ({ storeId }: { storeId: string }) => {
+export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const { categories } = useAddonCategories(storeId);
   const { addons, isLoading } = useStoreAddons(storeId);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -302,7 +302,7 @@ const AddonsTab = ({ storeId }: { storeId: string }) => {
 };
 
 // Aba de Templates
-const TemplatesTab = ({ storeId }: { storeId: string }) => {
+export const TemplatesTab = ({ storeId }: { storeId: string }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<BusinessTemplate | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isApplying, setIsApplying] = useState(false);

@@ -16,12 +16,12 @@ import { useStoreManagement, type StoreFormData } from "@/hooks/useStoreManageme
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles } from "lucide-react";
 import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
-import { ProductAddonsManagement } from "./ProductAddonsManagement";
+import { ProductAddonsManagement, TemplatesTab, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
@@ -2613,7 +2613,7 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <Tabs defaultValue="lista" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Lista de Produtos
@@ -2621,6 +2621,10 @@ export const StoreOwnerDashboard = () => {
                 <TabsTrigger value="categorias" className="flex items-center gap-2">
                   <FolderTree className="w-4 h-4" />
                   Categorias de Produtos
+                </TabsTrigger>
+                <TabsTrigger value="templates" className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Templates
                 </TabsTrigger>
                 <TabsTrigger value="adicionais" className="flex items-center gap-2">
                   <Plus className="w-4 h-4" />
@@ -3204,8 +3208,33 @@ export const StoreOwnerDashboard = () => {
                 </Dialog>
               </TabsContent>
 
+              <TabsContent value="templates">
+                <TemplatesTab storeId={myStore.id} />
+              </TabsContent>
+
               <TabsContent value="adicionais">
-                <ProductAddonsManagement storeId={myStore.id} />
+                <div className="space-y-6">
+                  <Tabs defaultValue="categorias" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="categorias" className="flex items-center gap-2">
+                        <FolderTree className="w-4 h-4" />
+                        Categorias
+                      </TabsTrigger>
+                      <TabsTrigger value="globais" className="flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Adicionais Globais
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="categorias">
+                      <CategoriesTab storeId={myStore.id} />
+                    </TabsContent>
+
+                    <TabsContent value="globais">
+                      <AddonsTab storeId={myStore.id} />
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </TabsContent>
             </Tabs>
           </motion.div>
