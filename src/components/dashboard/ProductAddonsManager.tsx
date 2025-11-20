@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
+import { useStoreAddons } from "@/hooks/useStoreAddons";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DndContext,
   closestCenter,
@@ -37,6 +39,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Checkbox } from "@/components/ui/checkbox";
+import { addonTemplates, type BusinessTemplate } from "@/lib/addonTemplates";
 
 interface ProductAddonsManagerProps {
   productId: string;
@@ -50,9 +54,11 @@ interface SortableAddonProps {
   onDuplicate: (id: string) => void;
   isDeleting: boolean;
   isDuplicating: boolean;
+  isSelected: boolean;
+  onToggleSelect: (id: string, checked: boolean) => void;
 }
 
-const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDuplicating }: SortableAddonProps) => {
+const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDuplicating, isSelected, onToggleSelect }: SortableAddonProps) => {
   const {
     attributes,
     listeners,
@@ -75,6 +81,11 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
     >
       <div className="flex items-center gap-3 flex-1">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onToggleSelect(addon.id, Boolean(checked))}
+          className="mr-1"
+        />
         <button
           className="cursor-grab active:cursor-grabbing touch-none"
           {...attributes}
@@ -129,6 +140,8 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, duplicateAddon, isCreating, isDeleting, isDuplicating } = useProductAddons(productId);
   const { categories } = useAddonCategories(storeId);
+  const { addons: storeAddons = [] } = useStoreAddons(storeId);
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -140,6 +153,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     is_available: true,
     category_id: null as string | null,
   });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -247,11 +262,21 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     if (confirmDelete) {
       deleteAddon(confirmDelete.id);
       setConfirmDelete(null);
+      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== confirmDelete.id));
     }
   };
 
   const handleDuplicate = (id: string) => {
     duplicateAddon(id);
+  };
+
+  const handleToggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      if (checked) {
+        return prev.includes(id) ? prev : [...prev, id];
+      }
+      return prev.filter((selectedId) => selectedId !== id);
+    });
   };
 
   const totalAddons = addons?.length || 0;
@@ -458,6 +483,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             onDuplicate={handleDuplicate}
                             isDeleting={isDeleting}
                             isDuplicating={isDuplicating}
+                            isSelected={selectedIds.includes(addon.id)}
+                            onToggleSelect={handleToggleSelect}
                           />
                         ))}
                       </SortableContext>
@@ -488,6 +515,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                               onDuplicate={handleDuplicate}
                               isDeleting={isDeleting}
                               isDuplicating={isDuplicating}
+                              isSelected={selectedIds.includes(addon.id)}
+                              onToggleSelect={handleToggleSelect}
                             />
                           ))}
                         </SortableContext>
@@ -510,6 +539,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       onDuplicate={handleDuplicate}
                       isDeleting={isDeleting}
                       isDuplicating={isDuplicating}
+                      isSelected={selectedIds.includes(addon.id)}
+                      onToggleSelect={handleToggleSelect}
                     />
                   ))}
                 </SortableContext>
