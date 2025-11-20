@@ -1414,7 +1414,7 @@ export const StoreOwnerDashboard = () => {
                   <SelectContent>
                     <SelectItem value="all">Todos os Status</SelectItem>
                     {customStatuses.length > 0 ? (
-                      customStatuses.map((status) => (
+                      customStatuses.filter(status => status.is_active).map((status) => (
                         <SelectItem key={status.id} value={status.status_key}>
                           {status.status_label}
                         </SelectItem>
@@ -2093,7 +2093,7 @@ export const StoreOwnerDashboard = () => {
                   </Button>
                 )}
                 
-                {customStatuses.map((status) => {
+                {customStatuses.filter(status => status.is_active).map((status) => {
                   const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
                   const isActive = orderStatusFilter === status.status_key;
                   
@@ -2400,7 +2400,7 @@ export const StoreOwnerDashboard = () => {
                             <SelectContent>
                               {customStatuses.length > 0 ? (
                                 customStatuses
-                                  .filter(status => canChangeTo(status.status_key))
+                                  .filter(status => status.is_active && canChangeTo(status.status_key))
                                   .map((status) => (
                                     <SelectItem key={status.status_key} value={status.status_key}>
                                       {status.status_label}
@@ -2928,7 +2928,7 @@ export const StoreOwnerDashboard = () => {
                                   <SelectValue placeholder="Selecione uma categoria" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {categories.map((cat) => (
+                                  {categories.filter(cat => cat.is_active).map((cat) => (
                                     <SelectItem key={cat.id} value={cat.name}>
                                       {cat.name}
                                     </SelectItem>
@@ -3109,7 +3109,7 @@ export const StoreOwnerDashboard = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Categorias</SelectItem>
-                  {categories.map((cat) => (
+                  {categories.filter(cat => cat.is_active).map((cat) => (
                     <SelectItem key={cat.id} value={cat.name}>
                       {cat.name}
                     </SelectItem>
