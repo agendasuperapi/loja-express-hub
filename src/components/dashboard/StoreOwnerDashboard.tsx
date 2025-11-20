@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,6 +72,7 @@ import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
@@ -230,7 +231,20 @@ export const StoreOwnerDashboard = () => {
   const ordersPerPage = 10;
   const [currentHomeOrderPage, setCurrentHomeOrderPage] = useState(1);
   const homeOrdersPerPage = 10;
-  const [activeTab, setActiveTab] = useState('home');
+  
+  // Gerenciar aba ativa via URL para persistir ao recarregar
+  const tabFromUrl = searchParams.get('tab') || 'home';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
+  
+  // Atualizar URL quando a aba mudar
+  useEffect(() => {
+    if (activeTab !== tabFromUrl) {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('tab', activeTab);
+      setSearchParams(newSearchParams, { replace: true });
+    }
+  }, [activeTab, tabFromUrl, searchParams, setSearchParams]);
+  
   const { 
     periodFilter: reportsPeriodFilter, 
     setPeriodFilter: setReportsPeriodFilter,
