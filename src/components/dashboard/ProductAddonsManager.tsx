@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -21,7 +21,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DndContext,
   closestCenter,
@@ -155,6 +156,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -200,6 +203,73 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
     return grouped;
   }, [addons, activeCategories]);
+
+  // Autocomplete suggestions combining store addons and templates
+  const autocompleteSuggestions = useMemo(() => {
+    if (!formData.name.trim() || formData.name.length < 2) return [];
+
+    const term = formData.name.toLowerCase();
+    const suggestions: Array<{ type: 'store' | 'template'; name: string; price: number; categoryId?: string | null; templateCategory?: string }> = [];
+
+    // Add store addons (excluding ones already in this product)
+    const currentAddonNames = addons?.map(a => a.name.toLowerCase()) || [];
+    storeAddons
+      .filter(addon => 
+        addon.name.toLowerCase().includes(term) && 
+        !currentAddonNames.includes(addon.name.toLowerCase())
+      )
+      .slice(0, 5)
+      .forEach(addon => {
+        suggestions.push({
+          type: 'store',
+          name: addon.name,
+          price: addon.price,
+          categoryId: addon.category_id,
+        });
+      });
+
+    // Add template addons
+    addonTemplates.forEach(template => {
+      template.categories.forEach(category => {
+        category.addons
+          .filter(addon => addon.name.toLowerCase().includes(term))
+          .slice(0, 3)
+          .forEach(addon => {
+            suggestions.push({
+              type: 'template',
+              name: addon.name,
+              price: addon.price,
+              templateCategory: category.name,
+            });
+          });
+      });
+    });
+
+    return suggestions.slice(0, 8);
+  }, [formData.name, storeAddons, addons]);
+
+  // Filtered store addons for the dialog
+  const filteredStoreAddons = useMemo(() => {
+    if (!storeAddonsSearch.trim()) return storeAddons;
+    const term = storeAddonsSearch.toLowerCase();
+    return storeAddons.filter(a => a.name.toLowerCase().includes(term));
+  }, [storeAddons, storeAddonsSearch]);
+
+  // Group store addons by category
+  const groupedStoreAddons = useMemo(() => {
+    const grouped: Record<string, typeof storeAddons> = {
+      uncategorized: filteredStoreAddons.filter(a => !a.category_id)
+    };
+
+    activeCategories.forEach(cat => {
+      const categoryAddons = filteredStoreAddons.filter(a => a.category_id === cat.id);
+      if (categoryAddons.length > 0) {
+        grouped[cat.id] = categoryAddons;
+      }
+    });
+
+    return grouped;
+  }, [filteredStoreAddons, activeCategories]);
 
   const handleSubmit = () => {
     if (!formData.name.trim()) return;
@@ -279,6 +349,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     });
   };
 
+  const handleSelectAutocomplete = (suggestion: typeof autocompleteSuggestions[0]) => {
+    setFormData({
+      ...formData,
+      name: suggestion.name,
+      price: suggestion.price,
+      category_id: suggestion.categoryId || null,
+    });
+    setShowAutocomplete(false);
+  };
+
+  const handleCopyStoreAddon = (storeAddon: typeof storeAddons[0]) => {
+    createAddon({
+      name: storeAddon.name,
+      price: storeAddon.price,
+      is_available: storeAddon.is_available,
+      category_id: storeAddon.category_id || null,
+      product_id: productId,
+    });
+  };
+
   const totalAddons = addons?.length || 0;
   const availableAddons = addons?.filter(a => a.is_available).length || 0;
 
@@ -302,10 +392,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               </CardDescription>
             </div>
             {!isAdding && (
-              <Button size="sm" onClick={() => setIsAdding(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Adicional
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setIsStoreAddonsOpen(true)}>
+                  <Store className="w-4 h-4 mr-2" />
+                  Adicionais da Loja
+                </Button>
+                <Button size="sm" onClick={() => setIsAdding(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Adicional
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -314,11 +410,47 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           <div ref={formRef} className="space-y-3 p-4 border rounded-lg bg-muted/30">
             <div className="space-y-2">
               <Label>Nome do Adicional</Label>
-              <Input
-                placeholder="Ex: Queijo extra, Bacon..."
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
+              <Popover open={showAutocomplete && autocompleteSuggestions.length > 0} onOpenChange={setShowAutocomplete}>
+                <PopoverTrigger asChild>
+                  <div className="relative">
+                    <Input
+                      placeholder="Ex: Queijo extra, Bacon..."
+                      value={formData.name}
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        setShowAutocomplete(true);
+                      }}
+                      onFocus={() => setShowAutocomplete(true)}
+                    />
+                    {autocompleteSuggestions.length > 0 && (
+                      <Lightbulb className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-yellow-500" />
+                    )}
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2" align="start">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground px-2 py-1">Sugestões</p>
+                    {autocompleteSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectAutocomplete(suggestion)}
+                        className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{suggestion.name}</span>
+                          <Badge variant={suggestion.type === 'store' ? 'default' : 'secondary'} className="text-xs">
+                            {suggestion.type === 'store' ? 'Loja' : 'Template'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          R$ {suggestion.price.toFixed(2)}
+                          {suggestion.templateCategory && ` • ${suggestion.templateCategory}`}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {activeCategories.length > 0 && (
@@ -568,6 +700,137 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* Store Addons Dialog */}
+    <Dialog open={isStoreAddonsOpen} onOpenChange={setIsStoreAddonsOpen}>
+      <DialogContent className="max-w-3xl max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Store className="w-5 h-5" />
+            Adicionais da Loja
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar adicional..."
+              value={storeAddonsSearch}
+              onChange={(e) => setStoreAddonsSearch(e.target.value)}
+              className="pl-9"
+            />
+            {storeAddonsSearch && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7"
+                onClick={() => setStoreAddonsSearch('')}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Store Addons List */}
+          <div className="overflow-y-auto max-h-[50vh] space-y-4">
+            {filteredStoreAddons.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Nenhum adicional encontrado</p>
+                <p className="text-sm">Adicione adicionais em outros produtos para reutilizá-los aqui</p>
+              </div>
+            ) : (
+              <>
+                {/* Uncategorized */}
+                {groupedStoreAddons.uncategorized && groupedStoreAddons.uncategorized.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
+                      <FolderTree className="w-4 h-4" />
+                      Sem categoria
+                    </div>
+                    {groupedStoreAddons.uncategorized.map((addon) => {
+                      const isInProduct = addons?.some(a => a.name === addon.name);
+                      return (
+                        <div key={addon.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{addon.name}</span>
+                              {isInProduct && (
+                                <Badge variant="outline" className="text-xs">
+                                  Já adicionado
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              R$ {addon.price.toFixed(2)}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleCopyStoreAddon(addon)}
+                            disabled={isInProduct}
+                          >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Copiar
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Categorized */}
+                {activeCategories.map((category) => {
+                  const categoryAddons = groupedStoreAddons[category.id];
+                  if (!categoryAddons || categoryAddons.length === 0) return null;
+
+                  return (
+                    <div key={category.id} className="space-y-2">
+                      <Separator />
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
+                        <FolderTree className="w-4 h-4" />
+                        {category.name}
+                      </div>
+                      {categoryAddons.map((addon) => {
+                        const isInProduct = addons?.some(a => a.name === addon.name);
+                        return (
+                          <div key={addon.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{addon.name}</span>
+                                {isInProduct && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Já adicionado
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                R$ {addon.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleCopyStoreAddon(addon)}
+                              disabled={isInProduct}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copiar
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   </>
   );
 }
