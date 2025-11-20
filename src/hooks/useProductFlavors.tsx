@@ -32,6 +32,7 @@ export const useProductFlavors = (productId?: string) => {
         .from('product_flavors')
         .select('*')
         .eq('product_id', productId!)
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (error) throw error;
