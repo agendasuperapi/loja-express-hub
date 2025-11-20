@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,18 @@ import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   DndContext,
   closestCenter,
@@ -130,6 +142,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [selectedFlavorIds, setSelectedFlavorIds] = useState<string[]>([]);
+  const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -399,6 +412,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const handleDeleteSelected = async () => {
     if (selectedFlavorIds.length === 0) return;
 
+    setIsBulkActionLoading(true);
     try {
       for (const flavorId of selectedFlavorIds) {
         await deleteFlavor(flavorId);
@@ -414,11 +428,125 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkToggleAvailability = async (makeAvailable: boolean) => {
+    if (selectedFlavorIds.length === 0) return;
+
+    setIsBulkActionLoading(true);
+    try {
+      const updates = selectedFlavorIds.map(async (flavorId) => {
+        const flavor = flavors?.find(f => f.id === flavorId);
+        if (flavor) {
+          await updateFlavor({
+            id: flavorId,
+            name: flavor.name,
+            description: flavor.description,
+            price: flavor.price,
+            is_available: makeAvailable,
+          });
+        }
+      });
+
+      await Promise.all(updates);
+
+      toast({
+        title: makeAvailable ? 'Sabores ativados' : 'Sabores desativados',
+        description: `${selectedFlavorIds.length} sabor(es) foram ${makeAvailable ? 'ativados' : 'desativados'} com sucesso.`,
+      });
+
+      setSelectedFlavorIds([]);
+    } catch (error: any) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar sabores.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsBulkActionLoading(false);
     }
   };
 
   return (
-    <Card>
+    <>
+      {/* Bulk Actions Floating Bar */}
+      {selectedFlavorIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5">
+          <Card className="shadow-lg border-2">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-sm">
+                    {selectedFlavorIds.length} selecionado{selectedFlavorIds.length > 1 ? 's' : ''}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedFlavorIds([])}
+                    disabled={isBulkActionLoading}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <Separator orientation="vertical" className="h-6 hidden sm:block" />
+                
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleBulkToggleAvailability(true)}
+                    disabled={isBulkActionLoading}
+                  >
+                    Ativar
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleBulkToggleAvailability(false)}
+                    disabled={isBulkActionLoading}
+                  >
+                    Desativar
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={isBulkActionLoading}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir {selectedFlavorIds.length} sabor(es)? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -558,24 +686,13 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
               </span>
             </div>
             {selectedFlavorIds.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDeselectAllFlavors}
-                >
-                  Desmarcar Todos
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteSelected}
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir Selecionados
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDeselectAllFlavors}
+              >
+                Desmarcar Todos
+              </Button>
             )}
           </div>
         )}
@@ -868,5 +985,6 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         </Dialog>
       </CardContent>
     </Card>
+    </>
   );
 };
