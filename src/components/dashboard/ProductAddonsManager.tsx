@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
     is_available: true,
     category_id: null as string | null,
   });
+  const formRef = useRef<HTMLDivElement>(null);
 
   const activeCategories = categories.filter(cat => cat.is_active);
 
@@ -75,6 +76,11 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
       category_id: addon.category_id || null,
     });
     setIsAdding(true);
+    
+    // Scroll to form
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleCancel = () => {
@@ -101,7 +107,7 @@ export const ProductAddonsManager = ({ productId, storeId }: ProductAddonsManage
       </CardHeader>
       <CardContent className="space-y-4">
         {isAdding && (
-          <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+          <div ref={formRef} className="space-y-3 p-4 border rounded-lg bg-muted/30">
             <div className="space-y-2">
               <Label>Nome do Adicional</Label>
               <Input
