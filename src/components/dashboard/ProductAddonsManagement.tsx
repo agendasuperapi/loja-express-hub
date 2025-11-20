@@ -699,7 +699,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     setFormData({ ...formData, flavors: updatedFlavors });
   };
 
-  const allTemplates = [...addonTemplates, ...customTemplates];
+  const allTemplates = customTemplates;
 
   return (
     <div className="space-y-6">
@@ -709,7 +709,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             <div>
               <CardTitle>Templates de Adicionais</CardTitle>
               <CardDescription>
-                Use templates pré-configurados ou crie seus próprios templates personalizados
+                Crie e gerencie seus próprios templates personalizados
               </CardDescription>
             </div>
             <Button onClick={() => {
@@ -729,68 +729,6 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Templates Pré-configurados */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Templates Pré-configurados</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {addonTemplates.map((template) => (
-                <Card key={template.id} className="hover:border-primary transition-colors">
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div className="text-3xl">{template.icon}</div>
-                      <div className="flex-1">
-                        <CardTitle className="text-base">{template.name}</CardTitle>
-                        <CardDescription className="text-xs">
-                          {template.description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-xs">
-                        <span className="font-medium">Categorias:</span>
-                        <ul className="text-muted-foreground space-y-1 mt-1">
-                          {template.categories.map((cat, idx) => (
-                            <li key={idx}>• {cat.name} ({cat.addons.length})</li>
-                          ))}
-                        </ul>
-                      </div>
-                      {template.flavors && template.flavors.length > 0 && (
-                        <div className="text-xs">
-                          <span className="font-medium">Sabores:</span>
-                          <span className="text-muted-foreground ml-1">
-                            {template.flavors.length} sabores inclusos
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => {
-                            setSelectedTemplate(template);
-                            setPreviewOpen(true);
-                          }}
-                          className="flex-1"
-                          size="sm"
-                        >
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          Visualizar
-                        </Button>
-                        <Button
-                          onClick={() => handleDuplicateTemplate(template)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
           {/* Templates Personalizados */}
           {!loadingCustom && customTemplates.length > 0 && (
             <div>
