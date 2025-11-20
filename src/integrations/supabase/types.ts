@@ -892,6 +892,50 @@ export type Database = {
           },
         ]
       }
+      store_addon_templates: {
+        Row: {
+          categories: Json
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_custom: boolean
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          categories?: Json
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_custom?: boolean
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          categories?: Json
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_custom?: boolean
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_addon_templates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_employees: {
         Row: {
           created_at: string | null
