@@ -20,6 +20,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -157,6 +158,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     category_id: null as string | null,
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
@@ -347,12 +350,125 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   };
 
   const handleToggleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      if (checked) {
-        return prev.includes(id) ? prev : [...prev, id];
-      }
-      return prev.filter((selectedId) => selectedId !== id);
-    });
+    const newSelected = new Set(selectedAddons);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedAddons(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(filteredAddons.map(a => a.id));
+      setSelectedAddons(allIds);
+    } else {
+      setSelectedAddons(new Set());
+    }
+  };
+
+  const handleBulkToggleAvailability = async (makeAvailable: boolean) => {
+    if (selectedAddons.size === 0) return;
+    
+    setIsBulkActionLoading(true);
+    try {
+      const updates = Array.from(selectedAddons).map(async (addonId) => {
+        const addon = addons?.find(a => a.id === addonId);
+        if (addon) {
+          await updateAddon({
+            id: addonId,
+            name: addon.name,
+            price: addon.price,
+            is_available: makeAvailable,
+            category_id: addon.category_id,
+          });
+        }
+      });
+      
+      await Promise.all(updates);
+      
+      toast({
+        title: makeAvailable ? "Adicionais ativados" : "Adicionais desativados",
+        description: `${selectedAddons.size} adicionais foram ${makeAvailable ? 'ativados' : 'desativados'} com sucesso.`,
+      });
+      
+      setSelectedAddons(new Set());
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar adicionais.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedAddons.size === 0) return;
+    
+    setIsBulkActionLoading(true);
+    try {
+      const deletions = Array.from(selectedAddons).map(addonId => deleteAddon(addonId));
+      await Promise.all(deletions);
+      
+      toast({
+        title: "Adicionais excluídos",
+        description: `${selectedAddons.size} adicionais foram excluídos com sucesso.`,
+      });
+      
+      setSelectedAddons(new Set());
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir adicionais.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleBulkChangeCategory = async (categoryId: string) => {
+    if (selectedAddons.size === 0) return;
+    
+    setIsBulkActionLoading(true);
+    try {
+      const updates = Array.from(selectedAddons).map(async (addonId) => {
+        const addon = addons?.find(a => a.id === addonId);
+        if (addon) {
+          await updateAddon({
+            id: addonId,
+            name: addon.name,
+            price: addon.price,
+            is_available: addon.is_available,
+            category_id: categoryId === 'none' ? null : categoryId,
+          });
+        }
+      });
+      
+      await Promise.all(updates);
+      
+      const categoryName = categoryId === 'none' 
+        ? "Sem categoria" 
+        : categories.find(c => c.id === categoryId)?.name || "Sem categoria";
+      
+      toast({
+        title: "Categoria alterada",
+        description: `${selectedAddons.size} adicionais foram movidos para "${categoryName}".`,
+      });
+      
+      setSelectedAddons(new Set());
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao alterar categoria dos adicionais.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkActionLoading(false);
+    }
   };
 
   const handleSelectAutocomplete = (suggestion: typeof autocompleteSuggestions[0]) => {
@@ -474,9 +590,99 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
   const totalAddons = addons?.length || 0;
   const availableAddons = addons?.filter(a => a.is_available).length || 0;
+  const allFilteredSelected = filteredAddons.length > 0 && filteredAddons.every(a => selectedAddons.has(a.id));
+  const someFilteredSelected = filteredAddons.some(a => selectedAddons.has(a.id)) && !allFilteredSelected;
 
   return (
     <>
+      {/* Bulk Actions Floating Bar */}
+      {selectedAddons.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5">
+          <Card className="shadow-lg border-2">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-sm">
+                    {selectedAddons.size} selecionado{selectedAddons.size > 1 ? 's' : ''}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedAddons(new Set())}
+                    disabled={isBulkActionLoading}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <Separator orientation="vertical" className="h-6 hidden sm:block" />
+                
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleBulkToggleAvailability(true)}
+                    disabled={isBulkActionLoading}
+                  >
+                    Ativar
+                  </Button>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleBulkToggleAvailability(false)}
+                    disabled={isBulkActionLoading}
+                  >
+                    Desativar
+                  </Button>
+                  
+                  <Select onValueChange={handleBulkChangeCategory} disabled={isBulkActionLoading}>
+                    <SelectTrigger className="h-9 w-auto min-w-[140px]">
+                      <SelectValue placeholder="Mudar categoria" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[60]">
+                      <SelectItem value="none">Sem categoria</SelectItem>
+                      {categories.filter(c => c.is_active).map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={isBulkActionLoading}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Excluir
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir {selectedAddons.size} adicionais? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -743,7 +949,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             onDuplicate={handleDuplicate}
                             isDeleting={isDeleting}
                             isDuplicating={isDuplicating}
-                            isSelected={selectedIds.includes(addon.id)}
+                            isSelected={selectedAddons.has(addon.id)}
                             onToggleSelect={handleToggleSelect}
                           />
                         ))}
@@ -775,7 +981,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                               onDuplicate={handleDuplicate}
                               isDeleting={isDeleting}
                               isDuplicating={isDuplicating}
-                              isSelected={selectedIds.includes(addon.id)}
+                              isSelected={selectedAddons.has(addon.id)}
                               onToggleSelect={handleToggleSelect}
                             />
                           ))}
@@ -799,7 +1005,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       onDuplicate={handleDuplicate}
                       isDeleting={isDeleting}
                       isDuplicating={isDuplicating}
-                      isSelected={selectedIds.includes(addon.id)}
+                      isSelected={selectedAddons.has(addon.id)}
                       onToggleSelect={handleToggleSelect}
                     />
                   ))}
