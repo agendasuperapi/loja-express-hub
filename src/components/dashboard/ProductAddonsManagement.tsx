@@ -433,6 +433,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
   const [customTemplates, setCustomTemplates] = useState<any[]>([]);
   const [loadingCustom, setLoadingCustom] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [openCategoryPopover, setOpenCategoryPopover] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -440,7 +441,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     categories: [{ name: '', addons: [{ name: '', price: 0 }] }],
     flavors: [{ name: '', description: '', price: 0 }]
   });
-  const { refetch: refetchCategories } = useAddonCategories(storeId);
+  const { categories: addonCategories, refetch: refetchCategories } = useAddonCategories(storeId);
   const { addons: storeAddons, flavors: storeFlavors } = useStoreAddonsAndFlavors(storeId);
 
   // Carregar templates customizados
@@ -996,12 +997,51 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                 <Card key={catIdx}>
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
-                      <Input
-                        value={category.name}
-                        onChange={(e) => updateCategory(catIdx, e.target.value)}
-                        placeholder="Nome da categoria"
-                        className="flex-1"
-                      />
+                      <div className="flex-1">
+                        <Popover open={openCategoryPopover === catIdx} onOpenChange={(open) => setOpenCategoryPopover(open ? catIdx : null)}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between font-normal"
+                            >
+                              {category.name || "Nome da categoria"}
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Buscar ou digitar nova..." 
+                                value={category.name}
+                                onValueChange={(value) => updateCategory(catIdx, value)}
+                              />
+                              <CommandList>
+                                <CommandEmpty>Digite para criar nova categoria</CommandEmpty>
+                                {addonCategories.length > 0 && (
+                                  <CommandGroup heading="Categorias cadastradas">
+                                    {addonCategories
+                                      .filter(cat => cat.name.toLowerCase().includes((category.name || '').toLowerCase()))
+                                      .slice(0, 5)
+                                      .map((cat) => (
+                                        <CommandItem
+                                          key={cat.id}
+                                          value={cat.name}
+                                          onSelect={() => {
+                                            updateCategory(catIdx, cat.name);
+                                            setOpenCategoryPopover(null);
+                                          }}
+                                        >
+                                          {cat.name}
+                                        </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                                )}
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                       <Button
                         onClick={() => removeCategory(catIdx)}
                         size="sm"
