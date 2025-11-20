@@ -32,7 +32,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('[Auth] onAuthStateChange:', { event, session });
       setSession(session ?? null);
       setUser(session?.user ?? null);
-      setLoading(false);
+
+      // Evita encerrar o loading no evento INITIAL_SESSION; quem faz isso é o getSession
+      if (event !== 'INITIAL_SESSION') {
+        setLoading(false);
+      }
     });
 
     // Then check for an existing session
