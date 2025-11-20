@@ -31,6 +31,9 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
   };
 
   const cadastrosSubItems = [
+    ...(hasPermission('products', 'view') 
+      ? [{ id: 'produtos', label: 'produtos', icon: Package }] 
+      : []),
     ...(hasPermission('coupons', 'view') 
       ? [{ id: 'cupons', label: 'cupons', icon: Tag }] 
       : []),
