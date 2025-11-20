@@ -479,9 +479,9 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <CardTitle>Adicionais</CardTitle>
                 {totalAddons > 0 && (
                   <Badge variant="secondary" className="text-xs">
@@ -489,22 +489,38 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   </Badge>
                 )}
               </div>
-              <CardDescription>
+              <CardDescription className="mt-1">
                 Gerencie os adicionais deste produto
                 {totalAddons > 0 && ` • ${availableAddons} disponíveis`}
               </CardDescription>
             </div>
             {!isAdding && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setIsImportDialogOpen(true)}>
+              <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsImportDialogOpen(true)}
+                  className="w-full sm:w-auto justify-start sm:justify-center"
+                >
                   <Download className="w-4 h-4 mr-2" />
-                  Importar Templates
+                  <span className="hidden sm:inline">Importar Templates</span>
+                  <span className="sm:hidden">Templates</span>
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setIsStoreAddonsOpen(true)}>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsStoreAddonsOpen(true)}
+                  className="w-full sm:w-auto justify-start sm:justify-center"
+                >
                   <Store className="w-4 h-4 mr-2" />
-                  Adicionais da Loja
+                  <span className="hidden sm:inline">Adicionais da Loja</span>
+                  <span className="sm:hidden">Da Loja</span>
                 </Button>
-                <Button size="sm" onClick={() => setIsAdding(true)}>
+                <Button 
+                  size="sm" 
+                  onClick={() => setIsAdding(true)}
+                  className="w-full sm:w-auto justify-start sm:justify-center"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Novo Adicional
                 </Button>
@@ -534,7 +550,11 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     )}
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-2" align="start">
+                <PopoverContent 
+                  className="w-[var(--radix-popover-trigger-width)] p-2 bg-popover z-50" 
+                  align="start"
+                  sideOffset={4}
+                >
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground px-2 py-1">Sugestões</p>
                     {autocompleteSuggestions.map((suggestion, idx) => (
@@ -543,13 +563,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                         onClick={() => handleSelectAutocomplete(suggestion)}
                         className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{suggestion.name}</span>
-                          <Badge variant={suggestion.type === 'store' ? 'default' : 'secondary'} className="text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium truncate">{suggestion.name}</span>
+                          <Badge variant={suggestion.type === 'store' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
                             {suggestion.type === 'store' ? 'Loja' : 'Template'}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground truncate">
                           R$ {suggestion.price.toFixed(2)}
                           {suggestion.templateCategory && ` • ${suggestion.templateCategory}`}
                         </p>
@@ -570,7 +590,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-popover">
                     <SelectItem value="none">Sem categoria</SelectItem>
                     {activeCategories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
@@ -645,13 +665,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
             {/* Category filter */}
             {activeCategories.length > 0 && (
-              <div className="flex items-center gap-2">
-                <FolderTree className="w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <FolderTree className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Filtrar por categoria" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-popover">
                     <SelectItem value="all">Todas as categorias</SelectItem>
                     <SelectItem value="uncategorized">Sem categoria</SelectItem>
                     {activeCategories.map((cat) => (
@@ -666,6 +686,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     size="sm"
                     variant="ghost"
                     onClick={() => setCategoryFilter('all')}
+                    className="w-full sm:w-auto"
                   >
                     <X className="w-4 h-4 mr-1" />
                     Limpar
@@ -810,7 +831,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
     {/* Store Addons Dialog */}
     <Dialog open={isStoreAddonsOpen} onOpenChange={setIsStoreAddonsOpen}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
+      <DialogContent className="max-w-3xl max-h-[85vh] w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Store className="w-5 h-5" />
@@ -859,12 +880,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     {groupedStoreAddons.uncategorized.map((addon) => {
                       const isInProduct = addons?.some(a => a.name === addon.name);
                       return (
-                        <div key={addon.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{addon.name}</span>
+                        <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium truncate">{addon.name}</span>
                               {isInProduct && (
-                                <Badge variant="outline" className="text-xs">
+                                <Badge variant="outline" className="text-xs flex-shrink-0">
                                   Já adicionado
                                 </Badge>
                               )}
@@ -878,6 +899,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             variant="ghost"
                             onClick={() => handleCopyStoreAddon(addon)}
                             disabled={isInProduct}
+                            className="w-full sm:w-auto"
                           >
                             <Copy className="w-4 h-4 mr-2" />
                             Copiar
@@ -903,12 +925,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       {categoryAddons.map((addon) => {
                         const isInProduct = addons?.some(a => a.name === addon.name);
                         return (
-                          <div key={addon.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{addon.name}</span>
+                          <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium truncate">{addon.name}</span>
                                 {isInProduct && (
-                                  <Badge variant="outline" className="text-xs">
+                                  <Badge variant="outline" className="text-xs flex-shrink-0">
                                     Já adicionado
                                   </Badge>
                                 )}
@@ -922,6 +944,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                               variant="ghost"
                               onClick={() => handleCopyStoreAddon(addon)}
                               disabled={isInProduct}
+                              className="w-full sm:w-auto"
                             >
                               <Copy className="w-4 h-4 mr-2" />
                               Copiar
@@ -941,22 +964,23 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
     {/* Import Templates Dialog */}
     <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-      <DialogContent className="max-w-4xl max-h-[85vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Download className="w-5 h-5" />
-            Importar Templates de Adicionais
+            <span className="hidden sm:inline">Importar Templates de Adicionais</span>
+            <span className="sm:hidden">Importar Templates</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Selecione um template e as categorias que deseja importar. As categorias serão criadas automaticamente se não existirem.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto max-h-[calc(85vh-180px)]">
+        <div className="space-y-6 overflow-y-auto max-h-[calc(90vh-200px)] px-1">
           {/* Template Selection */}
           <div className="space-y-4">
             <Label className="text-base font-semibold">Escolha um Template</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {addonTemplates.map((template) => (
                 <button
                   key={template.id}
@@ -964,18 +988,18 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     setSelectedTemplate(template.id);
                     setSelectedTemplateCategories({});
                   }}
-                  className={`p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
+                  className={`p-3 sm:p-4 border-2 rounded-lg text-left transition-all hover:shadow-md ${
                     selectedTemplate === template.id
                       ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="text-3xl">{template.icon}</span>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{template.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
-                      <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <span className="text-2xl sm:text-3xl flex-shrink-0">{template.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base sm:text-lg">{template.name}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {template.categories.length} categorias
                         </Badge>
@@ -995,7 +1019,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <>
               <Separator />
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <Label className="text-base font-semibold">Selecione as Categorias</Label>
                   <Button
                     size="sm"
@@ -1013,6 +1037,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                         setSelectedTemplateCategories(newSelection);
                       }
                     }}
+                    className="w-full sm:w-auto"
                   >
                     {addonTemplates
                       .find(t => t.id === selectedTemplate)
@@ -1028,7 +1053,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     ?.categories.map((category) => (
                       <div
                         key={category.name}
-                        className="border rounded-lg p-4 hover:bg-muted/30 transition-colors"
+                        className="border rounded-lg p-3 sm:p-4 hover:bg-muted/30 transition-colors"
                       >
                         <div className="flex items-start gap-3">
                           <Checkbox
@@ -1036,24 +1061,24 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             onCheckedChange={(checked) =>
                               handleToggleTemplateCategory(category.name, Boolean(checked))
                             }
-                            className="mt-1"
+                            className="mt-1 flex-shrink-0"
                           />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <FolderTree className="w-4 h-4 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <FolderTree className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                               <span className="font-semibold">{category.name}</span>
                               <Badge variant="secondary" className="text-xs">
                                 {category.addons.length} adicionais
                               </Badge>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {category.addons.map((addon, idx) => (
                                 <div
                                   key={idx}
-                                  className="text-xs p-2 bg-muted/50 rounded flex items-center justify-between"
+                                  className="text-xs p-2 bg-muted/50 rounded flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
                                 >
-                                  <span className="truncate">{addon.name}</span>
-                                  <span className="text-muted-foreground ml-2 whitespace-nowrap">
+                                  <span className="truncate font-medium">{addon.name}</span>
+                                  <span className="text-muted-foreground whitespace-nowrap text-xs">
                                     R$ {addon.price.toFixed(2)}
                                   </span>
                                 </div>
@@ -1069,23 +1094,30 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           )}
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => setIsImportDialogOpen(false)}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-4 border-t">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsImportDialogOpen(false)}
+            className="w-full sm:w-auto"
+          >
             Cancelar
           </Button>
           <Button
             onClick={handleImportTemplates}
             disabled={!selectedTemplate || Object.values(selectedTemplateCategories).every(v => !v) || isImporting}
+            className="w-full sm:w-auto"
           >
             {isImporting ? (
               <>
                 <Package className="w-4 h-4 mr-2 animate-spin" />
-                Importando...
+                <span className="hidden sm:inline">Importando...</span>
+                <span className="sm:hidden">Importando...</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4 mr-2" />
-                Importar Selecionados
+                <span className="hidden sm:inline">Importar Selecionados</span>
+                <span className="sm:hidden">Importar</span>
               </>
             )}
           </Button>
