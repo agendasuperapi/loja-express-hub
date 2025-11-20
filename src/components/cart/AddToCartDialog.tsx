@@ -62,6 +62,15 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
   const maxFlavors = product.max_flavors || 1;
   const hasFlavors = product.is_pizza && flavors && flavors.length > 0;
 
+  console.log('AddToCart Debug:', {
+    storeId,
+    categoriesCount: categories?.length || 0,
+    categories: categories,
+    addonsCount: addons?.length || 0,
+    addonsWithCategory: addons?.filter(a => a.category_id).length || 0,
+    addonsWithoutCategory: addons?.filter(a => !a.category_id).length || 0
+  });
+
   useEffect(() => {
     if (!open) {
       setQuantity(1);
@@ -211,14 +220,16 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
             <div className="space-y-3">
               <Label>Adicionais</Label>
               <div className="space-y-3 max-h-60 overflow-y-auto">
-                {categories
+                {categories && categories.length > 0 && categories
                   .filter(cat => cat.is_active && addons.some(addon => addon.category_id === cat.id && addon.is_available))
+                  .sort((a, b) => a.display_order - b.display_order)
                   .map((category) => (
                     <div key={category.id} className="space-y-2">
                       <h4 className="text-sm font-medium text-muted-foreground">{category.name}</h4>
                       <div className="space-y-2">
                         {addons
                           .filter(addon => addon.category_id === category.id && addon.is_available)
+                          .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
                           .map((addon) => (
                             <div
                               key={addon.id}
@@ -252,6 +263,7 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
                     <div className="space-y-2">
                       {addons
                         .filter(addon => !addon.category_id && addon.is_available)
+                        .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
                         .map((addon) => (
                           <div
                             key={addon.id}
