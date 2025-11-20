@@ -9,9 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useStoreAddons } from "@/hooks/useStoreAddons";
-import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy } from "lucide-react";
+import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
+import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addonTemplates, BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,10 +29,11 @@ export const ProductAddonsManagement = ({ storeId }: ProductAddonsManagementProp
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="addons">Adicionais Globais</TabsTrigger>
+          <TabsTrigger value="library">Biblioteca</TabsTrigger>
         </TabsList>
 
         <TabsContent value="categories" className="space-y-4">
@@ -42,6 +46,10 @@ export const ProductAddonsManagement = ({ storeId }: ProductAddonsManagementProp
 
         <TabsContent value="addons" className="space-y-4">
           <AddonsTab storeId={storeId} />
+        </TabsContent>
+
+        <TabsContent value="library" className="space-y-4">
+          <LibraryTab storeId={storeId} />
         </TabsContent>
       </Tabs>
     </div>
@@ -302,6 +310,119 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   );
 };
 
+// Nova Aba: Biblioteca de Adicionais e Sabores
+export const LibraryTab = ({ storeId }: { storeId: string }) => {
+  const { addons, flavors, isLoading } = useStoreAddonsAndFlavors(storeId);
+  const [filter, setFilter] = useState<'all' | 'addons' | 'flavors'>('all');
+
+  if (isLoading) {
+    return <div className="text-center py-8 text-muted-foreground">Carregando biblioteca...</div>;
+  }
+
+  const filteredAddons = filter === 'flavors' ? [] : addons;
+  const filteredFlavors = filter === 'addons' ? [] : flavors;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Biblioteca da Loja</CardTitle>
+            <CardDescription>
+              Todos os adicionais e sabores cadastrados em produtos da sua loja
+            </CardDescription>
+          </div>
+          <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="addons">Apenas Adicionais</SelectItem>
+              <SelectItem value="flavors">Apenas Sabores</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Adicionais */}
+        {filteredAddons.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              Adicionais ({addons.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredAddons.map((addon) => (
+                <Card key={addon.id} className="hover:border-primary transition-colors">
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium">{addon.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {addon.product_name}
+                          </div>
+                        </div>
+                        <Badge variant="secondary">R$ {addon.price.toFixed(2)}</Badge>
+                      </div>
+                      {addon.category_name && (
+                        <Badge variant="outline" className="text-xs">
+                          {addon.category_name}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sabores */}
+        {filteredFlavors.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Sabores ({flavors.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredFlavors.map((flavor) => (
+                <Card key={flavor.id} className="hover:border-primary transition-colors">
+                  <CardContent className="pt-4">
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium">{flavor.name}</div>
+                          {flavor.description && (
+                            <div className="text-xs text-muted-foreground">{flavor.description}</div>
+                          )}
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {flavor.product_name}
+                          </div>
+                        </div>
+                        <Badge variant="secondary">R$ {flavor.price.toFixed(2)}</Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {addons.length === 0 && flavors.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="font-medium">Nenhum adicional ou sabor cadastrado</p>
+            <p className="text-sm">Adicione produtos com adicionais e sabores para começar</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 // Aba de Templates
 export const TemplatesTab = ({ storeId }: { storeId: string }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<BusinessTemplate | any>(null);
@@ -320,6 +441,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     flavors: [{ name: '', description: '', price: 0 }]
   });
   const { refetch: refetchCategories } = useAddonCategories(storeId);
+  const { addons: storeAddons, flavors: storeFlavors } = useStoreAddonsAndFlavors(storeId);
 
   // Carregar templates customizados
   useEffect(() => {
@@ -892,13 +1014,57 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {category.addons.map((addon, addonIdx) => (
-                      <div key={addonIdx} className="flex items-center gap-2">
-                        <Input
-                          value={addon.name}
-                          onChange={(e) => updateAddon(catIdx, addonIdx, 'name', e.target.value)}
-                          placeholder="Nome do adicional"
-                          className="flex-1"
-                        />
+                      <div key={addonIdx} className="flex gap-2 items-start">
+                        <div className="flex-1">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between font-normal"
+                              >
+                                {addon.name || "Nome do adicional"}
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Buscar ou digitar novo..." 
+                                  value={addon.name}
+                                  onValueChange={(value) => updateAddon(catIdx, addonIdx, 'name', value)}
+                                />
+                                <CommandList>
+                                  <CommandEmpty>Digite para criar novo adicional</CommandEmpty>
+                                  {storeAddons.length > 0 && (
+                                    <CommandGroup heading="Adicionais cadastrados">
+                                      {storeAddons
+                                        .filter(a => a.name.toLowerCase().includes((addon.name || '').toLowerCase()))
+                                        .slice(0, 5)
+                                        .map((storeAddon) => (
+                                          <CommandItem
+                                            key={storeAddon.id}
+                                            value={storeAddon.name}
+                                            onSelect={() => {
+                                              updateAddon(catIdx, addonIdx, 'name', storeAddon.name);
+                                              updateAddon(catIdx, addonIdx, 'price', storeAddon.price);
+                                            }}
+                                          >
+                                            <div className="flex items-center justify-between w-full">
+                                              <span>{storeAddon.name}</span>
+                                              <Badge variant="secondary" className="ml-2">
+                                                R$ {storeAddon.price.toFixed(2)}
+                                              </Badge>
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                         <Input
                           type="number"
                           value={addon.price}
@@ -946,12 +1112,64 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                   <CardContent className="pt-4">
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <Input
-                          value={flavor.name}
-                          onChange={(e) => updateFlavor(flavorIdx, 'name', e.target.value)}
-                          placeholder="Nome do sabor"
-                          className="flex-1"
-                        />
+                        <div className="flex-1">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between font-normal"
+                              >
+                                {flavor.name || "Nome do sabor"}
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0" align="start">
+                              <Command>
+                                <CommandInput 
+                                  placeholder="Buscar ou digitar novo..." 
+                                  value={flavor.name}
+                                  onValueChange={(value) => updateFlavor(flavorIdx, 'name', value)}
+                                />
+                                <CommandList>
+                                  <CommandEmpty>Digite para criar novo sabor</CommandEmpty>
+                                  {storeFlavors.length > 0 && (
+                                    <CommandGroup heading="Sabores cadastrados">
+                                      {storeFlavors
+                                        .filter(f => f.name.toLowerCase().includes((flavor.name || '').toLowerCase()))
+                                        .slice(0, 5)
+                                        .map((storeFlavor) => (
+                                          <CommandItem
+                                            key={storeFlavor.id}
+                                            value={storeFlavor.name}
+                                            onSelect={() => {
+                                              updateFlavor(flavorIdx, 'name', storeFlavor.name);
+                                              updateFlavor(flavorIdx, 'description', storeFlavor.description || '');
+                                              updateFlavor(flavorIdx, 'price', storeFlavor.price);
+                                            }}
+                                          >
+                                            <div className="flex flex-col flex-1">
+                                              <div className="flex items-center justify-between">
+                                                <span>{storeFlavor.name}</span>
+                                                <Badge variant="secondary" className="ml-2">
+                                                  R$ {storeFlavor.price.toFixed(2)}
+                                                </Badge>
+                                              </div>
+                                              {storeFlavor.description && (
+                                                <span className="text-xs text-muted-foreground">
+                                                  {storeFlavor.description}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                  )}
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                         <Button
                           onClick={() => removeFlavor(flavorIdx)}
                           variant="ghost"

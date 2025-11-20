@@ -897,6 +897,7 @@ export type Database = {
           categories: Json
           created_at: string | null
           description: string | null
+          flavors: Json | null
           icon: string | null
           id: string
           is_custom: boolean
@@ -908,6 +909,7 @@ export type Database = {
           categories?: Json
           created_at?: string | null
           description?: string | null
+          flavors?: Json | null
           icon?: string | null
           id?: string
           is_custom?: boolean
@@ -919,6 +921,7 @@ export type Database = {
           categories?: Json
           created_at?: string | null
           description?: string | null
+          flavors?: Json | null
           icon?: string | null
           id?: string
           is_custom?: boolean
