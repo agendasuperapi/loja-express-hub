@@ -34,7 +34,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     ...(hasPermission('products', 'view') ? [{ id: 'produtos', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('coupons', 'view') ? [{ id: 'cupons', label: 'cupons', icon: Tag }] : []),
     ...(hasPermission('categories', 'view') ? [{ id: 'categorias', label: 'categorias', icon: FolderTree }] : []),
-    ...(hasPermission('categories', 'view') ? [{ id: 'categorias-adicionais', label: 'categorias de adicionais', icon: FolderTree }] : []),
     // Funcionários só são visíveis para donos de loja
     ...(!isEmployee ? [{ id: 'funcionarios', label: 'funcionários', icon: UserCog }] : []),
   ];

@@ -21,7 +21,7 @@ import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductAddonsManager } from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
-import { AddonCategoriesManager } from "./AddonCategoriesManager";
+import { ProductAddonsManagement } from "./ProductAddonsManagement";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
@@ -2768,16 +2768,6 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === 'categorias-adicionais' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8"
-          >
-            <AddonCategoriesManager storeId={myStore.id} />
-          </motion.div>
-        )}
 
         {activeTab === 'cupons' && myStore?.id && (
           <motion.div
@@ -2857,19 +2847,26 @@ export const StoreOwnerDashboard = () => {
           </motion.div>
         )}
 
-        {activeTab === 'produtos' && (
+        {activeTab === 'produtos' && myStore?.id && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="p-8 space-y-6"
           >
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold gradient-text">Meus Produtos</h2>
-                <p className="text-muted-foreground">Gerencie o cardápio da sua loja</p>
-              </div>
-              {hasPermission('products', 'create') && (
+            <Tabs defaultValue="lista" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="lista">Lista de Produtos</TabsTrigger>
+                <TabsTrigger value="adicionais">Categorias & Adicionais</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="lista" className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold gradient-text">Meus Produtos</h2>
+                    <p className="text-muted-foreground">Gerencie o cardápio da sua loja</p>
+                  </div>
+                  {hasPermission('products', 'create') && (
                 <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
@@ -3111,51 +3108,51 @@ export const StoreOwnerDashboard = () => {
                     </div>
                   )}
                 </DialogContent>
-              </Dialog>
-              )}
-            </div>
+                </Dialog>
+                  )}
+                </div>
 
-            {/* Category Filter */}
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-muted-foreground" />
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filtrar por categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Categorias</SelectItem>
-                  {categories.filter(cat => cat.is_active).map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {categoryFilter !== 'all' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCategoryFilter('all')}
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
-                </Button>
-              )}
-            </div>
+                {/* Category Filter */}
+                <div className="flex items-center gap-2">
+                  <Tag className="w-4 h-4 text-muted-foreground" />
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Filtrar por categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Categorias</SelectItem>
+                      {categories.filter(cat => cat.is_active).map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {categoryFilter !== 'all' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCategoryFilter('all')}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Limpar
+                    </Button>
+                  )}
+                </div>
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {products
-                ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
-                .map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Card className="hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg">
-                    <CardContent className="p-4">
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  {products
+                    ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
+                    .map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Card className="hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg">
+                        <CardContent className="p-4">
                       {product.image_url && (
                         <div className="aspect-video w-full rounded-lg overflow-hidden mb-3 bg-muted">
                           <img
@@ -3211,6 +3208,12 @@ export const StoreOwnerDashboard = () => {
                 </motion.div>
               ))}
             </div>
+              </TabsContent>
+
+              <TabsContent value="adicionais">
+                <ProductAddonsManagement storeId={myStore.id} />
+              </TabsContent>
+            </Tabs>
           </motion.div>
         )}
 
