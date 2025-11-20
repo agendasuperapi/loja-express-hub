@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Minus, Plus } from "lucide-react";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
+import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddToCartDialogProps {
   open: boolean;
@@ -34,8 +36,28 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
+  const [storeId, setStoreId] = useState<string | undefined>();
   const { addons } = useProductAddons(product.id);
   const { flavors } = useProductFlavors(product.id);
+  const { categories } = useAddonCategories(storeId);
+
+  useEffect(() => {
+    const fetchStoreId = async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('store_id')
+        .eq('id', product.id)
+        .single();
+      
+      if (data) {
+        setStoreId(data.store_id);
+      }
+    };
+    
+    if (product.id) {
+      fetchStoreId();
+    }
+  }, [product.id]);
 
   const maxFlavors = product.max_flavors || 1;
   const hasFlavors = product.is_pizza && flavors && flavors.length > 0;
@@ -186,32 +208,76 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
           )}
 
           {addons && addons.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Adicionais</Label>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {addons.filter(addon => addon.is_available).map((addon) => (
-                  <div
-                    key={addon.id}
-                    className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id={`addon-${addon.id}`}
-                        checked={selectedAddons.has(addon.id)}
-                        onCheckedChange={() => handleAddonToggle(addon.id)}
-                      />
-                      <Label
-                        htmlFor={`addon-${addon.id}`}
-                        className="cursor-pointer font-normal"
-                      >
-                        {addon.name}
-                      </Label>
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {categories
+                  .filter(cat => cat.is_active && addons.some(addon => addon.category_id === cat.id && addon.is_available))
+                  .map((category) => (
+                    <div key={category.id} className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">{category.name}</h4>
+                      <div className="space-y-2">
+                        {addons
+                          .filter(addon => addon.category_id === category.id && addon.is_available)
+                          .map((addon) => (
+                            <div
+                              key={addon.id}
+                              className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`addon-${addon.id}`}
+                                  checked={selectedAddons.has(addon.id)}
+                                  onCheckedChange={() => handleAddonToggle(addon.id)}
+                                />
+                                <Label
+                                  htmlFor={`addon-${addon.id}`}
+                                  className="cursor-pointer font-normal"
+                                >
+                                  {addon.name}
+                                </Label>
+                              </div>
+                              <span className="text-sm font-medium text-muted-foreground">
+                                + R$ {addon.price.toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
                     </div>
-                    <span className="text-sm font-medium text-muted-foreground">
-                      + R$ {addon.price.toFixed(2)}
-                    </span>
+                  ))}
+                
+                {addons.filter(addon => !addon.category_id && addon.is_available).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-muted-foreground">Outros</h4>
+                    <div className="space-y-2">
+                      {addons
+                        .filter(addon => !addon.category_id && addon.is_available)
+                        .map((addon) => (
+                          <div
+                            key={addon.id}
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                id={`addon-${addon.id}`}
+                                checked={selectedAddons.has(addon.id)}
+                                onCheckedChange={() => handleAddonToggle(addon.id)}
+                              />
+                              <Label
+                                htmlFor={`addon-${addon.id}`}
+                                className="cursor-pointer font-normal"
+                              >
+                                {addon.name}
+                              </Label>
+                            </div>
+                            <span className="text-sm font-medium text-muted-foreground">
+                              + R$ {addon.price.toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
