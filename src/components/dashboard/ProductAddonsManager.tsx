@@ -127,15 +127,6 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
         >
           <Copy className="w-4 h-4" />
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onDelete(addon.id)}
-          disabled={isDeleting}
-          title="Deletar"
-        >
-          <Trash2 className="w-4 h-4 text-destructive" />
-        </Button>
       </div>
     </div>
   );
