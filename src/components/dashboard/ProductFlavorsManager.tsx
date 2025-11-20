@@ -442,28 +442,46 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
               {loadingTemplates ? (
                 <p className="text-center py-4 text-muted-foreground">Carregando templates...</p>
               ) : templates.length > 0 ? (
-                templates.map((template) => (
-                  <div
-                    key={template.id}
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handleImportFromTemplate(template)}
-                  >
-                    <div className="text-3xl">{template.icon || '📦'}</div>
-                    <div className="flex-1">
-                      <p className="font-medium">{template.name}</p>
-                      {template.description && (
-                        <p className="text-sm text-muted-foreground">{template.description}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {template.flavors?.length || 0} sabor(es)
-                      </p>
+                templates.map((template) => {
+                  const flavorCount = template.flavors?.length || 0;
+                  const hasNoFlavors = flavorCount === 0;
+                  
+                  return (
+                    <div
+                      key={template.id}
+                      className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                        hasNoFlavors 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'hover:bg-muted/50 cursor-pointer'
+                      }`}
+                      onClick={() => !hasNoFlavors && handleImportFromTemplate(template)}
+                    >
+                      <div className="text-3xl">{template.icon || '📦'}</div>
+                      <div className="flex-1">
+                        <p className="font-medium">{template.name}</p>
+                        {template.description && (
+                          <p className="text-sm text-muted-foreground">{template.description}</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {flavorCount} sabor(es)
+                          </p>
+                          {hasNoFlavors && (
+                            <Badge variant="destructive" className="text-xs">
+                              Sem sabores
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <p className="text-center py-4 text-muted-foreground">
-                  Nenhum template encontrado
-                </p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p className="font-medium">Nenhum template encontrado</p>
+                  <p className="text-sm mt-1">Crie templates na aba Templates para reutilizá-los aqui</p>
+                </div>
               )}
             </div>
           </DialogContent>
