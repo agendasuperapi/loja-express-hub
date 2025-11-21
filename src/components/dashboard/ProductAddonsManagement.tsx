@@ -1118,7 +1118,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Templates de Adicionais</CardTitle>
+              <CardTitle>Templates de Adicionais e sabores</CardTitle>
               <CardDescription>
                 Crie e gerencie seus próprios templates personalizados
               </CardDescription>
