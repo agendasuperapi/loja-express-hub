@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useStoreAddons } from "@/hooks/useStoreAddons";
 import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
-import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown, Power, PowerOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addonTemplates, BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
@@ -416,6 +416,16 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
     }
   };
 
+  const handleToggleAvailability = async (addon: any) => {
+    await updateAddon({
+      id: addon.id,
+      name: addon.name,
+      price: addon.price,
+      category_id: addon.category_id || null,
+      is_available: !addon.is_available,
+    });
+  };
+
   if (isLoading) {
     return <div className="text-center py-8 text-muted-foreground">Carregando adicionais...</div>;
   }
@@ -540,26 +550,42 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">
-                        <div className="font-medium">{addon.name}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{addon.name}</span>
+                          <Badge variant={addon.is_available ? "default" : "secondary"} className="text-xs">
+                            {addon.is_available ? "Disponível" : "Indisponível"}
+                          </Badge>
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           R$ {addon.price.toFixed(2)}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={addon.is_available ? "default" : "secondary"}>
-                          {addon.is_available ? "Disponível" : "Indisponível"}
-                        </Badge>
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
+                          onClick={() => handleToggleAvailability(addon)}
+                          title={addon.is_available ? "Inativar" : "Ativar"}
+                        >
+                          {addon.is_available ? (
+                            <PowerOff className="w-4 h-4" />
+                          ) : (
+                            <Power className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEdit(addon)}
+                          title="Editar"
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="sm"
                           onClick={() => handleDeleteClick(addon.id)}
+                          title="Excluir"
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
