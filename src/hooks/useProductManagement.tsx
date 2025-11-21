@@ -124,7 +124,7 @@ export const useProductManagement = (storeId?: string) => {
       const updates = products.map(({ id, display_order }) => 
         supabase
           .from('products')
-          .update({ display_order } as any) // Temporary: cast to any until migration runs
+          .update({ display_order })
           .eq('id', id)
       );
       
