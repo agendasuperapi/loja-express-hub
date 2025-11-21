@@ -25,7 +25,8 @@ export const useCategories = (storeId: string | undefined) => {
         .from('product_categories')
         .select('*')
         .eq('store_id', storeId)
-        .order('name');
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
 
       if (error) throw error;
       setCategories(data || []);
@@ -196,6 +197,31 @@ export const useCategories = (storeId: string | undefined) => {
     }
   };
 
+  const reorderCategories = async (reorderedCategories: Category[]) => {
+    try {
+      const updates = reorderedCategories.map((category, index) => 
+        supabase
+          .from('product_categories')
+          .update({ display_order: index } as any)
+          .eq('id', category.id)
+      );
+      
+      const results = await Promise.all(updates);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        throw new Error('Erro ao reordenar categorias');
+      }
+      
+      setCategories(reorderedCategories);
+      toast.success('Ordem das categorias atualizada!');
+    } catch (error: any) {
+      console.error('Error reordering categories:', error);
+      toast.error('Erro ao reordenar categorias');
+      throw error;
+    }
+  };
+
   return {
     categories,
     loading,
@@ -203,6 +229,7 @@ export const useCategories = (storeId: string | undefined) => {
     updateCategory,
     toggleCategoryStatus,
     deleteCategory,
+    reorderCategories,
     refetch: fetchCategories
   };
 };

@@ -78,6 +78,7 @@ import { DeliveryZonesManager } from "./DeliveryZonesManager";
 import { PickupLocationsManager } from "./PickupLocationsManager";
 import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
 import { SortableProductCard } from "./SortableProductCard";
+import { SortableCategoryCard } from "./SortableCategoryCard";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -145,7 +146,7 @@ export const StoreOwnerDashboard = () => {
     return perm ? hasPermission('orders', perm) : false;
   };
 
-  const { categories, loading: loadingCategories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useCategories(myStore?.id);
+  const { categories, loading: loadingCategories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory, reorderCategories } = useCategories(myStore?.id);
   
   // Enable automatic WhatsApp notifications
   useOrderStatusNotification(myStore?.id);
@@ -239,6 +240,8 @@ export const StoreOwnerDashboard = () => {
   const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [localProducts, setLocalProducts] = useState<any[]>([]);
+  const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
@@ -265,6 +268,13 @@ export const StoreOwnerDashboard = () => {
       setLocalProducts(products);
     }
   }, [products]);
+
+  // Sync local categories with fetched categories
+  useEffect(() => {
+    if (categories) {
+      setLocalCategories(categories);
+    }
+  }, [categories]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -318,6 +328,25 @@ export const StoreOwnerDashboard = () => {
         });
         
         return newOrder;
+      });
+    }
+  };
+
+  // Handle drag end for category reordering
+  const handleDragEndCategories = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalCategories((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const reorderedCategories = arrayMove(items, oldIndex, newIndex);
+        
+        // Save to backend
+        reorderCategories(reorderedCategories);
+        
+        return reorderedCategories;
       });
     }
   };
@@ -3251,43 +3280,55 @@ export const StoreOwnerDashboard = () => {
                     <h2 className="text-2xl font-bold gradient-text">Categorias de Produtos</h2>
                     <p className="text-muted-foreground">Organize os produtos da sua loja</p>
                   </div>
-                  {hasPermission('categories', 'create') && (
-                    <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="lg">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Nova Categoria
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Nova Categoria</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label>Nome da Categoria</Label>
-                            <Input
-                              value={newCategoryName}
-                              onChange={(e) => setNewCategoryName(e.target.value)}
-                              placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
-                            />
-                          </div>
-                          <Button
-                            onClick={async () => {
-                              if (newCategoryName.trim()) {
-                                await addCategory(newCategoryName.trim());
-                                setNewCategoryName('');
-                                setIsCategoryDialogOpen(false);
-                              }
-                            }}
-                            className="w-full"
-                          >
-                            Adicionar Categoria
+                  <div className="flex gap-2">
+                    {hasPermission('categories', 'update') && filteredCategories && filteredCategories.length > 1 && (
+                      <Button
+                        variant={isReorderCategoriesMode ? "default" : "outline"}
+                        onClick={() => setIsReorderCategoriesMode(!isReorderCategoriesMode)}
+                        size="lg"
+                      >
+                        <GripVertical className="w-4 h-4 mr-2" />
+                        {isReorderCategoriesMode ? "Concluir" : "Reordenar"}
+                      </Button>
+                    )}
+                    {hasPermission('categories', 'create') && (
+                      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="lg">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Nova Categoria
                           </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  )}
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Nova Categoria</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <Label>Nome da Categoria</Label>
+                              <Input
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
+                              />
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                if (newCategoryName.trim()) {
+                                  await addCategory(newCategoryName.trim());
+                                  setNewCategoryName('');
+                                  setIsCategoryDialogOpen(false);
+                                }
+                              }}
+                              className="w-full"
+                            >
+                              Adicionar Categoria
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                 </div>
 
                 {/* Filtro de Status das Categorias */}
@@ -3320,101 +3361,68 @@ export const StoreOwnerDashboard = () => {
                     <div className="animate-spin">⏳</div>
                   </div>
                 ) : filteredCategories && filteredCategories.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {filteredCategories.map((category) => (
-                      <motion.div
-                        key={category.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="group"
+                  isReorderCategoriesMode ? (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEndCategories}
+                    >
+                      <SortableContext
+                        items={localCategories.filter(cat => 
+                          categoryStatusFilter === 'all' || 
+                          (categoryStatusFilter === 'active' && cat.is_active) || 
+                          (categoryStatusFilter === 'inactive' && !cat.is_active)
+                        )}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <Card className="hover:shadow-lg transition-shadow">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-primary/10">
-                                  <FolderTree className="w-5 h-5 text-primary" />
-                                </div>
-                                <div>
-                                  <CardTitle className="text-lg">{category.name}</CardTitle>
-                                  <p className="text-sm text-muted-foreground">
-                                    {products?.filter(p => p.category === category.name).length || 0} produtos
-                                  </p>
-                                </div>
-                              </div>
-                              <Badge variant={category.is_active ? "default" : "secondary"}>
-                                {category.is_active ? "Ativa" : "Inativa"}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {hasPermission('categories', 'update') && (
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex-1"
-                                  onClick={() => {
-                                    setEditingCategory(category);
-                                    setEditCategoryName(category.name);
-                                    setIsEditCategoryDialogOpen(true);
-                                  }}
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Editar
-                                </Button>
-                                {hasPermission('categories', 'delete') && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => deleteCategory(category.id)}
-                                    className="hover:border-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            )}
-                            
-                            {hasPermission('categories', 'update') && (
-                              <div className="flex items-center justify-between pt-2 border-t">
-                                <Label htmlFor={`category-status-${category.id}`} className="text-sm cursor-pointer">
-                                  {category.is_active ? "Categoria ativa" : "Categoria inativa"}
-                                </Label>
-                                <Switch
-                                  id={`category-status-${category.id}`}
-                                  checked={category.is_active}
-                                  onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
-                                />
-                              </div>
-                            )}
-                            
-                            {products && products.filter(p => p.category === category.name).length > 0 && (
-                              <div className="pt-4 border-t">
-                                <p className="text-xs text-muted-foreground mb-2">Produtos nesta categoria:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {products
-                                    .filter(p => p.category === category.name)
-                                    .slice(0, 3)
-                                    .map(product => (
-                                      <Badge key={product.id} variant="secondary" className="text-xs">
-                                        {product.name}
-                                      </Badge>
-                                    ))}
-                                  {products.filter(p => p.category === category.name).length > 3 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{products.filter(p => p.category === category.name).length - 3} mais
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {localCategories
+                            .filter(cat => 
+                              categoryStatusFilter === 'all' || 
+                              (categoryStatusFilter === 'active' && cat.is_active) || 
+                              (categoryStatusFilter === 'inactive' && !cat.is_active)
+                            )
+                            .map((category, index) => (
+                              <SortableCategoryCard
+                                key={category.id}
+                                category={category}
+                                index={index}
+                                isReorderMode={true}
+                                hasPermission={hasPermission}
+                                products={products}
+                                onEdit={(cat) => {
+                                  setEditingCategory(cat);
+                                  setEditCategoryName(cat.name);
+                                  setIsEditCategoryDialogOpen(true);
+                                }}
+                                onDelete={deleteCategory}
+                                onToggleStatus={toggleCategoryStatus}
+                              />
+                            ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredCategories.map((category, index) => (
+                        <SortableCategoryCard
+                          key={category.id}
+                          category={category}
+                          index={index}
+                          isReorderMode={false}
+                          hasPermission={hasPermission}
+                          products={products}
+                          onEdit={(cat) => {
+                            setEditingCategory(cat);
+                            setEditCategoryName(cat.name);
+                            setIsEditCategoryDialogOpen(true);
+                          }}
+                          onDelete={deleteCategory}
+                          onToggleStatus={toggleCategoryStatus}
+                        />
+                      ))}
+                    </div>
+                  )
                 ) : (
                   <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
