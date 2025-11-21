@@ -3274,15 +3274,6 @@ export const StoreOwnerDashboard = () => {
                                         <Edit className="w-4 h-4" />
                                       </Button>
                                     )}
-                                    {hasPermission('products', 'delete') && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setProductToDelete(product)}
-                                      >
-                                        <Trash2 className="w-4 h-4 text-destructive" />
-                                      </Button>
-                                    )}
                                   </div>
                                 </TableCell>
                               </TableRow>
