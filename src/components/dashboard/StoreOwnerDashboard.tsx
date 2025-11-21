@@ -93,12 +93,6 @@ export const StoreOwnerDashboard = () => {
   const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
   
-  // Debug de produtos
-  console.log('[Produtos Debug]', {
-    products,
-    productsLength: products?.length,
-    storeId: myStore?.id
-  });
 
   // Função helper para verificar permissões
   const hasPermission = (module: string, action: string): boolean => {
@@ -120,18 +114,6 @@ export const StoreOwnerDashboard = () => {
   const canViewDeliveredOrders = hasPermission('orders', 'view_delivered_orders');
   const canViewCancelledOrders = hasPermission('orders', 'view_cancelled_orders');
 
-  // Debug de permissões
-  console.log('[Permissões de Pedidos]', {
-    isEmployee: employeeAccess.isEmployee,
-    canViewAllOrders,
-    canViewPendingOrders,
-    canViewConfirmedOrders,
-    canViewPreparingOrders,
-    canViewOutForDeliveryOrders,
-    canViewDeliveredOrders,
-    canViewCancelledOrders,
-    permissions: employeeAccess.permissions
-  });
 
   // Helpers para mudança de status conforme permissões
   const canChangeTo = (statusKey: string) => {
@@ -289,7 +271,6 @@ export const StoreOwnerDashboard = () => {
 
   // Memoize filtered products for bulk operations
   const filteredProducts = useMemo(() => {
-    console.log('[FilteredProducts] Recalculando com sortConfig:', sortConfig);
     const displayProducts = isReorderMode ? localProducts : products;
     let filtered = displayProducts
       ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
@@ -304,11 +285,8 @@ export const StoreOwnerDashboard = () => {
                product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
       }) || [];
 
-    console.log('[FilteredProducts] Produtos antes da ordenação:', filtered.length);
-
     // Apply sorting
     if (sortConfig.key && productViewMode === 'table') {
-      console.log('[FilteredProducts] Aplicando ordenação:', sortConfig.key, sortConfig.direction);
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
@@ -319,9 +297,7 @@ export const StoreOwnerDashboard = () => {
         if (sortConfig.key === 'price' || sortConfig.key === 'promotional_price') {
           const numA = Number(aValue) || 0;
           const numB = Number(bValue) || 0;
-          const result = sortConfig.direction === 'asc' ? numA - numB : numB - numA;
-          console.log('[FilteredProducts] Comparando preços:', { numA, numB, result, direction: sortConfig.direction });
-          return result;
+          return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
         }
         
         const strA = String(aValue).toLowerCase();
@@ -331,7 +307,6 @@ export const StoreOwnerDashboard = () => {
         if (strA > strB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
-      console.log('[FilteredProducts] Após ordenação:', filtered.map(p => ({ name: p.name, [sortConfig.key!]: p[sortConfig.key!] })));
     }
 
     return filtered;
@@ -351,21 +326,15 @@ export const StoreOwnerDashboard = () => {
 
   // Handle column sort
   const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price') => {
-    console.log('[Sort] Clicou para ordenar:', key, 'Atual:', sortConfig);
-    setSortConfig(prevConfig => {
-      const newConfig = {
-        key,
-        direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
-      } as const;
-      console.log('[Sort] Novo config:', newConfig);
-      return newConfig;
-    });
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
+    } as const));
   };
 
   // Sort indicator component
   const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' }) => {
     const isActive = sortConfig.key === column;
-    console.log('[SortIndicator]', { column, isActive, sortConfig });
     
     if (!isActive) {
       return <ArrowUp className="w-3 h-3 text-muted-foreground/30" />;
