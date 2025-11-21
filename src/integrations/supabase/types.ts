@@ -843,6 +843,7 @@ export type Database = {
           created_at: string
           description: string | null
           display_order: number | null
+          external_code: string | null
           id: string
           image_url: string | null
           is_available: boolean | null
@@ -861,6 +862,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number | null
+          external_code?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
@@ -879,6 +881,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_order?: number | null
+          external_code?: string | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
