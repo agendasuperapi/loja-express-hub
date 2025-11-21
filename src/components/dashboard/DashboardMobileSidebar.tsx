@@ -56,6 +56,7 @@ export const DashboardMobileSidebar = ({
   ];
 
   const handleNavigation = (tab: string) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     onTabChange(tab);
     setOpen(false);
   };

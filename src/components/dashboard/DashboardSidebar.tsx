@@ -20,6 +20,11 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
 
+  const handleTabChange = (tab: string) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    onTabChange(tab);
+  };
+
   // Função para verificar se o funcionário tem permissão
   const hasPermission = (module: string, action: string = 'view'): boolean => {
     if (!isEmployee || !employeePermissions) return true; // Donos de loja veem tudo
@@ -156,7 +161,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -10 }}
-                          onClick={() => onTabChange(subItem.id)}
+                          onClick={() => handleTabChange(subItem.id)}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className={cn(
@@ -198,7 +203,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
             <div key={item.id}>
               {index > 0 && <div className="h-0.5 bg-primary/20 my-2 mx-2" />}
               <motion.button
-              onClick={() => onTabChange(item.id)}
+              onClick={() => handleTabChange(item.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn(
