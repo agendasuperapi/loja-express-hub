@@ -50,7 +50,7 @@ export const useCombos = (storeId?: string) => {
       if (!storeId) return [];
 
       const { data, error } = await supabase
-        .from('product_combos' as any)
+        .from('product_combos')
         .select(`
           *,
           combo_items (
@@ -69,7 +69,7 @@ export const useCombos = (storeId?: string) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as any as Combo[];
+      return (data || []) as Combo[];
     },
     enabled: !!storeId,
   });
@@ -81,7 +81,7 @@ export const useCombos = (storeId?: string) => {
 
       // Create combo
       const { data: combo, error: comboError } = await supabase
-        .from('product_combos' as any)
+        .from('product_combos')
         .insert({
           store_id: storeId,
           name: formData.name,
@@ -98,10 +98,10 @@ export const useCombos = (storeId?: string) => {
       // Create combo items
       if (formData.items.length > 0 && combo) {
         const { error: itemsError } = await supabase
-          .from('combo_items' as any)
+          .from('combo_items')
           .insert(
             formData.items.map(item => ({
-              combo_id: (combo as any).id,
+              combo_id: combo.id,
               product_id: item.product_id,
               quantity: item.quantity,
             }))
@@ -134,7 +134,7 @@ export const useCombos = (storeId?: string) => {
     mutationFn: async ({ id, formData }: { id: string; formData: ComboFormData }) => {
       // Update combo
       const { error: comboError } = await supabase
-        .from('product_combos' as any)
+        .from('product_combos')
         .update({
           name: formData.name,
           description: formData.description,
@@ -148,7 +148,7 @@ export const useCombos = (storeId?: string) => {
 
       // Delete existing items
       const { error: deleteError } = await supabase
-        .from('combo_items' as any)
+        .from('combo_items')
         .delete()
         .eq('combo_id', id);
 
@@ -157,7 +157,7 @@ export const useCombos = (storeId?: string) => {
       // Create new items
       if (formData.items.length > 0) {
         const { error: itemsError } = await supabase
-          .from('combo_items' as any)
+          .from('combo_items')
           .insert(
             formData.items.map(item => ({
               combo_id: id,
@@ -190,7 +190,7 @@ export const useCombos = (storeId?: string) => {
   const toggleComboAvailabilityMutation = useMutation({
     mutationFn: async ({ id, is_available }: { id: string; is_available: boolean }) => {
       const { error } = await supabase
-        .from('product_combos' as any)
+        .from('product_combos')
         .update({ is_available })
         .eq('id', id);
 
@@ -217,7 +217,7 @@ export const useCombos = (storeId?: string) => {
   const deleteComboMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('product_combos' as any)
+        .from('product_combos')
         .delete()
         .eq('id', id);
 
