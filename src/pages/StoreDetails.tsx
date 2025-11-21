@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useStore } from "@/hooks/useStores";
 import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 import { useCart } from "@/contexts/CartContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useRef, useEffect } from "react";
@@ -28,6 +29,7 @@ export default function StoreDetails() {
   const [searchParams] = useSearchParams();
   const { data: store, isLoading: storeLoading } = useStore(slug!);
   const { data: products, isLoading: productsLoading } = useProducts(store?.id || '');
+  const { categories: storeCategories } = useCategories(store?.id);
   const { addToCart, cart } = useCart();
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -153,7 +155,10 @@ export default function StoreDetails() {
       }, {} as Record<string, typeof products>)
     : groupedProducts;
 
-  const categories = Object.keys(groupedProducts || {});
+  // Get categories in the correct display_order, filtering only those with products
+  const categories = storeCategories
+    ?.filter(cat => cat.is_active && groupedProducts?.[cat.name] && groupedProducts[cat.name].length > 0)
+    .map(cat => cat.name) || Object.keys(groupedProducts || {});
 
   const scrollToCategory = (category: string) => {
     setSelectedCategory(category);
