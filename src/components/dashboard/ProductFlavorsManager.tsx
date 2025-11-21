@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical, X } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical, X, Filter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -143,6 +144,8 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
     is_available: true,
   });
   const [storeFlavorSearch, setStoreFlavorSearch] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
+  const [flavorSearchTerm, setFlavorSearchTerm] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -162,6 +165,31 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
       (f.description && f.description.toLowerCase().includes(term))
     );
   }, [storeFlavors, storeFlavorSearch]);
+
+  // Filtered flavors for the main list (availability + search)
+  const filteredFlavors = useMemo(() => {
+    if (!flavors) return [];
+    
+    let result = [...flavors];
+    
+    // Apply availability filter
+    if (availabilityFilter === 'available') {
+      result = result.filter(f => f.is_available);
+    } else if (availabilityFilter === 'unavailable') {
+      result = result.filter(f => !f.is_available);
+    }
+    
+    // Apply search filter
+    if (flavorSearchTerm.trim()) {
+      const term = flavorSearchTerm.toLowerCase();
+      result = result.filter(f => 
+        f.name.toLowerCase().includes(term) || 
+        (f.description && f.description.toLowerCase().includes(term))
+      );
+    }
+    
+    return result;
+  }, [flavors, availabilityFilter, flavorSearchTerm]);
 
   const handleSubmit = () => {
     if (!formData.name.trim()) return;
@@ -703,14 +731,44 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
           </div>
         )}
 
+        {/* Filters */}
+        {flavors && flavors.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar sabores..."
+                    value={flavorSearchTerm}
+                    onChange={(e) => setFlavorSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="available">Disponíveis</SelectItem>
+                  <SelectItem value="unavailable">Indisponíveis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
+
         {flavors && flavors.length > 0 && (
           <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-2">
             <div className="flex items-center gap-2">
               <Checkbox
-                checked={selectedFlavorIds.length === flavors.length}
+                checked={selectedFlavorIds.length === filteredFlavors.length && filteredFlavors.length > 0}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    handleSelectAllFlavors();
+                    setSelectedFlavorIds(filteredFlavors.map(f => f.id));
                   } else {
                     handleDeselectAllFlavors();
                   }
@@ -735,17 +793,17 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         )}
 
         <div className="space-y-2">
-          {flavors && flavors.length > 0 ? (
+          {filteredFlavors && filteredFlavors.length > 0 ? (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={flavors.map(f => f.id)}
+                items={filteredFlavors.map(f => f.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {flavors.map((flavor) => (
+                {filteredFlavors.map((flavor) => (
                   <SortableFlavorItem
                     key={flavor.id}
                     flavor={flavor}
@@ -758,6 +816,10 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 ))}
               </SortableContext>
             </DndContext>
+          ) : flavors && flavors.length > 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Nenhum sabor encontrado com os filtros aplicados
+            </p>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">
               Nenhum sabor cadastrado
