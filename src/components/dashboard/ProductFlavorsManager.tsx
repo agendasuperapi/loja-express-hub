@@ -632,15 +632,6 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 <span className="hidden sm:inline">Buscar Sabores</span>
                 <span className="sm:hidden">Buscar</span>
               </Button>
-              <Button 
-                size="sm" 
-                onClick={() => setIsAdding(true)}
-                className="w-full sm:w-auto"
-              >
-                <Plus className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Novo Sabor</span>
-                <span className="sm:hidden">Novo</span>
-              </Button>
             </div>
           )}
         </div>
