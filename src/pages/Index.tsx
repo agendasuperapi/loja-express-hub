@@ -157,7 +157,7 @@ const Index = () => {
                         <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                         <span>{store.rating || 0}</span>
                       </div>
-                      {store.slug !== 'drogaclaramoc' && (
+                      {(store as any).show_avg_delivery_time !== false && (
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           <span>{store.avg_delivery_time || 30} min</span>

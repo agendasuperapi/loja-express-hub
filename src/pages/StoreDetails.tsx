@@ -413,7 +413,7 @@ export default function StoreDetails() {
                         <span className="text-muted-foreground">({store.total_reviews})</span>
                       )}
                     </motion.div>
-                    {store.slug !== 'drogaclaramoc' && (store as any).show_avg_delivery_time !== false && (
+                    {(store as any).show_avg_delivery_time !== false && (
                       <motion.div 
                         whileHover={{ scale: 1.05 }}
                         className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full"
