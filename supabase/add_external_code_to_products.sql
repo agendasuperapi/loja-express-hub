@@ -1,5 +1,5 @@
 -- Migration: Add external_code to products table
--- Description: Adds a unique external/custom code field for products
+-- Description: Adds a unique external/custom code field per store for products
 
 -- Add external_code column if it doesn't exist
 DO $$ 
@@ -17,18 +17,18 @@ BEGIN
   END IF;
 END $$;
 
--- Drop old store-level unique constraint if it exists
-DROP INDEX IF EXISTS public.products_store_external_code_unique;
-
--- Create global unique constraint for external_code
--- This ensures each external_code is unique across ALL products
+-- Drop old global unique constraint if it exists
 DROP INDEX IF EXISTS public.products_external_code_unique;
-CREATE UNIQUE INDEX products_external_code_unique 
-ON public.products (external_code) 
+
+-- Create store-level unique constraint for external_code
+-- This ensures each external_code is unique per store (not globally)
+DROP INDEX IF EXISTS public.products_store_external_code_unique;
+CREATE UNIQUE INDEX products_store_external_code_unique 
+ON public.products (store_id, external_code) 
 WHERE external_code IS NOT NULL AND external_code != '';
 
 -- Add helpful comment
-COMMENT ON COLUMN public.products.external_code IS 'External/custom product code - unique globally across all products. Used for inventory control and external system integration.';
+COMMENT ON COLUMN public.products.external_code IS 'External/custom product code - unique per store. Used for inventory control and external system integration.';
 
 -- Verify the changes
 DO $$ 
@@ -49,13 +49,13 @@ BEGIN
     SELECT 1 FROM pg_indexes 
     WHERE schemaname = 'public' 
     AND tablename = 'products' 
-    AND indexname = 'products_external_code_unique'
+    AND indexname = 'products_store_external_code_unique'
   ) INTO idx_exists;
   
   IF col_exists AND idx_exists THEN
     RAISE NOTICE '✓ Migration completed successfully';
     RAISE NOTICE '✓ Column external_code is available';
-    RAISE NOTICE '✓ Unique index is active';
+    RAISE NOTICE '✓ Store-level unique index is active';
   ELSE
     RAISE WARNING '⚠ Migration may have issues. Column exists: %, Index exists: %', col_exists, idx_exists;
   END IF;

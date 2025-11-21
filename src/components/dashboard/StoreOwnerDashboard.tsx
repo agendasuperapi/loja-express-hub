@@ -987,12 +987,13 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    // Validar código externo único globalmente
+    // Validar código externo único dentro da loja
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
         const { data, error } = await (supabase
           .from('products')
           .select('id') as any)
+          .eq('store_id', myStore.id)
           .eq('external_code', productForm.external_code.trim())
           .limit(1)
           .single();
@@ -1000,7 +1001,7 @@ export const StoreOwnerDashboard = () => {
         if (data && !error) {
           toast({
             title: 'Código externo já existe',
-            description: 'Este código já está sendo usado em outro produto',
+            description: 'Este código já está cadastrado nesta loja',
             variant: 'destructive',
           });
           return;
@@ -1075,12 +1076,13 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    // Validar código externo único globalmente
+    // Validar código externo único dentro da loja
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
         const { data, error } = await (supabase
           .from('products')
           .select('id') as any)
+          .eq('store_id', myStore!.id)
           .eq('external_code', productForm.external_code.trim())
           .neq('id', editingProduct.id)
           .limit(1)
@@ -1089,7 +1091,7 @@ export const StoreOwnerDashboard = () => {
         if (data && !error) {
           toast({
             title: 'Código externo já existe',
-            description: 'Este código já está sendo usado em outro produto',
+            description: 'Este código já está cadastrado nesta loja',
             variant: 'destructive',
           });
           return;
@@ -3020,7 +3022,7 @@ export const StoreOwnerDashboard = () => {
                               placeholder="Código único do produto (opcional)"
                             />
                             <p className="text-xs text-muted-foreground mt-1">
-                              Código personalizado para controle interno. Deve ser único entre todos os produtos.
+                              Código personalizado para controle interno da sua loja.
                             </p>
                           </div>
                           <div>
