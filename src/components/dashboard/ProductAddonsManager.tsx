@@ -904,14 +904,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   <span className="hidden sm:inline">Buscar adicionais</span>
                   <span className="sm:hidden">Buscar</span>
                 </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => setIsAdding(true)}
-                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Adicional
-                </Button>
               </div>
             )}
           </div>
