@@ -153,6 +153,7 @@ export const StoreOwnerDashboard = () => {
     image_url: '',
     is_pizza: false,
     max_flavors: 2,
+    external_code: '',
   });
 
   const [activeProductTab, setActiveProductTab] = useState("info");
@@ -965,7 +966,7 @@ export const StoreOwnerDashboard = () => {
     }
   };
 
-  const handleCreateProduct = () => {
+  const handleCreateProduct = async () => {
     if (!myStore) return;
     
     if (!productForm.category.trim()) {
@@ -985,12 +986,37 @@ export const StoreOwnerDashboard = () => {
       });
       return;
     }
+
+    // Validar código externo único
+    if (productForm.external_code && productForm.external_code.trim()) {
+      try {
+        const { data, error } = await (supabase
+          .from('products')
+          .select('id') as any)
+          .eq('store_id', myStore.id)
+          .eq('external_code', productForm.external_code.trim())
+          .limit(1)
+          .single();
+
+        if (data && !error) {
+          toast({
+            title: 'Código externo já existe',
+            description: 'Este código já está sendo usado em outro produto',
+            variant: 'destructive',
+          });
+          return;
+        }
+      } catch (err) {
+        // Código externo não encontrado, ok para criar
+      }
+    }
     
     createProduct({
       ...productForm,
       store_id: myStore.id,
       promotional_price: productForm.promotional_price || undefined,
       image_url: productForm.image_url || undefined,
+      external_code: productForm.external_code?.trim() || undefined,
     }, {
       onSuccess: () => {
         setIsProductDialogOpen(false);
@@ -1005,6 +1031,7 @@ export const StoreOwnerDashboard = () => {
           image_url: '',
           is_pizza: false,
           max_flavors: 2,
+          external_code: '',
         });
       },
     });
@@ -1023,11 +1050,12 @@ export const StoreOwnerDashboard = () => {
       image_url: product.image_url || '',
       is_pizza: product.is_pizza || false,
       max_flavors: product.max_flavors || 2,
+      external_code: product.external_code || '',
     });
     setIsProductDialogOpen(true);
   };
 
-  const handleUpdateProduct = () => {
+  const handleUpdateProduct = async () => {
     if (!editingProduct) return;
 
     if (!productForm.category.trim()) {
@@ -1048,11 +1076,37 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
+    // Validar código externo único
+    if (productForm.external_code && productForm.external_code.trim()) {
+      try {
+        const { data, error } = await (supabase
+          .from('products')
+          .select('id') as any)
+          .eq('store_id', myStore!.id)
+          .eq('external_code', productForm.external_code.trim())
+          .neq('id', editingProduct.id)
+          .limit(1)
+          .single();
+
+        if (data && !error) {
+          toast({
+            title: 'Código externo já existe',
+            description: 'Este código já está sendo usado em outro produto',
+            variant: 'destructive',
+          });
+          return;
+        }
+      } catch (err) {
+        // Código externo não encontrado, ok para atualizar
+      }
+    }
+
     updateProduct({
       ...productForm,
       id: editingProduct.id,
       promotional_price: productForm.promotional_price || undefined,
       image_url: productForm.image_url || undefined,
+      external_code: productForm.external_code?.trim() || undefined,
     }, {
       onSuccess: () => {
         setIsProductDialogOpen(false);
@@ -1068,6 +1122,7 @@ export const StoreOwnerDashboard = () => {
           image_url: '',
           is_pizza: false,
           max_flavors: 2,
+          external_code: '',
         });
       },
     });
@@ -2921,6 +2976,7 @@ export const StoreOwnerDashboard = () => {
                         image_url: '',
                         is_pizza: false,
                         max_flavors: 2,
+                        external_code: '',
                       });
                     }} size="lg">
                       <Plus className="w-4 h-4 mr-2" />
@@ -2958,6 +3014,17 @@ export const StoreOwnerDashboard = () => {
                             label="Imagem do Produto"
                             aspectRatio="aspect-video"
                           />
+                          <div>
+                            <Label>Código Externo</Label>
+                            <Input
+                              value={productForm.external_code}
+                              onChange={(e) => setProductForm({ ...productForm, external_code: e.target.value.trim() })}
+                              placeholder="Código único do produto (opcional)"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Código personalizado para controle interno. Deve ser único por loja.
+                            </p>
+                          </div>
                           <div>
                             <Label>Nome *</Label>
                             <Input

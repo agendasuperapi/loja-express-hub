@@ -13,6 +13,7 @@ export interface ProductFormData {
   image_url?: string;
   is_pizza?: boolean;
   max_flavors?: number;
+  external_code?: string;
 }
 
 export const useProductManagement = (storeId?: string) => {
