@@ -289,6 +289,7 @@ export const StoreOwnerDashboard = () => {
 
   // Memoize filtered products for bulk operations
   const filteredProducts = useMemo(() => {
+    console.log('[FilteredProducts] Recalculando com sortConfig:', sortConfig);
     const displayProducts = isReorderMode ? localProducts : products;
     let filtered = displayProducts
       ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
@@ -303,8 +304,11 @@ export const StoreOwnerDashboard = () => {
                product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
       }) || [];
 
+    console.log('[FilteredProducts] Produtos antes da ordenação:', filtered.length);
+
     // Apply sorting
-    if (sortConfig.key) {
+    if (sortConfig.key && productViewMode === 'table') {
+      console.log('[FilteredProducts] Aplicando ordenação:', sortConfig.key, sortConfig.direction);
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
@@ -315,7 +319,9 @@ export const StoreOwnerDashboard = () => {
         if (sortConfig.key === 'price' || sortConfig.key === 'promotional_price') {
           const numA = Number(aValue) || 0;
           const numB = Number(bValue) || 0;
-          return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+          const result = sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+          console.log('[FilteredProducts] Comparando preços:', { numA, numB, result, direction: sortConfig.direction });
+          return result;
         }
         
         const strA = String(aValue).toLowerCase();
@@ -325,27 +331,43 @@ export const StoreOwnerDashboard = () => {
         if (strA > strB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
+      console.log('[FilteredProducts] Após ordenação:', filtered.map(p => ({ name: p.name, [sortConfig.key!]: p[sortConfig.key!] })));
     }
 
     return filtered;
-  }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm, sortConfig]);
+  }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm, sortConfig, productViewMode]);
 
   // Clear selection when filters change
   useEffect(() => {
     setSelectedProducts([]);
   }, [categoryFilter, productStatusFilter, productSearchTerm, productViewMode]);
 
+  // Clear sort when changing view mode
+  useEffect(() => {
+    if (productViewMode === 'grid') {
+      setSortConfig({ key: null, direction: 'asc' });
+    }
+  }, [productViewMode]);
+
   // Handle column sort
   const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price') => {
-    setSortConfig(prevConfig => ({
-      key,
-      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
-    }));
+    console.log('[Sort] Clicou para ordenar:', key, 'Atual:', sortConfig);
+    setSortConfig(prevConfig => {
+      const newConfig = {
+        key,
+        direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
+      } as const;
+      console.log('[Sort] Novo config:', newConfig);
+      return newConfig;
+    });
   };
 
   // Sort indicator component
   const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' }) => {
-    if (sortConfig.key !== column) {
+    const isActive = sortConfig.key === column;
+    console.log('[SortIndicator]', { column, isActive, sortConfig });
+    
+    if (!isActive) {
       return <ArrowUp className="w-3 h-3 text-muted-foreground/30" />;
     }
     return sortConfig.direction === 'asc' 
