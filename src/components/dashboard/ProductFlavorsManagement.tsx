@@ -18,17 +18,12 @@ export const ProductFlavorsManagement = ({ storeId }: ProductFlavorsManagementPr
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="flavors">Sabores Globais</TabsTrigger>
-          <TabsTrigger value="library">Biblioteca</TabsTrigger>
         </TabsList>
 
         <TabsContent value="flavors" className="space-y-4">
           <FlavorsTab storeId={storeId} />
-        </TabsContent>
-
-        <TabsContent value="library" className="space-y-4">
-          <LibraryTab storeId={storeId} />
         </TabsContent>
       </Tabs>
     </div>
