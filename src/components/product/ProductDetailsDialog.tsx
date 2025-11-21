@@ -30,6 +30,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
   const { addons } = useProductAddons(product?.id);
@@ -44,6 +45,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       setQuantity(1);
       setObservation("");
       setSelectedAddons(new Set());
+      setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
     }
@@ -54,9 +56,10 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
-  const handleAddonToggle = (addonId: string, categoryId?: string) => {
+  const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
     const newByCategory = { ...selectedAddonsByCategory };
+    const newQuantities = new Map(addonQuantities);
     
     // Check if category is exclusive
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
@@ -66,15 +69,22 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       const categorySet = new Set(newByCategory[categoryId] || []);
       
       // Remove all items from this category first
-      categorySet.forEach(id => newSelected.delete(id));
+      categorySet.forEach(id => {
+        newSelected.delete(id);
+        newQuantities.delete(id);
+      });
       
       // Add the new selection
       newSelected.add(addonId);
       newByCategory[categoryId] = new Set([addonId]);
+      if (allowQuantity) {
+        newQuantities.set(addonId, 1);
+      }
     } else {
       // Normal behavior for non-exclusive categories
       if (newSelected.has(addonId)) {
         newSelected.delete(addonId);
+        newQuantities.delete(addonId);
         if (categoryId) {
           const categorySet = new Set(newByCategory[categoryId] || []);
           categorySet.delete(addonId);
@@ -98,11 +108,25 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           newByCategory[categoryId] = categorySet;
         }
         newSelected.add(addonId);
+        if (allowQuantity) {
+          newQuantities.set(addonId, 1);
+        }
       }
     }
     
     setSelectedAddons(newSelected);
     setSelectedAddonsByCategory(newByCategory);
+    setAddonQuantities(newQuantities);
+  };
+
+  const handleAddonQuantityChange = (addonId: string, newQuantity: number) => {
+    const newQuantities = new Map(addonQuantities);
+    if (newQuantity > 0) {
+      newQuantities.set(addonId, newQuantity);
+    } else {
+      newQuantities.delete(addonId);
+    }
+    setAddonQuantities(newQuantities);
   };
 
   const handleFlavorToggle = (flavorId: string) => {
@@ -119,7 +143,10 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   const addonsTotal = addons
     ?.filter(addon => selectedAddons.has(addon.id))
-    .reduce((sum, addon) => sum + addon.price, 0) || 0;
+    .reduce((sum, addon) => {
+      const qty = addonQuantities.get(addon.id) || 1;
+      return sum + (addon.price * qty);
+    }, 0) || 0;
   
   const flavorsTotal = flavors
     ?.filter(flavor => selectedFlavors.has(flavor.id))
@@ -160,7 +187,15 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
     const addonsToAdd = addons
       ?.filter(addon => selectedAddons.has(addon.id))
-      .map(addon => ({ id: addon.id, name: addon.name, price: addon.price })) || [];
+      .map(addon => {
+        const qty = addonQuantities.get(addon.id) || 1;
+        return { 
+          id: addon.id, 
+          name: addon.name, 
+          price: addon.price,
+          quantity: qty
+        };
+      }) || [];
     
     const flavorsToAdd = flavors
       ?.filter(flavor => selectedFlavors.has(flavor.id))
@@ -465,7 +500,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                   <Checkbox
                                     id={addon.id}
                                     checked={selectedAddons.has(addon.id)}
-                                    onCheckedChange={() => handleAddonToggle(addon.id, category.id)}
+                                    onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
                                   />
                                   <Label
                                     htmlFor={addon.id}
@@ -474,9 +509,34 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                     {addon.name}
                                   </Label>
                                 </div>
-                                <span className="text-sm font-semibold text-primary">
-                                  + R$ {addon.price.toFixed(2)}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </Button>
+                                      <span className="text-xs font-medium w-6 text-center">
+                                        {addonQuantities.get(addon.id) || 1}x
+                                      </span>
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                  <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                                    + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                                  </span>
+                                </div>
                               </div>
                             ))}
                         </div>
@@ -501,7 +561,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                             <Checkbox
                               id={addon.id}
                               checked={selectedAddons.has(addon.id)}
-                              onCheckedChange={() => handleAddonToggle(addon.id)}
+                              onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
                             />
                             <Label
                               htmlFor={addon.id}
@@ -510,9 +570,34 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                               {addon.name}
                             </Label>
                           </div>
-                          <span className="text-sm font-semibold text-primary">
-                            + R$ {addon.price.toFixed(2)}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </Button>
+                                <span className="text-xs font-medium w-6 text-center">
+                                  {addonQuantities.get(addon.id) || 1}x
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
+                            <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                              + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                            </span>
+                          </div>
                         </div>
                       ))}
                   </div>
@@ -530,7 +615,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                       <Checkbox
                         id={addon.id}
                         checked={selectedAddons.has(addon.id)}
-                        onCheckedChange={() => handleAddonToggle(addon.id)}
+                        onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
                       />
                       <Label
                         htmlFor={addon.id}
@@ -539,9 +624,34 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                         {addon.name}
                       </Label>
                     </div>
-                    <span className="text-sm font-semibold text-primary">
-                      + R$ {addon.price.toFixed(2)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="text-xs font-medium w-6 text-center">
+                            {addonQuantities.get(addon.id) || 1}x
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                        + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 ))
             )}

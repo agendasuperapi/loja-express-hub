@@ -11,6 +11,7 @@ export interface StoreAddon {
   category_id: string | null;
   created_at: string;
   updated_at: string;
+  allow_quantity?: boolean;
   category?: {
     id: string;
     name: string;

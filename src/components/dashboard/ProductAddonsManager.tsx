@@ -138,6 +138,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     price: 0,
     is_available: true,
     category_id: null as string | null,
+    allow_quantity: false,
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
@@ -277,7 +278,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       createAddon({ ...formData, product_id: productId });
     }
     
-    setFormData({ name: '', price: 0, is_available: true, category_id: null });
+    setFormData({ name: '', price: 0, is_available: true, category_id: null, allow_quantity: false });
     setIsAdding(false);
   };
 
@@ -288,6 +289,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       price: addon.price,
       is_available: addon.is_available,
       category_id: addon.category_id || null,
+      allow_quantity: addon.allow_quantity || false,
     });
     setIsAdding(true);
     
@@ -300,7 +302,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const handleCancel = () => {
     setIsAdding(false);
     setEditingId(null);
-    setFormData({ name: '', price: 0, is_available: true, category_id: null });
+    setFormData({ name: '', price: 0, is_available: true, category_id: null, allow_quantity: false });
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -939,6 +941,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                 />
                 <Label>Disponível</Label>
               </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.allow_quantity}
+                  onCheckedChange={(checked) => setFormData({ ...formData, allow_quantity: checked })}
+                />
+                <Label>Permite quantidade</Label>
+              </div>
+              <span className="text-xs text-muted-foreground">Cliente pode escolher múltiplas porções</span>
             </div>
 
             <div className="flex gap-2 pt-2">

@@ -12,6 +12,7 @@ export interface ProductAddon {
   display_order: number;
   created_at: string;
   updated_at: string;
+  allow_quantity?: boolean;
 }
 
 export interface AddonFormData {
@@ -19,6 +20,7 @@ export interface AddonFormData {
   price: number;
   is_available: boolean;
   category_id?: string | null;
+  allow_quantity?: boolean;
 }
 
 export const useProductAddons = (productId?: string) => {
