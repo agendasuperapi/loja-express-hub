@@ -54,6 +54,8 @@ export const useProductAddons = (productId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
         title: 'Adicional criado!',
         description: 'O adicional foi adicionado ao produto.',
@@ -82,6 +84,8 @@ export const useProductAddons = (productId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
         title: 'Adicional atualizado!',
         description: 'As informações do adicional foram atualizadas.',
@@ -107,6 +111,8 @@ export const useProductAddons = (productId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
         title: 'Adicional removido!',
         description: 'O adicional foi removido do produto.',
@@ -136,6 +142,8 @@ export const useProductAddons = (productId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
     },
     onError: (error: Error) => {
       toast({
@@ -175,6 +183,8 @@ export const useProductAddons = (productId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
         title: 'Adicional duplicado!',
         description: 'O adicional foi duplicado com sucesso.',
