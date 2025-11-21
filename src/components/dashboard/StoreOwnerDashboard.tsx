@@ -987,13 +987,12 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    // Validar código externo único
+    // Validar código externo único globalmente
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
         const { data, error } = await (supabase
           .from('products')
           .select('id') as any)
-          .eq('store_id', myStore.id)
           .eq('external_code', productForm.external_code.trim())
           .limit(1)
           .single();
@@ -1076,13 +1075,12 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    // Validar código externo único
+    // Validar código externo único globalmente
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
         const { data, error } = await (supabase
           .from('products')
           .select('id') as any)
-          .eq('store_id', myStore!.id)
           .eq('external_code', productForm.external_code.trim())
           .neq('id', editingProduct.id)
           .limit(1)
@@ -3022,7 +3020,7 @@ export const StoreOwnerDashboard = () => {
                               placeholder="Código único do produto (opcional)"
                             />
                             <p className="text-xs text-muted-foreground mt-1">
-                              Código personalizado para controle interno. Deve ser único por loja.
+                              Código personalizado para controle interno. Deve ser único entre todos os produtos.
                             </p>
                           </div>
                           <div>
