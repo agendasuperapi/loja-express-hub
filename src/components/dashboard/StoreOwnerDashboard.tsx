@@ -80,7 +80,7 @@ export const StoreOwnerDashboard = () => {
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
-  const { products, createProduct, updateProduct, deleteProduct } = useProductManagement(myStore?.id);
+  const { products, createProduct, updateProduct, toggleProductAvailability, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
   
   // Debug de produtos
@@ -2959,16 +2959,29 @@ export const StoreOwnerDashboard = () => {
                         <span className="font-bold text-primary text-lg">
                           R$ {Number(product.price).toFixed(2)}
                         </span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                           {hasPermission('products', 'update') && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditProduct(product)}
-                              className="hover-scale"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                            <>
+                              <div className="flex items-center gap-2 mr-2">
+                                <Switch
+                                  checked={product.is_available}
+                                  onCheckedChange={(checked) => 
+                                    toggleProductAvailability({ id: product.id, is_available: checked })
+                                  }
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  {product.is_available ? 'Ativo' : 'Inativo'}
+                                </span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditProduct(product)}
+                                className="hover-scale"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </>
                           )}
                           {hasPermission('products', 'delete') && (
                             <Button
@@ -4515,9 +4528,21 @@ export const StoreOwnerDashboard = () => {
       <AlertDialog open={!!productToDelete} onOpenChange={() => setProductToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o produto "{productToDelete?.name}"? Esta ação não pode ser desfeita.
+            <AlertDialogTitle>Excluir Produto Permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Tem certeza que deseja <strong>excluir permanentemente</strong> o produto "{productToDelete?.name}"?
+              </p>
+              <p className="text-amber-600 dark:text-amber-500 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  <strong>Recomendação:</strong> Ao invés de excluir, você pode desativar o produto usando o switch. 
+                  Assim o histórico de pedidos é mantido e você pode reativá-lo no futuro.
+                </span>
+              </p>
+              <p className="text-destructive text-sm">
+                A exclusão é irreversível e pode afetar o histórico de pedidos.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -4531,7 +4556,7 @@ export const StoreOwnerDashboard = () => {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Excluir
+              Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -88,6 +88,36 @@ export const useProductManagement = (storeId?: string) => {
     },
   });
 
+  const toggleProductAvailabilityMutation = useMutation({
+    mutationFn: async ({ id, is_available }: { id: string; is_available: boolean }) => {
+      const { data, error } = await supabase
+        .from('products')
+        .update({ is_available })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-products'] });
+      toast({
+        title: data.is_available ? 'Produto ativado!' : 'Produto desativado!',
+        description: data.is_available 
+          ? 'O produto está disponível no cardápio.' 
+          : 'O produto foi desativado mas mantém seu histórico.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao alterar disponibilidade',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: string) => {
       const { error } = await supabase
@@ -101,7 +131,7 @@ export const useProductManagement = (storeId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['my-products'] });
       toast({
         title: 'Produto removido!',
-        description: 'O produto foi removido do seu cardápio.',
+        description: 'O produto foi removido permanentemente.',
       });
     },
     onError: (error: Error) => {
@@ -118,9 +148,11 @@ export const useProductManagement = (storeId?: string) => {
     isLoading: productsQuery.isLoading,
     createProduct: createProductMutation.mutate,
     updateProduct: updateProductMutation.mutate,
+    toggleProductAvailability: toggleProductAvailabilityMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,
     isCreating: createProductMutation.isPending,
     isUpdating: updateProductMutation.isPending,
+    isTogglingAvailability: toggleProductAvailabilityMutation.isPending,
     isDeleting: deleteProductMutation.isPending,
   };
 };
