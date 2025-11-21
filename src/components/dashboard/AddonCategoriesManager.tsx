@@ -164,6 +164,12 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
     logo_url: '/placeholder.svg',
   };
 
+  console.log('[AddonCategoriesManager] Preview state:', { 
+    showPreview, 
+    categoriesLength: categories.length,
+    hasCategories: categories.length > 0 
+  });
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -281,7 +287,14 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
             </div>
             <div className="flex gap-2">
               {categories.length > 0 && (
-                <Button size="sm" variant="outline" onClick={() => setShowPreview(true)}>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    console.log('[AddonCategoriesManager] Opening preview');
+                    setShowPreview(true);
+                  }}
+                >
                   <Eye className="w-4 h-4 mr-2" />
                   Visualizar Preview
                 </Button>
