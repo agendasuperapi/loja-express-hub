@@ -202,7 +202,7 @@ export const useCategories = (storeId: string | undefined) => {
       const updates = reorderedCategories.map((category, index) => 
         supabase
           .from('product_categories')
-          .update({ display_order: index } as any)
+          .update({ display_order: index })
           .eq('id', category.id)
       );
       
