@@ -160,7 +160,7 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
 
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, duplicateAddon, isCreating, isDeleting, isDuplicating } = useProductAddons(productId);
-  const { categories } = useAddonCategories(storeId);
+  const { categories, addCategory } = useAddonCategories(storeId);
   const { addons: storeAddons = [] } = useStoreAddons(storeId);
 
   const [isAdding, setIsAdding] = useState(false);
@@ -191,6 +191,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [importFromProductOpen, setImportFromProductOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [showCategoryFormInModal, setShowCategoryFormInModal] = useState(false);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    min_items: 0,
+    max_items: null as number | null,
+    is_exclusive: false,
+  });
   const formRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
@@ -493,6 +500,36 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       });
     } finally {
       setIsBulkActionLoading(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!categoryFormData.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira um nome para a categoria.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await addCategory(
+        categoryFormData.name,
+        categoryFormData.min_items,
+        categoryFormData.max_items,
+        categoryFormData.is_exclusive
+      );
+      
+      setShowCategoryFormInModal(false);
+      setCategoryFormData({
+        name: '',
+        min_items: 0,
+        max_items: null,
+        is_exclusive: false,
+      });
+    } catch (error) {
+      // Error handled in hook
     }
   };
 
@@ -1214,6 +1251,74 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Form to Create New Category */}
+          {showCategoryFormInModal && (
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+              <div className="space-y-2">
+                <Label>Nome da Categoria</Label>
+                <Input
+                  placeholder="Ex: Escolha seu feijão, Carnes..."
+                  value={categoryFormData.name}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Mín. de itens</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={categoryFormData.min_items}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, min_items: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Máx. de itens</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="Ilimitado"
+                    value={categoryFormData.max_items || ''}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, max_items: e.target.value ? parseInt(e.target.value) : null })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={categoryFormData.is_exclusive}
+                  onCheckedChange={(checked) => setCategoryFormData({ ...categoryFormData, is_exclusive: checked })}
+                />
+                <Label>Seleção exclusiva (escolher apenas 1)</Label>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  onClick={handleCreateCategory}
+                  className="flex-1"
+                >
+                  Criar Categoria
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowCategoryFormInModal(false);
+                    setCategoryFormData({
+                      name: '',
+                      min_items: 0,
+                      max_items: null,
+                      is_exclusive: false,
+                    });
+                  }} 
+                  variant="outline"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Form to Create New Addon */}
           {showStoreFormInModal && (
             <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
@@ -1339,11 +1444,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="default"
               size="sm"
-              onClick={() => setShowStoreFormInModal(!showStoreFormInModal)}
+              onClick={() => {
+                setShowStoreFormInModal(!showStoreFormInModal);
+                setShowCategoryFormInModal(false);
+              }}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Adicional
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setShowCategoryFormInModal(!showCategoryFormInModal);
+                setShowStoreFormInModal(false);
+              }}
+              className="shrink-0"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Categoria
             </Button>
             <Button
               variant="outline"
