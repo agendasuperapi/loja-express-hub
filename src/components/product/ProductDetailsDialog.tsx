@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
+import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
@@ -31,6 +32,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
   const { addons } = useProductAddons(product?.id);
   const { flavors } = useProductFlavors(product?.id);
+  const { categories } = useAddonCategories(store?.id);
 
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
@@ -302,29 +304,124 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         <div className="space-y-2 px-4 md:px-0">
           <Label className="text-sm font-semibold">Adicionais</Label>
           <div className="space-y-1.5">
-            {addons.filter(addon => addon.is_available).map((addon) => (
-              <div
-                key={addon.id}
-                className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-              >
-                <div className="flex items-center gap-2.5 flex-1">
-                  <Checkbox
-                    id={addon.id}
-                    checked={selectedAddons.has(addon.id)}
-                    onCheckedChange={() => handleAddonToggle(addon.id)}
-                  />
-                  <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
-                    {addon.name}
-                  </Label>
-                </div>
-                <span className="text-sm font-semibold text-primary">
-                  + R$ {addon.price.toFixed(2)}
-                </span>
-              </div>
-            ))}
+            {categories && categories.length > 0 ? (
+              <>
+                {categories
+                  .filter(
+                    (cat) =>
+                      cat.is_active &&
+                      addons.some(
+                        (addon) => addon.category_id === cat.id && addon.is_available
+                      )
+                  )
+                  .sort((a, b) => a.display_order - b.display_order)
+                  .map((category) => (
+                    <div key={category.id} className="space-y-1.5">
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        {category.name}
+                      </p>
+                      <div className="space-y-1.5">
+                        {addons
+                          .filter(
+                            (addon) =>
+                              addon.category_id === category.id && addon.is_available
+                          )
+                          .sort(
+                            (a, b) =>
+                              (a.display_order || 0) - (b.display_order || 0)
+                          )
+                          .map((addon) => (
+                            <div
+                              key={addon.id}
+                              className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
+                            >
+                              <div className="flex items-center gap-2.5 flex-1">
+                                <Checkbox
+                                  id={addon.id}
+                                  checked={selectedAddons.has(addon.id)}
+                                  onCheckedChange={() => handleAddonToggle(addon.id)}
+                                />
+                                <Label
+                                  htmlFor={addon.id}
+                                  className="flex-1 cursor-pointer text-sm"
+                                >
+                                  {addon.name}
+                                </Label>
+                              </div>
+                              <span className="text-sm font-semibold text-primary">
+                                + R$ {addon.price.toFixed(2)}
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+
+                {addons.filter((addon) => !addon.category_id && addon.is_available).length >
+                  0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Outros
+                    </p>
+                    {addons
+                      .filter((addon) => !addon.category_id && addon.is_available)
+                      .map((addon) => (
+                        <div
+                          key={addon.id}
+                          className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2.5 flex-1">
+                            <Checkbox
+                              id={addon.id}
+                              checked={selectedAddons.has(addon.id)}
+                              onCheckedChange={() => handleAddonToggle(addon.id)}
+                            />
+                            <Label
+                              htmlFor={addon.id}
+                              className="flex-1 cursor-pointer text-sm"
+                            >
+                              {addon.name}
+                            </Label>
+                          </div>
+                          <span className="text-sm font-semibold text-primary">
+                            + R$ {addon.price.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              addons
+                .filter((addon) => addon.is_available)
+                .map((addon) => (
+                  <div
+                    key={addon.id}
+                    className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-2.5 flex-1">
+                      <Checkbox
+                        id={addon.id}
+                        checked={selectedAddons.has(addon.id)}
+                        onCheckedChange={() => handleAddonToggle(addon.id)}
+                      />
+                      <Label
+                        htmlFor={addon.id}
+                        className="flex-1 cursor-pointer text-sm"
+                      >
+                        {addon.name}
+                      </Label>
+                    </div>
+                    <span className="text-sm font-semibold text-primary">
+                      + R$ {addon.price.toFixed(2)}
+                    </span>
+                  </div>
+                ))
+            )}
           </div>
         </div>
       )}
+
 
       {/* Observação */}
       <div className="space-y-1.5 px-4 md:px-0">
