@@ -164,10 +164,12 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
     logo_url: '/placeholder.svg',
   };
 
-  console.log('[AddonCategoriesManager] Preview state:', { 
+  console.log('[AddonCategoriesManager] State:', { 
     showPreview, 
     categoriesLength: categories.length,
-    hasCategories: categories.length > 0 
+    hasCategories: categories.length > 0,
+    isAdding,
+    formData 
   });
 
   const sensors = useSensors(
@@ -321,16 +323,24 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
               />
             </div>
 
-            <div className="flex items-center gap-2 p-3 border rounded-lg bg-background">
-              <Switch
-                checked={formData.is_exclusive}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_exclusive: checked, max_items: checked ? 1 : formData.max_items })}
-              />
-              <div className="flex-1">
-                <Label className="text-sm font-medium">Seleção Exclusiva</Label>
-                <p className="text-xs text-muted-foreground">
-                  Permitir apenas 1 item selecionado (como tipo de carne, tamanho, etc.)
-                </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-background">
+                <div className="flex-1">
+                  <Label htmlFor="exclusive-switch" className="text-sm font-medium cursor-pointer">
+                    Seleção Exclusiva
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Permitir apenas 1 item selecionado (como tipo de carne, tamanho, etc.)
+                  </p>
+                </div>
+                <Switch
+                  id="exclusive-switch"
+                  checked={formData.is_exclusive}
+                  onCheckedChange={(checked) => {
+                    console.log('[Switch] Exclusive changed:', checked);
+                    setFormData({ ...formData, is_exclusive: checked, max_items: checked ? 1 : formData.max_items });
+                  }}
+                />
               </div>
             </div>
 
