@@ -224,15 +224,7 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                                 placeholder="0.00"
                               />
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleSave(flavor.id)}
-                                disabled={isUpdating || !editedValues.name || !editedValues.price}
-                              >
-                                <Save className="w-4 h-4 mr-1" />
-                                Salvar
-                              </Button>
+                            <div className="flex gap-2 justify-end">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -241,6 +233,14 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                               >
                                 <X className="w-4 h-4 mr-1" />
                                 Cancelar
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSave(flavor.id)}
+                                disabled={isUpdating || !editedValues.name || !editedValues.price}
+                              >
+                                <Save className="w-4 h-4 mr-1" />
+                                Salvar
                               </Button>
                             </div>
                           </div>
