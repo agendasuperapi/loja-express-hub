@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb, Download, Package, Filter } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb, Download, Package, Filter, Power, PowerOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -57,13 +57,14 @@ interface SortableAddonProps {
   onEdit: (addon: any) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onToggleAvailability: (addon: any) => void;
   isDeleting: boolean;
   isDuplicating: boolean;
   isSelected: boolean;
   onToggleSelect: (id: string, checked: boolean) => void;
 }
 
-const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDuplicating, isSelected, onToggleSelect }: SortableAddonProps) => {
+const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailability, isDeleting, isDuplicating, isSelected, onToggleSelect }: SortableAddonProps) => {
   const {
     attributes,
     listeners,
@@ -111,6 +112,18 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, isDeleting, isDup
         </div>
       </div>
       <div className="flex gap-1">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => onToggleAvailability(addon)}
+          title={addon.is_available ? 'Inativar' : 'Ativar'}
+        >
+          {addon.is_available ? (
+            <PowerOff className="w-4 h-4" />
+          ) : (
+            <Power className="w-4 h-4" />
+          )}
+        </Button>
         <Button
           size="sm"
           variant="ghost"
@@ -391,6 +404,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       newSelected.delete(id);
     }
     setSelectedAddons(newSelected);
+  };
+
+  const handleToggleAvailability = (addon: any) => {
+    updateAddon({
+      id: addon.id,
+      name: addon.name,
+      price: addon.price,
+      is_available: !addon.is_available,
+      category_id: addon.category_id,
+      allow_quantity: addon.allow_quantity,
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -1121,6 +1145,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             onEdit={handleEdit}
                             onDelete={(id) => handleDeleteClick(id, addon.name)}
                             onDuplicate={handleDuplicate}
+                            onToggleAvailability={handleToggleAvailability}
                             isDeleting={isDeleting}
                             isDuplicating={isDuplicating}
                             isSelected={selectedAddons.has(addon.id)}
@@ -1153,6 +1178,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                               onEdit={handleEdit}
                               onDelete={(id) => handleDeleteClick(id, addon.name)}
                               onDuplicate={handleDuplicate}
+                              onToggleAvailability={handleToggleAvailability}
                               isDeleting={isDeleting}
                               isDuplicating={isDuplicating}
                               isSelected={selectedAddons.has(addon.id)}
@@ -1177,6 +1203,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       onEdit={handleEdit}
                       onDelete={(id) => handleDeleteClick(id, addon.name)}
                       onDuplicate={handleDuplicate}
+                      onToggleAvailability={handleToggleAvailability}
                       isDeleting={isDeleting}
                       isDuplicating={isDuplicating}
                       isSelected={selectedAddons.has(addon.id)}
