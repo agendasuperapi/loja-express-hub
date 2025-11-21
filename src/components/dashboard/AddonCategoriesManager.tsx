@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, FolderTree, X, GripVertical } from "lucide-react";
+import { Plus, Trash2, Edit, FolderTree, X, GripVertical, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProductDetailsDialog } from "@/components/product/ProductDetailsDialog";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { Badge } from "@/components/ui/badge";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
@@ -133,12 +134,35 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
   const employeeAccess = useEmployeeAccess();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     min_items: 0,
     max_items: null as number | null,
     is_exclusive: false,
   });
+
+  // Mock data for preview
+  const mockProduct = {
+    id: 'preview-product',
+    name: 'Produto de Exemplo',
+    description: 'Este é um exemplo de como o produto aparecerá para seus clientes',
+    price: 25.90,
+    promotional_price: null,
+    image_url: '/placeholder.svg',
+    category: 'Categoria Exemplo',
+    is_available: true,
+    is_pizza: false,
+    max_flavors: 1,
+    short_id: 'preview'
+  };
+
+  const mockStore = {
+    id: storeId,
+    name: 'Minha Loja',
+    slug: 'minha-loja',
+    logo_url: '/placeholder.svg',
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -244,24 +268,33 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <FolderTree className="w-5 h-5" />
-              Categorias de Adicionais
-            </CardTitle>
-            <CardDescription>Organize os adicionais em categorias para melhor gestão</CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FolderTree className="w-5 h-5" />
+                Categorias de Adicionais
+              </CardTitle>
+              <CardDescription>Organize os adicionais em categorias para melhor gestão</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {categories.length > 0 && (
+                <Button size="sm" variant="outline" onClick={() => setShowPreview(true)}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  Visualizar Preview
+                </Button>
+              )}
+              {!isAdding && hasPermission('create') && (
+                <Button size="sm" onClick={() => setIsAdding(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Categoria
+                </Button>
+              )}
+            </div>
           </div>
-          {!isAdding && hasPermission('create') && (
-            <Button size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Categoria
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent className="space-y-4">
         {isAdding && (
           <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
@@ -357,5 +390,13 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
         )}
       </CardContent>
     </Card>
+
+    <ProductDetailsDialog
+      product={mockProduct}
+      store={mockStore}
+      open={showPreview}
+      onOpenChange={setShowPreview}
+    />
+  </>
   );
 };
