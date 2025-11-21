@@ -779,7 +779,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     onClick={() => setSelectedAddons(new Set())}
                     disabled={isBulkActionLoading}
                   >
-                    <X className="w-4 h-4" />
+                    Cancelar
                   </Button>
                 </div>
                 
@@ -1312,7 +1312,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   }} 
                   variant="outline"
                 >
-                  <X className="w-4 h-4" />
+                  Cancelar
                 </Button>
               </div>
             </div>
@@ -1413,7 +1413,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                   }} 
                   variant="outline"
                 >
-                  <X className="w-4 h-4" />
+                  Cancelar
                 </Button>
               </div>
             </div>

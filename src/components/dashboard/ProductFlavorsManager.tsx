@@ -534,7 +534,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                     onClick={() => setSelectedFlavorIds([])}
                     disabled={isBulkActionLoading}
                   >
-                    <X className="w-4 h-4" />
+                    Cancelar
                   </Button>
                 </div>
                 
@@ -1047,7 +1047,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                     }} 
                     variant="outline"
                   >
-                    <X className="w-4 h-4" />
+                    Cancelar
                   </Button>
                 </div>
               </div>
