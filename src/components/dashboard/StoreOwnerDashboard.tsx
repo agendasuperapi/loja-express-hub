@@ -21,7 +21,7 @@ import { useStoreManagement, type StoreFormData } from "@/hooks/useStoreManageme
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
@@ -79,6 +79,8 @@ import { PickupLocationsManager } from "./PickupLocationsManager";
 import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
 import { SortableProductCard } from "./SortableProductCard";
 import { SortableCategoryCard } from "./SortableCategoryCard";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -239,6 +241,7 @@ export const StoreOwnerDashboard = () => {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [isReorderMode, setIsReorderMode] = useState(false);
+  const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
   const [localProducts, setLocalProducts] = useState<any[]>([]);
   const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
   const [localCategories, setLocalCategories] = useState<any[]>([]);
@@ -3103,8 +3106,28 @@ export const StoreOwnerDashboard = () => {
                     </Button>
                   )}
 
+                  {/* View Mode Toggle */}
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Button
+                      variant={productViewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductViewMode('grid')}
+                    >
+                      <LayoutGrid className="w-4 h-4 mr-2" />
+                      Grid
+                    </Button>
+                    <Button
+                      variant={productViewMode === 'table' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setProductViewMode('table')}
+                    >
+                      <TableIcon className="w-4 h-4 mr-2" />
+                      Tabela
+                    </Button>
+                  </div>
+
                   {/* Reorder Mode Toggle */}
-                  {hasPermission('products', 'update') && (
+                  {hasPermission('products', 'update') && productViewMode === 'grid' && (
                     <Button
                       variant={isReorderMode ? 'default' : 'outline'}
                       size="sm"
@@ -3120,7 +3143,6 @@ export const StoreOwnerDashboard = () => {
                           setIsReorderMode(true);
                         }
                       }}
-                      className="ml-auto"
                       disabled={!products || products.length === 0}
                     >
                       <GripVertical className="w-4 h-4 mr-2" />
@@ -3129,7 +3151,7 @@ export const StoreOwnerDashboard = () => {
                   )}
                 </div>
 
-                {/* Products Grid */}
+                {/* Products Grid/Table */}
                 {(() => {
                   const displayProducts = isReorderMode ? localProducts : products;
                   const filteredProducts = displayProducts
@@ -3175,6 +3197,103 @@ export const StoreOwnerDashboard = () => {
                     );
                   }
 
+                  // Table View
+                  if (productViewMode === 'table') {
+                    return (
+                      <ScrollableTable maxHeight="calc(100vh - 400px)">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-[80px]">Imagem</TableHead>
+                              <TableHead>Nome</TableHead>
+                              <TableHead>Categoria</TableHead>
+                              <TableHead>Descrição</TableHead>
+                              <TableHead className="text-right">Preço</TableHead>
+                              <TableHead className="text-right">Preço Promo</TableHead>
+                              <TableHead className="text-center">Status</TableHead>
+                              <TableHead className="text-center w-[120px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredProducts.map((product) => (
+                              <TableRow key={product.id} className={!product.is_available ? 'opacity-60' : ''}>
+                                <TableCell>
+                                  <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                                    {product.image_url ? (
+                                      <img 
+                                        src={product.image_url} 
+                                        alt={product.name}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <Package className="w-6 h-6 text-muted-foreground" />
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="font-medium">{product.name}</TableCell>
+                                <TableCell>
+                                  <Badge variant="secondary">{product.category}</Badge>
+                                </TableCell>
+                                <TableCell className="max-w-xs truncate text-muted-foreground">
+                                  {product.description || '-'}
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  R$ {product.price.toFixed(2)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {product.promotional_price ? (
+                                    <span className="text-green-600 font-semibold">
+                                      R$ {product.promotional_price.toFixed(2)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {hasPermission('products', 'update') ? (
+                                    <Switch
+                                      checked={product.is_available}
+                                      onCheckedChange={(checked) => 
+                                        toggleProductAvailability({ id: product.id, is_available: checked })
+                                      }
+                                    />
+                                  ) : (
+                                    <Badge variant={product.is_available ? 'default' : 'secondary'}>
+                                      {product.is_available ? 'Ativo' : 'Inativo'}
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center justify-center gap-2">
+                                    {hasPermission('products', 'update') && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleEditProduct(product)}
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    {hasPermission('products', 'delete') && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setProductToDelete(product)}
+                                      >
+                                        <Trash2 className="w-4 h-4 text-destructive" />
+                                      </Button>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </ScrollableTable>
+                    );
+                  }
+
+                  // Grid View with Reorder Mode
                   if (isReorderMode) {
                     // Group products by category
                     const productsByCategory = filteredProducts.reduce((acc, product) => {
