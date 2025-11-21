@@ -10,6 +10,7 @@ export const useProducts = (storeId: string) => {
         .select('*')
         .eq('store_id', storeId)
         .eq('is_available', true)
+        .order('display_order', { ascending: true })
         .order('category')
         .order('name');
 
