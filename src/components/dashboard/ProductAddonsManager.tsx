@@ -338,9 +338,9 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     });
     setIsAdding(true);
     
-    // Scroll to form
+    // Scroll to top
     setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
   };
 
