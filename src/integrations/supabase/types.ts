@@ -20,9 +20,9 @@ export type Database = {
           display_order: number
           id: string
           is_active: boolean
-          is_exclusive: boolean | null
+          is_exclusive: boolean
           max_items: number | null
-          min_items: number | null
+          min_items: number
           name: string
           store_id: string
           updated_at: string
@@ -32,9 +32,9 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean
-          is_exclusive?: boolean | null
+          is_exclusive?: boolean
           max_items?: number | null
-          min_items?: number | null
+          min_items?: number
           name: string
           store_id: string
           updated_at?: string
@@ -44,9 +44,9 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean
-          is_exclusive?: boolean | null
+          is_exclusive?: boolean
           max_items?: number | null
-          min_items?: number | null
+          min_items?: number
           name?: string
           store_id?: string
           updated_at?: string
