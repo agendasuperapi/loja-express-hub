@@ -229,7 +229,7 @@ export const StoreOwnerDashboard = () => {
   const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
-  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
@@ -2907,57 +2907,60 @@ export const StoreOwnerDashboard = () => {
                   )}
                 </div>
 
-                {/* Category Filter */}
-                <div className="flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-muted-foreground" />
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Filtrar por categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as Categorias</SelectItem>
-                      {categories.filter(cat => cat.is_active).map((cat) => (
-                        <SelectItem key={cat.id} value={cat.name}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {categoryFilter !== 'all' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCategoryFilter('all')}
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Limpar
-                    </Button>
-                  )}
-                </div>
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Category Filter */}
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-muted-foreground" />
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Filtrar por categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as Categorias</SelectItem>
+                        {categories.filter(cat => cat.is_active).map((cat) => (
+                          <SelectItem key={cat.id} value={cat.name}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {categoryFilter !== 'all' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCategoryFilter('all')}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
 
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-muted-foreground" />
-                  <Select value={productStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setProductStatusFilter(value)}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filtrar por status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os Produtos</SelectItem>
-                      <SelectItem value="active">Apenas Ativos</SelectItem>
-                      <SelectItem value="inactive">Apenas Inativos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {productStatusFilter !== 'all' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setProductStatusFilter('all')}
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Limpar
-                    </Button>
-                  )}
+                  {/* Status Filter */}
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                    <Select value={productStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setProductStatusFilter(value)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filtrar por status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os Produtos</SelectItem>
+                        <SelectItem value="active">Apenas Ativos</SelectItem>
+                        <SelectItem value="inactive">Apenas Inativos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {productStatusFilter !== 'all' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setProductStatusFilter('all')}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Products Grid */}
