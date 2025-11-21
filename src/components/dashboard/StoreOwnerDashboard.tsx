@@ -2877,7 +2877,7 @@ export const StoreOwnerDashboard = () => {
                 </TabsTrigger>
                 <TabsTrigger value="edit" className="flex items-center gap-2">
                   <Edit className="w-4 h-4" />
-                  Edit
+                  Adicionais & Sabores
                 </TabsTrigger>
               </TabsList>
 
