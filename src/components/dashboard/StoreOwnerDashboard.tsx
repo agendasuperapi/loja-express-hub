@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -72,6 +77,7 @@ import { useDateRangeFilter } from "@/hooks/useDateRangeFilter";
 import { DeliveryZonesManager } from "./DeliveryZonesManager";
 import { PickupLocationsManager } from "./PickupLocationsManager";
 import { WhatsAppMessageConfig } from "./WhatsAppMessageConfig";
+import { SortableProductCard } from "./SortableProductCard";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -80,7 +86,7 @@ export const StoreOwnerDashboard = () => {
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
-  const { products, createProduct, updateProduct, toggleProductAvailability, deleteProduct } = useProductManagement(myStore?.id);
+  const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
   
   // Debug de produtos
@@ -231,6 +237,8 @@ export const StoreOwnerDashboard = () => {
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [localProducts, setLocalProducts] = useState<any[]>([]);
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
@@ -250,6 +258,46 @@ export const StoreOwnerDashboard = () => {
       setSearchParams(newSearchParams, { replace: true });
     }
   }, [activeTab, tabFromUrl, searchParams, setSearchParams]);
+
+  // Sync local products with fetched products
+  useEffect(() => {
+    if (products) {
+      setLocalProducts(products);
+    }
+  }, [products]);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for product reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setLocalProducts((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        
+        // Update display_order for all products
+        const updates = newOrder.map((product, index) => ({
+          id: product.id,
+          display_order: index + 1,
+        }));
+        
+        // Save to backend
+        reorderProducts(updates);
+        
+        return newOrder;
+      });
+    }
+  };
   
   const { 
     periodFilter: reportsPeriodFilter, 
@@ -3002,122 +3050,128 @@ export const StoreOwnerDashboard = () => {
                       Limpar Todos
                     </Button>
                   )}
+
+                  {/* Reorder Mode Toggle */}
+                  {hasPermission('products', 'update') && (
+                    <Button
+                      variant={isReorderMode ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        if (isReorderMode) {
+                          // Exit reorder mode
+                          setIsReorderMode(false);
+                        } else {
+                          // Enter reorder mode - disable filters
+                          setProductSearchTerm('');
+                          setCategoryFilter('all');
+                          setProductStatusFilter('all');
+                          setIsReorderMode(true);
+                        }
+                      }}
+                      className="ml-auto"
+                      disabled={!products || products.length === 0}
+                    >
+                      <GripVertical className="w-4 h-4 mr-2" />
+                      {isReorderMode ? 'Concluir' : 'Reordenar'}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                  {(() => {
-                    const filteredProducts = products
-                      ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
-                      .filter(product => {
-                        if (productStatusFilter === 'active') return product.is_available;
-                        if (productStatusFilter === 'inactive') return !product.is_available;
-                        return true;
-                      })
-                      .filter(product => {
-                        if (!productSearchTerm) return true;
-                        return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                               product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
-                      });
+                {(() => {
+                  const displayProducts = isReorderMode ? localProducts : products;
+                  const filteredProducts = displayProducts
+                    ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
+                    .filter(product => {
+                      if (productStatusFilter === 'active') return product.is_available;
+                      if (productStatusFilter === 'inactive') return !product.is_available;
+                      return true;
+                    })
+                    .filter(product => {
+                      if (!productSearchTerm) return true;
+                      return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                             product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                    });
 
-                    if (!filteredProducts || filteredProducts.length === 0) {
-                      return (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                          <Package className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
-                          <p className="text-muted-foreground mb-4">
-                            {productSearchTerm
-                              ? `Nenhum produto encontrado com "${productSearchTerm}"`
-                              : productStatusFilter !== 'all' 
-                                ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}`
-                                : categoryFilter !== 'all' 
-                                  ? `Não há produtos na categoria "${categoryFilter}"`
-                                  : 'Adicione seu primeiro produto ao cardápio'}
-                          </p>
-                          {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && (
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setProductSearchTerm('');
-                                setProductStatusFilter('all');
-                                setCategoryFilter('all');
-                              }}
-                            >
-                              Limpar Filtros
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    }
-
-                    return filteredProducts.map((product, index) => (
-                    <motion.div
-                      key={product.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Card className="hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg">
-                        <CardContent className="p-4">
-                      {product.image_url && (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden mb-3 bg-muted">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                      )}
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold">{product.name}</h4>
-                          <p className="text-sm text-muted-foreground">{product.category}</p>
-                        </div>
-                        <Badge variant={product.is_available ? 'default' : 'secondary'}>
-                          {product.is_available ? 'Disponível' : 'Indisponível'}
-                        </Badge>
-                      </div>
-                      {product.description && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {product.description}
+                  if (!filteredProducts || filteredProducts.length === 0) {
+                    return (
+                      <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                        <Package className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
+                        <p className="text-muted-foreground mb-4">
+                          {productSearchTerm
+                            ? `Nenhum produto encontrado com "${productSearchTerm}"`
+                            : productStatusFilter !== 'all' 
+                              ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}`
+                              : categoryFilter !== 'all' 
+                                ? `Não há produtos na categoria "${categoryFilter}"`
+                                : 'Adicione seu primeiro produto ao cardápio'}
                         </p>
-                      )}
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-primary text-lg">
-                          R$ {Number(product.price).toFixed(2)}
-                        </span>
-                        <div className="flex gap-2 items-center">
-                          {hasPermission('products', 'update') && (
-                            <>
-                              <div className="flex items-center gap-2 mr-2">
-                                <Switch
-                                  checked={product.is_available}
-                                  onCheckedChange={(checked) => 
-                                    toggleProductAvailability({ id: product.id, is_available: checked })
-                                  }
-                                />
-                                <span className="text-xs text-muted-foreground">
-                                  {product.is_available ? 'Ativo' : 'Inativo'}
-                                </span>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEditProduct(product)}
-                                className="hover-scale"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                        {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && (
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setProductSearchTerm('');
+                              setProductStatusFilter('all');
+                              setCategoryFilter('all');
+                            }}
+                          >
+                            Limpar Filtros
+                          </Button>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ));
-            })()}
-            </div>
+                    );
+                  }
+
+                  if (isReorderMode) {
+                    return (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={filteredProducts.map(p => p.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                            {filteredProducts.map((product, index) => (
+                              <SortableProductCard
+                                key={product.id}
+                                product={product}
+                                index={index}
+                                isReorderMode={isReorderMode}
+                                hasPermission={hasPermission}
+                                onEdit={handleEditProduct}
+                                onToggleAvailability={(id, isAvailable) => 
+                                  toggleProductAvailability({ id, is_available: isAvailable })
+                                }
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    );
+                  }
+
+                  return (
+                    <div className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                      {filteredProducts.map((product, index) => (
+                        <SortableProductCard
+                          key={product.id}
+                          product={product}
+                          index={index}
+                          isReorderMode={false}
+                          hasPermission={hasPermission}
+                          onEdit={handleEditProduct}
+                          onToggleAvailability={(id, isAvailable) => 
+                            toggleProductAvailability({ id, is_available: isAvailable })
+                          }
+                        />
+                      ))}
+                    </div>
+                  );
+                })()}
               </TabsContent>
 
               <TabsContent value="categorias" className="space-y-6">

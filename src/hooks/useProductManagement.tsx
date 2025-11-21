@@ -25,6 +25,7 @@ export const useProductManagement = (storeId?: string) => {
         .from('products')
         .select('*')
         .eq('store_id', storeId!)
+        .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -118,6 +119,38 @@ export const useProductManagement = (storeId?: string) => {
     },
   });
 
+  const reorderProductsMutation = useMutation({
+    mutationFn: async (products: { id: string; display_order: number }[]) => {
+      const updates = products.map(({ id, display_order }) => 
+        supabase
+          .from('products')
+          .update({ display_order } as any) // Temporary: cast to any until migration runs
+          .eq('id', id)
+      );
+      
+      const results = await Promise.all(updates);
+      const errors = results.filter(r => r.error);
+      
+      if (errors.length > 0) {
+        throw new Error('Erro ao reordenar produtos');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-products'] });
+      toast({
+        title: 'Ordem atualizada!',
+        description: 'A ordem dos produtos foi salva.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao reordenar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: string) => {
       const { error } = await supabase
@@ -149,10 +182,12 @@ export const useProductManagement = (storeId?: string) => {
     createProduct: createProductMutation.mutate,
     updateProduct: updateProductMutation.mutate,
     toggleProductAvailability: toggleProductAvailabilityMutation.mutate,
+    reorderProducts: reorderProductsMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,
     isCreating: createProductMutation.isPending,
     isUpdating: updateProductMutation.isPending,
     isTogglingAvailability: toggleProductAvailabilityMutation.isPending,
+    isReordering: reorderProductsMutation.isPending,
     isDeleting: deleteProductMutation.isPending,
   };
 };
