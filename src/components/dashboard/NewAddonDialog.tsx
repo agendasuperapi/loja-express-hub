@@ -171,18 +171,7 @@ export const NewAddonDialog = ({
 
           {/* Categoria */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="addon-category">Categoria</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNewCategory(!showNewCategory)}
-                className="h-8 w-8 p-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+            <Label htmlFor="addon-category">Categoria</Label>
 
             {showNewCategory && (
               <div className="flex gap-2 p-3 border rounded-lg bg-muted/30">
@@ -220,28 +209,41 @@ export const NewAddonDialog = ({
               </div>
             )}
 
-            <Select
-              value={formData.category_id || "uncategorized"}
-              onValueChange={(value) =>
-                setFormData({
-                  ...formData,
-                  category_id: value === "uncategorized" ? "" : value,
-                })
-              }
-              disabled={isLoading}
-            >
-              <SelectTrigger id="addon-category">
-                <SelectValue placeholder="Selecione uma categoria (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="uncategorized">Sem categoria</SelectItem>
-                {activeCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select
+                value={formData.category_id || "uncategorized"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    category_id: value === "uncategorized" ? "" : value,
+                  })
+                }
+                disabled={isLoading}
+              >
+                <SelectTrigger id="addon-category" className="flex-1">
+                  <SelectValue placeholder="Selecione uma categoria (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="uncategorized">Sem categoria</SelectItem>
+                  {activeCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setShowNewCategory(!showNewCategory)}
+                disabled={isLoading}
+                className="shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Organize seus adicionais em categorias para facilitar a gestão
             </p>
