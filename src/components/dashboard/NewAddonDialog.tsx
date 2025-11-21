@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, X } from "lucide-react";
+import { Check, X, Plus } from "lucide-react";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
+import { toast } from "sonner";
 
 interface NewAddonDialogProps {
   open: boolean;
@@ -50,7 +51,7 @@ export const NewAddonDialog = ({
   editData,
   isLoading,
 }: NewAddonDialogProps) => {
-  const { categories } = useAddonCategories(storeId);
+  const { categories, addCategory, refetch } = useAddonCategories(storeId);
   const [formData, setFormData] = useState({
     name: "",
     price: "0.00",
@@ -58,6 +59,9 @@ export const NewAddonDialog = ({
     is_available: true,
     allow_quantity: false,
   });
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   // Update form when editing
   useEffect(() => {
@@ -94,6 +98,27 @@ export const NewAddonDialog = ({
       is_available: formData.is_available,
       allow_quantity: formData.allow_quantity,
     });
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast.error("Digite um nome para a categoria");
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    try {
+      await addCategory(newCategoryName.trim());
+      await refetch();
+      toast.success("Categoria criada com sucesso!");
+      setNewCategoryName("");
+      setShowNewCategory(false);
+    } catch (error) {
+      toast.error("Erro ao criar categoria");
+      console.error(error);
+    } finally {
+      setIsCreatingCategory(false);
+    }
   };
 
   const activeCategories = categories?.filter((c) => c.is_active) || [];
@@ -146,7 +171,55 @@ export const NewAddonDialog = ({
 
           {/* Categoria */}
           <div className="space-y-2">
-            <Label htmlFor="addon-category">Categoria</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="addon-category">Categoria</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNewCategory(!showNewCategory)}
+                className="h-8 w-8 p-0"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {showNewCategory && (
+              <div className="flex gap-2 p-3 border rounded-lg bg-muted/30">
+                <Input
+                  placeholder="Nome da nova categoria"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  disabled={isCreatingCategory}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleCreateCategory();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCreateCategory}
+                  disabled={isCreatingCategory || !newCategoryName.trim()}
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowNewCategory(false);
+                    setNewCategoryName("");
+                  }}
+                  disabled={isCreatingCategory}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <Select
               value={formData.category_id || "uncategorized"}
               onValueChange={(value) =>
