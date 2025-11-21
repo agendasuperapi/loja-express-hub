@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, FolderTree, X, GripVertical, Eye } from "lucide-react";
+import { Plus, Trash2, Edit, FolderTree, X, GripVertical, Eye, Power, PowerOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductDetailsDialog } from "@/components/product/ProductDetailsDialog";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -93,16 +93,24 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Badge variant={category.is_active ? "default" : "secondary"}>
           {category.is_active ? 'Ativa' : 'Inativa'}
         </Badge>
         
         {hasPermission('update') && (
-          <Switch
-            checked={category.is_active}
-            onCheckedChange={() => onToggleStatus(category.id, category.is_active)}
-          />
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onToggleStatus(category.id, category.is_active)}
+            title={category.is_active ? 'Inativar' : 'Ativar'}
+          >
+            {category.is_active ? (
+              <PowerOff className="w-4 h-4" />
+            ) : (
+              <Power className="w-4 h-4" />
+            )}
+          </Button>
         )}
         
         {hasPermission('update') && (
@@ -110,6 +118,7 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             size="sm"
             variant="ghost"
             onClick={() => onEdit(category)}
+            title="Editar"
           >
             <Edit className="w-4 h-4" />
           </Button>
@@ -120,6 +129,7 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             size="sm"
             variant="ghost"
             onClick={() => onDelete(category.id)}
+            title="Excluir"
           >
             <Trash2 className="w-4 h-4 text-destructive" />
           </Button>
