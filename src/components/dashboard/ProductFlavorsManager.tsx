@@ -108,14 +108,6 @@ const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDele
         >
           <Edit className="w-4 h-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onDelete}
-          disabled={isDeleting}
-        >
-          <Trash2 className="w-4 h-4 text-destructive" />
-        </Button>
       </div>
     </div>
   );
