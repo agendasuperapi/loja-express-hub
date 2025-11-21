@@ -3855,24 +3855,24 @@ export const StoreOwnerDashboard = () => {
 
                     <TabsContent value="adicionais">
                       <div className="space-y-6">
-                        <Tabs defaultValue="categorias" className="w-full">
+                        <Tabs defaultValue="globais" className="w-full">
                           <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="categorias" className="flex items-center gap-2">
-                              <FolderTree className="w-4 h-4" />
-                              Categorias Adicionais
-                            </TabsTrigger>
                             <TabsTrigger value="globais" className="flex items-center gap-2">
                               <Plus className="w-4 h-4" />
                               Adicionais Globais
                             </TabsTrigger>
+                            <TabsTrigger value="categorias" className="flex items-center gap-2">
+                              <FolderTree className="w-4 h-4" />
+                              Categorias Adicionais
+                            </TabsTrigger>
                           </TabsList>
-
-                          <TabsContent value="categorias">
-                            <CategoriesTab storeId={myStore.id} />
-                          </TabsContent>
 
                           <TabsContent value="globais">
                             <AddonsTab storeId={myStore.id} />
+                          </TabsContent>
+
+                          <TabsContent value="categorias">
+                            <CategoriesTab storeId={myStore.id} />
                           </TabsContent>
                         </Tabs>
                       </div>
