@@ -174,64 +174,38 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
-                <div className="flex-1">
-                  <Label htmlFor="exclusive-switch" className="text-sm font-medium cursor-pointer">
-                    Seleção Exclusiva
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Permitir apenas 1 item selecionado (como tipo de carne, tamanho, etc.)
-                  </p>
-                </div>
-                <Switch
-                  id="exclusive-switch"
-                  checked={formData.is_exclusive}
-                  onCheckedChange={(checked) =>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Mínimo de Itens</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="0 = opcional"
+                  value={formData.min_items}
+                  onChange={(e) =>
                     setFormData({
                       ...formData,
-                      is_exclusive: checked,
-                      max_items: checked ? 1 : formData.max_items,
+                      min_items: Number.isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Máximo de Itens</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="Deixe vazio = ilimitado"
+                  value={formData.max_items ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      max_items: e.target.value ? parseInt(e.target.value) : null,
                     })
                   }
                 />
               </div>
             </div>
-
-            {!formData.is_exclusive && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Mínimo de Itens</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="0 = opcional"
-                    value={formData.min_items}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        min_items: Number.isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Máximo de Itens</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    placeholder="Deixe vazio = ilimitado"
-                    value={formData.max_items ?? ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        max_items: e.target.value ? parseInt(e.target.value) : null,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            )}
 
             <div className="flex gap-2">
               <Button onClick={handleSubmit} className="flex-1">
