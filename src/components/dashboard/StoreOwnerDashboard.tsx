@@ -28,6 +28,7 @@ import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
 import { ProductAddonsManagement, TemplatesTab, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
 import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
+import { CombosManager } from "./CombosManager";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
@@ -2861,7 +2862,7 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <Tabs defaultValue="lista" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsList className="grid w-full grid-cols-6 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Lista de Produtos
@@ -2879,8 +2880,12 @@ export const StoreOwnerDashboard = () => {
                   Adicionais
                 </TabsTrigger>
                 <TabsTrigger value="sabores" className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
+                  <Pizza className="w-4 h-4" />
                   Sabores
+                </TabsTrigger>
+                <TabsTrigger value="combos" className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4" />
+                  Combos
                 </TabsTrigger>
               </TabsList>
 
@@ -3861,6 +3866,10 @@ export const StoreOwnerDashboard = () => {
 
               <TabsContent value="sabores">
                 <ProductFlavorsManagement storeId={myStore.id} />
+              </TabsContent>
+
+              <TabsContent value="combos">
+                <CombosManager storeId={myStore.id} products={products || []} />
               </TabsContent>
             </Tabs>
           </motion.div>
