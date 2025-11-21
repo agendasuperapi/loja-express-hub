@@ -46,6 +46,7 @@ import { addonTemplates, type BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
+import { NewAddonDialog } from "./NewAddonDialog";
 
 interface ProductAddonsManagerProps {
   productId: string;
@@ -153,19 +154,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
 
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAddon, setEditingAddon] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    price: 0,
-    is_available: true,
-    category_id: null as string | null,
-    allow_quantity: false,
-  });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
@@ -182,7 +176,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [isNewAddonModalOpen, setIsNewAddonModalOpen] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     min_items: 0,
@@ -261,47 +254,9 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
   // Autocomplete suggestions combining store addons and templates
   const autocompleteSuggestions = useMemo(() => {
-    if (!formData.name.trim() || formData.name.length < 2) return [];
-
-    const term = formData.name.toLowerCase();
-    const suggestions: Array<{ type: 'store' | 'template'; name: string; price: number; categoryId?: string | null; templateCategory?: string }> = [];
-
-    // Add store addons (excluding ones already in this product)
-    const currentAddonNames = addons?.map(a => a.name.toLowerCase()) || [];
-    storeAddons
-      .filter(addon => 
-        addon.name.toLowerCase().includes(term) && 
-        !currentAddonNames.includes(addon.name.toLowerCase())
-      )
-      .slice(0, 5)
-      .forEach(addon => {
-        suggestions.push({
-          type: 'store',
-          name: addon.name,
-          price: addon.price,
-          categoryId: addon.category_id,
-        });
-      });
-
-    // Add template addons
-    addonTemplates.forEach(template => {
-      template.categories.forEach(category => {
-        category.addons
-          .filter(addon => addon.name.toLowerCase().includes(term))
-          .slice(0, 3)
-          .forEach(addon => {
-            suggestions.push({
-              type: 'template',
-              name: addon.name,
-              price: addon.price,
-              templateCategory: category.name,
-            });
-          });
-      });
-    });
-
-    return suggestions.slice(0, 8);
-  }, [formData.name, storeAddons, addons]);
+    const term = '';
+    return [];
+  }, [storeAddons, addons]);
 
   // Filtered store addons for the dialog
   const filteredStoreAddons = useMemo(() => {
@@ -326,41 +281,31 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     return grouped;
   }, [filteredStoreAddons, activeCategories]);
 
-  const handleSubmit = () => {
-    if (!formData.name.trim()) return;
-
-    if (editingId) {
-      updateAddon({ id: editingId, ...formData });
-      setEditingId(null);
+  const handleSubmit = (data: {
+    name: string;
+    price: number;
+    category_id: string | null;
+    is_available: boolean;
+    allow_quantity: boolean;
+  }) => {
+    if (editingAddon) {
+      updateAddon({ id: editingAddon.id, ...data });
     } else {
-      createAddon({ ...formData, product_id: productId });
+      createAddon({ ...data, product_id: productId });
     }
     
-    setFormData({ name: '', price: 0, is_available: true, category_id: null, allow_quantity: false });
-    setIsAdding(false);
+    setIsDialogOpen(false);
+    setEditingAddon(null);
   };
 
   const handleEdit = (addon: any) => {
-    setEditingId(addon.id);
-    setFormData({
-      name: addon.name,
-      price: addon.price,
-      is_available: addon.is_available,
-      category_id: addon.category_id || null,
-      allow_quantity: addon.allow_quantity || false,
-    });
-    setIsAdding(true);
-    
-    // Scroll to top
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
+    setEditingAddon(addon);
+    setIsDialogOpen(true);
   };
 
-  const handleCancel = () => {
-    setIsAdding(false);
-    setEditingId(null);
-    setFormData({ name: '', price: 0, is_available: true, category_id: null, allow_quantity: false });
+  const handleNewAddon = () => {
+    setEditingAddon(null);
+    setIsDialogOpen(true);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -557,16 +502,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     } catch (error) {
       // Error handled in hook
     }
-  };
-
-  const handleSelectAutocomplete = (suggestion: typeof autocompleteSuggestions[0]) => {
-    setFormData({
-      ...formData,
-      name: suggestion.name,
-      price: suggestion.price,
-      category_id: suggestion.categoryId || null,
-    });
-    setShowAutocomplete(false);
   };
 
   const handleCopyStoreAddon = (storeAddon: typeof storeAddons[0]) => {
@@ -865,183 +800,57 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                 {totalAddons > 0 && ` • ${availableAddons} disponíveis`}
               </CardDescription>
             </div>
-            {!isAdding && (
-              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 w-full md:w-auto">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    loadCustomTemplates();
-                    setIsImportDialogOpen(true);
-                  }}
-                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Importar Templates</span>
-                  <span className="sm:hidden">Templates</span>
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    loadProducts();
-                    setImportFromProductOpen(true);
-                  }}
-                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
-                >
-                  <Package className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Importar de Produtos</span>
-                  <span className="sm:hidden">Produtos</span>
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setIsStoreAddonsOpen(true)}
-                  className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
-                >
-                  <Search className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Buscar adicionais</span>
-                  <span className="sm:hidden">Buscar</span>
-                </Button>
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 w-full md:w-auto">
+              <Button 
+                size="sm" 
+                onClick={handleNewAddon}
+                className="w-full sm:w-auto shrink-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Adicional
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => {
+                  loadCustomTemplates();
+                  setIsImportDialogOpen(true);
+                }}
+                className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Importar Templates</span>
+                <span className="sm:hidden">Templates</span>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  loadProducts();
+                  setImportFromProductOpen(true);
+                }}
+                className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Importar de Produtos</span>
+                <span className="sm:hidden">Produtos</span>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setIsStoreAddonsOpen(true)}
+                className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Buscar adicionais</span>
+                <span className="sm:hidden">Buscar</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-        {isAdding && (
-          <div ref={formRef} className="space-y-3 p-4 border rounded-lg bg-muted/30">
-            <div className="space-y-2">
-              <Label>Nome do Adicional</Label>
-              <Popover open={showAutocomplete && autocompleteSuggestions.length > 0} onOpenChange={setShowAutocomplete}>
-                <PopoverTrigger asChild>
-                  <div className="relative">
-                    <Input
-                      placeholder="Ex: Queijo extra, Bacon..."
-                      value={formData.name}
-                      onChange={(e) => {
-                        setFormData({ ...formData, name: e.target.value });
-                        setShowAutocomplete(true);
-                      }}
-                      onFocus={() => setShowAutocomplete(true)}
-                    />
-                    {autocompleteSuggestions.length > 0 && (
-                      <Lightbulb className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-yellow-500" />
-                    )}
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className="w-[var(--radix-popover-trigger-width)] p-2 bg-popover z-50" 
-                  align="start"
-                  sideOffset={4}
-                >
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground px-2 py-1">Sugestões</p>
-                    {autocompleteSuggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSelectAutocomplete(suggestion)}
-                        className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-medium truncate">{suggestion.name}</span>
-                          <Badge variant={suggestion.type === 'store' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
-                            {suggestion.type === 'store' ? 'Loja' : 'Template'}
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          R$ {suggestion.price.toFixed(2)}
-                          {suggestion.templateCategory && ` • ${suggestion.templateCategory}`}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {activeCategories.length > 0 && (
-              <div className="space-y-2">
-                <Label>Categoria (opcional)</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={formData.category_id || 'none'}
-                    onValueChange={(value) => setFormData({ ...formData, category_id: value === 'none' ? null : value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent className="z-50 bg-popover">
-                      <SelectItem value="none">Sem categoria</SelectItem>
-                      {activeCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsCategoryModalOpen(true)}
-                    title="Criar nova categoria"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label>Preço Adicional</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  className="pl-9"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.is_available}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-                />
-                <Label>Disponível</Label>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.allow_quantity}
-                  onCheckedChange={(checked) => setFormData({ ...formData, allow_quantity: checked })}
-                />
-                <Label>Permite quantidade</Label>
-              </div>
-              <span className="text-xs text-muted-foreground">Cliente pode escolher múltiplas porções</span>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleSubmit} disabled={isCreating} className="flex-1">
-                {editingId ? 'Atualizar' : 'Adicionar'}
-              </Button>
-              <Button variant="outline" onClick={handleCancel}>
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Search and Filters */}
-        {!isAdding && addons && addons.length > 0 && (
+        {addons && addons.length > 0 && (
           <div className="space-y-3">
             {/* Search and Availability filters */}
             <div className="flex flex-col sm:flex-row gap-2">
@@ -1243,15 +1052,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         // Força atualização dos dados ao abrir o diálogo
         queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
       }
-      if (!open) {
-        setFormData({
-          name: '',
-          price: 0,
-          is_available: true,
-          category_id: null,
-          allow_quantity: false,
-        });
-      }
     }}>
       <DialogContent className="max-w-3xl max-h-[85vh] w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader>
@@ -1285,7 +1085,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="default"
               size="sm"
-              onClick={() => setIsNewAddonModalOpen(true)}
+              onClick={handleNewAddon}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1645,133 +1445,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         </DialogContent>
       </Dialog>
 
-      {/* Modal separado para adicionar novo adicional */}
-      <Dialog open={isNewAddonModalOpen} onOpenChange={setIsNewAddonModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Adicionar Novo Adicional</DialogTitle>
-            <DialogDescription>
-              Adicione um novo adicional à sua loja
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Nome do Adicional</Label>
-              <Input
-                placeholder="Ex: Queijo extra, Bacon..."
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            {activeCategories.length > 0 && (
-              <div className="space-y-2">
-                <Label>Categoria (opcional)</Label>
-                <div className="flex gap-2">
-                  <Select
-                    value={formData.category_id || 'none'}
-                    onValueChange={(value) => setFormData({ ...formData, category_id: value === 'none' ? null : value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent className="z-50 bg-popover">
-                      <SelectItem value="none">Sem categoria</SelectItem>
-                      {activeCategories.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsCategoryModalOpen(true)}
-                    title="Criar nova categoria"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <Label>Preço Adicional</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  className="pl-9"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.is_available}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-                />
-                <Label>Disponível</Label>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.allow_quantity}
-                  onCheckedChange={(checked) => setFormData({ ...formData, allow_quantity: checked })}
-                />
-                <Label>Permite quantidade</Label>
-              </div>
-              <span className="text-xs text-muted-foreground">Cliente pode escolher múltiplas porções</span>
-            </div>
-          </div>
-
-          <div className="flex gap-2 justify-end">
-            <Button 
-              onClick={() => {
-                setIsNewAddonModalOpen(false);
-                setFormData({
-                  name: '',
-                  price: 0,
-                  is_available: true,
-                  category_id: null,
-                  allow_quantity: false,
-                });
-              }} 
-              variant="outline"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={async () => {
-                await handleSubmit();
-                setIsNewAddonModalOpen(false);
-                setFormData({
-                  name: '',
-                  price: 0,
-                  is_available: true,
-                  category_id: null,
-                  allow_quantity: false,
-                });
-              }}
-              disabled={isCreating}
-            >
-              Adicionar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Modal separado para criar categoria */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -1847,6 +1520,21 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           </div>
         </DialogContent>
       </Dialog>
+
+      <NewAddonDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        storeId={storeId}
+        onSubmit={handleSubmit}
+        editData={editingAddon ? {
+          name: editingAddon.name,
+          price: editingAddon.price,
+          category_id: editingAddon.category_id,
+          is_available: editingAddon.is_available,
+          allow_quantity: editingAddon.allow_quantity || false,
+        } : null}
+        isLoading={isCreating}
+      />
     </>
   );
 }
