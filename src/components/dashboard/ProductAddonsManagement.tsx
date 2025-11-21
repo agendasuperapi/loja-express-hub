@@ -61,7 +61,7 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
   const { categories, loading, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useAddonCategories(storeId);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "" });
+  const [formData, setFormData] = useState({ name: "", min_items: 0, max_items: null as number | null, is_exclusive: false });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
@@ -75,27 +75,56 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
       return;
     }
 
-    if (editingId) {
-      await updateCategory(editingId, { name: formData.name });
-    } else {
-      await addCategory(formData.name);
+    // Validação de limites
+    if (formData.min_items < 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O mínimo de itens não pode ser negativo.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    setFormData({ name: "" });
+    if (!formData.is_exclusive && formData.max_items !== null && formData.max_items < formData.min_items) {
+      toast({
+        title: "Valor inválido",
+        description: "O máximo de itens deve ser maior ou igual ao mínimo.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingId) {
+      await updateCategory(editingId, { 
+        name: formData.name,
+        min_items: formData.min_items,
+        max_items: formData.is_exclusive ? 1 : formData.max_items,
+        is_exclusive: formData.is_exclusive,
+      });
+    } else {
+      await addCategory(formData.name, formData.min_items, formData.max_items, formData.is_exclusive);
+    }
+
+    setFormData({ name: "", min_items: 0, max_items: null, is_exclusive: false });
     setIsAdding(false);
     setEditingId(null);
   };
 
   const handleEdit = (category: any) => {
     setEditingId(category.id);
-    setFormData({ name: category.name });
+    setFormData({ 
+      name: category.name,
+      min_items: category.min_items ?? 0,
+      max_items: category.max_items,
+      is_exclusive: category.is_exclusive ?? false,
+    });
     setIsAdding(true);
   };
 
   const handleCancel = () => {
     setIsAdding(false);
     setEditingId(null);
-    setFormData({ name: "" });
+    setFormData({ name: "", min_items: 0, max_items: null, is_exclusive: false });
   };
 
   const handleDeleteClick = (categoryId: string) => {
@@ -140,10 +169,70 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
               <Input
                 id="category-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ name: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: Bordas, Tamanhos, Bebidas"
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
+                <div className="flex-1">
+                  <Label htmlFor="exclusive-switch" className="text-sm font-medium cursor-pointer">
+                    Seleção Exclusiva
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Permitir apenas 1 item selecionado (como tipo de carne, tamanho, etc.)
+                  </p>
+                </div>
+                <Switch
+                  id="exclusive-switch"
+                  checked={formData.is_exclusive}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      is_exclusive: checked,
+                      max_items: checked ? 1 : formData.max_items,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            {!formData.is_exclusive && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Mínimo de Itens</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="0 = opcional"
+                    value={formData.min_items}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        min_items: Number.isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Máximo de Itens</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Deixe vazio = ilimitado"
+                    value={formData.max_items ?? ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        max_items: e.target.value ? parseInt(e.target.value) : null,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Button onClick={handleSubmit} className="flex-1">
                 <Check className="w-4 h-4 mr-2" />
@@ -168,11 +257,29 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
                 key={category.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{category.name}</span>
-                  <Badge variant={category.is_active ? "default" : "secondary"}>
-                    {category.is_active ? "Ativo" : "Inativo"}
-                  </Badge>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">{category.name}</span>
+                    {category.is_exclusive && (
+                      <Badge variant="outline" className="text-xs">
+                        Exclusivo
+                      </Badge>
+                    )}
+                    <Badge variant={category.is_active ? "default" : "secondary"}>
+                      {category.is_active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {category.is_exclusive ? (
+                      "Apenas 1 item pode ser selecionado"
+                    ) : (
+                      <>
+                        {category.min_items > 0 ? `Mín: ${category.min_items}` : "Opcional"}
+                        {category.max_items !== null && ` • Máx: ${category.max_items}`}
+                        {category.max_items === null && category.min_items === 0 && " • Ilimitado"}
+                      </>
+                    )}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
