@@ -110,37 +110,37 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailabil
             + R$ {addon.price.toFixed(2)}
           </p>
         </div>
-      </div>
-      <div className="flex gap-1">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onToggleAvailability(addon)}
-          title={addon.is_available ? 'Inativar' : 'Ativar'}
-        >
-          {addon.is_available ? (
-            <PowerOff className="w-4 h-4" />
-          ) : (
-            <Power className="w-4 h-4" />
-          )}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onEdit(addon)}
-          title="Editar"
-        >
-          <Edit className="w-4 h-4" />
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => onDuplicate(addon.id)}
-          disabled={isDuplicating}
-          title="Duplicar"
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onToggleAvailability(addon)}
+            title={addon.is_available ? 'Inativar' : 'Ativar'}
+          >
+            {addon.is_available ? (
+              <PowerOff className="w-4 h-4" />
+            ) : (
+              <Power className="w-4 h-4" />
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(addon)}
+            title="Editar"
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDuplicate(addon.id)}
+            disabled={isDuplicating}
+            title="Duplicar"
+          >
+            <Copy className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
