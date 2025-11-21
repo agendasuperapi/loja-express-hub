@@ -2862,7 +2862,7 @@ export const StoreOwnerDashboard = () => {
             className="p-8 space-y-6"
           >
             <Tabs defaultValue="lista" className="w-full">
-              <TabsList className="grid w-full grid-cols-6 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Lista de Produtos
@@ -2875,17 +2875,9 @@ export const StoreOwnerDashboard = () => {
                   <ShoppingBag className="w-4 h-4" />
                   Combos
                 </TabsTrigger>
-                <TabsTrigger value="templates" className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Templates
-                </TabsTrigger>
-                <TabsTrigger value="adicionais" className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Adicionais
-                </TabsTrigger>
-                <TabsTrigger value="sabores" className="flex items-center gap-2">
-                  <Pizza className="w-4 h-4" />
-                  Sabores
+                <TabsTrigger value="edit" className="flex items-center gap-2">
+                  <Edit className="w-4 h-4" />
+                  Edit
                 </TabsTrigger>
               </TabsList>
 
@@ -3835,41 +3827,62 @@ export const StoreOwnerDashboard = () => {
                 </Dialog>
               </TabsContent>
 
-              <TabsContent value="templates">
-                <TemplatesTab storeId={myStore.id} />
+              <TabsContent value="combos">
+                <CombosManager storeId={myStore.id} products={products || []} />
               </TabsContent>
 
-              <TabsContent value="adicionais">
+              <TabsContent value="edit">
                 <div className="space-y-6">
-                  <Tabs defaultValue="categorias" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="categorias" className="flex items-center gap-2">
-                        <FolderTree className="w-4 h-4" />
-                        Categorias Adicionais
+                  <Tabs defaultValue="templates" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 mb-6">
+                      <TabsTrigger value="templates" className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        Templates
                       </TabsTrigger>
-                      <TabsTrigger value="globais" className="flex items-center gap-2">
+                      <TabsTrigger value="adicionais" className="flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Adicionais Globais
+                        Adicionais
+                      </TabsTrigger>
+                      <TabsTrigger value="sabores" className="flex items-center gap-2">
+                        <Pizza className="w-4 h-4" />
+                        Sabores
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="categorias">
-                      <CategoriesTab storeId={myStore.id} />
+                    <TabsContent value="templates">
+                      <TemplatesTab storeId={myStore.id} />
                     </TabsContent>
 
-                    <TabsContent value="globais">
-                      <AddonsTab storeId={myStore.id} />
+                    <TabsContent value="adicionais">
+                      <div className="space-y-6">
+                        <Tabs defaultValue="categorias" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-6">
+                            <TabsTrigger value="categorias" className="flex items-center gap-2">
+                              <FolderTree className="w-4 h-4" />
+                              Categorias Adicionais
+                            </TabsTrigger>
+                            <TabsTrigger value="globais" className="flex items-center gap-2">
+                              <Plus className="w-4 h-4" />
+                              Adicionais Globais
+                            </TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="categorias">
+                            <CategoriesTab storeId={myStore.id} />
+                          </TabsContent>
+
+                          <TabsContent value="globais">
+                            <AddonsTab storeId={myStore.id} />
+                          </TabsContent>
+                        </Tabs>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="sabores">
+                      <ProductFlavorsManagement storeId={myStore.id} />
                     </TabsContent>
                   </Tabs>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="sabores">
-                <ProductFlavorsManagement storeId={myStore.id} />
-              </TabsContent>
-
-              <TabsContent value="combos">
-                <CombosManager storeId={myStore.id} products={products || []} />
               </TabsContent>
             </Tabs>
           </motion.div>
