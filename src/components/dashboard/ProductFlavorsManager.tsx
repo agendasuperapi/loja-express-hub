@@ -143,6 +143,13 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [selectedFlavorIds, setSelectedFlavorIds] = useState<string[]>([]);
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
+  const [showFlavorFormInModal, setShowFlavorFormInModal] = useState(false);
+  const [flavorFormData, setFlavorFormData] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    is_available: true,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -180,6 +187,40 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
     setIsAdding(false);
     setEditingId(null);
     setFormData({ name: '', description: '', price: 0, is_available: true });
+  };
+
+  const handleCreateFlavorInModal = async () => {
+    if (!flavorFormData.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "Por favor, insira um nome para o sabor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await createFlavor({ ...flavorFormData, product_id: productId });
+      
+      setShowFlavorFormInModal(false);
+      setFlavorFormData({
+        name: '',
+        description: '',
+        price: 0,
+        is_available: true,
+      });
+      
+      toast({
+        title: "Sabor cadastrado!",
+        description: "O sabor foi adicionado com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao cadastrar sabor',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const loadProducts = async () => {
@@ -940,41 +981,124 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
                 <span>Buscar Sabores da Loja</span>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    if (!storeFlavors || storeFlavors.length === 0) return;
-                    
-                    try {
-                      for (const flavor of storeFlavors) {
-                        const isInProduct = flavors?.some(f => f.name === flavor.name);
-                        if (!isInProduct) {
-                          await handleAddStoreFlavor(flavor);
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setShowFlavorFormInModal(!showFlavorFormInModal)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Cadastrar Sabor
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      if (!storeFlavors || storeFlavors.length === 0) return;
+                      
+                      try {
+                        for (const flavor of storeFlavors) {
+                          const isInProduct = flavors?.some(f => f.name === flavor.name);
+                          if (!isInProduct) {
+                            await handleAddStoreFlavor(flavor);
+                          }
                         }
+                        toast({
+                          title: 'Sabores adicionados!',
+                          description: 'Todos os sabores disponíveis foram adicionados.',
+                        });
+                        setSearchFlavorsOpen(false);
+                      } catch (error: any) {
+                        toast({
+                          title: 'Erro ao adicionar sabores',
+                          description: error.message,
+                          variant: 'destructive',
+                        });
                       }
-                      toast({
-                        title: 'Sabores adicionados!',
-                        description: 'Todos os sabores disponíveis foram adicionados.',
-                      });
-                      setSearchFlavorsOpen(false);
-                    } catch (error: any) {
-                      toast({
-                        title: 'Erro ao adicionar sabores',
-                        description: error.message,
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  disabled={!storeFlavors || storeFlavors.length === 0}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Todos
-                </Button>
+                    }}
+                    disabled={!storeFlavors || storeFlavors.length === 0}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Todos
+                  </Button>
+                </div>
               </DialogTitle>
               <DialogDescription>
                 Todos os sabores únicos cadastrados em sua loja
               </DialogDescription>
             </DialogHeader>
+
+            {/* Form to Create New Flavor */}
+            {showFlavorFormInModal && (
+              <div className="space-y-3 p-4 border rounded-lg bg-muted/30 mb-4">
+                <div className="space-y-2">
+                  <Label>Nome do Sabor</Label>
+                  <Input
+                    placeholder="Ex: Calabresa, Margherita..."
+                    value={flavorFormData.name}
+                    onChange={(e) => setFlavorFormData({ ...flavorFormData, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Descrição (opcional)</Label>
+                  <Textarea
+                    placeholder="Ex: Molho, queijo, calabresa..."
+                    value={flavorFormData.description}
+                    onChange={(e) => setFlavorFormData({ ...flavorFormData, description: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Preço Adicional</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      className="pl-9"
+                      value={flavorFormData.price}
+                      onChange={(e) => setFlavorFormData({ ...flavorFormData, price: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={flavorFormData.is_available}
+                    onCheckedChange={(checked) => setFlavorFormData({ ...flavorFormData, is_available: checked })}
+                  />
+                  <Label>Disponível</Label>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    onClick={handleCreateFlavorInModal}
+                    disabled={isCreating} 
+                    className="flex-1"
+                  >
+                    Cadastrar
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setShowFlavorFormInModal(false);
+                      setFlavorFormData({
+                        name: '',
+                        description: '',
+                        price: 0,
+                        is_available: true,
+                      });
+                    }} 
+                    variant="outline"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               {storeFlavors && storeFlavors.length > 0 ? (
                 storeFlavors.map((flavor) => {
