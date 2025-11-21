@@ -35,6 +35,7 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
+  const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
   const [storeId, setStoreId] = useState<string | undefined>();
   const { addons } = useProductAddons(product.id);
@@ -76,18 +77,36 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
       setQuantity(1);
       setObservation("");
       setSelectedAddons(new Set());
+      setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
     }
   }, [open]);
 
-  const handleAddonToggle = (addonId: string) => {
+  const handleAddonToggle = (addonId: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
+    const newQuantities = new Map(addonQuantities);
+    
     if (newSelected.has(addonId)) {
       newSelected.delete(addonId);
+      newQuantities.delete(addonId);
     } else {
       newSelected.add(addonId);
+      if (allowQuantity) {
+        newQuantities.set(addonId, 1);
+      }
     }
     setSelectedAddons(newSelected);
+    setAddonQuantities(newQuantities);
+  };
+
+  const handleAddonQuantityChange = (addonId: string, newQuantity: number) => {
+    const newQuantities = new Map(addonQuantities);
+    if (newQuantity > 0) {
+      newQuantities.set(addonId, newQuantity);
+    } else {
+      newQuantities.delete(addonId);
+    }
+    setAddonQuantities(newQuantities);
   };
 
   const handleFlavorToggle = (flavorId: string) => {
@@ -109,20 +128,31 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
 
     const addonsToAdd = addons
       ?.filter(addon => selectedAddons.has(addon.id))
-      .map(addon => ({ id: addon.id, name: addon.name, price: addon.price })) || [];
+      .map(addon => {
+        const qty = addonQuantities.get(addon.id) || 1;
+        return { 
+          id: addon.id, 
+          name: addon.name, 
+          price: addon.price,
+          quantity: qty
+        };
+      }) || [];
     
     const flavorsToAdd = flavors
       ?.filter(flavor => selectedFlavors.has(flavor.id))
       .map(flavor => ({ id: flavor.id, name: flavor.name, price: flavor.price })) || [];
     
-    onAdd(quantity, observation, addonsToAdd, flavorsToAdd);
+    onAdd(quantity, observation, addonsToAdd as any, flavorsToAdd);
     onOpenChange(false);
   };
 
   const price = product.promotional_price || product.price;
   const addonsTotal = addons
     ?.filter(addon => selectedAddons.has(addon.id))
-    .reduce((sum, addon) => sum + addon.price, 0) || 0;
+    .reduce((sum, addon) => {
+      const qty = addonQuantities.get(addon.id) || 1;
+      return sum + (addon.price * qty);
+    }, 0) || 0;
   
   const flavorsTotal = flavors
     ?.filter(flavor => selectedFlavors.has(flavor.id))
@@ -235,22 +265,47 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
                               key={addon.id}
                               className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
                             >
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1">
                                 <Checkbox
                                   id={`addon-${addon.id}`}
                                   checked={selectedAddons.has(addon.id)}
-                                  onCheckedChange={() => handleAddonToggle(addon.id)}
+                                  onCheckedChange={() => handleAddonToggle(addon.id, addon.allow_quantity)}
                                 />
                                 <Label
                                   htmlFor={`addon-${addon.id}`}
-                                  className="cursor-pointer font-normal"
+                                  className="cursor-pointer font-normal flex-1"
                                 >
                                   {addon.name}
                                 </Label>
                               </div>
-                              <span className="text-sm font-medium text-muted-foreground">
-                                + R$ {addon.price.toFixed(2)}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                    >
+                                      <Minus className="w-3 h-3" />
+                                    </Button>
+                                    <span className="text-sm font-medium w-6 text-center">
+                                      {addonQuantities.get(addon.id) || 1}x
+                                    </span>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                )}
+                                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                  + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                                </span>
+                              </div>
                             </div>
                           ))}
                       </div>
@@ -269,22 +324,47 @@ export const AddToCartDialog = ({ open, onOpenChange, product, onAdd }: AddToCar
                             key={addon.id}
                             className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-1">
                               <Checkbox
                                 id={`addon-${addon.id}`}
                                 checked={selectedAddons.has(addon.id)}
-                                onCheckedChange={() => handleAddonToggle(addon.id)}
+                                onCheckedChange={() => handleAddonToggle(addon.id, addon.allow_quantity)}
                               />
                               <Label
                                 htmlFor={`addon-${addon.id}`}
-                                className="cursor-pointer font-normal"
+                                className="cursor-pointer font-normal flex-1"
                               >
                                 {addon.name}
                               </Label>
                             </div>
-                            <span className="text-sm font-medium text-muted-foreground">
-                              + R$ {addon.price.toFixed(2)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </Button>
+                                  <span className="text-sm font-medium w-6 text-center">
+                                    {addonQuantities.get(addon.id) || 1}x
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
+                              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                                + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                              </span>
+                            </div>
                           </div>
                         ))}
                     </div>
