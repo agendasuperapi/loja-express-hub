@@ -170,6 +170,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [showCategoryFormInModal, setShowCategoryFormInModal] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     min_items: 0,
@@ -524,6 +525,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       );
       
       setShowCategoryFormInModal(false);
+      setIsCategoryModalOpen(false);
       setCategoryFormData({
         name: '',
         min_items: 0,
@@ -959,7 +961,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => setShowCategoryFormInModal(true)}
+                    onClick={() => setIsCategoryModalOpen(true)}
                     title="Criar nova categoria"
                   >
                     <Plus className="w-4 h-4" />
@@ -1259,76 +1261,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             Adicionais da Loja
           </DialogTitle>
         </DialogHeader>
-        
         <div className="space-y-4">
-          {/* Form to Create New Category */}
-          {showCategoryFormInModal && (
-            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-              <div className="space-y-2">
-                <Label>Nome da Categoria</Label>
-                <Input
-                  placeholder="Ex: Escolha seu feijão, Carnes..."
-                  value={categoryFormData.name}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Mín. de itens</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={categoryFormData.min_items}
-                    onChange={(e) => setCategoryFormData({ ...categoryFormData, min_items: parseInt(e.target.value) || 0 })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Máx. de itens</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="Ilimitado"
-                    value={categoryFormData.max_items || ''}
-                    onChange={(e) => setCategoryFormData({ ...categoryFormData, max_items: e.target.value ? parseInt(e.target.value) : null })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={categoryFormData.is_exclusive}
-                  onCheckedChange={(checked) => setCategoryFormData({ ...categoryFormData, is_exclusive: checked })}
-                />
-                <Label>Seleção exclusiva (escolher apenas 1)</Label>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  onClick={handleCreateCategory}
-                  className="flex-1"
-                >
-                  Criar Categoria
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setShowCategoryFormInModal(false);
-                    setCategoryFormData({
-                      name: '',
-                      min_items: 0,
-                      max_items: null,
-                      is_exclusive: false,
-                    });
-                  }} 
-                  variant="outline"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* Form to Create New Addon */}
           {showStoreFormInModal && (
             <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
@@ -1365,10 +1298,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() => {
-                        setShowCategoryFormInModal(true);
-                        setShowStoreFormInModal(false);
-                      }}
+                      onClick={() => setIsCategoryModalOpen(true)}
                       title="Criar nova categoria"
                     >
                       <Plus className="w-4 h-4" />
@@ -1468,10 +1398,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="default"
               size="sm"
-              onClick={() => {
-                setShowStoreFormInModal(!showStoreFormInModal);
-                setShowCategoryFormInModal(false);
-              }}
+              onClick={() => setShowStoreFormInModal(!showStoreFormInModal)}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1480,10 +1407,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => {
-                setShowCategoryFormInModal(!showCategoryFormInModal);
-                setShowStoreFormInModal(false);
-              }}
+              onClick={() => setIsCategoryModalOpen(true)}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1831,8 +1755,84 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </p>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
-  </>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal separado para criar categoria */}
+      <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Criar Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Crie uma categoria para organizar seus adicionais
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome da Categoria</Label>
+              <Input
+                placeholder="Ex: Molhos, Coberturas, Tamanhos..."
+                value={categoryFormData.name}
+                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mín. de itens</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={categoryFormData.min_items}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, min_items: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Máx. de itens</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Ilimitado"
+                  value={categoryFormData.max_items || ''}
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, max_items: e.target.value ? parseInt(e.target.value) : null })}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={categoryFormData.is_exclusive}
+                onCheckedChange={(checked) => setCategoryFormData({ ...categoryFormData, is_exclusive: checked })}
+              />
+              <Label>Seleção exclusiva (escolher apenas 1)</Label>
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <Button 
+              onClick={() => {
+                setIsCategoryModalOpen(false);
+                setCategoryFormData({
+                  name: '',
+                  min_items: 0,
+                  max_items: null,
+                  is_exclusive: false,
+                });
+              }} 
+              variant="outline"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreateCategory}
+            >
+              Criar Categoria
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
