@@ -497,14 +497,14 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
               />
               <Label htmlFor="addon-available">Disponível</Label>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleSubmit} className="flex-1">
-                <Check className="w-4 h-4 mr-2" />
-                {editingId ? "Atualizar" : "Salvar"}
-              </Button>
-              <Button onClick={handleCancel} variant="outline" className="flex-1">
+            <div className="flex gap-2 justify-end">
+              <Button onClick={handleCancel} variant="outline">
                 <X className="w-4 h-4 mr-2" />
                 Cancelar
+              </Button>
+              <Button onClick={handleSubmit}>
+                <Check className="w-4 h-4 mr-2" />
+                {editingId ? "Atualizar" : "Salvar"}
               </Button>
             </div>
           </div>
