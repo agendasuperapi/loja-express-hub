@@ -25,6 +25,7 @@ export const useProductManagement = (storeId?: string) => {
         .from('products')
         .select('*')
         .eq('store_id', storeId!)
+        .order('category', { ascending: true })
         .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 

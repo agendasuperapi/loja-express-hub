@@ -274,25 +274,48 @@ export const StoreOwnerDashboard = () => {
     })
   );
 
-  // Handle drag end for product reordering
+  // Handle drag end for product reordering by category
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
       setLocalProducts((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
+        const activeProduct = items.find((item) => item.id === active.id);
+        const overProduct = items.find((item) => item.id === over.id);
         
-        const newOrder = arrayMove(items, oldIndex, newIndex);
+        // Only allow reordering within the same category
+        if (!activeProduct || !overProduct || activeProduct.category !== overProduct.category) {
+          return items;
+        }
         
-        // Update display_order for all products
-        const updates = newOrder.map((product, index) => ({
+        // Get all products from the same category
+        const categoryProducts = items.filter(p => p.category === activeProduct.category);
+        const otherProducts = items.filter(p => p.category !== activeProduct.category);
+        
+        // Find indices within the category
+        const oldIndex = categoryProducts.findIndex((item) => item.id === active.id);
+        const newIndex = categoryProducts.findIndex((item) => item.id === over.id);
+        
+        // Reorder within category
+        const reorderedCategoryProducts = arrayMove(categoryProducts, oldIndex, newIndex);
+        
+        // Update display_order for reordered category products
+        const updates = reorderedCategoryProducts.map((product, index) => ({
           id: product.id,
           display_order: index + 1,
         }));
         
         // Save to backend
         reorderProducts(updates);
+        
+        // Merge back with other products, maintaining category grouping
+        const newOrder = [...otherProducts, ...reorderedCategoryProducts].sort((a, b) => {
+          // First sort by category
+          if (a.category < b.category) return -1;
+          if (a.category > b.category) return 1;
+          // Then by display_order within category
+          return (a.display_order || 0) - (b.display_order || 0);
+        });
         
         return newOrder;
       });
@@ -3124,23 +3147,89 @@ export const StoreOwnerDashboard = () => {
                   }
 
                   if (isReorderMode) {
+                    // Group products by category
+                    const productsByCategory = filteredProducts.reduce((acc, product) => {
+                      if (!acc[product.category]) {
+                        acc[product.category] = [];
+                      }
+                      acc[product.category].push(product);
+                      return acc;
+                    }, {} as Record<string, any[]>);
+
                     return (
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                      >
-                        <SortableContext
-                          items={filteredProducts.map(p => p.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                            {filteredProducts.map((product, index) => (
+                      <div className="col-span-full space-y-8">
+                        {Object.entries(productsByCategory).map(([category, categoryProducts]: [string, any[]]) => (
+                          <div key={category} className="space-y-4">
+                            <div className="flex items-center gap-3 px-2">
+                              <div className="flex items-center gap-2">
+                                <FolderTree className="w-5 h-5 text-primary" />
+                                <h3 className="text-xl font-bold">{category}</h3>
+                              </div>
+                              <Badge variant="secondary" className="text-sm">
+                                {categoryProducts.length} {categoryProducts.length === 1 ? 'produto' : 'produtos'}
+                              </Badge>
+                            </div>
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleDragEnd}
+                            >
+                              <SortableContext
+                                items={categoryProducts.map(p => p.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                                  {categoryProducts.map((product, index) => (
+                                    <SortableProductCard
+                                      key={product.id}
+                                      product={product}
+                                      index={index}
+                                      isReorderMode={isReorderMode}
+                                      hasPermission={hasPermission}
+                                      onEdit={handleEditProduct}
+                                      onToggleAvailability={(id, isAvailable) => 
+                                        toggleProductAvailability({ id, is_available: isAvailable })
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  // Group products by category for normal view
+                  const productsByCategory = filteredProducts.reduce((acc, product) => {
+                    if (!acc[product.category]) {
+                      acc[product.category] = [];
+                    }
+                    acc[product.category].push(product);
+                    return acc;
+                  }, {} as Record<string, any[]>);
+
+                  return (
+                    <div className="col-span-full space-y-8">
+                      {Object.entries(productsByCategory).map(([category, categoryProducts]: [string, any[]]) => (
+                        <div key={category} className="space-y-4">
+                          <div className="flex items-center gap-3 px-2">
+                            <div className="flex items-center gap-2">
+                              <FolderTree className="w-5 h-5 text-primary" />
+                              <h3 className="text-xl font-bold">{category}</h3>
+                            </div>
+                            <Badge variant="secondary" className="text-sm">
+                              {categoryProducts.length} {categoryProducts.length === 1 ? 'produto' : 'produtos'}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                            {categoryProducts.map((product, index) => (
                               <SortableProductCard
                                 key={product.id}
                                 product={product}
                                 index={index}
-                                isReorderMode={isReorderMode}
+                                isReorderMode={false}
                                 hasPermission={hasPermission}
                                 onEdit={handleEditProduct}
                                 onToggleAvailability={(id, isAvailable) => 
@@ -3149,25 +3238,7 @@ export const StoreOwnerDashboard = () => {
                               />
                             ))}
                           </div>
-                        </SortableContext>
-                      </DndContext>
-                    );
-                  }
-
-                  return (
-                    <div className="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                      {filteredProducts.map((product, index) => (
-                        <SortableProductCard
-                          key={product.id}
-                          product={product}
-                          index={index}
-                          isReorderMode={false}
-                          hasPermission={hasPermission}
-                          onEdit={handleEditProduct}
-                          onToggleAvailability={(id, isAvailable) => 
-                            toggleProductAvailability({ id, is_available: isAvailable })
-                          }
-                        />
+                        </div>
                       ))}
                     </div>
                   );
