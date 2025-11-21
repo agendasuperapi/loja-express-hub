@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useStoreAddons } from "@/hooks/useStoreAddons";
 import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
-import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown, Power, PowerOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown, Power, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addonTemplates, BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
@@ -256,10 +256,18 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Switch
-                    checked={category.is_active}
-                    onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleCategoryStatus(category.id, !category.is_active)}
+                    title={category.is_active ? 'Inativar' : 'Ativar'}
+                  >
+                    {category.is_active ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Power className="w-4 h-4" />
+                    )}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -570,7 +578,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                           title={addon.is_available ? "Inativar" : "Ativar"}
                         >
                           {addon.is_available ? (
-                            <PowerOff className="w-4 h-4" />
+                            <EyeOff className="w-4 h-4" />
                           ) : (
                             <Power className="w-4 h-4" />
                           )}
