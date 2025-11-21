@@ -1103,9 +1103,9 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
               </div>
             )}
 
-            {/* Search Field */}
-            <div className="space-y-4">
-              <div className="relative">
+            {/* Search and Actions */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar sabor..."
@@ -1124,9 +1124,51 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   </Button>
                 )}
               </div>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowFlavorFormInModal(!showFlavorFormInModal)}
+                className="shrink-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Sabor
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!filteredStoreFlavors || filteredStoreFlavors.length === 0) return;
+                  
+                  try {
+                    for (const flavor of filteredStoreFlavors) {
+                      const isInProduct = flavors?.some(f => f.name === flavor.name);
+                      if (!isInProduct) {
+                        await handleAddStoreFlavor(flavor);
+                      }
+                    }
+                    
+                    toast({
+                      title: "Sabores adicionados",
+                      description: "Todos os sabores disponíveis foram adicionados ao produto com sucesso.",
+                    });
+                  } catch (error) {
+                    toast({
+                      title: "Erro ao adicionar sabores",
+                      description: "Ocorreu um erro ao adicionar os sabores. Tente novamente.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                disabled={!filteredStoreFlavors || filteredStoreFlavors.length === 0}
+                className="shrink-0"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Todos
+              </Button>
             </div>
 
-            <div className="space-y-2">
+            {/* Store Flavors List */}
+            <div className="overflow-y-auto max-h-[50vh] space-y-2">
               {filteredStoreFlavors && filteredStoreFlavors.length > 0 ? (
                 filteredStoreFlavors.map((flavor) => {
                   const isInProduct = flavors?.some(f => f.name === flavor.name);
@@ -1134,28 +1176,27 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   return (
                     <div
                       key={flavor.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg"
                     >
-                      <div className="flex-1">
-                        <p className="font-medium">{flavor.name}</p>
-                        {flavor.description && (
-                          <p className="text-sm text-muted-foreground">{flavor.description}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-sm text-muted-foreground">
-                            R$ {flavor.price.toFixed(2)}
-                          </p>
-                          {flavor.product_name && (
-                            <Badge variant="outline" className="text-xs">
-                              {flavor.product_name}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium truncate">{flavor.name}</span>
+                          {isInProduct && (
+                            <Badge variant="outline" className="text-xs flex-shrink-0">
+                              Já adicionado
                             </Badge>
                           )}
                         </div>
+                        <p className="text-sm text-muted-foreground">
+                          R$ {flavor.price.toFixed(2)}
+                          {flavor.description && ` • ${flavor.description}`}
+                        </p>
                       </div>
                       <Button
                         size="sm"
                         onClick={() => handleAddStoreFlavor(flavor)}
                         disabled={isInProduct}
+                        className="w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
                         Adicionar
