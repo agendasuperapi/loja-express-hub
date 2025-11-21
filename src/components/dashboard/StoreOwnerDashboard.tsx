@@ -247,6 +247,10 @@ export const StoreOwnerDashboard = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   const [bulkCategoryChange, setBulkCategoryChange] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'category' | 'price' | 'promotional_price' | null; direction: 'asc' | 'desc' }>({
+    key: null,
+    direction: 'asc',
+  });
   const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
@@ -286,7 +290,7 @@ export const StoreOwnerDashboard = () => {
   // Memoize filtered products for bulk operations
   const filteredProducts = useMemo(() => {
     const displayProducts = isReorderMode ? localProducts : products;
-    return displayProducts
+    let filtered = displayProducts
       ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
       .filter(product => {
         if (productStatusFilter === 'active') return product.is_available;
@@ -298,12 +302,56 @@ export const StoreOwnerDashboard = () => {
         return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
                product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
       }) || [];
-  }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm]);
+
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        const aValue = a[sortConfig.key!];
+        const bValue = b[sortConfig.key!];
+        
+        if (aValue === null || aValue === undefined) return 1;
+        if (bValue === null || bValue === undefined) return -1;
+        
+        if (sortConfig.key === 'price' || sortConfig.key === 'promotional_price') {
+          const numA = Number(aValue) || 0;
+          const numB = Number(bValue) || 0;
+          return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+        }
+        
+        const strA = String(aValue).toLowerCase();
+        const strB = String(bValue).toLowerCase();
+        
+        if (strA < strB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (strA > strB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm, sortConfig]);
 
   // Clear selection when filters change
   useEffect(() => {
     setSelectedProducts([]);
   }, [categoryFilter, productStatusFilter, productSearchTerm, productViewMode]);
+
+  // Handle column sort
+  const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price') => {
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  // Sort indicator component
+  const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' }) => {
+    if (sortConfig.key !== column) {
+      return <ArrowUp className="w-3 h-3 text-muted-foreground/30" />;
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUp className="w-3 h-3 text-primary" />
+      : <ArrowDown className="w-3 h-3 text-primary" />;
+  };
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -3366,11 +3414,43 @@ export const StoreOwnerDashboard = () => {
                                   />
                                 </TableHead>
                                 <TableHead className="w-[80px]">Imagem</TableHead>
-                                <TableHead>Nome</TableHead>
-                                <TableHead>Categoria</TableHead>
+                                <TableHead 
+                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                                  onClick={() => handleSort('name')}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    Nome
+                                    <SortIndicator column="name" />
+                                  </div>
+                                </TableHead>
+                                <TableHead 
+                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                                  onClick={() => handleSort('category')}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    Categoria
+                                    <SortIndicator column="category" />
+                                  </div>
+                                </TableHead>
                                 <TableHead>Descrição</TableHead>
-                                <TableHead className="text-right">Preço</TableHead>
-                                <TableHead className="text-right">Preço Promo</TableHead>
+                                <TableHead 
+                                  className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                                  onClick={() => handleSort('price')}
+                                >
+                                  <div className="flex items-center justify-end gap-2">
+                                    Preço
+                                    <SortIndicator column="price" />
+                                  </div>
+                                </TableHead>
+                                <TableHead 
+                                  className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                                  onClick={() => handleSort('promotional_price')}
+                                >
+                                  <div className="flex items-center justify-end gap-2">
+                                    Preço Promo
+                                    <SortIndicator column="promotional_price" />
+                                  </div>
+                                </TableHead>
                                 <TableHead className="text-center">Status</TableHead>
                                 <TableHead className="text-center w-[120px]">Ações</TableHead>
                               </TableRow>
