@@ -31,7 +31,7 @@ import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -81,6 +81,7 @@ import { SortableProductCard } from "./SortableProductCard";
 import { SortableCategoryCard } from "./SortableCategoryCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const StoreOwnerDashboard = () => {
   const navigate = useNavigate();
@@ -243,6 +244,9 @@ export const StoreOwnerDashboard = () => {
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
   const [localProducts, setLocalProducts] = useState<any[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
+  const [bulkCategoryChange, setBulkCategoryChange] = useState('');
   const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
@@ -278,6 +282,28 @@ export const StoreOwnerDashboard = () => {
       setLocalCategories(categories);
     }
   }, [categories]);
+
+  // Memoize filtered products for bulk operations
+  const filteredProducts = useMemo(() => {
+    const displayProducts = isReorderMode ? localProducts : products;
+    return displayProducts
+      ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
+      .filter(product => {
+        if (productStatusFilter === 'active') return product.is_available;
+        if (productStatusFilter === 'inactive') return !product.is_available;
+        return true;
+      })
+      .filter(product => {
+        if (!productSearchTerm) return true;
+        return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+               product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
+      }) || [];
+  }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm]);
+
+  // Clear selection when filters change
+  useEffect(() => {
+    setSelectedProducts([]);
+  }, [categoryFilter, productStatusFilter, productSearchTerm, productViewMode]);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -1005,6 +1031,81 @@ export const StoreOwnerDashboard = () => {
         });
       },
     });
+  };
+
+  // Bulk actions handlers
+  const handleToggleSelectAll = () => {
+    if (selectedProducts.length === filteredProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const handleToggleSelectProduct = (productId: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleBulkToggleAvailability = async (isAvailable: boolean) => {
+    try {
+      await Promise.all(
+        selectedProducts.map(productId => 
+          toggleProductAvailability({ id: productId, is_available: isAvailable })
+        )
+      );
+      toast({
+        title: 'Sucesso!',
+        description: `${selectedProducts.length} produto(s) ${isAvailable ? 'ativados' : 'desativados'}!`,
+      });
+      setSelectedProducts([]);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar produtos',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleBulkChangeCategory = async () => {
+    if (!bulkCategoryChange) {
+      toast({
+        title: 'Categoria não selecionada',
+        description: 'Por favor, selecione uma categoria',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedProducts.map(productId => {
+          const product = products?.find(p => p.id === productId);
+          if (!product) return Promise.resolve();
+          return updateProduct({
+            ...product,
+            category: bulkCategoryChange,
+          });
+        })
+      );
+      toast({
+        title: 'Sucesso!',
+        description: `${selectedProducts.length} produto(s) movidos para "${bulkCategoryChange}"!`,
+      });
+      setSelectedProducts([]);
+      setBulkCategoryChange('');
+      setIsBulkActionDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao alterar categoria dos produtos',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleUpdateStore = async () => {
@@ -3200,36 +3301,102 @@ export const StoreOwnerDashboard = () => {
                   // Table View
                   if (productViewMode === 'table') {
                     return (
-                      <ScrollableTable maxHeight="calc(100vh - 400px)">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-[80px]">Imagem</TableHead>
-                              <TableHead>Nome</TableHead>
-                              <TableHead>Categoria</TableHead>
-                              <TableHead>Descrição</TableHead>
-                              <TableHead className="text-right">Preço</TableHead>
-                              <TableHead className="text-right">Preço Promo</TableHead>
-                              <TableHead className="text-center">Status</TableHead>
-                              <TableHead className="text-center w-[120px]">Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredProducts.map((product) => (
-                              <TableRow key={product.id} className={!product.is_available ? 'opacity-60' : ''}>
-                                <TableCell>
-                                  <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                                    {product.image_url ? (
-                                      <img 
-                                        src={product.image_url} 
-                                        alt={product.name}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    ) : (
-                                      <Package className="w-6 h-6 text-muted-foreground" />
-                                    )}
-                                  </div>
-                                </TableCell>
+                      <div className="space-y-4">
+                        {/* Bulk Actions Bar */}
+                        {selectedProducts.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-lg"
+                          >
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-5 h-5 text-primary" />
+                              <span className="font-medium">
+                                {selectedProducts.length} produto(s) selecionados
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-auto">
+                              {hasPermission('products', 'update') && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleBulkToggleAvailability(true)}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Ativar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleBulkToggleAvailability(false)}
+                                  >
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                    Desativar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsBulkActionDialogOpen(true)}
+                                  >
+                                    <Tag className="w-4 h-4 mr-2" />
+                                    Alterar Categoria
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedProducts([])}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        <ScrollableTable maxHeight="calc(100vh - 400px)">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[50px]">
+                                  <Checkbox
+                                    checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                                    onCheckedChange={handleToggleSelectAll}
+                                  />
+                                </TableHead>
+                                <TableHead className="w-[80px]">Imagem</TableHead>
+                                <TableHead>Nome</TableHead>
+                                <TableHead>Categoria</TableHead>
+                                <TableHead>Descrição</TableHead>
+                                <TableHead className="text-right">Preço</TableHead>
+                                <TableHead className="text-right">Preço Promo</TableHead>
+                                <TableHead className="text-center">Status</TableHead>
+                                <TableHead className="text-center w-[120px]">Ações</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {filteredProducts.map((product) => (
+                                <TableRow key={product.id} className={!product.is_available ? 'opacity-60' : ''}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedProducts.includes(product.id)}
+                                      onCheckedChange={() => handleToggleSelectProduct(product.id)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
+                                      {product.image_url ? (
+                                        <img 
+                                          src={product.image_url} 
+                                          alt={product.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <Package className="w-6 h-6 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                  </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
                                 <TableCell>
                                   <Badge variant="secondary">{product.category}</Badge>
@@ -3281,6 +3448,7 @@ export const StoreOwnerDashboard = () => {
                           </TableBody>
                         </Table>
                       </ScrollableTable>
+                      </div>
                     );
                   }
 
@@ -4938,6 +5106,54 @@ export const StoreOwnerDashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Change Category Dialog */}
+      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Categoria em Massa</DialogTitle>
+            <DialogDescription>
+              Selecione a nova categoria para os {selectedProducts.length} produto(s) selecionado(s)
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="bulk-category">Nova Categoria</Label>
+              <Select
+                value={bulkCategoryChange}
+                onValueChange={setBulkCategoryChange}
+              >
+                <SelectTrigger id="bulk-category">
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories
+                    ?.filter(cat => cat.is_active)
+                    .map(category => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsBulkActionDialogOpen(false);
+                setBulkCategoryChange('');
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleBulkChangeCategory}>
+              Alterar Categoria
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
