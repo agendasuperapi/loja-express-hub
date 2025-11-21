@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb, Download, Package } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb, Download, Package, Filter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -1019,25 +1019,28 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         {/* Search and Filters */}
         {!isAdding && addons && addons.length > 0 && (
           <div className="space-y-3">
-            {/* Search bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar adicional por nome..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-              {searchTerm && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7"
-                  onClick={() => setSearchTerm('')}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
+            {/* Search and Availability filters */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar adicionais..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="available">Disponíveis</SelectItem>
+                  <SelectItem value="unavailable">Indisponíveis</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Category filter */}
@@ -1072,36 +1075,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               </div>
             )}
 
-            {/* Availability filter */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <Badge variant="outline" className="flex-shrink-0">
-                Status
-              </Badge>
-              <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Filtrar por disponibilidade" />
-                </SelectTrigger>
-                <SelectContent className="z-50 bg-popover">
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="available">Disponíveis</SelectItem>
-                  <SelectItem value="unavailable">Indisponíveis</SelectItem>
-                </SelectContent>
-              </Select>
-              {availabilityFilter !== 'all' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setAvailabilityFilter('all')}
-                  className="w-full sm:w-auto"
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Limpar
-                </Button>
-              )}
-            </div>
-
             {/* Results count */}
-            {(searchTerm || categoryFilter !== 'all') && (
+            {(searchTerm || categoryFilter !== 'all' || availabilityFilter !== 'all') && (
               <p className="text-sm text-muted-foreground">
                 {filteredAddons.length} {filteredAddons.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
               </p>
