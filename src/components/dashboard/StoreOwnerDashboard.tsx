@@ -2983,16 +2983,6 @@ export const StoreOwnerDashboard = () => {
                               </Button>
                             </>
                           )}
-                          {hasPermission('products', 'delete') && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setProductToDelete(product)}
-                              className="hover-scale hover:border-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </CardContent>
