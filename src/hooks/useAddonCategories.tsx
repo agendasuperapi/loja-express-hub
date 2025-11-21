@@ -153,6 +153,30 @@ export const useAddonCategories = (storeId: string | undefined) => {
     }
   };
 
+  const reorderCategories = async (newOrder: AddonCategory[]) => {
+    try {
+      // Update local state immediately for smooth UX
+      setCategories(newOrder);
+
+      // Update all categories with their new display_order
+      const updates = newOrder.map((category, index) => 
+        (supabase as any)
+          .from('addon_categories')
+          .update({ display_order: index })
+          .eq('id', category.id)
+      );
+
+      await Promise.all(updates);
+      toast.success('Ordem das categorias atualizada!');
+    } catch (error: any) {
+      console.error('Error reordering categories:', error);
+      toast.error('Erro ao reordenar categorias');
+      // Revert on error
+      fetchCategories();
+      throw error;
+    }
+  };
+
   const refetch = () => {
     fetchCategories();
   };
@@ -164,6 +188,7 @@ export const useAddonCategories = (storeId: string | undefined) => {
     updateCategory,
     toggleCategoryStatus,
     deleteCategory,
+    reorderCategories,
     refetch
   };
 };
