@@ -244,16 +244,33 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const addonsByCategory = useMemo(() => {
     if (!addons) return {};
     
+    // Primeiro aplicar filtros de disponibilidade e busca
+    let filtered = addons;
+    
+    // Filter by availability
+    if (availabilityFilter === 'available') {
+      filtered = filtered.filter(a => a.is_available);
+    } else if (availabilityFilter === 'unavailable') {
+      filtered = filtered.filter(a => !a.is_available);
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(a => a.name.toLowerCase().includes(term));
+    }
+    
+    // Depois agrupar por categoria
     const grouped: Record<string, typeof addons> = {
-      uncategorized: addons.filter(a => !a.category_id)
+      uncategorized: filtered.filter(a => !a.category_id)
     };
 
     activeCategories.forEach(cat => {
-      grouped[cat.id] = addons.filter(a => a.category_id === cat.id);
+      grouped[cat.id] = filtered.filter(a => a.category_id === cat.id);
     });
 
     return grouped;
-  }, [addons, activeCategories]);
+  }, [addons, activeCategories, availabilityFilter, searchTerm]);
 
   // Autocomplete suggestions combining store addons and templates
   const autocompleteSuggestions = useMemo(() => {
