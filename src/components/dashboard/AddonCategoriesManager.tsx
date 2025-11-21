@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, FolderTree, X, GripVertical, Eye, Power, PowerOff } from "lucide-react";
+import { Plus, Trash2, Edit, FolderTree, X, GripVertical, Eye, Power, EyeOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductDetailsDialog } from "@/components/product/ProductDetailsDialog";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -106,7 +106,7 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             title={category.is_active ? 'Inativar' : 'Ativar'}
           >
             {category.is_active ? (
-              <PowerOff className="w-4 h-4" />
+              <EyeOff className="w-4 h-4" />
             ) : (
               <Power className="w-4 h-4" />
             )}
