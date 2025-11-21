@@ -157,7 +157,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
-  const [showStoreFormInModal, setShowStoreFormInModal] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -169,8 +168,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [importFromProductOpen, setImportFromProductOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [showCategoryFormInModal, setShowCategoryFormInModal] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isNewAddonModalOpen, setIsNewAddonModalOpen] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     min_items: 0,
@@ -524,7 +523,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         categoryFormData.is_exclusive
       );
       
-      setShowCategoryFormInModal(false);
       setIsCategoryModalOpen(false);
       setCategoryFormData({
         name: '',
@@ -1244,7 +1242,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
       }
       if (!open) {
-        setShowStoreFormInModal(false);
         setFormData({
           name: '',
           price: 0,
@@ -1262,118 +1259,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {/* Form to Create New Addon */}
-          {showStoreFormInModal && (
-            <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-              <div className="space-y-2">
-                <Label>Nome do Adicional</Label>
-                <Input
-                  placeholder="Ex: Queijo extra, Bacon..."
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-
-              {activeCategories.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Categoria (opcional)</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={formData.category_id || 'none'}
-                      onValueChange={(value) => setFormData({ ...formData, category_id: value === 'none' ? null : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent className="z-50 bg-popover">
-                        <SelectItem value="none">Sem categoria</SelectItem>
-                        {activeCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setIsCategoryModalOpen(true)}
-                      title="Criar nova categoria"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label>Preço Adicional</Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    className="pl-9"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.is_available}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-                  />
-                  <Label>Disponível</Label>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.allow_quantity}
-                    onCheckedChange={(checked) => setFormData({ ...formData, allow_quantity: checked })}
-                  />
-                  <Label>Permite quantidade</Label>
-                </div>
-                <span className="text-xs text-muted-foreground">Cliente pode escolher múltiplas porções</span>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <Button 
-                  onClick={async () => {
-                    await handleSubmit();
-                    setShowStoreFormInModal(false);
-                  }} 
-                  disabled={isCreating} 
-                  className="flex-1"
-                >
-                  Adicionar
-                </Button>
-                <Button 
-                  onClick={() => {
-                    setShowStoreFormInModal(false);
-                    setFormData({
-                      name: '',
-                      price: 0,
-                      is_available: true,
-                      category_id: null,
-                      allow_quantity: false,
-                    });
-                  }} 
-                  variant="outline"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* Search and Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -1398,7 +1283,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="default"
               size="sm"
-              onClick={() => setShowStoreFormInModal(!showStoreFormInModal)}
+              onClick={() => setIsNewAddonModalOpen(true)}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1754,7 +1639,134 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               Nenhum outro produto encontrado
             </p>
           )}
-        </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal separado para adicionar novo adicional */}
+      <Dialog open={isNewAddonModalOpen} onOpenChange={setIsNewAddonModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Adicional</DialogTitle>
+            <DialogDescription>
+              Adicione um novo adicional à sua loja
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome do Adicional</Label>
+              <Input
+                placeholder="Ex: Queijo extra, Bacon..."
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+
+            {activeCategories.length > 0 && (
+              <div className="space-y-2">
+                <Label>Categoria (opcional)</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.category_id || 'none'}
+                    onValueChange={(value) => setFormData({ ...formData, category_id: value === 'none' ? null : value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-popover">
+                      <SelectItem value="none">Sem categoria</SelectItem>
+                      {activeCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsCategoryModalOpen(true)}
+                    title="Criar nova categoria"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label>Preço Adicional</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  className="pl-9"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.is_available}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+                />
+                <Label>Disponível</Label>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.allow_quantity}
+                  onCheckedChange={(checked) => setFormData({ ...formData, allow_quantity: checked })}
+                />
+                <Label>Permite quantidade</Label>
+              </div>
+              <span className="text-xs text-muted-foreground">Cliente pode escolher múltiplas porções</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-end">
+            <Button 
+              onClick={() => {
+                setIsNewAddonModalOpen(false);
+                setFormData({
+                  name: '',
+                  price: 0,
+                  is_available: true,
+                  category_id: null,
+                  allow_quantity: false,
+                });
+              }} 
+              variant="outline"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={async () => {
+                await handleSubmit();
+                setIsNewAddonModalOpen(false);
+                setFormData({
+                  name: '',
+                  price: 0,
+                  is_available: true,
+                  category_id: null,
+                  allow_quantity: false,
+                });
+              }}
+              disabled={isCreating}
+            >
+              Adicionar
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
