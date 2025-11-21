@@ -3,18 +3,133 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, FolderTree, X } from "lucide-react";
+import { Plus, Trash2, Edit, FolderTree, X, GripVertical } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { Badge } from "@/components/ui/badge";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface AddonCategoriesManagerProps {
   storeId: string;
 }
 
+interface SortableCategoryProps {
+  category: any;
+  hasPermission: (action: 'update' | 'delete') => boolean;
+  onEdit: (category: any) => void;
+  onDelete: (id: string) => void;
+  onToggleStatus: (id: string, currentStatus: boolean) => void;
+}
+
+const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleStatus }: SortableCategoryProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-background"
+    >
+      <div className="flex items-center gap-3 flex-1">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
+        </div>
+        <FolderTree className="w-4 h-4 text-muted-foreground" />
+        <div>
+          <div className="font-medium flex items-center gap-2">
+            {category.name}
+            {category.is_exclusive && (
+              <Badge variant="outline" className="text-xs">
+                Exclusivo
+              </Badge>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {category.is_exclusive ? (
+              'Apenas 1 item pode ser selecionado'
+            ) : (
+              <>
+                {category.min_items > 0 ? `Mín: ${category.min_items}` : 'Opcional'}
+                {category.max_items !== null && ` • Máx: ${category.max_items}`}
+                {category.max_items === null && category.min_items === 0 && ' • Ilimitado'}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Badge variant={category.is_active ? "default" : "secondary"}>
+          {category.is_active ? 'Ativa' : 'Inativa'}
+        </Badge>
+        
+        {hasPermission('update') && (
+          <Switch
+            checked={category.is_active}
+            onCheckedChange={() => onToggleStatus(category.id, category.is_active)}
+          />
+        )}
+        
+        {hasPermission('update') && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onEdit(category)}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        )}
+        
+        {hasPermission('delete') && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDelete(category.id)}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps) => {
-  const { categories, loading, addCategory, updateCategory, toggleCategoryStatus, deleteCategory } = useAddonCategories(storeId);
+  const { categories, loading, addCategory, updateCategory, toggleCategoryStatus, deleteCategory, reorderCategories } = useAddonCategories(storeId);
   const employeeAccess = useEmployeeAccess();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -24,6 +139,13 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
     max_items: null as number | null,
     is_exclusive: false,
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const hasPermission = (action: 'create' | 'update' | 'delete') => {
     if (!employeeAccess.isEmployee) return true;
@@ -96,6 +218,18 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
   const handleToggleStatus = async (categoryId: string, currentStatus: boolean) => {
     if (!hasPermission('update')) return;
     await toggleCategoryStatus(categoryId, !currentStatus);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+
+    const newOrder = arrayMove(categories, oldIndex, newIndex);
+    await reorderCategories(newOrder);
   };
 
   if (loading) {
@@ -197,72 +331,29 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
             <p className="text-sm">Crie categorias para organizar seus adicionais</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <FolderTree className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <div className="font-medium flex items-center gap-2">
-                      {category.name}
-                      {category.is_exclusive && (
-                        <Badge variant="outline" className="text-xs">
-                          Exclusivo
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {category.is_exclusive ? (
-                        'Apenas 1 item pode ser selecionado'
-                      ) : (
-                        <>
-                          {category.min_items > 0 ? `Mín: ${category.min_items}` : 'Opcional'}
-                          {category.max_items !== null && ` • Máx: ${category.max_items}`}
-                          {category.max_items === null && category.min_items === 0 && ' • Ilimitado'}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Badge variant={category.is_active ? "default" : "secondary"}>
-                    {category.is_active ? 'Ativa' : 'Inativa'}
-                  </Badge>
-                  
-                  {hasPermission('update') && (
-                    <Switch
-                      checked={category.is_active}
-                      onCheckedChange={() => handleToggleStatus(category.id, category.is_active)}
-                    />
-                  )}
-                  
-                  {hasPermission('update') && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
-                  
-                  {hasPermission('delete') && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(category.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  )}
-                </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={categories.map((cat) => cat.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {categories.map((category) => (
+                  <SortableCategory
+                    key={category.id}
+                    category={category}
+                    hasPermission={hasPermission}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleStatus={handleToggleStatus}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         )}
       </CardContent>
     </Card>
