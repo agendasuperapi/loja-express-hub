@@ -3291,51 +3291,37 @@ export const StoreOwnerDashboard = () => {
                   )}
                 </div>
 
-                {/* Products Grid/Table */}
-                {(() => {
-                  const displayProducts = isReorderMode ? localProducts : products;
-                  const filteredProducts = displayProducts
-                    ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
-                    .filter(product => {
-                      if (productStatusFilter === 'active') return product.is_available;
-                      if (productStatusFilter === 'inactive') return !product.is_available;
-                      return true;
-                    })
-                    .filter(product => {
-                      if (!productSearchTerm) return true;
-                      return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                             product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
-                    });
-
-                  if (!filteredProducts || filteredProducts.length === 0) {
-                    return (
-                      <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                        <Package className="w-16 h-16 text-muted-foreground/50 mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
-                        <p className="text-muted-foreground mb-4">
-                          {productSearchTerm
-                            ? `Nenhum produto encontrado com "${productSearchTerm}"`
-                            : productStatusFilter !== 'all' 
-                              ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}`
-                              : categoryFilter !== 'all' 
-                                ? `Não há produtos na categoria "${categoryFilter}"`
-                                : 'Adicione seu primeiro produto ao cardápio'}
-                        </p>
-                        {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && (
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setProductSearchTerm('');
-                              setProductStatusFilter('all');
-                              setCategoryFilter('all');
-                            }}
-                          >
-                            Limpar Filtros
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  }
+                  {/* Products Grid/Table */}
+                  {(() => {
+                    if (!filteredProducts || filteredProducts.length === 0) {
+                      return (
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                          <Package className="w-16 h-16 text-muted-foreground/50 mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
+                          <p className="text-muted-foreground mb-4">
+                            {productSearchTerm
+                              ? `Nenhum produto encontrado com "${productSearchTerm}"`
+                              : productStatusFilter !== 'all' 
+                                ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}`
+                                : categoryFilter !== 'all' 
+                                  ? `Não há produtos na categoria "${categoryFilter}"`
+                                  : 'Adicione seu primeiro produto ao cardápio'}
+                          </p>
+                          {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && (
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setProductSearchTerm('');
+                                setProductStatusFilter('all');
+                                setCategoryFilter('all');
+                              }}
+                            >
+                              Limpar Filtros
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    }
 
                   // Table View
                   if (productViewMode === 'table') {
