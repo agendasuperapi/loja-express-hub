@@ -99,7 +99,7 @@ export const FeaturedProductsCarousel = ({
                   className="h-full"
                 >
                   <div
-                    className="group relative h-full bg-card rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    className="group relative h-full flex flex-col bg-card rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                     onClick={() => onProductClick(product)}
                   >
                     {/* Badges Container */}
@@ -134,7 +134,7 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-2 md:p-3 space-y-1.5 md:space-y-2">
+                    <div className="p-2 md:p-3 space-y-1.5 md:space-y-2 flex flex-col flex-1">
                       {/* Nome do Produto */}
                       <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors">
                         {product.name}
@@ -147,8 +147,8 @@ export const FeaturedProductsCarousel = ({
                         </p>
                       )}
 
-                      {/* Preço e Botão */}
-                      <div className="flex items-center justify-between gap-2 pt-0.5 md:pt-1">
+                      {/* Preço e Botão - sempre no fundo */}
+                      <div className="flex items-center justify-between gap-2 pt-0.5 md:pt-1 mt-auto">
                         <div className="flex flex-col justify-center">
                           {hasPromotion && (
                             <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight">
