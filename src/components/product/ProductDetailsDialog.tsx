@@ -402,7 +402,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       {/* Adicionais */}
       {addons && addons.length > 0 && (
         <div className="space-y-2 px-4 md:px-0">
-          <Label className="text-sm font-semibold">Adicionais (opcional)</Label>
+          <Label className="text-sm font-semibold">Adicionais</Label>
           <div className="space-y-1.5">
             {categories && categories.length > 0 ? (
               <>
