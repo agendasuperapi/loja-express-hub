@@ -418,7 +418,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                   .map((category) => (
                     <div key={category.id} className="space-y-1.5">
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold text-muted-foreground">
+                        <p className="text-sm font-bold text-foreground">
                           {category.name}
                           {category.min_items > 0 && (
                             <span className="text-destructive ml-1">*</span>
