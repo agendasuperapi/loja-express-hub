@@ -134,14 +134,14 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-2 md:p-3 flex flex-col">
+                    <div className="p-2 md:p-3 pb-2 md:pb-2 flex flex-col">
                       {/* Nome do Produto */}
                       <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors mb-1 md:mb-1.5">
                         {product.name}
                       </h3>
 
                       {/* Descrição - sempre ocupa espaço mesmo quando vazia */}
-                      <div className="min-h-[2rem] md:min-h-[2.5rem] mb-1.5 md:mb-2">
+                      <div className="min-h-[2rem] md:min-h-[2.5rem] mb-1 md:mb-1">
                         <p className="text-xs md:text-sm text-muted-foreground line-clamp-1 md:line-clamp-2">
                           {product.description || '\u00A0'}
                         </p>
