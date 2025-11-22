@@ -367,7 +367,7 @@ export default function StoreDetails() {
                   transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
                   src={store.banner_url} 
                   alt={store.name}
-                  className="w-full h-full object-cover object-[center_35%] group-hover:scale-110 transition-transform duration-1000 ease-out"
+                  className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-1000 ease-out"
                 />
                 {/* Animated shine effect */}
                 <motion.div
