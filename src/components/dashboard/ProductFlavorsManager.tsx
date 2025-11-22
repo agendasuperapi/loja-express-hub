@@ -147,6 +147,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const [flavorSearchTerm, setFlavorSearchTerm] = useState('');
   const [newFlavorModalOpen, setNewFlavorModalOpen] = useState(false);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -166,6 +167,18 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
       (f.description && f.description.toLowerCase().includes(term))
     );
   }, [storeFlavors, storeFlavorSearch]);
+
+  // Filtered products for import dialog
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!productSearchTerm.trim()) return products;
+    
+    const term = productSearchTerm.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(term) || 
+      (p.description && p.description.toLowerCase().includes(term))
+    );
+  }, [products, productSearchTerm]);
 
   // Filtered flavors for the main list (availability + search)
   const filteredFlavors = useMemo(() => {
@@ -847,11 +860,22 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 Selecione um produto para importar seus sabores
               </DialogDescription>
             </DialogHeader>
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar produto..."
+                  value={productSearchTerm}
+                  onChange={(e) => setProductSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
             <div className="space-y-3">
               {loadingProducts ? (
                 <p className="text-center py-4 text-muted-foreground">Carregando produtos...</p>
-              ) : products.length > 0 ? (
-                products.map((product) => (
+              ) : filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
                   <div
                     key={product.id}
                     className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
