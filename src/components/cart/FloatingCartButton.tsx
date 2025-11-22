@@ -93,8 +93,8 @@ export const FloatingCartButton = () => {
       </AnimatePresence>
 
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="max-h-[90vh]">
-          <CartSidebar inDrawer={true} />
+        <DrawerContent className="h-[95vh] p-0">
+          <CartSidebar inDrawer={true} onClose={() => setIsDrawerOpen(false)} />
         </DrawerContent>
       </Drawer>
     </>
