@@ -168,16 +168,27 @@ serve(async (req) => {
       );
     }
 
+    // Normalize status key (in_delivery -> out_for_delivery for UI)
+    const normalizeStatusForConfig = (dbStatus: string): string => {
+      const statusMap: Record<string, string> = {
+        'in_delivery': 'out_for_delivery'
+      };
+      return statusMap[dbStatus] || dbStatus;
+    };
+
+    const statusKeyToSearch = normalizeStatusForConfig(record.status);
+    console.log(`Buscando configuração para status: ${record.status} -> ${statusKeyToSearch}`);
+
     // Get status configuration and message
     const { data: statusConfig, error: statusError } = await supabaseClient
       .from('order_status_configs')
       .select('whatsapp_message, is_active')
       .eq('store_id', order.store_id)
-      .eq('status_key', record.status)
+      .eq('status_key', statusKeyToSearch)
       .single();
 
     if (statusError || !statusConfig || !statusConfig.is_active) {
-      console.log('No active status config found for:', record.status);
+      console.log('No active status config found for:', record.status, '(searched as:', statusKeyToSearch + ')');
       return new Response(
         JSON.stringify({ success: false, message: 'Status not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
