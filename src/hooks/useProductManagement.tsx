@@ -180,20 +180,39 @@ export const useProductManagement = (storeId?: string) => {
 
   const duplicateProductMutation = useMutation({
     mutationFn: async (product: any) => {
+      console.log('Duplicating product:', product);
+      
+      // Select only the fields that should be copied
+      const productData = {
+        store_id: product.store_id,
+        name: `${product.name} (Cópia)`,
+        description: product.description,
+        category: product.category,
+        price: product.price,
+        promotional_price: product.promotional_price,
+        stock_quantity: product.stock_quantity,
+        is_available: product.is_available,
+        image_url: product.image_url,
+        is_pizza: product.is_pizza,
+        max_flavors: product.max_flavors,
+        external_code: product.external_code,
+        display_order: product.display_order,
+      };
+
+      console.log('Product data to insert:', productData);
+
       const { data, error } = await supabase
         .from('products')
-        .insert({
-          ...product,
-          id: undefined,
-          name: `${product.name} (Cópia)`,
-          created_at: undefined,
-          updated_at: undefined,
-          short_id: undefined,
-        })
+        .insert(productData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error duplicating product:', error);
+        throw error;
+      }
+      
+      console.log('Product duplicated successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -204,6 +223,7 @@ export const useProductManagement = (storeId?: string) => {
       });
     },
     onError: (error: Error) => {
+      console.error('Duplication mutation error:', error);
       toast({
         title: 'Erro ao duplicar produto',
         description: error.message,
