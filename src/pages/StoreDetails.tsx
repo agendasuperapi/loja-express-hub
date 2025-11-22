@@ -680,11 +680,11 @@ export default function StoreDetails() {
                             
                             {/* Product Info in Center */}
                             <div className="flex-1 min-w-0 pr-2">
-                              <h4 className="font-bold text-base md:text-lg mb-1 group-hover:text-primary transition-colors">
+                              <h4 className="font-bold text-base md:text-lg mb-0.5 group-hover:text-primary transition-colors">
                                 {product.name}
                               </h4>
                               {product.description && (
-                                <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-2">
+                                <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-1">
                                   {product.description}
                                 </p>
                               )}
@@ -793,11 +793,11 @@ export default function StoreDetails() {
                             
                             {/* Product Info in Center */}
                             <div className="flex-1 min-w-0 pr-2">
-                              <h4 className="font-bold text-base md:text-lg mb-1 group-hover:text-primary transition-colors">
+                              <h4 className="font-bold text-base md:text-lg mb-0.5 group-hover:text-primary transition-colors">
                                 {product.name}
                               </h4>
                               {product.description && (
-                                <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-2">
+                                <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-1">
                                   {product.description}
                                 </p>
                               )}
@@ -929,9 +929,9 @@ export default function StoreDetails() {
                             </div>
                           )}
                           <CardContent className="p-4">
-                            <h4 className="font-bold text-lg mb-1.5 group-hover:text-primary transition-colors">{product.name}</h4>
+                            <h4 className="font-bold text-lg mb-0.5 group-hover:text-primary transition-colors">{product.name}</h4>
                             {product.description && (
-                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
+                              <p className="text-sm text-muted-foreground mb-1 line-clamp-2 leading-relaxed">
                                 {product.description}
                               </p>
                             )}
@@ -1064,7 +1064,7 @@ export default function StoreDetails() {
                               )}
                             </div>
                           )}
-                          <CardContent className="p-4 md:p-6 space-y-3">
+                          <CardContent className="p-4 md:p-6 space-y-1.5">
                             <h4 className="font-bold text-lg md:text-xl group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
                               {product.name}
                             </h4>
@@ -1073,7 +1073,7 @@ export default function StoreDetails() {
                                 {product.description}
                               </p>
                             )}
-                            <div className="space-y-3 pt-2">
+                            <div className="space-y-3 pt-1">
                               {product.promotional_price ? (
                                 <div className="space-y-1">
                                   <div className="text-sm text-muted-foreground line-through">
