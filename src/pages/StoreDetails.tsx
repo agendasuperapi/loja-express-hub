@@ -700,14 +700,14 @@ export default function StoreDetails() {
                                     <span className="text-xs text-muted-foreground line-through">
                                       R$ {Number(product.price).toFixed(2)}
                                     </span>
-                                    <span className="text-lg md:text-xl font-bold text-green-600">
-                                      R$ {Number(product.promotional_price).toFixed(2)}
-                                    </span>
+                                     <span className="text-lg md:text-xl font-bold text-success">
+                                       R$ {Number(product.promotional_price).toFixed(2)}
+                                     </span>
                                   </>
                                 ) : (
-                                  <span className="text-lg md:text-xl font-bold text-green-600">
-                                    R$ {Number(product.price).toFixed(2)}
-                                  </span>
+                                   <span className="text-lg md:text-xl font-bold text-success">
+                                     R$ {Number(product.price).toFixed(2)}
+                                   </span>
                                 )}
                               </div>
                             </div>
@@ -724,7 +724,7 @@ export default function StoreDetails() {
                                     e.stopPropagation();
                                     setDetailsProduct(product);
                                   }}
-                                  className="rounded-full w-12 h-12 bg-green-600 hover:bg-green-700 shadow-lg"
+                                  className="rounded-full w-12 h-12 bg-success hover:bg-success/90 shadow-lg"
                                 >
                                   <ShoppingCart className="w-5 h-5" />
                                 </Button>
