@@ -115,24 +115,6 @@ export const SortableProductCard = ({
                           </span>
                         </div>
                         
-                        {/* Switch de Destaque */}
-                        <div className="flex items-center gap-2 mr-2">
-                          <Star className={cn(
-                            "h-4 w-4 transition-colors",
-                            product.is_featured ? "fill-yellow-500 text-yellow-500" : "text-gray-400"
-                          )} />
-                          <Switch
-                            checked={product.is_featured || false}
-                            onCheckedChange={(checked) => {
-                              onToggleFeatured?.(product.id, checked);
-                            }}
-                            className="data-[state=checked]:bg-yellow-500"
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {product.is_featured ? 'Destaque' : 'Normal'}
-                          </span>
-                        </div>
-                        
                         <Button
                           size="sm"
                           variant="ghost"
