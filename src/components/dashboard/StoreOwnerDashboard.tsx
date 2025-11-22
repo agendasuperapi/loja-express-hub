@@ -2791,7 +2791,10 @@ export const StoreOwnerDashboard = () => {
                                 {order.delivery_street}, {order.delivery_number}
                                 {order.delivery_complement && ` - ${order.delivery_complement}`}
                               </p>
-                              <p className="text-muted-foreground">{order.delivery_neighborhood}</p>
+                              <p className="text-muted-foreground">
+                                {order.delivery_neighborhood}
+                                {(order as any).delivery_city && ` - ${(order as any).delivery_city}`}
+                              </p>
                             </div>
                           </>
                         )}

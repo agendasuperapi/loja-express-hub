@@ -192,6 +192,7 @@ export const useOrders = () => {
           total,
           status: "pending",
           payment_method: validatedData.paymentMethod,
+          delivery_city: (validatedData as any).deliveryCity || null,
           delivery_street: validatedData.deliveryStreet || null,
           delivery_number: validatedData.deliveryNumber || null,
           delivery_neighborhood: validatedData.deliveryNeighborhood || null,
