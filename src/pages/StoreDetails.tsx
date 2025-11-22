@@ -928,7 +928,7 @@ export default function StoreDetails() {
                               )}
                             </div>
                           )}
-                          <CardContent className="p-4">
+                          <CardContent className="p-4 pt-2">
                             <h4 className="font-bold text-lg mb-0.5 group-hover:text-primary transition-colors">{product.name}</h4>
                             {product.description && (
                               <p className="text-sm text-muted-foreground mb-1 line-clamp-2 leading-relaxed">
@@ -1064,7 +1064,7 @@ export default function StoreDetails() {
                               )}
                             </div>
                           )}
-                          <CardContent className="p-4 md:p-6 space-y-0">
+                          <CardContent className="p-4 md:p-6 pt-2 md:pt-3 space-y-0">
                             <h4 className="font-bold text-lg md:text-xl group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
                               {product.name}
                             </h4>
