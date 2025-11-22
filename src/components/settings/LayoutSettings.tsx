@@ -98,16 +98,22 @@ export const LayoutSettings = ({
     selectedTemplate, 
     onSelectTemplate, 
     currentTemplate,
-    isMobile = false
+    isMobile = false,
+    isDesktop = false
   }: { 
     selectedTemplate: string; 
     onSelectTemplate: (id: string) => void;
     currentTemplate: string;
     isMobile?: boolean;
+    isDesktop?: boolean;
   }) => {
-    const filteredTemplates = isMobile 
-      ? templates.filter(t => !['template-3', 'template-4', 'template-6'].includes(t.id))
-      : templates;
+    let filteredTemplates = templates;
+    
+    if (isMobile) {
+      filteredTemplates = templates.filter(t => !['template-3', 'template-4', 'template-6'].includes(t.id));
+    } else if (isDesktop) {
+      filteredTemplates = templates.filter(t => !['template-2', 'template-6', 'template-list'].includes(t.id));
+    }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -217,6 +223,7 @@ export const LayoutSettings = ({
                 selectedTemplate={selectedDesktop}
                 onSelectTemplate={setSelectedDesktop}
                 currentTemplate={currentTemplateDesktop}
+                isDesktop={true}
               />
             </div>
           </TabsContent>
