@@ -1,14 +1,19 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, Minus, Plus, Trash2, Pencil } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import { EditCartItemDialog } from "./EditCartItemDialog";
 import { useState, useEffect } from "react";
+import { DrawerClose } from "@/components/ui/drawer";
 
-export const CartSidebar = () => {
+interface CartSidebarProps {
+  inDrawer?: boolean;
+}
+
+export const CartSidebar = ({ inDrawer = false }: CartSidebarProps) => {
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getTotal, getItemCount, updateCartItem, validateAndSyncCart } = useCart();
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -20,11 +25,39 @@ export const CartSidebar = () => {
     validateAndSyncCart();
   }, []);
 
+  const containerClasses = inDrawer 
+    ? "h-full flex flex-col" 
+    : "hidden lg:block lg:col-span-1";
+
+  const contentWrapperClasses = inDrawer
+    ? "flex-1 overflow-y-auto"
+    : "";
+
   return (
-    <div className="hidden lg:block lg:col-span-1">
-      <Card className="sticky top-24">
-        <CardContent className="p-6">
-          {itemCount === 0 ? (
+    <div className={containerClasses}>
+      {inDrawer && (
+        <div className="relative w-full h-32 md:h-40 bg-gradient-to-br from-primary/20 via-primary/10 to-background flex items-center justify-center border-b">
+          <DrawerClose className="absolute right-4 top-4 rounded-full p-2 bg-background/80 backdrop-blur hover:bg-background transition-colors">
+            <X className="w-5 h-5" />
+          </DrawerClose>
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <ShoppingCart className="w-16 h-16 mx-auto mb-2 text-primary" />
+              <h2 className="text-2xl font-bold">Meu Carrinho</h2>
+              <p className="text-sm text-muted-foreground">{itemCount} {itemCount === 1 ? 'item' : 'itens'}</p>
+            </motion.div>
+          </div>
+        </div>
+      )}
+      
+      <Card className={inDrawer ? "border-0 shadow-none rounded-none flex-1 flex flex-col" : "sticky top-24"}>
+        <CardContent className={inDrawer ? "p-4 flex-1 flex flex-col" : "p-6"}>
+          <div className={contentWrapperClasses}>
+            {itemCount === 0 ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -43,10 +76,10 @@ export const CartSidebar = () => {
               </Button>
             </motion.div>
           ) : (
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold mb-4">Seu Carrinho</h3>
+            <div className="space-y-4 flex flex-col h-full">
+              {!inDrawer && <h3 className="text-xl font-bold mb-4">Seu Carrinho</h3>}
               
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className={`space-y-3 overflow-y-auto ${inDrawer ? 'flex-1' : 'max-h-96'}`}>
                 {cart.items.map((item) => (
                   <motion.div
                     key={item.id}
@@ -160,13 +193,14 @@ export const CartSidebar = () => {
 
               <Button
                 size="lg"
-                className="w-full bg-primary hover:bg-primary-hover text-primary-foreground"
+                className="w-full bg-primary hover:bg-primary-hover text-primary-foreground mt-auto"
                 onClick={() => navigate('/cart')}
               >
                 Concluir pedido
               </Button>
             </div>
           )}
+          </div>
         </CardContent>
       </Card>
       
