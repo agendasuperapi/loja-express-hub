@@ -96,10 +96,10 @@ export const FeaturedProductsCarousel = ({
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
-                  className="h-full min-h-[320px] md:min-h-[360px]"
+                  className="h-full"
                 >
                   <div
-                    className="group relative h-full flex flex-col bg-card rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                    className="group relative h-full bg-card rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                     onClick={() => onProductClick(product)}
                   >
                     {/* Badges Container */}
@@ -134,29 +134,29 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-2 md:p-3 flex flex-col">
+                    <div className="p-2 md:p-3 space-y-1.5 md:space-y-2">
                       {/* Nome do Produto */}
-                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors mb-1 md:mb-1.5">
+                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors">
                         {product.name}
                       </h3>
 
-                      {/* Descrição - sem espaço fixo */}
+                      {/* Descrição */}
                       {product.description && (
-                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-1 md:line-clamp-2">
                           {product.description}
                         </p>
                       )}
 
-                      {/* Preço e Botão - sempre no fundo */}
-                      <div className="flex items-center justify-between gap-2 mt-auto">
-                        <div className="flex flex-col justify-center">
+                      {/* Preço e Botão */}
+                      <div className="flex items-center justify-between pt-0.5 md:pt-1">
+                        <div className="space-y-0.5">
                           {hasPromotion && (
-                            <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight mb-0.5">
+                            <p className="text-[10px] md:text-xs text-muted-foreground line-through">
                               {formatCurrency(product.price)}
                             </p>
                           )}
                           <p className={cn(
-                            "font-bold text-base md:text-lg leading-tight",
+                            "font-bold text-base md:text-lg",
                             hasPromotion ? "text-red-500" : "text-primary"
                           )}>
                             {formatCurrency(finalPrice)}
@@ -165,13 +165,13 @@ export const FeaturedProductsCarousel = ({
 
                         <Button
                           size="sm"
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200 h-8 md:h-9 px-2.5 md:px-3 flex-shrink-0"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200 h-7 md:h-8 px-2 md:px-3"
                           onClick={(e) => {
                             e.stopPropagation();
                             onAddToCart(product);
                           }}
                         >
-                          <ShoppingCart className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                          <ShoppingCart className="h-3 w-3 md:h-3.5 md:w-3.5" />
                         </Button>
                       </div>
                     </div>
