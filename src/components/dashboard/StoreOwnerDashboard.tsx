@@ -231,7 +231,7 @@ export const StoreOwnerDashboard = () => {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   const [bulkCategoryChange, setBulkCategoryChange] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'category' | 'price' | 'promotional_price' | null; direction: 'asc' | 'desc' }>({
+  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code' | null; direction: 'asc' | 'desc' }>({
     key: null,
     direction: 'asc',
   });
@@ -283,8 +283,10 @@ export const StoreOwnerDashboard = () => {
       })
       .filter(product => {
         if (!productSearchTerm) return true;
-        return product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-               product.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
+        const searchLower = productSearchTerm.toLowerCase();
+        return product.name.toLowerCase().includes(searchLower) ||
+               product.description?.toLowerCase().includes(searchLower) ||
+               product.external_code?.toLowerCase().includes(searchLower);
       }) || [];
 
     // Apply sorting
@@ -327,7 +329,7 @@ export const StoreOwnerDashboard = () => {
   }, [productViewMode]);
 
   // Handle column sort
-  const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price') => {
+  const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code') => {
     setSortConfig(prevConfig => ({
       key,
       direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
@@ -335,7 +337,7 @@ export const StoreOwnerDashboard = () => {
   };
 
   // Sort indicator component
-  const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' }) => {
+  const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code' }) => {
     const isActive = sortConfig.key === column;
     
     if (!isActive) {
@@ -3466,6 +3468,15 @@ export const StoreOwnerDashboard = () => {
                                 </TableHead>
                                 <TableHead 
                                   className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
+                                  onClick={() => handleSort('external_code')}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    Código Externo
+                                    <SortIndicator column="external_code" />
+                                  </div>
+                                </TableHead>
+                                <TableHead 
+                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
                                   onClick={() => handleSort('category')}
                                 >
                                   <div className="flex items-center gap-2">
@@ -3517,8 +3528,11 @@ export const StoreOwnerDashboard = () => {
                                         <Package className="w-6 h-6 text-muted-foreground" />
                                       )}
                                     </div>
-                                  </TableCell>
+                                </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
+                                <TableCell className="text-muted-foreground">
+                                  {product.external_code || '-'}
+                                </TableCell>
                                 <TableCell>
                                   <Badge variant="secondary">{product.category}</Badge>
                                 </TableCell>
