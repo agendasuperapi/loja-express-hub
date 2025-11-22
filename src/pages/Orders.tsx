@@ -414,7 +414,8 @@ export default function Orders() {
                             {order.delivery_complement && ` - ${order.delivery_complement}`}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Bairro: {order.delivery_neighborhood}
+                            {order.delivery_neighborhood}
+                            {(order as any).delivery_city && ` - ${(order as any).delivery_city}`}
                           </p>
                         </div>
                       )}

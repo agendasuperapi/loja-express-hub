@@ -1652,7 +1652,7 @@ export const StoreOwnerDashboard = () => {
               <div class="info-row">
                 <strong>Endereço:</strong> ${order.delivery_street}, ${order.delivery_number}
                 ${order.delivery_complement ? ` - ${order.delivery_complement}` : ''}
-                - ${order.delivery_neighborhood}
+                - ${order.delivery_neighborhood}${(order as any).delivery_city ? ` - ${(order as any).delivery_city}` : ''}
               </div>
             ` : ''}
             ${order.notes ? `<div class="info-row"><strong>Observações do Cliente:</strong> ${escapeHtml(order.notes)}</div>` : ''}
@@ -5307,7 +5307,10 @@ export const StoreOwnerDashboard = () => {
                     <div className="text-sm space-y-1">
                       <p>{viewingOrder.delivery_street}, {viewingOrder.delivery_number}</p>
                       {viewingOrder.delivery_complement && <p>{viewingOrder.delivery_complement}</p>}
-                      <p>{viewingOrder.delivery_neighborhood}</p>
+                      <p>
+                        {viewingOrder.delivery_neighborhood}
+                        {(viewingOrder as any).delivery_city && ` - ${(viewingOrder as any).delivery_city}`}
+                      </p>
                     </div>
                   </div>
                 </>
