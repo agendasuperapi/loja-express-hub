@@ -17,6 +17,7 @@ import * as XLSX from 'xlsx';
 
 interface ProductReport {
   product_name: string;
+  external_code: string | null;
   quantity_sold: number;
   revenue: number;
   orders_count: number;
@@ -43,7 +44,9 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
           quantity,
           subtotal,
           order_id,
-          orders!inner(store_id, created_at)
+          product_id,
+          orders!inner(store_id, created_at),
+          products(external_code)
         `)
         .eq('orders.store_id', storeId);
 
@@ -62,6 +65,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
       
       data?.forEach((item: any) => {
         const existing = productMap.get(item.product_name);
+        const externalCode = item.products?.external_code || null;
         
         if (existing) {
           existing.quantity_sold += item.quantity;
@@ -70,6 +74,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
         } else {
           productMap.set(item.product_name, {
             product_name: item.product_name,
+            external_code: externalCode,
             quantity_sold: item.quantity,
             revenue: item.subtotal || 0,
             orders_count: 1,
@@ -113,11 +118,12 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
   }, [dateRange]);
 
   const exportToCSV = () => {
-    const headers = ['Posição', 'Produto', 'Quantidade Vendida', 'Pedidos', 'Receita'];
+    const headers = ['Posição', 'Produto', 'Código Externo', 'Quantidade Vendida', 'Pedidos', 'Receita'];
     
     const rows = products.map((product, index) => [
       `#${index + 1}`,
       product.product_name,
+      product.external_code || '-',
       `${product.quantity_sold} unidades`,
       product.orders_count,
       `R$ ${product.revenue.toFixed(2)}`
@@ -142,6 +148,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
     
     const productsForReport = products.map(p => ({
       name: p.product_name,
+      external_code: p.external_code,
       quantity: p.quantity_sold,
       revenue: p.revenue
     }));
@@ -158,6 +165,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
     const data = products.map((product, index) => ({
       'Posição': `#${index + 1}`,
       'Produto': product.product_name,
+      'Código Externo': product.external_code || '-',
       'Quantidade Vendida': product.quantity_sold,
       'Pedidos': product.orders_count,
       'Receita': product.revenue
@@ -169,6 +177,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
     const colWidths = [
       { wch: 10 }, // Posição
       { wch: 30 }, // Produto
+      { wch: 15 }, // Código Externo
       { wch: 20 }, // Quantidade Vendida
       { wch: 12 }, // Pedidos
       { wch: 15 }  // Receita
@@ -233,6 +242,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                 <TableRow>
                   <TableHead>Posição</TableHead>
                   <TableHead>Produto</TableHead>
+                  <TableHead>Código Externo</TableHead>
                   <TableHead className="text-right">Quantidade Vendida</TableHead>
                   <TableHead className="text-right">Pedidos</TableHead>
                   <TableHead className="text-right">Receita</TableHead>
@@ -241,7 +251,7 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
               <TableBody>
                 {products.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       Nenhum produto vendido no período selecionado
                     </TableCell>
                   </TableRow>
@@ -263,6 +273,9 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">{product.product_name}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {product.external_code || '-'}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline">{product.quantity_sold} unidades</Badge>
                       </TableCell>
