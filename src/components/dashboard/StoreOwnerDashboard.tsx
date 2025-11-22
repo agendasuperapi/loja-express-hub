@@ -982,10 +982,28 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
+    if (!productForm.price || productForm.price <= 0) {
+      toast({
+        title: 'Preço inválido',
+        description: 'O preço do produto deve ser maior que zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
       toast({
         title: 'Preço promocional inválido',
         description: 'O preço promocional não pode ser maior que o preço normal.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (productForm.promotional_price && productForm.promotional_price <= 0) {
+      toast({
+        title: 'Preço promocional inválido',
+        description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
         variant: 'destructive',
       });
       return;
@@ -1161,10 +1179,28 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
+    if (!productForm.price || productForm.price <= 0) {
+      toast({
+        title: 'Preço inválido',
+        description: 'O preço do produto deve ser maior que zero.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
       toast({
         title: 'Preço promocional inválido',
         description: 'O preço promocional não pode ser maior que o preço normal.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (productForm.promotional_price && productForm.promotional_price <= 0) {
+      toast({
+        title: 'Preço promocional inválido',
+        description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
         variant: 'destructive',
       });
       return;
@@ -3232,8 +3268,10 @@ export const StoreOwnerDashboard = () => {
                               <Input
                                 type="number"
                                 step="0.01"
+                                min="0.01"
                                 value={productForm.price}
                                 onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
+                                placeholder="Ex: 10.00"
                               />
                             </div>
                             <div>
@@ -3241,8 +3279,10 @@ export const StoreOwnerDashboard = () => {
                               <Input
                                 type="number"
                                 step="0.01"
+                                min="0.01"
                                 value={productForm.promotional_price}
                                 onChange={(e) => setProductForm({ ...productForm, promotional_price: parseFloat(e.target.value) })}
+                                placeholder="Ex: 8.00"
                               />
                             </div>
                           </div>
