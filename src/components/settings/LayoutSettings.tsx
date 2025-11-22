@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone } from "lucide-react";
+import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutSettingsProps {
@@ -50,6 +50,13 @@ const templates = [
     description: 'Produtos em lista vertical com máximo de detalhes',
     icon: List,
     gridPreview: 'grid-cols-1',
+  },
+  {
+    id: 'template-horizontal',
+    name: 'Horizontal',
+    description: 'Imagem redonda na lateral com detalhes ao lado',
+    icon: Rows,
+    gridPreview: 'flex flex-col gap-2',
   },
 ];
 
@@ -134,17 +141,17 @@ export const LayoutSettings = ({
                 {/* Preview do Grid */}
                 <div className="bg-muted/30 rounded-lg p-3 min-h-[80px] flex items-center justify-center">
                   <div className={cn(
-                    "grid gap-1 w-full",
-                    template.gridPreview
+                    template.id === 'template-horizontal' ? "flex flex-col gap-1 w-full" : "grid gap-1 w-full",
+                    template.id === 'template-horizontal' ? '' : template.gridPreview
                   )}>
                     {Array.from({ 
-                      length: template.id === 'template-list' ? 3 : parseInt(template.id.split('-')[1]) 
+                      length: template.id === 'template-list' ? 3 : template.id === 'template-horizontal' ? 3 : parseInt(template.id.split('-')[1]) 
                     }).map((_, i) => (
                       <div
                         key={i}
                         className={cn(
                           "bg-primary/20 rounded",
-                          template.id === 'template-list' ? "h-8" : "aspect-square"
+                          template.id === 'template-list' || template.id === 'template-horizontal' ? "h-8" : "aspect-square"
                         )}
                       />
                     ))}
