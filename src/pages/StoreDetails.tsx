@@ -583,7 +583,7 @@ export default function StoreDetails() {
                   <div className="h-1 flex-1 bg-gradient-to-r from-orange-500/50 to-transparent rounded-full" />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-6">
                   {categoryProducts.map((product, index) => {
                     const cartQuantity = getProductCartQuantity(product.id);
                     const isInCart = cartQuantity > 0;
@@ -610,7 +610,7 @@ export default function StoreDetails() {
                         }}
                       >
                         <Card
-                         className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
+                        className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
                           isInCart 
                             ? 'border border-primary ring-4 ring-primary/40 bg-primary/5 scale-[1.02]' 
                             : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
@@ -618,7 +618,7 @@ export default function StoreDetails() {
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
-                          <div className="relative h-56 md:h-44 lg:h-40 xl:h-40 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                          <div className="relative h-56 md:h-44 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                             <motion.img
                               initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
@@ -654,32 +654,32 @@ export default function StoreDetails() {
                             )}
                           </div>
                         )}
-                        <CardContent className="p-4 lg:p-3.5 xl:p-3.5 flex flex-col">
-                          <h4 className="font-bold text-lg md:text-base lg:text-base xl:text-sm mb-1.5 group-hover:text-primary transition-colors line-clamp-2">{product.name}</h4>
+                        <CardContent className="p-4">
+                          <h4 className="font-bold text-lg mb-1.5 group-hover:text-primary transition-colors">{product.name}</h4>
                           {product.description && (
-                            <p className="text-sm md:text-xs lg:text-xs xl:text-xs text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
+                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
                               {product.description}
                             </p>
                           )}
-                          <Separator className="my-2.5" />
-                          <div className="space-y-2 mt-auto">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-shrink-0">
-                                {product.promotional_price ? (
-                                  <div className="space-y-0.5">
-                                    <span className="text-xs text-muted-foreground line-through block">
-                                      R$ {Number(product.price).toFixed(2)}
-                                    </span>
-                                    <span className="text-lg lg:text-base xl:text-base font-bold text-primary">
-                                      R$ {Number(product.promotional_price).toFixed(2)}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span className="text-lg lg:text-base xl:text-base font-bold gradient-text">
+                          <Separator className="my-3" />
+                          <div className="flex items-center justify-between">
+                            <div>
+                              {product.promotional_price ? (
+                                <div className="space-y-1">
+                                  <span className="text-sm text-muted-foreground line-through block">
                                     R$ {Number(product.price).toFixed(2)}
                                   </span>
-                                )}
-                              </div>
+                                  <span className="text-xl font-bold text-primary">
+                                    R$ {Number(product.promotional_price).toFixed(2)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-xl font-bold gradient-text">
+                                  R$ {Number(product.price).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
                               <motion.div
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -691,28 +691,27 @@ export default function StoreDetails() {
                                     e.stopPropagation();
                                     handleShareProduct(product);
                                   }}
-                                  className="shadow-md hover:shadow-lg transition-all duration-300 h-9 w-9 p-0"
+                                  className="shadow-md hover:shadow-lg transition-all duration-300"
                                 >
                                   <Share2 className="w-4 h-4" />
                                 </Button>
                               </motion.div>
-                            </div>
-                            <motion.div
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              className="w-full"
-                            >
-                              <Button 
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDetailsProduct(product);
-                                }}
-                                className="w-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary h-9"
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
                               >
-                                Adicionar
-                              </Button>
-                            </motion.div>
+                                <Button 
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailsProduct(product);
+                                  }}
+                                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
+                                >
+                                  Adicionar
+                                </Button>
+                              </motion.div>
+                            </div>
                           </div>
                         </CardContent>
                         </Card>
