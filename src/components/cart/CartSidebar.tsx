@@ -26,12 +26,14 @@ export const CartSidebar = ({ inDrawer = false, onClose }: CartSidebarProps) => 
   }, []);
 
   if (inDrawer) {
+    const firstItem = cart.items[0];
+
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full relative bg-background">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full p-2 bg-primary/90 hover:bg-primary text-primary-foreground transition-colors shadow-lg"
+          className="absolute right-4 top-4 z-20 rounded-full p-2 bg-primary/90 hover:bg-primary text-primary-foreground transition-colors shadow-lg"
         >
           <X className="w-5 h-5" />
         </button>
@@ -45,7 +47,21 @@ export const CartSidebar = ({ inDrawer = false, onClose }: CartSidebarProps) => 
           </div>
         ) : (
           <>
-            {/* Scrollable content */}
+            {/* Hero image igual ao topo do produto */}
+            {firstItem?.imageUrl && (
+              <div className="relative w-full h-48 md:h-56 overflow-hidden">
+                <motion.img
+                  initial={{ scale: 1.1, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                  src={firstItem.imageUrl}
+                  alt={firstItem.productName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Conteúdo rolável */}
             <div className="flex-1 overflow-y-auto">
               <div className="p-4 space-y-3">
                 {cart.items.map((item) => (
