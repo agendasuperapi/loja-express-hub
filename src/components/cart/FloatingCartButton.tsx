@@ -2,25 +2,23 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { CartSidebar } from "./CartSidebar";
 
 export const FloatingCartButton = () => {
   const { cart, getItemCount, getTotal, validateAndSyncCart } = useCart();
   const location = useLocation();
+  const navigate = useNavigate();
   const controls = useAnimation();
   const isMobile = useIsMobile();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   const itemCount = getItemCount();
   const total = getTotal();
 
   const handleCartClick = async () => {
     await validateAndSyncCart();
-    setIsDrawerOpen(true);
+    navigate('/cart');
   };
 
   // Hide on cart page
@@ -91,12 +89,6 @@ export const FloatingCartButton = () => {
           </motion.div>
         </motion.div>
       </AnimatePresence>
-
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="h-[95vh] p-0">
-          <CartSidebar inDrawer={true} onClose={() => setIsDrawerOpen(false)} />
-        </DrawerContent>
-      </Drawer>
     </>
   );
 };
