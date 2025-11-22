@@ -25,6 +25,7 @@ interface RegisteredProduct {
   promotional_price: number;
   is_available: boolean;
   category: string;
+  external_code: string | null;
 }
 
 interface RegisteredProductsReportProps {
@@ -44,7 +45,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('id, short_id, name, description, price, promotional_price, is_available, category')
+        .select('id, short_id, name, description, price, promotional_price, is_available, category, external_code')
         .eq('store_id', storeId)
         .order('name', { ascending: true });
 
@@ -85,6 +86,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
           product.name.toLowerCase().includes(term) ||
           product.description?.toLowerCase().includes(term) ||
           product.short_id?.toLowerCase().includes(term) ||
+          product.external_code?.toLowerCase().includes(term) ||
           product.category.toLowerCase().includes(term)
       );
     }
@@ -105,10 +107,11 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
   }, [searchTerm, statusFilter]);
 
   const exportToCSV = () => {
-    const headers = ['Código', 'Nome', 'Descrição', 'Categoria', 'Preço', 'Preço Promocional', 'Status'];
+    const headers = ['Código', 'Código Externo', 'Nome', 'Descrição', 'Categoria', 'Preço', 'Preço Promocional', 'Status'];
     
     const rows = filteredProducts.map(product => [
       product.short_id || product.id.substring(0, 8),
+      product.external_code || '-',
       product.name,
       product.description || '-',
       product.category,
@@ -150,6 +153,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
   const exportToExcel = () => {
     const data = filteredProducts.map(product => ({
       'Código': product.short_id || product.id.substring(0, 8),
+      'Código Externo': product.external_code || '-',
       'Nome': product.name,
       'Descrição': product.description || '-',
       'Categoria': product.category,
@@ -165,6 +169,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
     // Auto-width das colunas
     const colWidths = [
       { wch: 12 }, // Código
+      { wch: 15 }, // Código Externo
       { wch: 30 }, // Nome
       { wch: 40 }, // Descrição
       { wch: 15 }, // Categoria
@@ -258,6 +263,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
               <TableHeader>
                 <TableRow>
                   <TableHead>Código</TableHead>
+                  <TableHead>Código Externo</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
@@ -269,7 +275,7 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
               <TableBody>
                 {filteredProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" 
                         ? 'Nenhum produto encontrado com os filtros selecionados' 
                         : 'Nenhum produto cadastrado'}
@@ -280,6 +286,9 @@ export const RegisteredProductsReport = ({ storeId, storeName = "Minha Loja" }: 
                     <TableRow key={product.id}>
                       <TableCell className="font-mono text-sm">
                         {product.short_id || product.id.substring(0, 8)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {product.external_code || '-'}
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell className="max-w-[300px] truncate text-sm text-muted-foreground">
