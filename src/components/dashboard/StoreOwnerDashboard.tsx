@@ -63,6 +63,7 @@ import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { LayoutSettings } from "@/components/settings/LayoutSettings";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
@@ -193,6 +194,7 @@ export const StoreOwnerDashboard = () => {
     pix_copiacola_button_text: (myStore as any)?.pix_copiacola_button_text || '',
     allow_orders_when_closed: (myStore as any)?.allow_orders_when_closed ?? false,
     require_delivery_zone: (myStore as any)?.require_delivery_zone ?? false,
+    product_layout_template: (myStore as any)?.product_layout_template || 'template-4',
   });
 
   const [pixValidation, setPixValidation] = useState<{ isValid: boolean; type: string; message: string }>({
@@ -4175,7 +4177,7 @@ export const StoreOwnerDashboard = () => {
               transition={{ delay: 0.3 }}
             >
               <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-2 bg-muted/50 h-auto p-2">
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 gap-2 bg-muted/50 h-auto p-2">
                   <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <User className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">Dados Pessoais</span>
@@ -4191,6 +4193,10 @@ export const StoreOwnerDashboard = () => {
                   <TabsTrigger value="pix" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <DollarSign className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="truncate">PIX</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="layout" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
+                    <LayoutGrid className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">Layout</span>
                   </TabsTrigger>
                   <TabsTrigger value="notifications" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
                     <Shield className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
@@ -5092,6 +5098,29 @@ export const StoreOwnerDashboard = () => {
                   ...data,
                 });
               }}
+            />
+          </motion.div>
+        </TabsContent>
+
+        {/* Layout Tab */}
+        <TabsContent value="layout">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <LayoutSettings
+              currentTemplate={(myStore as any)?.product_layout_template || 'template-4'}
+              onUpdate={async (template: string) => {
+                await updateStore({
+                  id: myStore.id,
+                  name: myStore.name,
+                  slug: myStore.slug,
+                  category: myStore.category,
+                  product_layout_template: template,
+                });
+              }}
+              isUpdating={false}
             />
           </motion.div>
         </TabsContent>
