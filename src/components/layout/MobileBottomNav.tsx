@@ -3,14 +3,12 @@ import { Home, Package, Plus, ShoppingCart, Settings, Store, LayoutDashboard, Us
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useCart } from "@/contexts/CartContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { CartSidebar } from "@/components/cart/CartSidebar";
 
 export const MobileBottomNav = () => {
   const location = useLocation();
@@ -24,7 +22,6 @@ export const MobileBottomNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEmployee, setIsEmployee] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Verificar se é funcionário
   useEffect(() => {
@@ -134,7 +131,7 @@ export const MobileBottomNav = () => {
         {/* Botão Central (Carrinho) */}
         <div className="flex flex-col items-center -mt-2 sm:-mt-3">
           <button
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={() => navigate('/cart')}
             className={cn(
               "flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 -mt-6 sm:-mt-8 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative",
               isPulsing && "animate-pulse-cart"
@@ -237,12 +234,6 @@ export const MobileBottomNav = () => {
           <span className="text-[10px] sm:text-xs font-medium">Perfil</span>
         </Link>
       </div>
-
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="h-[95vh] p-0">
-          <CartSidebar inDrawer={true} onClose={() => setIsDrawerOpen(false)} />
-        </DrawerContent>
-      </Drawer>
     </nav>
   );
 };
