@@ -45,7 +45,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
     try {
       let query = supabase
         .from('orders')
-        .select('customer_name, customer_phone, delivery_street, delivery_number, delivery_neighborhood, delivery_complement, total, created_at')
+        .select('customer_name, customer_phone, delivery_city, delivery_street, delivery_number, delivery_neighborhood, delivery_complement, total, created_at')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false });
 
@@ -137,7 +137,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
       customer.customer_name,
       customer.customer_phone,
       customer.delivery_street && customer.delivery_number 
-        ? `${customer.delivery_street}, ${customer.delivery_number}${customer.delivery_neighborhood ? ` - ${customer.delivery_neighborhood}` : ''}`
+        ? `${customer.delivery_street}, ${customer.delivery_number}${customer.delivery_neighborhood ? ` - ${customer.delivery_neighborhood}` : ''}${(customer as any).delivery_city ? ` - ${(customer as any).delivery_city}` : ''}`
         : '-',
       customer.total_orders,
       `R$ ${customer.total_spent.toFixed(2)}`,
@@ -181,7 +181,7 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
       'Nome': customer.customer_name,
       'WhatsApp': customer.customer_phone,
       'Endereço': customer.delivery_street && customer.delivery_number 
-        ? `${customer.delivery_street}, ${customer.delivery_number}${customer.delivery_neighborhood ? ` - ${customer.delivery_neighborhood}` : ''}`
+        ? `${customer.delivery_street}, ${customer.delivery_number}${customer.delivery_neighborhood ? ` - ${customer.delivery_neighborhood}` : ''}${(customer as any).delivery_city ? ` - ${(customer as any).delivery_city}` : ''}`
         : '-',
       'Total de Pedidos': customer.total_orders,
       'Total Gasto': customer.total_spent,
@@ -297,7 +297,10 @@ export const CustomersReport = ({ storeId, storeName = "Minha Loja", dateRange }
                             {customer.delivery_complement && (
                               <div className="text-muted-foreground">{customer.delivery_complement}</div>
                             )}
-                            <div className="text-muted-foreground">{customer.delivery_neighborhood}</div>
+                            <div className="text-muted-foreground">
+                              {customer.delivery_neighborhood}
+                              {(customer as any).delivery_city && ` - ${(customer as any).delivery_city}`}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>

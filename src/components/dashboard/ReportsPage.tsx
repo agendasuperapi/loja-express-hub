@@ -141,7 +141,7 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
       
       let query = supabase
         .from('orders')
-        .select('customer_name, customer_phone, delivery_street, delivery_number, delivery_neighborhood, delivery_complement, total, created_at')
+        .select('customer_name, customer_phone, delivery_city, delivery_street, delivery_number, delivery_neighborhood, delivery_complement, total, created_at')
         .eq('store_id', storeId)
         .order('created_at', { ascending: false });
 
@@ -687,7 +687,10 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
                             {customer.delivery_complement && (
                               <div className="text-muted-foreground">{customer.delivery_complement}</div>
                             )}
-                            <div className="text-muted-foreground">{customer.delivery_neighborhood}</div>
+                            <div className="text-muted-foreground">
+                              {customer.delivery_neighborhood}
+                              {(customer as any).delivery_city && ` - ${(customer as any).delivery_city}`}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
