@@ -1121,6 +1121,7 @@ export const StoreOwnerDashboard = () => {
           is_pizza: false,
           max_flavors: 2,
           external_code: '',
+          is_featured: false,
         });
       },
     });
@@ -1140,6 +1141,7 @@ export const StoreOwnerDashboard = () => {
       is_pizza: product.is_pizza || false,
       max_flavors: product.max_flavors || 2,
       external_code: product.external_code || '',
+      is_featured: product.is_featured || false,
     });
     setIsProductDialogOpen(true);
   };
@@ -1163,6 +1165,7 @@ export const StoreOwnerDashboard = () => {
       is_pizza: product.is_pizza || false,
       max_flavors: product.max_flavors || 2,
       external_code: '', // Leave empty to avoid unique constraint violation
+      is_featured: false,
     });
     
     // Open the product dialog
@@ -1262,6 +1265,7 @@ export const StoreOwnerDashboard = () => {
           is_pizza: false,
           max_flavors: 2,
           external_code: '',
+          is_featured: false,
         });
       },
     });
@@ -3130,6 +3134,7 @@ export const StoreOwnerDashboard = () => {
                         is_pizza: false,
                         max_flavors: 2,
                         external_code: '',
+                        is_featured: false,
                       });
                     }} size="lg">
                       <Plus className="w-4 h-4 mr-2" />
