@@ -847,6 +847,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_available: boolean | null
+          is_featured: boolean | null
           is_pizza: boolean | null
           max_flavors: number | null
           name: string
@@ -866,6 +867,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_pizza?: boolean | null
           max_flavors?: number | null
           name: string
@@ -885,6 +887,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_pizza?: boolean | null
           max_flavors?: number | null
           name?: string
