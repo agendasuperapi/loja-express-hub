@@ -203,6 +203,8 @@ export const StoreOwnerDashboard = () => {
 
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const [duplicatingFromProductId, setDuplicatingFromProductId] = useState<string | null>(null);
   const [isHoursDialogOpen, setIsHoursDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -1020,9 +1022,69 @@ export const StoreOwnerDashboard = () => {
       image_url: productForm.image_url || undefined,
       external_code: productForm.external_code?.trim() || undefined,
     }, {
-      onSuccess: () => {
+      onSuccess: async (newProduct) => {
+        // If duplicating, copy addons and flavors
+        if (isDuplicating && duplicatingFromProductId) {
+          try {
+            // Fetch addons from original product
+            const { data: addons } = await supabase
+              .from('product_addons')
+              .select('*')
+              .eq('product_id', duplicatingFromProductId);
+
+            // Fetch flavors from original product
+            const { data: flavors } = await supabase
+              .from('product_flavors')
+              .select('*')
+              .eq('product_id', duplicatingFromProductId);
+
+            // Copy addons
+            if (addons && addons.length > 0) {
+              const addonsToInsert = addons.map(addon => ({
+                product_id: newProduct.id,
+                name: addon.name,
+                price: addon.price,
+                category_id: addon.category_id,
+                is_available: addon.is_available,
+                allow_quantity: addon.allow_quantity,
+                display_order: addon.display_order,
+              }));
+
+              await supabase.from('product_addons').insert(addonsToInsert);
+            }
+
+            // Copy flavors
+            if (flavors && flavors.length > 0) {
+              const flavorsToInsert = flavors.map(flavor => ({
+                product_id: newProduct.id,
+                name: flavor.name,
+                description: flavor.description,
+                price: flavor.price,
+                is_available: flavor.is_available,
+                display_order: flavor.display_order,
+              }));
+
+              await supabase.from('product_flavors').insert(flavorsToInsert);
+            }
+
+            toast({
+              title: 'Produto duplicado com sucesso!',
+              description: `${addons?.length || 0} complementos e ${flavors?.length || 0} sabores foram copiados.`,
+            });
+          } catch (error) {
+            console.error('Error copying addons/flavors:', error);
+            toast({
+              title: 'Produto criado',
+              description: 'Produto criado, mas houve erro ao copiar complementos/sabores.',
+              variant: 'destructive',
+            });
+          }
+        }
+
         setIsProductDialogOpen(false);
         setActiveProductTab("info");
+        setIsDuplicating(false);
+        setDuplicatingFromProductId(null);
         setProductForm({
           name: '',
           description: '',
@@ -1058,9 +1120,12 @@ export const StoreOwnerDashboard = () => {
   };
 
   const handleDuplicateProduct = (product: any) => {
-    // Set editingProduct to null since this is a new product
+    // Set flags for duplication
+    setIsDuplicating(true);
+    setDuplicatingFromProductId(product.id);
     setEditingProduct(null);
     setActiveProductTab("info");
+    
     // Fill form with copied data
     setProductForm({
       name: `${product.name} (Cópia)`,
@@ -1074,12 +1139,13 @@ export const StoreOwnerDashboard = () => {
       max_flavors: product.max_flavors || 2,
       external_code: '', // Leave empty to avoid unique constraint violation
     });
+    
     // Open the product dialog
     setIsProductDialogOpen(true);
     
     toast({
       title: 'Produto copiado',
-      description: 'Edite os dados e clique em salvar para criar a cópia.',
+      description: 'Edite os dados e clique em salvar. Os complementos e sabores também serão copiados.',
     });
   };
 
