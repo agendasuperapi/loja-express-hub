@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -415,37 +416,73 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                       )
                   )
                   .sort((a, b) => a.display_order - b.display_order)
-                  .map((category) => (
-                    <div key={category.id} className="space-y-1.5">
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-foreground">
-                          {category.name}
-                          {category.min_items > 0 && (
-                            <span className="text-destructive ml-1">*</span>
-                          )}
-                          {category.is_exclusive && (
-                            <Badge variant="outline" className="ml-2 text-xs">
-                              Escolha 1
-                            </Badge>
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {category.is_exclusive ? (
-                            'Apenas 1 opção'
-                          ) : (
-                            <>
-                              {category.min_items > 0 ? `Mín: ${category.min_items}` : 'Opcional'}
-                              {category.max_items !== null && ` • Máx: ${category.max_items}`}
-                            </>
-                          )}
-                        </p>
-                      </div>
-                      
-                      {category.is_exclusive ? (
-                        <RadioGroup
-                          value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''}
-                          onValueChange={(value) => handleAddonToggle(value, category.id)}
-                        >
+                  .map((category, index, array) => (
+                    <div key={category.id}>
+                      <div className="space-y-1.5">
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-foreground">
+                            {category.name}
+                            {category.min_items > 0 && (
+                              <span className="text-destructive ml-1">*</span>
+                            )}
+                            {category.is_exclusive && (
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                Escolha 1
+                              </Badge>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {category.is_exclusive ? (
+                              'Apenas 1 opção'
+                            ) : (
+                              <>
+                                {category.min_items > 0 ? `Mín: ${category.min_items}` : 'Opcional'}
+                                {category.max_items !== null && ` • Máx: ${category.max_items}`}
+                              </>
+                            )}
+                          </p>
+                        </div>
+                        
+                        {category.is_exclusive ? (
+                          <RadioGroup
+                            value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''}
+                            onValueChange={(value) => handleAddonToggle(value, category.id)}
+                          >
+                            <div className="space-y-1.5">
+                              {addons
+                                .filter(
+                                  (addon) =>
+                                    addon.category_id === category.id && addon.is_available
+                                )
+                                .sort(
+                                  (a, b) =>
+                                    (a.display_order || 0) - (b.display_order || 0)
+                                )
+                                .map((addon) => (
+                                  <div
+                                    key={addon.id}
+                                    className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
+                                  >
+                                    <div className="flex items-center gap-2.5 flex-1">
+                                      <RadioGroupItem
+                                        value={addon.id}
+                                        id={addon.id}
+                                      />
+                                      <Label
+                                        htmlFor={addon.id}
+                                        className="flex-1 cursor-pointer text-sm"
+                                      >
+                                        {addon.name}
+                                      </Label>
+                                    </div>
+                                    <span className="text-sm font-semibold text-primary">
+                                      + R$ {addon.price.toFixed(2)}
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          </RadioGroup>
+                        ) : (
                           <div className="space-y-1.5">
                             {addons
                               .filter(
@@ -462,9 +499,10 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                   className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
                                 >
                                   <div className="flex items-center gap-2.5 flex-1">
-                                    <RadioGroupItem
-                                      value={addon.id}
+                                    <Checkbox
                                       id={addon.id}
+                                      checked={selectedAddons.has(addon.id)}
+                                      onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
                                     />
                                     <Label
                                       htmlFor={addon.id}
@@ -473,73 +511,41 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                       {addon.name}
                                     </Label>
                                   </div>
-                                  <span className="text-sm font-semibold text-primary">
-                                    + R$ {addon.price.toFixed(2)}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                        >
+                                          <Minus className="w-3 h-3" />
+                                        </Button>
+                                        <span className="text-xs font-medium w-6 text-center">
+                                          {addonQuantities.get(addon.id) || 1}x
+                                        </span>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                        >
+                                          <Plus className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    )}
+                                    <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                                      + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                                    </span>
+                                  </div>
                                 </div>
                               ))}
                           </div>
-                        </RadioGroup>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {addons
-                            .filter(
-                              (addon) =>
-                                addon.category_id === category.id && addon.is_available
-                            )
-                            .sort(
-                              (a, b) =>
-                                (a.display_order || 0) - (b.display_order || 0)
-                            )
-                            .map((addon) => (
-                              <div
-                                key={addon.id}
-                                className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-                              >
-                                <div className="flex items-center gap-2.5 flex-1">
-                                  <Checkbox
-                                    id={addon.id}
-                                    checked={selectedAddons.has(addon.id)}
-                                    onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
-                                  />
-                                  <Label
-                                    htmlFor={addon.id}
-                                    className="flex-1 cursor-pointer text-sm"
-                                  >
-                                    {addon.name}
-                                  </Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {addon.allow_quantity && selectedAddons.has(addon.id) && (
-                                    <div className="flex items-center gap-1">
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-6 w-6"
-                                        onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                                      >
-                                        <Minus className="w-3 h-3" />
-                                      </Button>
-                                      <span className="text-xs font-medium w-6 text-center">
-                                        {addonQuantities.get(addon.id) || 1}x
-                                      </span>
-                                      <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-6 w-6"
-                                        onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                                      >
-                                        <Plus className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  )}
-                                  <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                                    + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
+                        )}
+                      </div>
+                      {index < array.length - 1 && (
+                        <Separator className="my-4" />
                       )}
                     </div>
                   ))}
