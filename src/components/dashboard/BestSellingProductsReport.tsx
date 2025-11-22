@@ -118,12 +118,12 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
   }, [dateRange]);
 
   const exportToCSV = () => {
-    const headers = ['Posição', 'Produto', 'Código Externo', 'Quantidade Vendida', 'Pedidos', 'Receita'];
+    const headers = ['Posição', 'Código Externo', 'Produto', 'Quantidade Vendida', 'Pedidos', 'Receita'];
     
     const rows = products.map((product, index) => [
       `#${index + 1}`,
-      product.product_name,
       product.external_code || '-',
+      product.product_name,
       `${product.quantity_sold} unidades`,
       product.orders_count,
       `R$ ${product.revenue.toFixed(2)}`
@@ -164,8 +164,8 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
   const exportToExcel = () => {
     const data = products.map((product, index) => ({
       'Posição': `#${index + 1}`,
-      'Produto': product.product_name,
       'Código Externo': product.external_code || '-',
+      'Produto': product.product_name,
       'Quantidade Vendida': product.quantity_sold,
       'Pedidos': product.orders_count,
       'Receita': product.revenue
@@ -176,8 +176,8 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
     // Auto-width das colunas
     const colWidths = [
       { wch: 10 }, // Posição
-      { wch: 30 }, // Produto
       { wch: 15 }, // Código Externo
+      { wch: 30 }, // Produto
       { wch: 20 }, // Quantidade Vendida
       { wch: 12 }, // Pedidos
       { wch: 15 }  // Receita
@@ -241,8 +241,8 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
               <TableHeader>
                 <TableRow>
                   <TableHead>Posição</TableHead>
-                  <TableHead>Produto</TableHead>
                   <TableHead>Código Externo</TableHead>
+                  <TableHead>Produto</TableHead>
                   <TableHead className="text-right">Quantidade Vendida</TableHead>
                   <TableHead className="text-right">Pedidos</TableHead>
                   <TableHead className="text-right">Receita</TableHead>
@@ -272,10 +272,10 @@ export const BestSellingProductsReport = ({ storeId, storeName = "Minha Loja", d
                           #{globalIndex + 1}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">{product.product_name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {product.external_code || '-'}
                       </TableCell>
+                      <TableCell className="font-medium">{product.product_name}</TableCell>
                       <TableCell className="text-right">
                         <Badge variant="outline">{product.quantity_sold} unidades</Badge>
                       </TableCell>
