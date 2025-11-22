@@ -134,31 +134,29 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-2 md:p-3 flex flex-col h-full">
+                    <div className="p-2 md:p-3 flex flex-col">
                       {/* Nome do Produto */}
-                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors mb-1.5 md:mb-2">
+                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors mb-1 md:mb-1.5">
                         {product.name}
                       </h3>
 
                       {/* Descrição - sempre ocupa espaço mesmo quando vazia */}
-                      <div className="min-h-[2.5rem] md:min-h-[3rem] mb-1.5 md:mb-2">
+                      <div className="min-h-[2rem] md:min-h-[2.5rem] mb-1.5 md:mb-2">
                         <p className="text-xs md:text-sm text-muted-foreground line-clamp-1 md:line-clamp-2">
                           {product.description || '\u00A0'}
                         </p>
                       </div>
 
-                      {/* Preço e Botão - sempre no final */}
-                      <div className="flex items-end justify-between mt-auto pt-0.5 md:pt-1">
-                        <div className="flex flex-col justify-end min-h-[3rem]">
-                          <div className="min-h-[1rem] mb-0.5">
-                            {hasPromotion && (
-                              <p className="text-[10px] md:text-xs text-muted-foreground line-through">
-                                {formatCurrency(product.price)}
-                              </p>
-                            )}
-                          </div>
+                      {/* Preço e Botão */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col justify-center">
+                          {hasPromotion && (
+                            <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight">
+                              {formatCurrency(product.price)}
+                            </p>
+                          )}
                           <p className={cn(
-                            "font-bold text-base md:text-lg",
+                            "font-bold text-base md:text-lg leading-tight",
                             hasPromotion ? "text-red-500" : "text-primary"
                           )}>
                             {formatCurrency(finalPrice)}
