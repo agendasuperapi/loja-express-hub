@@ -146,6 +146,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [storeFlavorSearch, setStoreFlavorSearch] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const [flavorSearchTerm, setFlavorSearchTerm] = useState('');
+  const [newFlavorModalOpen, setNewFlavorModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -213,7 +214,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
       price: flavor.price,
       is_available: flavor.is_available,
     });
-    setIsAdding(true);
+    setNewFlavorModalOpen(true);
   };
 
   const handleCancel = () => {
@@ -632,7 +633,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
               <Button 
                 size="sm" 
                 variant="default"
-                onClick={() => setIsAdding(true)}
+                onClick={() => setNewFlavorModalOpen(true)}
                 className="w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 sm:mr-2" />
@@ -1040,6 +1041,105 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog: Novo Sabor */}
+        <Dialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Novo Sabor</DialogTitle>
+              <DialogDescription>
+                Adicione um novo sabor para este produto
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nome do Sabor</Label>
+                <Input
+                  placeholder="Ex: Calabresa, Mussarela..."
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Descrição (Opcional)</Label>
+                <Textarea
+                  placeholder="Descreva os ingredientes do sabor..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Preço do Sabor</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="pl-9"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Quando o cliente escolher múltiplos sabores, o preço final será a média dos sabores selecionados
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={formData.is_available}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+                />
+                <Label>Disponível</Label>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button 
+                  onClick={() => {
+                    if (!formData.name.trim()) {
+                      toast({
+                        title: "Nome obrigatório",
+                        description: "Por favor, insira um nome para o sabor.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+
+                    if (editingId) {
+                      updateFlavor({ id: editingId, ...formData });
+                      setEditingId(null);
+                    } else {
+                      createFlavor({ ...formData, product_id: productId });
+                    }
+                    
+                    setFormData({ name: '', description: '', price: 0, is_available: true });
+                    setNewFlavorModalOpen(false);
+                  }}
+                  disabled={isCreating} 
+                  className="flex-1"
+                >
+                  {editingId ? 'Atualizar' : 'Adicionar'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setNewFlavorModalOpen(false);
+                    setEditingId(null);
+                    setFormData({ name: '', description: '', price: 0, is_available: true });
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
