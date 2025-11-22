@@ -42,6 +42,7 @@ export interface StoreFormData {
   pix_copiacola_message_enabled?: boolean;
   allow_orders_when_closed?: boolean;
   require_delivery_zone?: boolean;
+  product_layout_template?: string;
 }
 
 export const useStoreManagement = () => {

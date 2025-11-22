@@ -38,6 +38,27 @@ export default function StoreDetails() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
+  // Get layout template from store
+  const layoutTemplate = (store as any)?.product_layout_template || 'template-4';
+  
+  // Function to get grid classes based on template
+  const getGridClasses = () => {
+    switch (layoutTemplate) {
+      case 'template-2':
+        return 'grid-cols-1 sm:grid-cols-2';
+      case 'template-3':
+        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+      case 'template-4':
+        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+      case 'template-6':
+        return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6';
+      case 'template-list':
+        return 'grid-cols-1';
+      default:
+        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+    }
+  };
+  
   // Detect shared product from URL and open in popup
   const sharedProductShortId = searchParams.get('product');
 
@@ -583,7 +604,7 @@ export default function StoreDetails() {
                   <div className="h-1 flex-1 bg-gradient-to-r from-orange-500/50 to-transparent rounded-full" />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6">
+                <div className={`grid ${getGridClasses()} gap-8 md:gap-6`}>
                   {categoryProducts.map((product, index) => {
                     const cartQuantity = getProductCartQuantity(product.id);
                     const isInCart = cartQuantity > 0;
