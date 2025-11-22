@@ -355,10 +355,10 @@ export default function StoreDetails() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative rounded-3xl overflow-hidden mb-4 md:mb-6 shadow-2xl hover:shadow-3xl transition-shadow duration-500 w-full"
+          className="relative rounded-3xl overflow-hidden mb-4 md:mb-6 shadow-2xl hover:shadow-3xl transition-shadow duration-500 w-full max-w-full"
         >
           {/* Banner */}
-          <div className="relative h-[250px] sm:h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px] bg-muted overflow-hidden group border-2 border-orange-300 hover:shadow-[0_0_20px_rgba(251,146,60,0.6)] transition-shadow duration-500 w-full max-w-[1200px] mx-auto">
+          <div className="relative h-32 md:h-64 lg:h-80 bg-muted overflow-hidden group border-2 border-orange-300 hover:shadow-[0_0_20px_rgba(251,146,60,0.6)] transition-shadow duration-500 w-full max-w-full">
             {store.banner_url ? (
               <>
                 <motion.img 
@@ -367,7 +367,7 @@ export default function StoreDetails() {
                   transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
                   src={store.banner_url} 
                   alt={store.name}
-                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-1000 ease-out"
+                  className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-1000 ease-out"
                 />
                 {/* Animated shine effect */}
                 <motion.div
