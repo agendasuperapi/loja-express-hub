@@ -661,7 +661,7 @@ export default function StoreDetails() {
                           >
                             {/* Product Image on Left */}
                             <div className="flex-shrink-0 relative">
-                              <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                              <div className="w-28 h-28 md:w-36 md:h-36 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                                 {product.image_url ? (
                                   <img 
                                     src={product.image_url} 
@@ -774,7 +774,7 @@ export default function StoreDetails() {
                           >
                             {/* Product Image on Left */}
                             <div className="flex-shrink-0 relative">
-                              <div className="w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                              <div className="w-28 h-28 md:w-36 md:h-36 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                                 {product.image_url ? (
                                   <img 
                                     src={product.image_url} 
