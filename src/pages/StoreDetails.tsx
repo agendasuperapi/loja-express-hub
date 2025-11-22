@@ -470,8 +470,8 @@ export default function StoreDetails() {
                         {canAcceptOrders
                           ? storeIsOpen 
                             ? `Aberto - ${storeStatus}`
-                            : "📅 Aceitando pedidos agendados"
-                          : `🔒 Fechado - ${storeStatus}`
+                            : "Aceitando pedidos agendados"
+                          : `Fechado - ${storeStatus}`
                         }
                       </Badge>
                     </motion.div>
