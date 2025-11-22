@@ -102,6 +102,14 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Mapeamento entre status do banco (enum) e status_key customizado
+  const denormalizeStatusKey = (uiStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      'out_for_delivery': 'in_delivery',
+    };
+    return statusMap[uiStatus] || uiStatus;
+  };
+
   // Função para calcular o período de datas
   const getDateRange = () => {
     const now = new Date();
@@ -431,7 +439,8 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
 
     // Filtro de status
     if (orderStatusFilter !== "all") {
-      filtered = filtered.filter(o => o.status === orderStatusFilter);
+      const normalizedFilter = denormalizeStatusKey(orderStatusFilter);
+      filtered = filtered.filter(o => o.status === normalizedFilter);
     }
 
     // Filtro de busca

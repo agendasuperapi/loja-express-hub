@@ -60,6 +60,14 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const itemsPerPage = 10;
   const [storeData, setStoreData] = useState<{ operating_hours: any; allow_orders_when_closed: boolean } | null>(null);
 
+  // Mapeamento entre status do banco (enum) e status_key customizado
+  const denormalizeStatusKey = (uiStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      'out_for_delivery': 'in_delivery', // UI usa out_for_delivery, mas DB precisa in_delivery
+    };
+    return statusMap[uiStatus] || uiStatus;
+  };
+
   const fetchOrders = async () => {
     try {
       // Buscar dados da loja
@@ -151,7 +159,8 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     let filtered = orders;
 
     if (statusFilter !== "all") {
-      filtered = filtered.filter(o => o.status === statusFilter);
+      const normalizedFilter = denormalizeStatusKey(statusFilter);
+      filtered = filtered.filter(o => o.status === normalizedFilter);
     }
 
     if (paymentFilter === 'received') {
