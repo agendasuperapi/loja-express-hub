@@ -662,27 +662,26 @@ export default function StoreDetails() {
                             </p>
                           )}
                           <Separator className="my-3" />
-                          <div className="flex items-center justify-between">
-                            <div>
-                              {product.promotional_price ? (
-                                <div className="space-y-1">
-                                  <span className="text-sm text-muted-foreground line-through block">
-                                    R$ {Number(product.price).toFixed(2)}
-                                  </span>
-                                  <span className="text-xl font-bold text-primary">
-                                    R$ {Number(product.promotional_price).toFixed(2)}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-xl font-bold gradient-text">
+                          <div>
+                            {product.promotional_price ? (
+                              <div className="space-y-1 mb-3">
+                                <span className="text-sm text-muted-foreground line-through block">
                                   R$ {Number(product.price).toFixed(2)}
                                 </span>
-                              )}
-                            </div>
+                                <span className="text-xl font-bold text-primary">
+                                  R$ {Number(product.promotional_price).toFixed(2)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xl font-bold gradient-text block mb-3">
+                                R$ {Number(product.price).toFixed(2)}
+                              </span>
+                            )}
                             <div className="flex items-center gap-2">
                               <motion.div
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                className="flex-shrink-0"
                               >
                                 <Button 
                                   size="sm"
@@ -699,6 +698,7 @@ export default function StoreDetails() {
                               <motion.div
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
+                                className="flex-1"
                               >
                                 <Button 
                                   size="sm"
@@ -706,7 +706,7 @@ export default function StoreDetails() {
                                     e.stopPropagation();
                                     setDetailsProduct(product);
                                   }}
-                                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
+                                  className="w-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
                                 >
                                   Adicionar
                                 </Button>
