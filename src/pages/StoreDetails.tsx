@@ -610,7 +610,7 @@ export default function StoreDetails() {
                         }}
                       >
                         <Card
-                        className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
+                         className={`overflow-hidden h-full transition-all duration-300 cursor-pointer ${
                           isInCart 
                             ? 'border border-primary ring-4 ring-primary/40 bg-primary/5 scale-[1.02]' 
                             : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
@@ -618,7 +618,7 @@ export default function StoreDetails() {
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
-                          <div className="relative h-56 md:h-44 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                          <div className="relative h-56 md:h-44 lg:h-36 xl:h-32 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                             <motion.img
                               initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
@@ -654,27 +654,27 @@ export default function StoreDetails() {
                             )}
                           </div>
                         )}
-                        <CardContent className="p-4">
-                          <h4 className="font-bold text-lg mb-1.5 group-hover:text-primary transition-colors">{product.name}</h4>
+                        <CardContent className="p-4 lg:p-3">
+                          <h4 className="font-bold text-lg lg:text-base mb-1.5 lg:mb-1 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
                           {product.description && (
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2 leading-relaxed">
+                            <p className="text-sm lg:text-xs text-muted-foreground mb-2 lg:mb-1.5 line-clamp-2 leading-relaxed">
                               {product.description}
                             </p>
                           )}
-                          <Separator className="my-3" />
+                          <Separator className="my-3 lg:my-2" />
                           <div className="flex items-center justify-between">
                             <div>
                               {product.promotional_price ? (
-                                <div className="space-y-1">
-                                  <span className="text-sm text-muted-foreground line-through block">
+                                <div className="space-y-1 lg:space-y-0.5">
+                                  <span className="text-sm lg:text-xs text-muted-foreground line-through block">
                                     R$ {Number(product.price).toFixed(2)}
                                   </span>
-                                  <span className="text-xl font-bold text-primary">
+                                  <span className="text-xl lg:text-lg font-bold text-primary">
                                     R$ {Number(product.promotional_price).toFixed(2)}
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-xl font-bold gradient-text">
+                                <span className="text-xl lg:text-lg font-bold gradient-text">
                                   R$ {Number(product.price).toFixed(2)}
                                 </span>
                               )}
