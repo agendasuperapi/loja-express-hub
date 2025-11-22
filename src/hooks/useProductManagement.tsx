@@ -178,61 +178,6 @@ export const useProductManagement = (storeId?: string) => {
     },
   });
 
-  const duplicateProductMutation = useMutation({
-    mutationFn: async (product: any) => {
-      console.log('Duplicating product:', product);
-      
-      // Select only the fields that should be copied
-      // Note: external_code is NOT copied to avoid unique constraint violation
-      const productData = {
-        store_id: product.store_id,
-        name: `${product.name} (Cópia)`,
-        description: product.description,
-        category: product.category,
-        price: product.price,
-        promotional_price: product.promotional_price,
-        stock_quantity: product.stock_quantity,
-        is_available: product.is_available,
-        image_url: product.image_url,
-        is_pizza: product.is_pizza,
-        max_flavors: product.max_flavors,
-        // external_code is intentionally omitted - must be unique per store
-        display_order: product.display_order,
-      };
-
-      console.log('Product data to insert:', productData);
-
-      const { data, error } = await supabase
-        .from('products')
-        .insert(productData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error duplicating product:', error);
-        throw error;
-      }
-      
-      console.log('Product duplicated successfully:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-products'] });
-      toast({
-        title: 'Produto duplicado!',
-        description: 'O produto foi duplicado com sucesso. Lembre-se de definir um novo código externo se necessário.',
-      });
-    },
-    onError: (error: Error) => {
-      console.error('Duplication mutation error:', error);
-      toast({
-        title: 'Erro ao duplicar produto',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
   return {
     products: productsQuery.data,
     isLoading: productsQuery.isLoading,
@@ -241,12 +186,10 @@ export const useProductManagement = (storeId?: string) => {
     toggleProductAvailability: toggleProductAvailabilityMutation.mutate,
     reorderProducts: reorderProductsMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,
-    duplicateProduct: duplicateProductMutation.mutate,
     isCreating: createProductMutation.isPending,
     isUpdating: updateProductMutation.isPending,
     isTogglingAvailability: toggleProductAvailabilityMutation.isPending,
     isReordering: reorderProductsMutation.isPending,
     isDeleting: deleteProductMutation.isPending,
-    isDuplicating: duplicateProductMutation.isPending,
   };
 };

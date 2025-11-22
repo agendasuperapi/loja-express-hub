@@ -91,7 +91,7 @@ export const StoreOwnerDashboard = () => {
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
-  const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct, duplicateProduct } = useProductManagement(myStore?.id);
+  const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
   
 
@@ -1055,6 +1055,32 @@ export const StoreOwnerDashboard = () => {
       external_code: product.external_code || '',
     });
     setIsProductDialogOpen(true);
+  };
+
+  const handleDuplicateProduct = (product: any) => {
+    // Set editingProduct to null since this is a new product
+    setEditingProduct(null);
+    setActiveProductTab("info");
+    // Fill form with copied data
+    setProductForm({
+      name: `${product.name} (Cópia)`,
+      description: product.description || '',
+      category: product.category,
+      price: product.price,
+      promotional_price: product.promotional_price || 0,
+      is_available: product.is_available,
+      image_url: product.image_url || '',
+      is_pizza: product.is_pizza || false,
+      max_flavors: product.max_flavors || 2,
+      external_code: '', // Leave empty to avoid unique constraint violation
+    });
+    // Open the product dialog
+    setIsProductDialogOpen(true);
+    
+    toast({
+      title: 'Produto copiado',
+      description: 'Edite os dados e clique em salvar para criar a cópia.',
+    });
   };
 
   const handleUpdateProduct = async () => {
@@ -3586,7 +3612,7 @@ export const StoreOwnerDashboard = () => {
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => duplicateProduct(product)}
+                                          onClick={() => handleDuplicateProduct(product)}
                                           title="Duplicar produto"
                                         >
                                           <Copy className="w-4 h-4" />
@@ -3663,7 +3689,7 @@ export const StoreOwnerDashboard = () => {
                                         onToggleAvailability={(id, isAvailable) => 
                                           toggleProductAvailability({ id, is_available: isAvailable })
                                         }
-                                        onDuplicate={(product) => duplicateProduct(product)}
+                                        onDuplicate={handleDuplicateProduct}
                                       />
                                     ))}
                                   </div>
@@ -3717,7 +3743,7 @@ export const StoreOwnerDashboard = () => {
                                   onToggleAvailability={(id, isAvailable) => 
                                     toggleProductAvailability({ id, is_available: isAvailable })
                                   }
-                                  onDuplicate={(product) => duplicateProduct(product)}
+                                  onDuplicate={handleDuplicateProduct}
                                 />
                               ))}
                             </div>
