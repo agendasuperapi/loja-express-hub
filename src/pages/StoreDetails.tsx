@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -518,14 +518,17 @@ export default function StoreDetails() {
               />
             )}
 
-          <motion.h2
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
-            className="text-2xl md:text-3xl font-bold gradient-text"
+            className="flex items-center gap-2"
           >
-            {menuLabel}
-          </motion.h2>
+            <ShoppingBag className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <h2 className="text-2xl md:text-3xl font-bold gradient-text">
+              {menuLabel}
+            </h2>
+          </motion.div>
 
           {/* Search Input */}
           <div className="relative max-w-md">
