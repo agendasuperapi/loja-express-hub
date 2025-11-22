@@ -88,8 +88,8 @@ export const MobileBottomNav = () => {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg pb-2 sm:pb-3">
-      <div className="flex items-center justify-around h-16 sm:h-20 px-1 sm:px-2 pt-2 sm:pt-3">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg pb-4 sm:pb-6">
+      <div className="flex items-center justify-around h-16 sm:h-20 px-1 sm:px-2 pt-3 sm:pt-4">
         {/* Home/Início */}
         <button
           onClick={handleHomeClick}
