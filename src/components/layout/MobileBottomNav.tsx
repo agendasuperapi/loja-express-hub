@@ -119,12 +119,12 @@ export const MobileBottomNav = () => {
         </Link>
 
         {/* Botão Central (Carrinho) */}
-        <div className="flex flex-col items-center -mt-1 sm:-mt-2">
+        <div className="flex flex-col items-center -mt-2 sm:-mt-3">
           <Link
             to="/cart"
-            className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 -mt-4 sm:-mt-6 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative"
+            className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 -mt-6 sm:-mt-8 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative"
           >
-            <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground" />
+            <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
             {itemCount > 0 && (
               <Badge 
                 className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center p-0 text-[10px] sm:text-xs bg-destructive"
@@ -133,7 +133,7 @@ export const MobileBottomNav = () => {
               </Badge>
             )}
           </Link>
-          <span className="text-[10px] sm:text-xs font-semibold text-foreground mt-0.5 sm:mt-1">
+          <span className="text-xs sm:text-sm font-semibold text-foreground mt-1 sm:mt-1.5">
             {total > 0 ? `R$ ${total.toFixed(2)}` : 'R$ 0,00'}
           </span>
         </div>
