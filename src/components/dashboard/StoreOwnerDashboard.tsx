@@ -117,6 +117,21 @@ export const StoreOwnerDashboard = () => {
   const canViewCancelledOrders = hasPermission('orders', 'view_cancelled_orders');
 
 
+  // Mapeamento entre status do banco (enum) e status_key customizado
+  const normalizeStatusKey = (dbStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      'in_delivery': 'out_for_delivery', // DB usa in_delivery, mas UI usa out_for_delivery
+    };
+    return statusMap[dbStatus] || dbStatus;
+  };
+  
+  const denormalizeStatusKey = (uiStatus: string): string => {
+    const statusMap: Record<string, string> = {
+      'out_for_delivery': 'in_delivery', // UI usa out_for_delivery, mas DB precisa in_delivery
+    };
+    return statusMap[uiStatus] || uiStatus;
+  };
+
   // Helpers para mudança de status conforme permissões
   const canChangeTo = (statusKey: string) => {
     if (hasPermission('orders', 'change_any_status')) return true;
@@ -635,19 +650,21 @@ export const StoreOwnerDashboard = () => {
         }
         break;
       default:
-        return orders.filter(order => {
-          const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
-          const matchesPayment = statsPaymentFilter === 'all' || 
-            (statsPaymentFilter === 'received' && order.payment_received === true) ||
-            (statsPaymentFilter === 'pending' && order.payment_received !== true);
-          return matchesStatus && matchesPayment;
-        });
+    return orders.filter(order => {
+      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
+      const matchesPayment = statsPaymentFilter === 'all' || 
+        (statsPaymentFilter === 'received' && order.payment_received === true) ||
+        (statsPaymentFilter === 'pending' && order.payment_received !== true);
+      return matchesStatus && matchesPayment;
+    });
     }
 
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       const matchesDate = isWithinInterval(orderDate, { start: startDate, end: endDate });
-      const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
+      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
       const matchesPayment = statsPaymentFilter === 'all' || 
         (statsPaymentFilter === 'received' && order.payment_received === true) ||
         (statsPaymentFilter === 'pending' && order.payment_received !== true);
@@ -715,7 +732,8 @@ export const StoreOwnerDashboard = () => {
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       const matchesDate = isWithinInterval(orderDate, { start: previousStartDate, end: previousEndDate });
-      const matchesStatus = statsStatusFilter === "all" || order.status === statsStatusFilter;
+      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
       const matchesPayment = statsPaymentFilter === 'all' || 
         (statsPaymentFilter === 'received' && order.payment_received === true) ||
         (statsPaymentFilter === 'pending' && order.payment_received !== true);
@@ -849,9 +867,12 @@ export const StoreOwnerDashboard = () => {
         }
       }
       
-      // Filtro de status
-      if (orderStatusFilter !== 'all' && order.status !== orderStatusFilter) {
-        return false;
+      // Filtro de status - normalizar ambos os lados da comparação
+      if (orderStatusFilter !== 'all') {
+        const normalizedFilterStatus = denormalizeStatusKey(orderStatusFilter);
+        if (order.status !== normalizedFilterStatus) {
+          return false;
+        }
       }
 
       // Filtro de status de pagamento
@@ -2567,7 +2588,9 @@ export const StoreOwnerDashboard = () => {
                 )}
                 
                 {customStatuses.filter(status => status.is_active).map((status) => {
-                  const statusCount = orders?.filter(o => o.status === status.status_key).length || 0;
+                  // Normalizar tanto o status do banco quanto o status_key para comparação
+                  const normalizedStatusKey = denormalizeStatusKey(status.status_key);
+                  const statusCount = orders?.filter(o => o.status === normalizedStatusKey).length || 0;
                   const isActive = orderStatusFilter === status.status_key;
                   
                   // Verificar se tem permissão para visualizar este status
@@ -2704,7 +2727,7 @@ export const StoreOwnerDashboard = () => {
                             </p>
                           </div>
                           <Badge variant="outline" className="capitalize text-xs self-start">
-                            {customStatuses.find(s => s.status_key === order.status)?.status_label || order.status}
+                            {customStatuses.find(s => denormalizeStatusKey(s.status_key) === order.status)?.status_label || order.status}
                           </Badge>
                         </div>
 
@@ -2853,7 +2876,7 @@ export const StoreOwnerDashboard = () => {
                             </Button>
                           )}
                           <Select
-                            value={order.status}
+                            value={normalizeStatusKey(order.status)}
                             onValueChange={(newStatus) => {
                               // Verificar permissão antes de permitir mudança
                               if (!canChangeTo(newStatus)) {
@@ -5210,7 +5233,7 @@ export const StoreOwnerDashboard = () => {
               <div className="flex justify-between items-center">
                 <div>
                   <Badge variant="outline" className="capitalize">
-                    {customStatuses.find((s: any) => s.status_key === viewingOrder.status)?.status_label || viewingOrder.status}
+                    {customStatuses.find((s: any) => denormalizeStatusKey(s.status_key) === viewingOrder.status)?.status_label || viewingOrder.status}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
