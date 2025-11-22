@@ -142,13 +142,13 @@ export const FeaturedProductsCarousel = ({
 
                       {/* Descrição - sem espaço fixo */}
                       {product.description && (
-                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-1 md:mb-1.5">
+                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
                           {product.description}
                         </p>
                       )}
 
                       {/* Preço e Botão - sempre no fundo */}
-                      <div className="flex items-center justify-between gap-2 mt-auto pt-1 md:pt-1.5">
+                      <div className="flex items-center justify-between gap-2 mt-auto">
                         <div className="flex flex-col justify-center">
                           {hasPromotion && (
                             <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight mb-0.5">
