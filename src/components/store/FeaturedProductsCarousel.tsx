@@ -2,12 +2,14 @@ import { motion } from "framer-motion";
 import { Star, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselApi,
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,19 @@ export const FeaturedProductsCarousel = ({
   onAddToCart,
   onProductClick,
 }: FeaturedProductsCarouselProps) => {
+  const [api, setApi] = useState<CarouselApi>();
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (!api) return;
+
+    const autoPlayInterval = setInterval(() => {
+      api.scrollNext();
+    }, 4000); // Rotaciona a cada 4 segundos
+
+    return () => clearInterval(autoPlayInterval);
+  }, [api]);
+
   if (!products || products.length === 0) return null;
 
   return (
@@ -63,9 +78,11 @@ export const FeaturedProductsCarousel = ({
 
       {/* Carrossel */}
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           loop: true,
+          dragFree: true,
         }}
         className="w-full"
       >
