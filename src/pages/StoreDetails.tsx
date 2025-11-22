@@ -899,7 +899,7 @@ export default function StoreDetails() {
                           onClick={() => setDetailsProduct(product)}
                         >
                           {product.image_url && (
-                            <div className="relative h-56 md:h-44 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                            <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                               <motion.img
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
