@@ -1422,7 +1422,11 @@ export const StoreOwnerDashboard = () => {
     };
 
     const orderItems = order.order_items || [];
+    console.log('[Print] Order items:', orderItems);
     const itemsHtml = orderItems.map((item: any) => {
+      console.log('[Print] Item structure:', item);
+      console.log('[Print] Item products:', item.products);
+      
       const addons = item.order_item_addons?.map((addon: any) => 
         `<div style="margin-left: 20px; font-size: 12px;">+ ${escapeHtml(addon.addon_name)} - R$ ${addon.addon_price.toFixed(2)}</div>`
       ).join('') || '';
@@ -1431,7 +1435,15 @@ export const StoreOwnerDashboard = () => {
         `<div style="margin-left: 20px; font-size: 12px;">• ${escapeHtml(flavor.flavor_name)}</div>`
       ).join('') || '';
 
-      const externalCode = item.products?.external_code ? ` (Cód: ${escapeHtml(item.products.external_code)})` : '';
+      // Tenta pegar o external_code de diferentes formas
+      let externalCode = '';
+      if (item.products?.external_code) {
+        externalCode = ` (Cód: ${escapeHtml(item.products.external_code)})`;
+      } else if (Array.isArray(item.products) && item.products[0]?.external_code) {
+        externalCode = ` (Cód: ${escapeHtml(item.products[0].external_code)})`;
+      }
+      
+      console.log('[Print] External code for', item.product_name, ':', externalCode);
 
       return `
         <tr>
