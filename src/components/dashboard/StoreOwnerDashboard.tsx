@@ -991,22 +991,24 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
-      toast({
-        title: 'Preço promocional inválido',
-        description: 'O preço promocional não pode ser maior que o preço normal.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (productForm.promotional_price && productForm.promotional_price <= 0) {
-      toast({
-        title: 'Preço promocional inválido',
-        description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
-        variant: 'destructive',
-      });
-      return;
+    if (productForm.promotional_price) {
+      if (productForm.promotional_price > productForm.price) {
+        toast({
+          title: 'Preço promocional inválido',
+          description: 'O preço promocional não pode ser maior que o preço normal.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (productForm.promotional_price <= 0) {
+        toast({
+          title: 'Preço promocional inválido',
+          description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     // Validar código externo único dentro da loja
@@ -1036,7 +1038,7 @@ export const StoreOwnerDashboard = () => {
     createProduct({
       ...productForm,
       store_id: myStore.id,
-      promotional_price: productForm.promotional_price || undefined,
+      promotional_price: productForm.promotional_price && productForm.promotional_price > 0 ? productForm.promotional_price : null,
       image_url: productForm.image_url || undefined,
       external_code: productForm.external_code?.trim() || undefined,
     }, {
@@ -1127,7 +1129,7 @@ export const StoreOwnerDashboard = () => {
       description: product.description || '',
       category: product.category,
       price: product.price,
-      promotional_price: product.promotional_price || 0,
+      promotional_price: product.promotional_price || null,
       is_available: product.is_available,
       image_url: product.image_url || '',
       is_pizza: product.is_pizza || false,
@@ -1150,7 +1152,7 @@ export const StoreOwnerDashboard = () => {
       description: product.description || '',
       category: product.category,
       price: product.price,
-      promotional_price: product.promotional_price || 0,
+      promotional_price: product.promotional_price || null,
       is_available: product.is_available,
       image_url: product.image_url || '',
       is_pizza: product.is_pizza || false,
@@ -1188,22 +1190,24 @@ export const StoreOwnerDashboard = () => {
       return;
     }
 
-    if (productForm.promotional_price && productForm.promotional_price > productForm.price) {
-      toast({
-        title: 'Preço promocional inválido',
-        description: 'O preço promocional não pode ser maior que o preço normal.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (productForm.promotional_price && productForm.promotional_price <= 0) {
-      toast({
-        title: 'Preço promocional inválido',
-        description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
-        variant: 'destructive',
-      });
-      return;
+    if (productForm.promotional_price) {
+      if (productForm.promotional_price > productForm.price) {
+        toast({
+          title: 'Preço promocional inválido',
+          description: 'O preço promocional não pode ser maior que o preço normal.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (productForm.promotional_price <= 0) {
+        toast({
+          title: 'Preço promocional inválido',
+          description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     // Validar código externo único dentro da loja
@@ -1234,7 +1238,7 @@ export const StoreOwnerDashboard = () => {
     updateProduct({
       ...productForm,
       id: editingProduct.id,
-      promotional_price: productForm.promotional_price || undefined,
+      promotional_price: productForm.promotional_price && productForm.promotional_price > 0 ? productForm.promotional_price : null,
       image_url: productForm.image_url || undefined,
       external_code: productForm.external_code?.trim() || undefined,
     }, {
