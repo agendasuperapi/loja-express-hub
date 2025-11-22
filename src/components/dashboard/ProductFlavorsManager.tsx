@@ -631,6 +631,16 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
               <Button 
                 size="sm" 
+                variant="default"
+                onClick={() => setIsAdding(true)}
+                className="w-full sm:w-auto"
+              >
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Novo Sabor</span>
+                <span className="sm:hidden">Novo</span>
+              </Button>
+              <Button 
+                size="sm" 
                 variant="outline"
                 onClick={() => {
                   loadTemplates();
