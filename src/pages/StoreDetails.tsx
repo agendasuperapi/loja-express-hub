@@ -583,7 +583,7 @@ export default function StoreDetails() {
                   <div className="h-1 flex-1 bg-gradient-to-r from-orange-500/50 to-transparent rounded-full" />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5 gap-8 md:gap-6">
                   {categoryProducts.map((product, index) => {
                     const cartQuantity = getProductCartQuantity(product.id);
                     const isInCart = cartQuantity > 0;
