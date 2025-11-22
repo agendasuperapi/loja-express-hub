@@ -178,6 +178,40 @@ export const useProductManagement = (storeId?: string) => {
     },
   });
 
+  const duplicateProductMutation = useMutation({
+    mutationFn: async (product: any) => {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          ...product,
+          id: undefined,
+          name: `${product.name} (Cópia)`,
+          created_at: undefined,
+          updated_at: undefined,
+          short_id: undefined,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-products'] });
+      toast({
+        title: 'Produto duplicado!',
+        description: 'O produto foi duplicado com sucesso.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao duplicar produto',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     products: productsQuery.data,
     isLoading: productsQuery.isLoading,
@@ -186,10 +220,12 @@ export const useProductManagement = (storeId?: string) => {
     toggleProductAvailability: toggleProductAvailabilityMutation.mutate,
     reorderProducts: reorderProductsMutation.mutate,
     deleteProduct: deleteProductMutation.mutate,
+    duplicateProduct: duplicateProductMutation.mutate,
     isCreating: createProductMutation.isPending,
     isUpdating: updateProductMutation.isPending,
     isTogglingAvailability: toggleProductAvailabilityMutation.isPending,
     isReordering: reorderProductsMutation.isPending,
     isDeleting: deleteProductMutation.isPending,
+    isDuplicating: duplicateProductMutation.isPending,
   };
 };

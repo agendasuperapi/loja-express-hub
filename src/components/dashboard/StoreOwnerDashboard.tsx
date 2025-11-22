@@ -91,7 +91,7 @@ export const StoreOwnerDashboard = () => {
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
-  const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
+  const { products, createProduct, updateProduct, toggleProductAvailability, reorderProducts, deleteProduct, duplicateProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
   
 
@@ -3582,13 +3582,23 @@ export const StoreOwnerDashboard = () => {
                                 <TableCell>
                                   <div className="flex items-center justify-center gap-2">
                                     {hasPermission('products', 'update') && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleEditProduct(product)}
-                                      >
-                                        <Edit className="w-4 h-4" />
-                                      </Button>
+                                      <>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => duplicateProduct(product)}
+                                          title="Duplicar produto"
+                                        >
+                                          <Copy className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => handleEditProduct(product)}
+                                        >
+                                          <Edit className="w-4 h-4" />
+                                        </Button>
+                                      </>
                                     )}
                                   </div>
                                 </TableCell>
@@ -3653,6 +3663,7 @@ export const StoreOwnerDashboard = () => {
                                         onToggleAvailability={(id, isAvailable) => 
                                           toggleProductAvailability({ id, is_available: isAvailable })
                                         }
+                                        onDuplicate={(product) => duplicateProduct(product)}
                                       />
                                     ))}
                                   </div>
@@ -3706,6 +3717,7 @@ export const StoreOwnerDashboard = () => {
                                   onToggleAvailability={(id, isAvailable) => 
                                     toggleProductAvailability({ id, is_available: isAvailable })
                                   }
+                                  onDuplicate={(product) => duplicateProduct(product)}
                                 />
                               ))}
                             </div>

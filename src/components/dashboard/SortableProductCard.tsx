@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Edit, GripVertical } from 'lucide-react';
+import { Edit, GripVertical, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface SortableProductCardProps {
@@ -14,6 +14,7 @@ interface SortableProductCardProps {
   hasPermission: (resource: string, action: string) => boolean;
   onEdit: (product: any) => void;
   onToggleAvailability: (id: string, isAvailable: boolean) => void;
+  onDuplicate: (product: any) => void;
 }
 
 export const SortableProductCard = ({
@@ -23,6 +24,7 @@ export const SortableProductCard = ({
   hasPermission,
   onEdit,
   onToggleAvailability,
+  onDuplicate,
 }: SortableProductCardProps) => {
   const {
     attributes,
@@ -100,6 +102,15 @@ export const SortableProductCard = ({
                             {product.is_available ? 'Ativo' : 'Inativo'}
                           </span>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onDuplicate(product)}
+                          className="hover-scale"
+                          title="Duplicar produto"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
