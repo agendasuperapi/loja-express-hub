@@ -75,7 +75,7 @@ export const FeaturedProductsCarousel = ({
             const hasPromotion = product.promotional_price && product.promotional_price < product.price;
 
             return (
-              <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+              <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
@@ -103,7 +103,7 @@ export const FeaturedProductsCarousel = ({
                     )}
 
                     {/* Imagem do Produto */}
-                    <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-yellow-500/10 to-orange-500/10">
+                    <div className="relative w-full aspect-square overflow-hidden bg-gradient-to-br from-yellow-500/10 to-orange-500/10">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
@@ -121,9 +121,9 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-4 space-y-3">
+                    <div className="p-3 space-y-2">
                       {/* Nome do Produto */}
-                      <h3 className="font-semibold text-lg line-clamp-2 min-h-[3.5rem] group-hover:text-yellow-600 transition-colors">
+                      <h3 className="font-semibold text-base line-clamp-2 group-hover:text-yellow-600 transition-colors">
                         {product.name}
                       </h3>
 
@@ -135,15 +135,15 @@ export const FeaturedProductsCarousel = ({
                       )}
 
                       {/* Preço e Botão */}
-                      <div className="flex items-center justify-between pt-2">
-                        <div className="space-y-1">
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="space-y-0.5">
                           {hasPromotion && (
-                            <p className="text-sm text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground line-through">
                               {formatCurrency(product.price)}
                             </p>
                           )}
                           <p className={cn(
-                            "font-bold text-xl",
+                            "font-bold text-lg",
                             hasPromotion ? "text-red-500" : "text-primary"
                           )}>
                             {formatCurrency(finalPrice)}
@@ -152,14 +152,13 @@ export const FeaturedProductsCarousel = ({
 
                         <Button
                           size="sm"
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md hover:shadow-lg transition-all duration-200 h-8 px-3"
                           onClick={(e) => {
                             e.stopPropagation();
                             onAddToCart(product);
                           }}
                         >
-                          <ShoppingCart className="h-4 w-4 mr-1" />
-                          Adicionar
+                          <ShoppingCart className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
