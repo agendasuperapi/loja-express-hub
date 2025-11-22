@@ -618,7 +618,7 @@ export default function StoreDetails() {
                         onClick={() => setDetailsProduct(product)}
                       >
                         {product.image_url && (
-                          <div className="relative h-56 md:h-44 lg:h-36 xl:h-32 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                          <div className="relative h-56 md:h-40 lg:h-36 xl:h-36 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                             <motion.img
                               initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
@@ -654,32 +654,32 @@ export default function StoreDetails() {
                             )}
                           </div>
                         )}
-                        <CardContent className="p-4 lg:p-3">
-                          <h4 className="font-bold text-lg lg:text-base mb-1.5 lg:mb-1 group-hover:text-primary transition-colors line-clamp-1">{product.name}</h4>
+                        <CardContent className="p-4 lg:p-3 xl:p-3 flex flex-col">
+                          <h4 className="font-bold text-lg md:text-base lg:text-base xl:text-sm mb-1 group-hover:text-primary transition-colors line-clamp-2">{product.name}</h4>
                           {product.description && (
-                            <p className="text-sm lg:text-xs text-muted-foreground mb-2 lg:mb-1.5 line-clamp-2 leading-relaxed">
+                            <p className="text-sm md:text-xs lg:text-xs xl:text-xs text-muted-foreground mb-2 line-clamp-2 leading-snug">
                               {product.description}
                             </p>
                           )}
-                          <Separator className="my-3 lg:my-2" />
-                          <div className="flex items-center justify-between">
+                          <Separator className="my-2" />
+                          <div className="flex items-center justify-between mt-auto">
                             <div>
                               {product.promotional_price ? (
-                                <div className="space-y-1 lg:space-y-0.5">
-                                  <span className="text-sm lg:text-xs text-muted-foreground line-through block">
+                                <div className="space-y-0">
+                                  <span className="text-xs md:text-xs lg:text-xs text-muted-foreground line-through block">
                                     R$ {Number(product.price).toFixed(2)}
                                   </span>
-                                  <span className="text-xl lg:text-lg font-bold text-primary">
+                                  <span className="text-lg md:text-base lg:text-base xl:text-base font-bold text-primary">
                                     R$ {Number(product.promotional_price).toFixed(2)}
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-xl lg:text-lg font-bold gradient-text">
+                                <span className="text-lg md:text-base lg:text-base xl:text-base font-bold gradient-text">
                                   R$ {Number(product.price).toFixed(2)}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
                               <motion.div
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -691,9 +691,9 @@ export default function StoreDetails() {
                                     e.stopPropagation();
                                     handleShareProduct(product);
                                   }}
-                                  className="shadow-md hover:shadow-lg transition-all duration-300"
+                                  className="shadow-md hover:shadow-lg transition-all duration-300 h-8 w-8 p-0 xl:h-8 xl:w-8"
                                 >
-                                  <Share2 className="w-4 h-4" />
+                                  <Share2 className="w-3.5 h-3.5 xl:w-3.5 xl:h-3.5" />
                                 </Button>
                               </motion.div>
                               <motion.div
@@ -706,7 +706,7 @@ export default function StoreDetails() {
                                     e.stopPropagation();
                                     setDetailsProduct(product);
                                   }}
-                                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
+                                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary h-8 px-2 xl:h-8 xl:px-2 xl:text-xs"
                                 >
                                   Adicionar
                                 </Button>
