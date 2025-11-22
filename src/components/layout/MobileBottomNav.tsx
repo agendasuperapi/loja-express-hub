@@ -133,7 +133,7 @@ export const MobileBottomNav = () => {
               </Badge>
             )}
           </Link>
-          <span className="text-xs sm:text-sm font-semibold text-foreground mt-1 sm:mt-1.5">
+          <span className="text-sm sm:text-base font-semibold text-foreground mt-1 sm:mt-1.5">
             {total > 0 ? `R$ ${total.toFixed(2)}` : 'R$ 0,00'}
           </span>
         </div>
