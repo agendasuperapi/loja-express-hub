@@ -2,23 +2,25 @@ import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { CartSidebar } from "./CartSidebar";
 
 export const FloatingCartButton = () => {
   const { cart, getItemCount, getTotal, validateAndSyncCart } = useCart();
-  const navigate = useNavigate();
   const location = useLocation();
   const controls = useAnimation();
   const isMobile = useIsMobile();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   const itemCount = getItemCount();
   const total = getTotal();
 
   const handleCartClick = async () => {
     await validateAndSyncCart();
-    navigate('/cart');
+    setIsDrawerOpen(true);
   };
 
   // Hide on cart page
@@ -46,47 +48,55 @@ export const FloatingCartButton = () => {
   console.log('✅ FloatingCartButton: visible');
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed bottom-2 md:bottom-3 inset-x-0 z-50 flex justify-center px-4"
-      >
-        <motion.div animate={controls} className="w-full max-w-md">
-          <Button
-            onClick={handleCartClick}
-            className="w-full bg-gradient-primary hover:opacity-90 shadow-lg h-12 sm:h-14 text-sm sm:text-base font-semibold rounded-full border-2 border-orange-500 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] transition-all duration-500"
-            size="lg"
-          >
-            <div className="flex items-center justify-between w-full px-2 sm:px-4">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="relative">
-                  <ShoppingCart className={`w-8 h-8 sm:w-6 sm:h-6 ${isMobile ? 'animate-pulse-slow' : ''}`} />
-                  <motion.span
-                    key={itemCount}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-2 -right-2 bg-white text-primary text-xs font-bold rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center"
-                  >
-                    {itemCount}
-                  </motion.span>
+    <>
+      <AnimatePresence>
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed bottom-2 md:bottom-3 inset-x-0 z-50 flex justify-center px-4"
+        >
+          <motion.div animate={controls} className="w-full max-w-md">
+            <Button
+              onClick={handleCartClick}
+              className="w-full bg-gradient-primary hover:opacity-90 shadow-lg h-12 sm:h-14 text-sm sm:text-base font-semibold rounded-full border-2 border-orange-500 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] transition-all duration-500"
+              size="lg"
+            >
+              <div className="flex items-center justify-between w-full px-2 sm:px-4">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className="relative">
+                    <ShoppingCart className={`w-8 h-8 sm:w-6 sm:h-6 ${isMobile ? 'animate-pulse-slow' : ''}`} />
+                    <motion.span
+                      key={itemCount}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2 bg-white text-primary text-xs font-bold rounded-full w-6 h-6 sm:w-5 sm:h-5 flex items-center justify-center"
+                    >
+                      {itemCount}
+                    </motion.span>
+                  </div>
+                  <span className="whitespace-nowrap">Ver Carrinho</span>
                 </div>
-                <span className="whitespace-nowrap">Ver Carrinho</span>
+                <motion.span
+                  key={total}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="font-bold whitespace-nowrap"
+                >
+                  R$ {total.toFixed(2)}
+                </motion.span>
               </div>
-              <motion.span
-                key={total}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="font-bold whitespace-nowrap"
-              >
-                R$ {total.toFixed(2)}
-              </motion.span>
-            </div>
-          </Button>
+            </Button>
+          </motion.div>
         </motion.div>
-      </motion.div>
-    </AnimatePresence>
+      </AnimatePresence>
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent className="max-h-[85vh]">
+          <CartSidebar />
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 };
