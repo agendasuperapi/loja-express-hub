@@ -36,26 +36,32 @@ COMMENT ON COLUMN public.products.is_featured IS 'Indica se o produto aparece no
 -- STEP 3: Criar índice para produtos em destaque
 -- ==========================================
 
--- Remover índice antigo se existir com nome diferente
-DROP INDEX IF EXISTS public.idx_products_featured;
-
--- Criar novo índice
-CREATE INDEX IF NOT EXISTS idx_products_is_featured 
-ON public.products(store_id, is_featured) 
-WHERE is_featured = true;
-
-RAISE NOTICE '✅ Índice idx_products_is_featured criado/atualizado';
+DO $$ 
+BEGIN
+  -- Remover índice antigo se existir com nome diferente
+  DROP INDEX IF EXISTS public.idx_products_featured;
+  
+  -- Criar novo índice
+  CREATE INDEX IF NOT EXISTS idx_products_is_featured 
+  ON public.products(store_id, is_featured) 
+  WHERE is_featured = true;
+  
+  RAISE NOTICE '✅ Índice idx_products_is_featured criado/atualizado';
+END $$;
 
 -- ==========================================
 -- STEP 4: Atualizar produtos existentes
 -- ==========================================
 
--- Garantir que produtos existentes tenham is_featured = false
-UPDATE public.products 
-SET is_featured = false 
-WHERE is_featured IS NULL;
-
-RAISE NOTICE '✅ Produtos existentes atualizados com is_featured = false';
+DO $$ 
+BEGIN
+  -- Garantir que produtos existentes tenham is_featured = false
+  UPDATE public.products 
+  SET is_featured = false 
+  WHERE is_featured IS NULL;
+  
+  RAISE NOTICE '✅ Produtos existentes atualizados com is_featured = false';
+END $$;
 
 -- ==========================================
 -- STEP 5: Verificação final
