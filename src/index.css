@@ -39,8 +39,8 @@ All colors MUST be HSL.
     --accent-foreground: 0 0% 100%;
     --accent-hover: 330 85% 50%;
 
-    /* Success - Green */
-    --success: 142 76% 45%;
+    /* Success - Orange */
+    --success: 33 95% 50%;
     --success-foreground: 0 0% 100%;
 
     /* Warning - Yellow */
@@ -75,7 +75,7 @@ All colors MUST be HSL.
 
     /* Chart Colors */
     --chart-1: 16 100% 50%;
-    --chart-2: 142 76% 45%;
+    --chart-2: 33 95% 50%;
     --chart-3: 260 70% 60%;
     --chart-4: 330 85% 55%;
     --chart-5: 45 100% 51%;
@@ -129,7 +129,7 @@ All colors MUST be HSL.
     --accent-foreground: 0 0% 100%;
     --accent-hover: 340 90% 60%;
 
-    --success: 142 76% 45%;
+    --success: 33 95% 50%;
     --success-foreground: 0 0% 100%;
 
     --warning: 45 100% 51%;
@@ -156,7 +156,7 @@ All colors MUST be HSL.
 
     /* Chart Colors */
     --chart-1: 24 100% 60%;
-    --chart-2: 142 76% 45%;
+    --chart-2: 33 95% 50%;
     --chart-3: 270 80% 70%;
     --chart-4: 340 90% 65%;
     --chart-5: 45 100% 51%;
