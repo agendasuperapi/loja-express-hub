@@ -96,7 +96,7 @@ export const FeaturedProductsCarousel = ({
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
-                  className="h-full"
+                  className="h-full min-h-[320px] md:min-h-[360px]"
                 >
                   <div
                     className="group relative h-full flex flex-col bg-card rounded-xl border-2 border-yellow-500/30 hover:border-yellow-500 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -134,24 +134,26 @@ export const FeaturedProductsCarousel = ({
                     </div>
 
                     {/* Conteúdo do Card */}
-                    <div className="p-2 md:p-3 space-y-1.5 md:space-y-2 flex flex-col flex-1">
+                    <div className="p-2 md:p-3 flex flex-col flex-1">
                       {/* Nome do Produto */}
-                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors">
+                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 h-8 md:h-10 group-hover:text-yellow-600 transition-colors">
                         {product.name}
                       </h3>
 
-                      {/* Descrição */}
-                      {product.description && (
-                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-1 md:line-clamp-2">
-                          {product.description}
-                        </p>
-                      )}
+                      {/* Descrição - sempre reserva espaço */}
+                      <div className="h-8 md:h-10 mt-1 md:mt-1.5">
+                        {product.description && (
+                          <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
+                            {product.description}
+                          </p>
+                        )}
+                      </div>
 
                       {/* Preço e Botão - sempre no fundo */}
-                      <div className="flex items-center justify-between gap-2 pt-0.5 md:pt-1 mt-auto">
-                        <div className="flex flex-col justify-center">
+                      <div className="flex items-center justify-between gap-2 pt-1 md:pt-2 mt-auto">
+                        <div className="flex flex-col justify-center min-h-[44px] md:min-h-[48px]">
                           {hasPromotion && (
-                            <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight">
+                            <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight mb-0.5">
                               {formatCurrency(product.price)}
                             </p>
                           )}
