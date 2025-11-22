@@ -48,17 +48,17 @@ export default function StoreDetails() {
     const mobileClasses = (() => {
       switch (layoutTemplateMobile) {
         case 'template-2':
-          return 'grid-cols-1 sm:grid-cols-2';
+          return 'grid-cols-2';
         case 'template-3':
-          return 'grid-cols-1 sm:grid-cols-2';
-        case 'template-4':
-          return 'grid-cols-2 sm:grid-cols-2';
-        case 'template-6':
           return 'grid-cols-2 sm:grid-cols-3';
+        case 'template-4':
+          return 'grid-cols-2 sm:grid-cols-3';
+        case 'template-6':
+          return 'grid-cols-3 sm:grid-cols-4';
         case 'template-list':
           return 'grid-cols-1';
         default:
-          return 'grid-cols-1 sm:grid-cols-2';
+          return 'grid-cols-2';
       }
     })();
 

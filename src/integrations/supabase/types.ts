@@ -1209,6 +1209,8 @@ export type Database = {
           pix_message_footer: string | null
           pix_message_title: string | null
           product_layout_template: string | null
+          product_layout_template_desktop: string | null
+          product_layout_template_mobile: string | null
           rating: number | null
           require_delivery_zone: boolean | null
           show_avg_delivery_time: boolean | null
@@ -1256,6 +1258,8 @@ export type Database = {
           pix_message_footer?: string | null
           pix_message_title?: string | null
           product_layout_template?: string | null
+          product_layout_template_desktop?: string | null
+          product_layout_template_mobile?: string | null
           rating?: number | null
           require_delivery_zone?: boolean | null
           show_avg_delivery_time?: boolean | null
@@ -1303,6 +1307,8 @@ export type Database = {
           pix_message_footer?: string | null
           pix_message_title?: string | null
           product_layout_template?: string | null
+          product_layout_template_desktop?: string | null
+          product_layout_template_mobile?: string | null
           rating?: number | null
           require_delivery_zone?: boolean | null
           show_avg_delivery_time?: boolean | null
