@@ -159,7 +159,7 @@ export default function Cart() {
       if (cart.storeId) {
         const { data } = await supabase
           .from('stores')
-          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash, pickup_address, address, allow_orders_when_closed')
+          .select('operating_hours, name, accepts_delivery, accepts_pickup, delivery_fee, accepts_pix, accepts_card, accepts_cash, pickup_address, address, allow_orders_when_closed, require_delivery_zone')
           .eq('id', cart.storeId)
           .single();
         
@@ -512,18 +512,49 @@ export default function Cart() {
       // Validar zona de entrega se a loja exigir
       if (deliveryType === 'delivery' && storeData?.require_delivery_zone) {
         const activeZones = deliveryZones?.filter(zone => zone.is_active) || [];
-        const isInDeliveryZone = activeZones.some(zone => 
-          zone.city.toLowerCase().trim() === deliveryCity.toLowerCase().trim()
-        );
-
-        if (!isInDeliveryZone) {
+        
+        if (activeZones.length === 0) {
           toast({
-            title: "Fora da área de entrega",
-            description: "Desculpe, não entregamos na sua cidade. Verifique as zonas de entrega disponíveis.",
+            title: "Zonas de entrega não configuradas",
+            description: "A loja não possui zonas de entrega configuradas. Entre em contato com a loja.",
             variant: "destructive",
           });
           return;
         }
+
+        const normalizedCity = deliveryCity.toLowerCase().trim();
+        const normalizedNeighborhood = deliveryNeighborhood?.toLowerCase().trim() || '';
+
+        // Verifica se existe uma zona específica para o bairro na cidade
+        const neighborhoodZone = activeZones.find(zone => 
+          zone.city.toLowerCase().trim() === normalizedCity &&
+          zone.neighborhood && 
+          zone.neighborhood.toLowerCase().trim() === normalizedNeighborhood
+        );
+
+        // Se não há zona específica para o bairro, verifica zona genérica da cidade (neighborhood null)
+        const cityZone = activeZones.find(zone => 
+          zone.city.toLowerCase().trim() === normalizedCity &&
+          !zone.neighborhood
+        );
+
+        const isInDeliveryZone = !!neighborhoodZone || !!cityZone;
+
+        if (!isInDeliveryZone) {
+          const availableCities = [...new Set(activeZones.map(z => z.city))];
+          toast({
+            title: "Fora da área de entrega",
+            description: `Desculpe, não entregamos em ${deliveryCity}${deliveryNeighborhood ? ` - ${deliveryNeighborhood}` : ''}. Cidades disponíveis: ${availableCities.join(', ')}.`,
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        console.log('✅ Zona de entrega validada:', {
+          city: deliveryCity,
+          neighborhood: deliveryNeighborhood,
+          matchedZone: neighborhoodZone || cityZone
+        });
       }
   
       // Atualizar perfil do usuário APENAS quando for entrega

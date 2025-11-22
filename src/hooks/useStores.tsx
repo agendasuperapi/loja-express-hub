@@ -33,7 +33,7 @@ export const useStore = (slug: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('*, require_delivery_zone')
         .eq('slug', slug)
         .single();
 

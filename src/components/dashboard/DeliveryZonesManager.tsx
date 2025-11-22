@@ -35,24 +35,27 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
   const [cepError, setCepError] = useState<string | null>(null);
   const [defaultDeliveryFee, setDefaultDeliveryFee] = useState<number>(0);
   const [isSavingDefaultFee, setIsSavingDefaultFee] = useState(false);
+  const [requireDeliveryZone, setRequireDeliveryZone] = useState<boolean>(false);
+  const [isSavingZoneRequirement, setIsSavingZoneRequirement] = useState(false);
 
-  // Buscar taxa de entrega padrão da loja
+  // Buscar taxa de entrega padrão e configuração de zona obrigatória
   useEffect(() => {
-    const fetchDefaultFee = async () => {
+    const fetchStoreSettings = async () => {
       if (!storeId) return;
       
       const { data, error } = await supabase
         .from('stores')
-        .select('delivery_fee')
+        .select('delivery_fee, require_delivery_zone')
         .eq('id', storeId)
         .single();
       
       if (!error && data) {
         setDefaultDeliveryFee(data.delivery_fee || 0);
+        setRequireDeliveryZone(data.require_delivery_zone || false);
       }
     };
     
-    fetchDefaultFee();
+    fetchStoreSettings();
   }, [storeId]);
 
   const handleOpenDialog = (zone?: DeliveryZone) => {
@@ -177,6 +180,33 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
     }
   };
 
+  const handleToggleZoneRequirement = async (checked: boolean) => {
+    if (!storeId) return;
+    
+    setIsSavingZoneRequirement(true);
+    
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({ require_delivery_zone: checked })
+        .eq('id', storeId);
+      
+      if (error) throw error;
+      
+      setRequireDeliveryZone(checked);
+      toast.success(
+        checked 
+          ? 'Restrição por zona ativada! Pedidos só serão aceitos de zonas cadastradas.' 
+          : 'Restrição por zona desativada! Pedidos serão aceitos de qualquer lugar.'
+      );
+    } catch (error: any) {
+      toast.error('Erro ao atualizar configuração');
+      console.error(error);
+    } finally {
+      setIsSavingZoneRequirement(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -192,6 +222,46 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
       transition={{ duration: 0.5 }}
       className="p-6 space-y-4"
     >
+      {/* Card de Restrição por Zona */}
+      <Card className={requireDeliveryZone ? "border-orange-500" : ""}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base text-primary">
+            <MapPin className="h-4 w-4" />
+            Restringir Entrega por Zona
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Quando ativado, pedidos só serão aceitos de clientes nas zonas de entrega cadastradas
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm font-medium">
+                {requireDeliveryZone ? 'Restrição Ativa' : 'Restrição Inativa'}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {requireDeliveryZone 
+                  ? 'Clientes fora das zonas não poderão fazer pedidos'
+                  : 'Clientes de qualquer lugar podem fazer pedidos'
+                }
+              </p>
+            </div>
+            <Switch 
+              checked={requireDeliveryZone}
+              onCheckedChange={handleToggleZoneRequirement}
+              disabled={isSavingZoneRequirement}
+            />
+          </div>
+          {requireDeliveryZone && (!zones || zones.length === 0) && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <p className="text-xs text-yellow-800">
+                ⚠️ Você ativou a restrição mas não tem zonas cadastradas. Cadastre pelo menos uma zona para começar a aceitar pedidos.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Card de Taxa de Entrega Padrão */}
       <Card>
         <CardHeader className="pb-3">
