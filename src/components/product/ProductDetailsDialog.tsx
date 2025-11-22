@@ -440,7 +440,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                   ? `Mín: ${category.min_items} ${category.min_items === 1 ? 'opção' : 'opções'}` 
                                   : 'Escolha'}
                                 {category.max_items !== null && 
-                                  ` • ${category.max_items} ${category.max_items === 1 ? 'opção' : 'opções'}`}
+                                  ` ${category.max_items} ${category.max_items === 1 ? 'opção' : 'opções'}`}
                               </>
                             )}
                           </p>
