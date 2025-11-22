@@ -14,6 +14,9 @@ export const useStoreOrders = (storeId?: string) => {
           *,
           order_items!inner (
             *,
+            products (
+              external_code
+            ),
             order_item_addons (*),
             order_item_flavors (*)
           )

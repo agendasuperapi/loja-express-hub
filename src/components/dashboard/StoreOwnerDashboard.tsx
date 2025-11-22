@@ -1431,9 +1431,11 @@ export const StoreOwnerDashboard = () => {
         `<div style="margin-left: 20px; font-size: 12px;">• ${escapeHtml(flavor.flavor_name)}</div>`
       ).join('') || '';
 
+      const externalCode = item.products?.external_code ? ` (Cód: ${escapeHtml(item.products.external_code)})` : '';
+
       return `
         <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${escapeHtml(item.product_name)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${escapeHtml(item.product_name)}${externalCode}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">R$ ${item.subtotal.toFixed(2)}</td>
         </tr>
         ${addons ? `<tr><td colspan="2" style="padding: 4px 8px;">${addons}</td></tr>` : ''}
@@ -5097,6 +5099,11 @@ export const StoreOwnerDashboard = () => {
                           <p className="font-medium">
                             {item.quantity}x {item.product_name}
                           </p>
+                          {item.products?.external_code && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Código: {item.products.external_code}
+                            </p>
+                          )}
                           {item.observation && (
                             <p className="text-sm text-muted-foreground mt-1">
                               Obs: {item.observation}
