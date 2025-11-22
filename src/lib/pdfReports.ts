@@ -158,7 +158,7 @@ export const generateCustomersReport = (
 };
 
 export const generateBestSellersReport = (
-  products: Array<{ name: string; quantity: number; revenue: number }>,
+  products: Array<{ name: string; external_code: string | null; quantity: number; revenue: number }>,
   storeName: string,
   periodLabel: string
 ) => {
@@ -179,12 +179,13 @@ export const generateBestSellersReport = (
   const tableData = products.map((product, index) => [
     (index + 1).toString(),
     product.name,
+    product.external_code || '-',
     product.quantity.toString(),
     `R$ ${product.revenue.toFixed(2)}`
   ]);
   
   autoTable(doc, {
-    head: [['#', 'Produto', 'Quantidade', 'Receita']],
+    head: [['#', 'Produto', 'Cód. Externo', 'Quantidade', 'Receita']],
     body: tableData,
     startY: 50,
     styles: { fontSize: 9, cellPadding: 3 },
