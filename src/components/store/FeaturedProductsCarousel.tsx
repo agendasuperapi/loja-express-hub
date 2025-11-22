@@ -67,7 +67,7 @@ export const FeaturedProductsCarousel = ({
       <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
         <div className="flex items-center gap-1.5 md:gap-2">
           <Star className="h-4 w-4 md:h-6 md:w-6 fill-yellow-500 text-yellow-500" />
-          <h2 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-bold gradient-text">
             Destaques
           </h2>
         </div>
