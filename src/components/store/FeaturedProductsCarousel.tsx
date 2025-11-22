@@ -136,22 +136,20 @@ export const FeaturedProductsCarousel = ({
                     {/* Conteúdo do Card */}
                     <div className="p-2 md:p-3 flex flex-col flex-1">
                       {/* Nome do Produto */}
-                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 h-8 md:h-10 group-hover:text-yellow-600 transition-colors">
+                      <h3 className="font-semibold text-sm md:text-base line-clamp-2 group-hover:text-yellow-600 transition-colors mb-1 md:mb-1.5">
                         {product.name}
                       </h3>
 
-                      {/* Descrição - sempre reserva espaço */}
-                      <div className="h-8 md:h-10 mt-1 md:mt-1.5">
-                        {product.description && (
-                          <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">
-                            {product.description}
-                          </p>
-                        )}
-                      </div>
+                      {/* Descrição - sem espaço fixo */}
+                      {product.description && (
+                        <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-1 md:mb-1.5">
+                          {product.description}
+                        </p>
+                      )}
 
                       {/* Preço e Botão - sempre no fundo */}
-                      <div className="flex items-center justify-between gap-2 pt-1 md:pt-2 mt-auto">
-                        <div className="flex flex-col justify-center min-h-[44px] md:min-h-[48px]">
+                      <div className="flex items-center justify-between gap-2 mt-auto pt-1 md:pt-1.5">
+                        <div className="flex flex-col justify-center">
                           {hasPromotion && (
                             <p className="text-[10px] md:text-xs text-muted-foreground line-through leading-tight mb-0.5">
                               {formatCurrency(product.price)}
