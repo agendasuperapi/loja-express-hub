@@ -102,19 +102,6 @@ export const SortableProductCard = ({
                   <div className="flex gap-2 items-center">
                     {hasPermission('products', 'update') && (
                       <>
-                        {/* Switch de Disponibilidade */}
-                        <div className="flex items-center gap-2 mr-2">
-                          <Switch
-                            checked={product.is_available}
-                            onCheckedChange={(checked) => 
-                              onToggleAvailability(product.id, checked)
-                            }
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {product.is_available ? 'Ativo' : 'Inativo'}
-                          </span>
-                        </div>
-                        
                         {/* Switch de Destaque */}
                         <div className="flex items-center gap-2 mr-2">
                           <Star className={cn(
