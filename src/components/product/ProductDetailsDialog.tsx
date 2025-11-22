@@ -417,7 +417,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                   .sort((a, b) => a.display_order - b.display_order)
                   .map((category) => (
                     <div key={category.id} className="space-y-1.5">
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-1">
                         <p className="text-xs font-semibold text-muted-foreground">
                           {category.name}
                           {category.min_items > 0 && (
