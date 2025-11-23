@@ -4,7 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag, Phone, MessageSquare } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag, Phone } from "lucide-react";
+import whatsappIcon from "@/assets/whatsapp-icon.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -589,7 +590,7 @@ export default function StoreDetails() {
                         className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
                         onClick={() => window.open(`https://wa.me/${storeData.whatsapp}`, '_blank')}
                       >
-                        <MessageSquare className="w-4 h-4 text-green-600 dark:text-green-500 flex-shrink-0" />
+                        <img src={whatsappIcon} alt="WhatsApp" className="w-5 h-5 flex-shrink-0" />
                         <span>{formatPhoneWithoutCountry(storeData.whatsapp)}</span>
                       </motion.div>
                     );
