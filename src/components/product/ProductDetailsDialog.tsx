@@ -469,7 +469,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                           </div>
                           <p className="text-xs text-muted-foreground">
                             {category.max_items === 1 ? (
-                              'Apenas 1 opção'
+                              "Escolha Apenas 1 opção"
                             ) : (
                               <>
                                 {category.min_items > 0 
