@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,8 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { User, Phone, Mail } from "lucide-react";
+import { User, Phone, Mail, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
@@ -49,6 +50,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export const PersonalDataSettings = () => {
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -78,6 +81,54 @@ export const PersonalDataSettings = () => {
       });
     }
   }, [profile, form]);
+
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    
+    if (cleanCep.length !== 8) return;
+
+    setIsLoadingCep(true);
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast({
+          title: "CEP não encontrado",
+          description: "Não foi possível encontrar o endereço para este CEP.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      form.setValue("street", data.logradouro || "");
+      form.setValue("neighborhood", data.bairro || "");
+      form.setValue("city", data.localidade || "");
+      
+      toast({
+        title: "Endereço preenchido",
+        description: "Os dados do endereço foram preenchidos automaticamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao buscar CEP",
+        description: "Ocorreu um erro ao buscar o endereço. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
+
+  const handleCepChange = (value: string) => {
+    form.setValue("cep", value);
+    
+    const cleanCep = value.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      fetchAddressByCep(value);
+    }
+  };
 
   const onSubmit = (data: ProfileFormData) => {
     updateProfile(data);
@@ -181,9 +232,22 @@ export const PersonalDataSettings = () => {
                   <FormItem>
                     <FormLabel>CEP</FormLabel>
                     <FormControl>
-                      <Input placeholder="00000-000" {...field} />
+                      <div className="relative">
+                        <Input 
+                          placeholder="00000-000" 
+                          {...field}
+                          onChange={(e) => handleCepChange(e.target.value)}
+                          disabled={isLoadingCep}
+                        />
+                        {isLoadingCep && (
+                          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Digite o CEP para preencher automaticamente o endereço
+                    </p>
                   </FormItem>
                 )}
               />
