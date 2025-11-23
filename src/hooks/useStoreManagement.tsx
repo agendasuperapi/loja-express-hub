@@ -10,6 +10,12 @@ export interface StoreFormData {
   category: string;
   address?: string;
   pickup_address?: string;
+  store_cep?: string;
+  store_city?: string;
+  store_street?: string;
+  store_street_number?: string;
+  store_neighborhood?: string;
+  store_complement?: string;
   phone?: string;
   email?: string;
   password?: string;

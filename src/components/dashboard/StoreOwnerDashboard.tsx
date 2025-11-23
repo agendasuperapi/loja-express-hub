@@ -193,6 +193,12 @@ export const StoreOwnerDashboard = () => {
     accepts_cash: myStore?.accepts_cash ?? true,
     address: myStore?.address || '',
     pickup_address: myStore?.pickup_address || '',
+    store_cep: (myStore as any)?.store_cep || '',
+    store_city: (myStore as any)?.store_city || '',
+    store_street: (myStore as any)?.store_street || '',
+    store_street_number: (myStore as any)?.store_street_number || '',
+    store_neighborhood: (myStore as any)?.store_neighborhood || '',
+    store_complement: (myStore as any)?.store_complement || '',
     phone: myStore?.phone || '',
     menu_label: myStore?.menu_label || 'Cardápio',
     pix_key: (myStore as any)?.pix_key || '',
@@ -214,6 +220,59 @@ export const StoreOwnerDashboard = () => {
     product_layout_template_desktop: (myStore as any)?.product_layout_template_desktop || 'template-4',
     product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
   });
+
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    
+    if (cleanCep.length !== 8) return;
+
+    setIsLoadingCep(true);
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast({
+          title: "CEP não encontrado",
+          description: "Não foi possível encontrar o endereço para este CEP.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setStoreForm(prev => ({
+        ...prev,
+        store_street: data.logradouro || "",
+        store_neighborhood: data.bairro || "",
+        store_city: data.localidade || "",
+      }));
+      
+      toast({
+        title: "Endereço preenchido",
+        description: "Os dados do endereço foram preenchidos automaticamente.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao buscar CEP",
+        description: "Ocorreu um erro ao buscar o endereço. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
+
+  const handleCepChange = (value: string) => {
+    setStoreForm(prev => ({ ...prev, store_cep: value }));
+    
+    const cleanCep = value.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      fetchAddressByCep(value);
+    }
+  };
 
   const [pixValidation, setPixValidation] = useState<{ isValid: boolean; type: string; message: string }>({
     isValid: true,
@@ -4668,13 +4727,85 @@ export const StoreOwnerDashboard = () => {
 
               <Separator className="my-6" />
 
-              <div>
-                <Label>Endereço</Label>
-                <Input
-                  value={storeForm.address}
-                  onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
-                  placeholder="Rua, número, bairro, cidade..."
-                />
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Endereço da Loja</h3>
+                
+                <div>
+                  <Label>CEP</Label>
+                  <div className="relative">
+                    <Input
+                      value={storeForm.store_cep}
+                      onChange={(e) => handleCepChange(e.target.value)}
+                      placeholder="00000-000"
+                      disabled={isLoadingCep}
+                    />
+                    {isLoadingCep && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Digite o CEP para preencher automaticamente o endereço
+                  </p>
+                </div>
+
+                <div>
+                  <Label>Cidade</Label>
+                  <Input
+                    value={storeForm.store_city}
+                    onChange={(e) => setStoreForm({ ...storeForm, store_city: e.target.value })}
+                    placeholder="Nome da cidade"
+                  />
+                </div>
+
+                <div>
+                  <Label>Rua</Label>
+                  <Input
+                    value={storeForm.store_street}
+                    onChange={(e) => setStoreForm({ ...storeForm, store_street: e.target.value })}
+                    placeholder="Nome da rua"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Número</Label>
+                    <Input
+                      value={storeForm.store_street_number}
+                      onChange={(e) => setStoreForm({ ...storeForm, store_street_number: e.target.value })}
+                      placeholder="123"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Bairro</Label>
+                    <Input
+                      value={storeForm.store_neighborhood}
+                      onChange={(e) => setStoreForm({ ...storeForm, store_neighborhood: e.target.value })}
+                      placeholder="Nome do bairro"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Complemento</Label>
+                  <Input
+                    value={storeForm.store_complement}
+                    onChange={(e) => setStoreForm({ ...storeForm, store_complement: e.target.value })}
+                    placeholder="Apto, sala, etc. (opcional)"
+                  />
+                </div>
+
+                <div>
+                  <Label>Endereço Completo (legado)</Label>
+                  <Input
+                    value={storeForm.address}
+                    onChange={(e) => setStoreForm({ ...storeForm, address: e.target.value })}
+                    placeholder="Endereço completo..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Campo mantido para compatibilidade. Use os campos acima.
+                  </p>
+                </div>
               </div>
 
 
