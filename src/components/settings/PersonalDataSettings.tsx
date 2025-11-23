@@ -24,20 +24,24 @@ const profileSchema = z.object({
   full_name: z
     .string()
     .trim()
-    .min(2, "Nome deve ter no mínimo 2 caracteres")
-    .max(100, "Nome deve ter no máximo 100 caracteres")
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .refine((val) => !val || val.length >= 2, {
+      message: "Nome deve ter no mínimo 2 caracteres",
+    })
+    .refine((val) => !val || val.length <= 100, {
+      message: "Nome deve ter no máximo 100 caracteres",
+    }),
   phone: z
     .string()
     .optional()
     .or(z.literal("")),
-  cep: z.string().trim().max(9, "CEP inválido").optional().or(z.literal("")),
-  city: z.string().trim().max(100, "Nome da cidade muito longo").optional().or(z.literal("")),
-  street: z.string().trim().max(200, "Nome da rua muito longo").optional().or(z.literal("")),
-  street_number: z.string().trim().max(20, "Número muito longo").optional().or(z.literal("")),
-  neighborhood: z.string().trim().max(100, "Nome do bairro muito longo").optional().or(z.literal("")),
-  complement: z.string().trim().max(100, "Complemento muito longo").optional().or(z.literal("")),
+  cep: z.string().optional().or(z.literal("")),
+  city: z.string().optional().or(z.literal("")),
+  street: z.string().optional().or(z.literal("")),
+  street_number: z.string().optional().or(z.literal("")),
+  neighborhood: z.string().optional().or(z.literal("")),
+  complement: z.string().optional().or(z.literal("")),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
