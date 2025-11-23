@@ -253,10 +253,23 @@ export const DeliveryZonesManager = ({ storeId }: DeliveryZonesManagerProps) => 
             />
           </div>
           {requireDeliveryZone && (!zones || zones.length === 0) && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-              <p className="text-xs text-yellow-800">
-                ⚠️ Você ativou a restrição mas não tem zonas cadastradas. Cadastre pelo menos uma zona para começar a aceitar pedidos.
-              </p>
+            <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4 animate-pulse">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg font-bold">!</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-bold text-red-800 mb-1">
+                    ⚠️ ATENÇÃO: Nenhuma zona cadastrada
+                  </h4>
+                  <p className="text-xs text-red-700">
+                    Você ativou a restrição de entrega por zona, mas não tem nenhuma zona cadastrada. 
+                    <strong> Clientes não conseguirão fazer pedidos até que você cadastre pelo menos uma zona de entrega.</strong>
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
