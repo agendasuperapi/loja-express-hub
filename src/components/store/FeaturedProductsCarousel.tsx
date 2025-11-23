@@ -103,7 +103,7 @@ export const FeaturedProductsCarousel = ({
                     onClick={() => onProductClick(product)}
                   >
                     {/* Badges Container */}
-                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 z-10 flex flex-col gap-1">
+                    <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 z-10 flex flex-row gap-1">
                       <Badge className="bg-yellow-500 text-white border-none shadow-lg w-fit p-1 md:p-1.5">
                         <Star className="h-3 w-3 md:h-3.5 md:w-3.5 fill-white" />
                       </Badge>
