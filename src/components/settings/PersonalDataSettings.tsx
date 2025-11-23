@@ -24,18 +24,20 @@ const profileSchema = z.object({
   full_name: z
     .string()
     .trim()
-    .min(3, "Nome deve ter no mínimo 3 caracteres")
+    .min(2, "Nome deve ter no mínimo 2 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres")
     .optional()
     .or(z.literal("")),
   phone: z
     .string()
-    .trim()
-    .regex(/^[\d\s\-\(\)]+$/, "Telefone deve conter apenas números e caracteres especiais permitidos")
-    .min(10, "Telefone deve ter no mínimo 10 dígitos")
-    .max(20, "Telefone deve ter no máximo 20 caracteres")
     .optional()
     .or(z.literal("")),
+  cep: z.string().trim().max(9, "CEP inválido").optional().or(z.literal("")),
+  city: z.string().trim().max(100, "Nome da cidade muito longo").optional().or(z.literal("")),
+  street: z.string().trim().max(200, "Nome da rua muito longo").optional().or(z.literal("")),
+  street_number: z.string().trim().max(20, "Número muito longo").optional().or(z.literal("")),
+  neighborhood: z.string().trim().max(100, "Nome do bairro muito longo").optional().or(z.literal("")),
+  complement: z.string().trim().max(100, "Complemento muito longo").optional().or(z.literal("")),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -49,6 +51,12 @@ export const PersonalDataSettings = () => {
     defaultValues: {
       full_name: "",
       phone: "",
+      cep: "",
+      city: "",
+      street: "",
+      street_number: "",
+      neighborhood: "",
+      complement: "",
     },
   });
 
@@ -57,6 +65,12 @@ export const PersonalDataSettings = () => {
       form.reset({
         full_name: profile.full_name || "",
         phone: profile.phone || "",
+        cep: profile.cep || "",
+        city: profile.city || "",
+        street: profile.street || "",
+        street_number: profile.street_number || "",
+        neighborhood: profile.neighborhood || "",
+        complement: profile.complement || "",
       });
     }
   }, [profile, form]);
@@ -152,6 +166,96 @@ export const PersonalDataSettings = () => {
               </div>
             </div>
 
+            {/* Address Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Endereço</h3>
+
+              <FormField
+                control={form.control}
+                name="cep"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CEP</FormLabel>
+                    <FormControl>
+                      <Input placeholder="00000-000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome da cidade" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="street"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rua</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome da rua" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="street_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número</FormLabel>
+                      <FormControl>
+                        <Input placeholder="123" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="neighborhood"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bairro</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do bairro" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="complement"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Complemento</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apto, bloco, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <Button type="submit" className="w-full mt-6" disabled={isUpdating}>
               {isUpdating ? "Salvando..." : "Salvar Alterações"}
