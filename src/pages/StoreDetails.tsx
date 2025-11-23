@@ -1033,30 +1033,30 @@ export default function StoreDetails() {
                               )}
                             </div>
                           )}
-                          <CardContent className="p-4 pt-2">
-                            <h4 className="font-bold text-lg mb-0.5 group-hover:text-primary transition-colors">{product.name}</h4>
+                          <CardContent className="p-2.5 sm:p-4 pt-2">
+                            <h4 className="font-bold text-base sm:text-lg mb-1 group-hover:text-primary transition-colors line-clamp-2">{product.name}</h4>
                             {product.description && (
-                              <p className="text-sm text-muted-foreground mb-1 line-clamp-2 leading-relaxed">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2 leading-snug">
                                 {product.description}
                               </p>
                             )}
-                            <Separator className="my-3" />
+                            <Separator className="my-2" />
                             <div>
                               {product.promotional_price ? (
-                                <div className="space-y-1 mb-3">
-                                  <span className="text-sm text-muted-foreground line-through block">
+                                <div className="space-y-0.5 mb-2">
+                                  <span className="text-xs sm:text-sm text-muted-foreground line-through block">
                                     R$ {Number(product.price).toFixed(2)}
                                   </span>
-                                  <span className="text-xl font-bold text-primary">
+                                  <span className="text-lg sm:text-xl font-bold text-primary">
                                     R$ {Number(product.promotional_price).toFixed(2)}
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-xl font-bold gradient-text block mb-3">
+                                <span className="text-lg sm:text-xl font-bold gradient-text block mb-2">
                                   R$ {Number(product.price).toFixed(2)}
                                 </span>
                               )}
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1.5 sm:gap-2">
                                 <motion.div
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
@@ -1069,15 +1069,15 @@ export default function StoreDetails() {
                                       e.stopPropagation();
                                       handleShareProduct(product);
                                     }}
-                                    className="shadow-md hover:shadow-lg transition-all duration-300"
+                                    className="shadow-md hover:shadow-lg transition-all duration-300 h-8 w-8 p-0 sm:h-9 sm:w-9"
                                   >
-                                    <Share2 className="w-4 h-4" />
+                                    <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                   </Button>
                                 </motion.div>
                                 <motion.div
                                   whileHover={{ scale: 1.05 }}
                                   whileTap={{ scale: 0.95 }}
-                                  className="flex-1"
+                                  className="flex-1 min-w-0"
                                 >
                                   <Button 
                                     size="sm"
@@ -1085,7 +1085,7 @@ export default function StoreDetails() {
                                       e.stopPropagation();
                                       setDetailsProduct(product);
                                     }}
-                                    className="w-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary"
+                                    className="w-full shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary hover:to-primary h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-4"
                                   >
                                     Adicionar
                                   </Button>
