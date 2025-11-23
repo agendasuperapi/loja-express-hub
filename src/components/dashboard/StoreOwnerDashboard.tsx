@@ -219,6 +219,7 @@ export const StoreOwnerDashboard = () => {
     product_layout_template: (myStore as any)?.product_layout_template || 'template-4',
     product_layout_template_desktop: (myStore as any)?.product_layout_template_desktop || 'template-4',
     product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
+    show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
   });
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -422,6 +423,7 @@ export const StoreOwnerDashboard = () => {
         product_layout_template: (myStore as any)?.product_layout_template || 'template-4',
         product_layout_template_desktop: (myStore as any)?.product_layout_template_desktop || 'template-4',
         product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
+        show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
       };
       
       console.log('📝 [StoreOwnerDashboard] Formulário atualizado:', {
