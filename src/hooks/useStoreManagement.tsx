@@ -17,6 +17,7 @@ export interface StoreFormData {
   store_neighborhood?: string;
   store_complement?: string;
   phone?: string;
+  whatsapp?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;

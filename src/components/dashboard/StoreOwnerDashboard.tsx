@@ -4737,6 +4737,17 @@ export const StoreOwnerDashboard = () => {
                 />
               </div>
 
+              <div>
+                <Label>WhatsApp da Loja</Label>
+                <PhoneInput
+                  value={storeForm.whatsapp}
+                  onChange={(value) => setStoreForm({ ...storeForm, whatsapp: value })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Número do WhatsApp para contato direto com a loja
+                </p>
+              </div>
+
               <Separator className="my-6" />
 
               <div className="space-y-4">
