@@ -481,7 +481,7 @@ export default function StoreDetails() {
                   
                   {(() => {
                     const storeAddress = store as any;
-                    const showAddressOnStorePage = storeAddress.show_address_on_store_page !== false;
+                    const showAddressOnStorePage = (storeAddress.show_address_on_store_page ?? true) as boolean;
                     const hasAddress = storeAddress.store_street || storeAddress.store_city || storeAddress.store_neighborhood;
                     
                     if (!hasAddress || !showAddressOnStorePage) return null;
