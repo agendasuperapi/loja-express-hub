@@ -114,13 +114,6 @@ export default function Cart() {
   useEffect(() => {
     if (selectedPickupLocation && deliveryType === 'pickup') {
       setHighlightPayment(true);
-      
-      setTimeout(() => {
-        paymentSectionRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
-        });
-      }, 100);
 
       const timer = setTimeout(() => {
         setHighlightPayment(false);
@@ -160,25 +153,6 @@ export default function Cart() {
     }
   }, [user]);
 
-  // Scroll to payment section when reaching step 2 (optimized for mobile)
-  useEffect(() => {
-    if (currentStep === 2 && paymentSectionRef.current) {
-      setTimeout(() => {
-        const element = paymentSectionRef.current;
-        if (element) {
-          // Get element position
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for better visibility
-          
-          // Smooth scroll with offset
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 300);
-    }
-  }, [currentStep]);
 
   // Load last visited store from localStorage
   useEffect(() => {
