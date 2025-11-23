@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
@@ -43,6 +43,7 @@ export default function Orders() {
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   const [copiedPixKey, setCopiedPixKey] = useState<string | null>(null);
   const [copiedPixPayload, setCopiedPixPayload] = useState<string | null>(null);
+  const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem('lastVisitedStore');
@@ -50,6 +51,25 @@ export default function Orders() {
       setLastStore(JSON.parse(stored));
     }
   }, []);
+
+  // Scroll to payment section when page loads (after completing an order)
+  useEffect(() => {
+    if (orders && orders.length > 0 && paymentSectionRef.current) {
+      setTimeout(() => {
+        const element = paymentSectionRef.current;
+        if (element) {
+          // Get element position
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for fixed header
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300); // Small delay to ensure content is rendered
+    }
+  }, [orders]);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
@@ -436,7 +456,7 @@ export default function Orders() {
                         </>
                       )}
 
-                      <div className="space-y-2">
+                      <div ref={paymentSectionRef} className="space-y-2">
                         <p className="text-sm font-medium">Forma de pagamento:</p>
                         <p className="text-sm text-muted-foreground">
                           {order.payment_method === 'pix' && 'PIX'}
