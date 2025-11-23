@@ -62,11 +62,11 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     const newByCategory = { ...selectedAddonsByCategory };
     const newQuantities = new Map(addonQuantities);
     
-    // Check if category is exclusive
+    // Check if category has max_items === 1 (single selection)
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
     
-    if (category?.is_exclusive && categoryId) {
-      // For exclusive categories, always replace with new selection
+    if (category?.max_items === 1 && categoryId) {
+      // For single selection categories, always replace with new selection
       const previousSelections = newByCategory[categoryId] || new Set();
       
       // Clear all previous selections from this category
@@ -82,7 +82,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         newQuantities.set(addonId, 1);
       }
     } else {
-      // Normal behavior for non-exclusive categories
+      // Normal behavior for multiple selection categories
       if (newSelected.has(addonId)) {
         // Se já estava selecionado, apenas remove
         newSelected.delete(addonId);
@@ -96,15 +96,8 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         if (categoryId) {
           const categorySet = new Set(newByCategory[categoryId] || []);
 
-          // Se só pode 1 (max_items === 1), troca automaticamente o selecionado
-          if (category?.max_items === 1 && categorySet.size === 1) {
-            categorySet.forEach((id) => {
-              newSelected.delete(id);
-              newQuantities.delete(id);
-            });
-            categorySet.clear();
-          } else if (category?.max_items && categorySet.size >= category.max_items) {
-            // Regra normal de limite máximo
+          // Check category limit
+          if (category?.max_items && categorySet.size >= category.max_items) {
             toast({
               title: "Limite atingido",
               description: `Você pode selecionar no máximo ${category.max_items} ${category.max_items === 1 ? 'item' : 'itens'} de ${category.name}`,
@@ -446,28 +439,28 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                             {category.min_items > 0 && (
                               <span className="text-destructive ml-1">*</span>
                             )}
-                            {category.is_exclusive && (
+                            {category.max_items === 1 && (
                               <Badge variant="outline" className="ml-2 text-xs">
                                 Escolha 1
                               </Badge>
                             )}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {category.is_exclusive ? (
+                            {category.max_items === 1 ? (
                               'Apenas 1 opção'
                             ) : (
                               <>
                                 {category.min_items > 0 
                                   ? `Mín: ${category.min_items} ${category.min_items === 1 ? 'opção' : 'opções'}` 
                                   : 'Escolha'}
-                                {category.max_items !== null && 
-                                  ` ${category.max_items} ${category.max_items === 1 ? 'opção' : 'opções'}`}
+                                {category.max_items !== null && category.max_items > 1 &&
+                                  ` até ${category.max_items} opções`}
                               </>
                             )}
                           </p>
                         </div>
                         
-                        {category.is_exclusive ? (
+                        {category.max_items === 1 ? (
                           <RadioGroup
                             value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''}
                             onValueChange={(value) => handleAddonToggle(value, category.id)}
