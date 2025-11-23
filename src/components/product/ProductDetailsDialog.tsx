@@ -448,16 +448,23 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                               )}
                             </p>
                             {category.max_items !== null && category.max_items > 1 && (
-                              <Badge 
-                                variant={
-                                  (selectedAddonsByCategory[category.id]?.size || 0) >= category.min_items 
-                                    ? "default" 
-                                    : "secondary"
-                                }
-                                className="text-xs"
+                              <motion.div
+                                key={`${category.id}-${selectedAddonsByCategory[category.id]?.size || 0}`}
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
                               >
-                                {selectedAddonsByCategory[category.id]?.size || 0}/{category.max_items}
-                              </Badge>
+                                <Badge 
+                                  variant={
+                                    (selectedAddonsByCategory[category.id]?.size || 0) >= category.min_items 
+                                      ? "default" 
+                                      : "secondary"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {selectedAddonsByCategory[category.id]?.size || 0}/{category.max_items}
+                                </Badge>
+                              </motion.div>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
