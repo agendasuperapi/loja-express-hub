@@ -1034,12 +1034,14 @@ export default function StoreDetails() {
                             </div>
                           )}
                           <CardContent className="p-2.5 sm:p-4 pt-2 flex-1 flex flex-col">
-                            <h4 className="font-bold text-base sm:text-lg mb-1 group-hover:text-primary transition-colors line-clamp-2 min-h-[2.5rem]">{product.name}</h4>
-                            <p className="text-xs sm:text-sm text-muted-foreground mb-2 line-clamp-2 leading-snug min-h-[2rem]">
-                              {product.description || ' '}
-                            </p>
+                            <div className="flex-grow">
+                              <h4 className="font-bold text-base sm:text-lg group-hover:text-primary transition-colors line-clamp-2 h-[3rem]">{product.name}</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-snug h-[2.5rem]">
+                                {product.description || ' '}
+                              </p>
+                            </div>
                             <Separator className="my-2" />
-                            <div className="mt-auto">
+                            <div className="mt-auto pt-1">
                               {product.promotional_price ? (
                                 <div className="space-y-0.5 mb-2">
                                   <span className="text-xs sm:text-sm text-muted-foreground line-through block">
@@ -1168,13 +1170,15 @@ export default function StoreDetails() {
                             </div>
                           )}
                           <CardContent className="p-4 md:p-6 pt-2 md:pt-3 space-y-0 flex-1 flex flex-col">
-                            <h4 className="font-bold text-lg md:text-xl group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
-                              {product.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem] mb-1">
-                              {product.description || ' '}
-                            </p>
-                            <div className="space-y-3 mt-auto">
+                            <div className="flex-grow">
+                              <h4 className="font-bold text-lg md:text-xl group-hover:text-primary transition-colors line-clamp-2 h-[3.5rem]">
+                                {product.name}
+                              </h4>
+                              <p className="text-sm text-muted-foreground line-clamp-2 h-[3rem]">
+                                {product.description || ' '}
+                              </p>
+                            </div>
+                            <div className="space-y-3 mt-auto pt-2">
                               {product.promotional_price ? (
                                 <div className="space-y-1">
                                   <div className="text-sm text-muted-foreground line-through">
