@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -101,12 +101,12 @@ export default function Cart() {
     }
   }, [deliveryType, pickupLocations]);
 
-  // Scroll to top on mobile when user is logged in
+  // Scroll to top on mobile when user is logged in and page (re)opens
   useEffect(() => {
-    if (isMobile && user) {
+    if (isMobile && user && location.pathname === '/cart') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, []);
+  }, [isMobile, user, location.pathname]);
 
   // Effect when pickup location is selected -> highlight payment section
   useEffect(() => {

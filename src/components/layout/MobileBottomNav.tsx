@@ -131,7 +131,7 @@ export const MobileBottomNav = () => {
         {/* Botão Central (Carrinho) */}
         <div className="flex flex-col items-center -mt-2 sm:-mt-3">
           <button
-            onClick={() => navigate('/cart')}
+            onClick={() => navigate('/cart', { state: { scrollToTop: true } })}
             className={cn(
               "flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 -mt-6 sm:-mt-8 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative",
               isPulsing && "animate-pulse-cart"
@@ -176,7 +176,7 @@ export const MobileBottomNav = () => {
                 variant="ghost"
                 className="w-full justify-start gap-2 sm:gap-3 h-10 sm:h-12 text-sm"
                 onClick={() => {
-                  navigate('/cart');
+                  navigate('/cart', { state: { scrollToTop: true } });
                   setIsMenuOpen(false);
                 }}
               >
