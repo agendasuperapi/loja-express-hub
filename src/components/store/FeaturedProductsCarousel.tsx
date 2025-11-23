@@ -104,10 +104,14 @@ export const FeaturedProductsCarousel = ({
                   >
                     {/* Badges Container */}
                     <div className="absolute top-1.5 left-1.5 md:top-2 md:left-2 z-10 flex flex-col gap-1">
-                      <Badge className="bg-yellow-500 text-white border-none shadow-lg w-fit text-[10px] md:text-xs px-1.5 md:px-2.5 py-0.5">
-                        <Star className="h-2.5 w-2.5 md:h-3 md:w-3 mr-0.5 md:mr-1 fill-white" />
-                        Promoção
+                      <Badge className="bg-yellow-500 text-white border-none shadow-lg w-fit p-1 md:p-1.5">
+                        <Star className="h-3 w-3 md:h-3.5 md:w-3.5 fill-white" />
                       </Badge>
+                      {hasPromotion && (
+                        <Badge variant="destructive" className="shadow-lg w-fit text-[10px] md:text-xs px-1.5 md:px-2.5 py-0.5">
+                          Promoção
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Imagem do Produto */}
