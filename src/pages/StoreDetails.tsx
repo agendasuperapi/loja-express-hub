@@ -479,17 +479,51 @@ export default function StoreDetails() {
                   
                   <p className="text-muted-foreground mb-2 text-sm md:text-base leading-relaxed">{store.description}</p>
                   
-                  {store.address && (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.6 }}
-                      className="flex items-center gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit"
-                    >
-                      <MapPin className="w-4 h-4 text-primary" />
-                      <span>{store.address}</span>
-                    </motion.div>
-                  )}
+                  {(() => {
+                    const storeAddress = store as any;
+                    const hasAddress = storeAddress.store_street || storeAddress.store_city || storeAddress.store_neighborhood;
+                    
+                    if (!hasAddress) return null;
+                    
+                    const addressParts = [];
+                    if (storeAddress.store_street) {
+                      const streetLine = [
+                        storeAddress.store_street,
+                        storeAddress.store_street_number
+                      ].filter(Boolean).join(', ');
+                      addressParts.push(streetLine);
+                    }
+                    
+                    if (storeAddress.store_complement) {
+                      addressParts.push(storeAddress.store_complement);
+                    }
+                    
+                    if (storeAddress.store_neighborhood) {
+                      addressParts.push(storeAddress.store_neighborhood);
+                    }
+                    
+                    if (storeAddress.store_city) {
+                      addressParts.push(storeAddress.store_city);
+                    }
+                    
+                    if (storeAddress.store_cep) {
+                      addressParts.push(`CEP: ${storeAddress.store_cep}`);
+                    }
+                    
+                    const fullAddress = addressParts.join(' - ');
+                    
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        className="flex items-start gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit max-w-full"
+                      >
+                        <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="break-words">{fullAddress}</span>
+                      </motion.div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
