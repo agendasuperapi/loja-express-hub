@@ -172,7 +172,7 @@ export const PersonalDataSettings = () => {
 
             {/* Address Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Endereço</h3>
+              <h3 className="text-lg font-semibold">Endereço Pessoal</h3>
 
               <FormField
                 control={form.control}
