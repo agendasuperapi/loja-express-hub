@@ -221,6 +221,7 @@ export const StoreOwnerDashboard = () => {
     product_layout_template_desktop: (myStore as any)?.product_layout_template_desktop || 'template-4',
     product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
     show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
+    show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
   });
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -425,6 +426,7 @@ export const StoreOwnerDashboard = () => {
         product_layout_template_desktop: (myStore as any)?.product_layout_template_desktop || 'template-4',
         product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
         show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
+        show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
       };
       
       console.log('📝 [StoreOwnerDashboard] Formulário atualizado:', {
@@ -5416,7 +5418,8 @@ export const StoreOwnerDashboard = () => {
               currentTemplateDesktop={(myStore as any)?.product_layout_template_desktop || 'template-4'}
               currentTemplateMobile={(myStore as any)?.product_layout_template_mobile || 'template-2'}
               showAddress={(myStore as any)?.show_address_on_store_page !== false}
-              onUpdate={async (desktopTemplate: string, mobileTemplate: string, showAddress: boolean) => {
+              showPhone={(myStore as any)?.show_phone_on_store_page !== false}
+              onUpdate={async (desktopTemplate: string, mobileTemplate: string, showAddress: boolean, showPhone: boolean) => {
                 await updateStore({
                   id: myStore.id,
                   name: myStore.name,
@@ -5425,6 +5428,7 @@ export const StoreOwnerDashboard = () => {
                   product_layout_template_desktop: desktopTemplate,
                   product_layout_template_mobile: mobileTemplate,
                   show_address_on_store_page: showAddress,
+                  show_phone_on_store_page: showPhone,
                 });
               }}
               isUpdating={false}
@@ -5438,6 +5442,7 @@ export const StoreOwnerDashboard = () => {
                   ? `${(myStore as any).store_street}${(myStore as any).store_street_number ? ', ' + (myStore as any).store_street_number : ''} - ${(myStore as any).store_neighborhood}, ${(myStore as any).store_city}`
                   : myStore.address || undefined
               }
+              storePhone={myStore.phone || undefined}
             />
           </motion.div>
         </TabsContent>

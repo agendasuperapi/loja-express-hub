@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin } from "lucide-react";
+import { Star, MapPin, Phone } from "lucide-react";
 
 interface StorePreviewProps {
   storeName: string;
@@ -10,7 +10,9 @@ interface StorePreviewProps {
   storeBanner?: string;
   storeRating?: number;
   storeAddress?: string;
+  storePhone?: string;
   showAddress: boolean;
+  showPhone: boolean;
   layoutTemplateDesktop: string;
   layoutTemplateMobile: string;
   isMobileView?: boolean;
@@ -23,7 +25,9 @@ export const StorePreview = ({
   storeBanner,
   storeRating,
   storeAddress,
+  storePhone,
   showAddress,
+  showPhone,
   layoutTemplateDesktop,
   layoutTemplateMobile,
   isMobileView = false,
@@ -114,6 +118,13 @@ export const StorePreview = ({
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="w-3 h-3" />
                   <span className="line-clamp-1">{storeAddress}</span>
+                </div>
+              )}
+
+              {showPhone && storePhone && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                  <Phone className="w-3 h-3" />
+                  <span className="line-clamp-1">{storePhone}</span>
                 </div>
               )}
             </div>

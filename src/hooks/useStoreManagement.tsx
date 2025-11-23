@@ -52,6 +52,7 @@ export interface StoreFormData {
   product_layout_template_desktop?: string;
   product_layout_template_mobile?: string;
   show_address_on_store_page?: boolean;
+  show_phone_on_store_page?: boolean;
 }
 
 export const useStoreManagement = () => {
