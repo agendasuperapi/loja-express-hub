@@ -223,6 +223,7 @@ export const StoreOwnerDashboard = () => {
     product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
     show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
     show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
+    show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true,
   });
 
   const [isLoadingCep, setIsLoadingCep] = useState(false);
@@ -429,6 +430,7 @@ export const StoreOwnerDashboard = () => {
         product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
         show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
         show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
+        show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true,
       };
       
       console.log('📝 [StoreOwnerDashboard] Formulário atualizado:', {
@@ -4569,6 +4571,22 @@ export const StoreOwnerDashboard = () => {
                     checked={storeForm.show_phone_on_store_page !== false}
                     onCheckedChange={(checked) => 
                       handleUpdateDeliveryOption('show_phone_on_store_page', checked)
+                    }
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_whatsapp_on_store_page">Exibir WhatsApp na Loja</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostrar o WhatsApp de contato no cabeçalho da página da loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="show_whatsapp_on_store_page"
+                    checked={(storeForm as any).show_whatsapp_on_store_page !== false}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('show_whatsapp_on_store_page', checked)
                     }
                   />
                 </div>
