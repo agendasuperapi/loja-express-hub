@@ -91,6 +91,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     } else {
       // Normal behavior for non-exclusive categories
       if (newSelected.has(addonId)) {
+        // Se já estava selecionado, apenas remove
         newSelected.delete(addonId);
         newQuantities.delete(addonId);
         if (categoryId) {
@@ -99,11 +100,18 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           newByCategory[categoryId] = categorySet;
         }
       } else {
-        // Check category limit
         if (categoryId) {
           const categorySet = new Set(newByCategory[categoryId] || []);
-          
-          if (category?.max_items && categorySet.size >= category.max_items) {
+
+          // Se só pode 1 (max_items === 1), troca automaticamente o selecionado
+          if (category?.max_items === 1 && categorySet.size === 1) {
+            categorySet.forEach((id) => {
+              newSelected.delete(id);
+              newQuantities.delete(id);
+            });
+            categorySet.clear();
+          } else if (category?.max_items && categorySet.size >= category.max_items) {
+            // Regra normal de limite máximo
             toast({
               title: "Limite atingido",
               description: `Você pode selecionar no máximo ${category.max_items} ${category.max_items === 1 ? 'item' : 'itens'} de ${category.name}`,
@@ -111,10 +119,11 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             });
             return;
           }
-          
+
           categorySet.add(addonId);
           newByCategory[categoryId] = categorySet;
         }
+
         newSelected.add(addonId);
         if (allowQuantity) {
           newQuantities.set(addonId, 1);
