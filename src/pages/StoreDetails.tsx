@@ -962,7 +962,7 @@ export default function StoreDetails() {
 
                 {/* Grid Layout - Shown when NOT horizontal on respective screen size */}
                 {!isMobileHorizontal && (
-                  <div className={`grid ${getGridClasses()} gap-8 md:gap-6 lg:hidden`}>
+                  <div className={`grid ${getGridClasses()} gap-2 md:gap-3 lg:hidden`}>
                     {categoryProducts.map((product, index) => {
                       const cartQuantity = getProductCartQuantity(product.id);
                       const isInCart = cartQuantity > 0;
@@ -1103,7 +1103,7 @@ export default function StoreDetails() {
 
                 {/* Desktop Grid Layout - Only shown on desktop when template is NOT horizontal */}
                 {!isDesktopHorizontal && (
-                  <div className={`hidden lg:grid ${getGridClasses()} gap-8 md:gap-6`}>
+                  <div className={`hidden lg:grid ${getGridClasses()} gap-3`}>
                     {categoryProducts.map((product, index) => {
                       const cartQuantity = getProductCartQuantity(product.id);
                       const isInCart = cartQuantity > 0;
