@@ -4553,6 +4553,22 @@ export const StoreOwnerDashboard = () => {
                     }
                   />
                 </div>
+                
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="show_phone_on_store_page">Exibir Telefone na Loja</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostrar o telefone de contato no cabeçalho da página da loja
+                    </p>
+                  </div>
+                  <Switch
+                    id="show_phone_on_store_page"
+                    checked={storeForm.show_phone_on_store_page !== false}
+                    onCheckedChange={(checked) => 
+                      handleUpdateDeliveryOption('show_phone_on_store_page', checked)
+                    }
+                  />
+                </div>
               </CardContent>
             </Card>
 
