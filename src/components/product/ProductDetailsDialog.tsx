@@ -62,11 +62,12 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     const newByCategory = { ...selectedAddonsByCategory };
     const newQuantities = new Map(addonQuantities);
     
-    // Check if category has max_items === 1 (single selection)
+    // Check if category allows only single selection
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
+    const isSingleSelection = category?.is_exclusive || category?.max_items === 1;
     
-    if (category?.max_items === 1 && categoryId) {
-      // For single selection categories, always replace with new selection
+    if (isSingleSelection && categoryId) {
+      // For single selection categories (radio button behavior), always replace with new selection
       const previousSelections = newByCategory[categoryId] || new Set();
       
       // Clear all previous selections from this category
@@ -439,14 +440,14 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                             {category.min_items > 0 && (
                               <span className="text-destructive ml-1">*</span>
                             )}
-                            {category.max_items === 1 && (
+                            {(category.is_exclusive || category.max_items === 1) && (
                               <Badge variant="outline" className="ml-2 text-xs">
                                 Escolha 1
                               </Badge>
                             )}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {category.max_items === 1 ? (
+                            {(category.is_exclusive || category.max_items === 1) ? (
                               'Apenas 1 opção'
                             ) : (
                               <>
@@ -460,7 +461,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                           </p>
                         </div>
                         
-                        {category.max_items === 1 ? (
+                        {(category.is_exclusive || category.max_items === 1) ? (
                           <RadioGroup
                             value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''}
                             onValueChange={(value) => handleAddonToggle(value, category.id)}
