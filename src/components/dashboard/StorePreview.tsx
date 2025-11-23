@@ -125,7 +125,19 @@ export const StorePreview = ({
               {showPhone && storePhone && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                   <Phone className="w-3 h-3" />
-                  <span className="line-clamp-1">{formatDisplayPhone(storePhone)}</span>
+                  <span className="line-clamp-1">
+                    {(() => {
+                      const digits = (storePhone || '').replace(/\D/g, '');
+                      const withoutCC = digits.startsWith('55') ? digits.slice(2) : digits;
+                      
+                      if (withoutCC.length === 11) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,7)}-${withoutCC.slice(7)}`;
+                      } else if (withoutCC.length === 10) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,6)}-${withoutCC.slice(6)}`;
+                      }
+                      return withoutCC;
+                    })()}
+                  </span>
                 </div>
               )}
             </div>

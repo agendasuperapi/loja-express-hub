@@ -534,6 +534,19 @@ export default function StoreDetails() {
                     
                     if (!hasPhone || !showPhoneOnStorePage) return null;
 
+                    // Remove country code for display
+                    const formatPhoneWithoutCountry = (phone: string) => {
+                      const digits = (phone || '').replace(/\D/g, '');
+                      const withoutCC = digits.startsWith('55') ? digits.slice(2) : digits;
+                      
+                      if (withoutCC.length === 11) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,7)}-${withoutCC.slice(7)}`;
+                      } else if (withoutCC.length === 10) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,6)}-${withoutCC.slice(6)}`;
+                      }
+                      return withoutCC;
+                    };
+
                     return (
                       <motion.div
                         initial={{ opacity: 0 }}
@@ -543,7 +556,7 @@ export default function StoreDetails() {
                         onClick={() => window.open(`tel:${storeData.phone}`, '_self')}
                       >
                         <Phone className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span>{formatDisplayPhone(storeData.phone)}</span>
+                        <span>{formatPhoneWithoutCountry(storeData.phone)}</span>
                       </motion.div>
                     );
                   })()}
