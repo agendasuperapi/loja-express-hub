@@ -441,11 +441,6 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                               {category.min_items > 0 && (
                                 <span className="text-destructive ml-1">*</span>
                               )}
-                              {category.max_items === 1 && (
-                                <Badge variant="outline" className="ml-2 text-xs">
-                                  Escolha 1
-                                </Badge>
-                              )}
                             </p>
                             {category.max_items !== null && category.max_items > 1 && (
                               <motion.div
