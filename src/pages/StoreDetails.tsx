@@ -531,6 +531,13 @@ export default function StoreDetails() {
                     const showPhoneOnStorePage = (storeData.show_phone_on_store_page ?? true) as boolean;
                     const hasPhone = storeData.phone;
                     
+                    // Debug log
+                    console.log('Phone display check:', {
+                      phone: storeData.phone,
+                      showPhoneOnStorePage,
+                      hasPhone
+                    });
+                    
                     if (!hasPhone || !showPhoneOnStorePage) return null;
 
                     return (
