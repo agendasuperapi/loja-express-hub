@@ -590,7 +590,7 @@ export default function StoreDetails() {
                         className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
                         onClick={() => window.open(`https://wa.me/${storeData.whatsapp}`, '_blank')}
                       >
-                        <img src={whatsappIcon} alt="WhatsApp" className="w-5 h-5 flex-shrink-0" />
+                        <img src={whatsappIcon} alt="WhatsApp" className="w-6 h-6 flex-shrink-0" />
                         <span>{formatPhoneWithoutCountry(storeData.whatsapp)}</span>
                       </motion.div>
                     );
