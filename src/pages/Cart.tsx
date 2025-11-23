@@ -102,9 +102,11 @@ export default function Cart() {
   }, [deliveryType, pickupLocations]);
 
   // Scroll to top on mobile when user is logged in and page (re)opens
+  const location = useLocation();
+  
   useEffect(() => {
     if (isMobile && user && location.pathname === '/cart') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
     }
   }, [isMobile, user, location.pathname]);
 
