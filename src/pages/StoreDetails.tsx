@@ -1040,7 +1040,7 @@ export default function StoreDetails() {
                                 {product.description || ' '}
                               </p>
                             </div>
-                            <Separator className="my-2" />
+                            <Separator className="my-1.5" />
                             <div className="mt-auto pt-1">
                               <div className="mb-2 h-[3.25rem] flex flex-col justify-center">
                                 {product.promotional_price ? (
