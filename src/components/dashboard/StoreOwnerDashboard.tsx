@@ -362,7 +362,7 @@ export const StoreOwnerDashboard = () => {
     }
   }, [categories]);
 
-  // Sync store form with myStore data
+  // Sync store form with myStore data (único ponto de sincronização)
   useEffect(() => {
     if (myStore) {
       console.log('🏪 [StoreOwnerDashboard] Carregando dados da loja no formulário:', {
@@ -378,7 +378,7 @@ export const StoreOwnerDashboard = () => {
         }
       });
       
-      const newFormData = {
+      const newFormData: StoreFormData = {
         name: myStore.name || '',
         slug: myStore.slug || '',
         logo_url: myStore.logo_url || '',
@@ -436,6 +436,12 @@ export const StoreOwnerDashboard = () => {
       });
       
       setStoreForm(newFormData);
+
+      // Validar chave PIX inicial quando existir
+      if ((myStore as any)?.pix_key) {
+        const validation = validatePixKey((myStore as any).pix_key);
+        setPixValidation(validation);
+      }
     }
   }, [myStore]);
 
@@ -648,52 +654,10 @@ export const StoreOwnerDashboard = () => {
     }
   }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, canViewConfirmedOrders, canViewPreparingOrders, canViewOutForDeliveryOrders, canViewDeliveredOrders, canViewCancelledOrders, customStatuses, orderStatusFilter]);
 
-  useEffect(() => {
-    if (myStore) {
-      setStoreForm({
-        name: myStore.name,
-        slug: myStore.slug || '',
-        logo_url: myStore.logo_url || '',
-        banner_url: myStore.banner_url || '',
-        description: myStore.description || '',
-        category: myStore.category || 'Outros',
-        delivery_fee: myStore.delivery_fee || 0,
-        min_order_value: myStore.min_order_value || 0,
-        avg_delivery_time: myStore.avg_delivery_time || 30,
-        show_avg_delivery_time: (myStore as any).show_avg_delivery_time ?? true,
-        accepts_delivery: myStore.accepts_delivery ?? true,
-        accepts_pickup: myStore.accepts_pickup ?? true,
-        accepts_pix: myStore.accepts_pix ?? true,
-        accepts_card: myStore.accepts_card ?? true,
-        accepts_cash: myStore.accepts_cash ?? true,
-        address: myStore.address || '',
-        pickup_address: myStore.pickup_address || '',
-        phone: myStore.phone || '',
-        menu_label: myStore.menu_label || 'Cardápio',
-        pix_key: (myStore as any).pix_key || '',
-        show_pix_key_to_customer: (myStore as any).show_pix_key_to_customer ?? true,
-        pix_message_enabled: (myStore as any).pix_message_enabled ?? false,
-        pix_message_title: (myStore as any).pix_message_title || '',
-        pix_message_description: (myStore as any).pix_message_description || '',
-        pix_message_footer: (myStore as any).pix_message_footer || '',
-        pix_message_button_text: (myStore as any).pix_message_button_text || '',
-        pix_copiacola_message_enabled: (myStore as any).pix_copiacola_message_enabled ?? false,
-        pix_copiacola_message_title: (myStore as any).pix_copiacola_message_title || '',
-        pix_copiacola_message_description: (myStore as any).pix_copiacola_message_description || '',
-        pix_copiacola_message_footer: (myStore as any).pix_copiacola_message_footer || '',
-        pix_copiacola_message_button_text: (myStore as any).pix_copiacola_message_button_text || '',
-        pix_copiacola_button_text: (myStore as any).pix_copiacola_button_text || '',
-        allow_orders_when_closed: (myStore as any).allow_orders_when_closed ?? false,
-        require_delivery_zone: (myStore as any).require_delivery_zone ?? false,
-      });
-      
-      // Validate initial PIX key
-      if ((myStore as any).pix_key) {
-        const validation = validatePixKey((myStore as any).pix_key);
-        setPixValidation(validation);
-      }
-    }
-  }, [myStore]);
+  // (removido) havia um segundo useEffect sincronizando storeForm com myStore,
+  // o que sobrescrevia os campos de endereço personalizados. Agora toda a
+  // sincronização acontece apenas no useEffect acima.
+
 
   // Reset current page when filters change
   useEffect(() => {
