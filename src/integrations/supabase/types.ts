@@ -1233,6 +1233,7 @@ export type Database = {
           store_street_number: string | null
           total_reviews: number | null
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
           accepts_card?: boolean | null
@@ -1290,6 +1291,7 @@ export type Database = {
           store_street_number?: string | null
           total_reviews?: number | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
           accepts_card?: boolean | null
@@ -1347,6 +1349,7 @@ export type Database = {
           store_street_number?: string | null
           total_reviews?: number | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
