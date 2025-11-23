@@ -58,30 +58,35 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
+    console.log('handleAddonToggle called:', { addonId, categoryId, allowQuantity });
+    console.log('Current selectedAddonsByCategory:', selectedAddonsByCategory);
+    
     const newSelected = new Set(selectedAddons);
     const newByCategory = { ...selectedAddonsByCategory };
     const newQuantities = new Map(addonQuantities);
     
     // Check if category is exclusive
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
+    console.log('Category found:', category);
     
-    if (category?.is_exclusive) {
-      // For exclusive categories, always replace previous selection
-      if (categoryId) {
-        const categorySet = newByCategory[categoryId] || new Set();
-        
-        // Remove all previous selections from this category
-        categorySet.forEach(id => {
-          newSelected.delete(id);
-          newQuantities.delete(id);
-        });
-        
-        // Add the new selection
-        newSelected.add(addonId);
-        newByCategory[categoryId] = new Set([addonId]);
-        if (allowQuantity) {
-          newQuantities.set(addonId, 1);
-        }
+    if (category?.is_exclusive && categoryId) {
+      // For exclusive categories, always replace with new selection
+      const previousSelections = newByCategory[categoryId] || new Set();
+      console.log('Previous selections in category:', Array.from(previousSelections));
+      
+      // Clear all previous selections from this category
+      previousSelections.forEach(id => {
+        console.log('Removing previous selection:', id);
+        newSelected.delete(id);
+        newQuantities.delete(id);
+      });
+      
+      // Set the new selection
+      console.log('Adding new selection:', addonId);
+      newSelected.add(addonId);
+      newByCategory[categoryId] = new Set([addonId]);
+      if (allowQuantity) {
+        newQuantities.set(addonId, 1);
       }
     } else {
       // Normal behavior for non-exclusive categories
