@@ -72,6 +72,7 @@ export default function Cart() {
   const [storeData, setStoreData] = useState<any>(null);
   const deliveryTypeRef = useRef<HTMLDivElement>(null);
   const cartItemsRef = useRef<HTMLDivElement>(null);
+  const paymentSectionRef = useRef<HTMLDivElement>(null);
 
   // Reset email exists alert when email changes
   useEffect(() => {
@@ -125,11 +126,11 @@ export default function Cart() {
     }
   }, [user]);
 
-  // Scroll to cart items section when reaching step 2 (optimized for mobile)
+  // Scroll to payment section when reaching step 2 (optimized for mobile)
   useEffect(() => {
-    if (currentStep === 2 && cartItemsRef.current) {
+    if (currentStep === 2 && paymentSectionRef.current) {
       setTimeout(() => {
-        const element = cartItemsRef.current;
+        const element = paymentSectionRef.current;
         if (element) {
           // Get element position
           const elementPosition = element.getBoundingClientRect().top;
@@ -1311,7 +1312,7 @@ export default function Cart() {
                     <Separator />
 
                     {/* Payment Section */}
-                    <div className="space-y-4">
+                    <div ref={paymentSectionRef} className="space-y-4">
                       <div>
                         <Label htmlFor="payment">Forma de Pagamento *</Label>
                         <Select value={paymentMethod} onValueChange={(value: 'pix' | 'dinheiro' | 'cartao') => setPaymentMethod(value)}>
