@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows, MapPin } from "lucide-react";
+import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StorePreview } from "@/components/dashboard/StorePreview";
 
@@ -14,7 +14,8 @@ interface LayoutSettingsProps {
   currentTemplateDesktop?: string;
   currentTemplateMobile?: string;
   showAddress?: boolean;
-  onUpdate: (desktopTemplate: string, mobileTemplate: string, showAddress: boolean) => Promise<void>;
+  showPhone?: boolean;
+  onUpdate: (desktopTemplate: string, mobileTemplate: string, showAddress: boolean, showPhone: boolean) => Promise<void>;
   isUpdating: boolean;
   storeName?: string;
   storeDescription?: string;
@@ -22,6 +23,7 @@ interface LayoutSettingsProps {
   storeBanner?: string;
   storeRating?: number;
   storeAddress?: string;
+  storePhone?: string;
 }
 
 const templates = [
@@ -73,6 +75,7 @@ export const LayoutSettings = ({
   currentTemplateDesktop = 'template-4', 
   currentTemplateMobile = 'template-2',
   showAddress = true,
+  showPhone = true,
   onUpdate, 
   isUpdating,
   storeName,
@@ -81,10 +84,12 @@ export const LayoutSettings = ({
   storeBanner,
   storeRating,
   storeAddress,
+  storePhone,
 }: LayoutSettingsProps) => {
   const [selectedDesktop, setSelectedDesktop] = useState(currentTemplateDesktop);
   const [selectedMobile, setSelectedMobile] = useState(currentTemplateMobile);
   const [showAddressEnabled, setShowAddressEnabled] = useState(showAddress);
+  const [showPhoneEnabled, setShowPhoneEnabled] = useState(showPhone);
 
   // Sync state with props when they change
   useEffect(() => {
@@ -99,9 +104,13 @@ export const LayoutSettings = ({
     setShowAddressEnabled(showAddress);
   }, [showAddress]);
 
+  useEffect(() => {
+    setShowPhoneEnabled(showPhone);
+  }, [showPhone]);
+
   const handleSave = async () => {
     try {
-      await onUpdate(selectedDesktop, selectedMobile, showAddressEnabled);
+      await onUpdate(selectedDesktop, selectedMobile, showAddressEnabled, showPhoneEnabled);
       toast({
         title: "Configurações atualizadas!",
         description: "As configurações de exibição foram aplicadas com sucesso.",
@@ -291,6 +300,32 @@ export const LayoutSettings = ({
               </CardContent>
             </Card>
 
+            {/* Phone visibility setting */}
+            <Card className="bg-muted/30">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-background">
+                      <Phone className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <Label htmlFor="show-phone" className="text-base font-semibold cursor-pointer">
+                        Exibir Telefone na Página da Loja
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Mostrar o telefone de contato no cabeçalho da sua loja
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="show-phone"
+                    checked={showPhoneEnabled}
+                    onCheckedChange={setShowPhoneEnabled}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Summary and save button */}
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -308,7 +343,8 @@ export const LayoutSettings = ({
                 disabled={isUpdating || (
                   selectedDesktop === currentTemplateDesktop && 
                   selectedMobile === currentTemplateMobile &&
-                  showAddressEnabled === showAddress
+                  showAddressEnabled === showAddress &&
+                  showPhoneEnabled === showPhone
                 )}
                 className="min-w-[120px]"
               >
@@ -343,7 +379,9 @@ export const LayoutSettings = ({
                   storeBanner={storeBanner}
                   storeRating={storeRating}
                   storeAddress={storeAddress}
+                  storePhone={storePhone}
                   showAddress={showAddressEnabled}
+                  showPhone={showPhoneEnabled}
                   layoutTemplateDesktop={selectedDesktop}
                   layoutTemplateMobile={selectedMobile}
                   isMobileView={false}
@@ -365,7 +403,9 @@ export const LayoutSettings = ({
                   storeBanner={storeBanner}
                   storeRating={storeRating}
                   storeAddress={storeAddress}
+                  storePhone={storePhone}
                   showAddress={showAddressEnabled}
+                  showPhone={showPhoneEnabled}
                   layoutTemplateDesktop={selectedDesktop}
                   layoutTemplateMobile={selectedMobile}
                   isMobileView={true}

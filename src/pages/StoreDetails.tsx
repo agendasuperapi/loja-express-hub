@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -480,48 +480,68 @@ export default function StoreDetails() {
                   <p className="text-muted-foreground mb-2 text-sm md:text-base leading-relaxed">{store.description}</p>
                   
                   {(() => {
-                    const storeAddress = store as any;
-                    const showAddressOnStorePage = (storeAddress.show_address_on_store_page ?? true) as boolean;
-                    const hasAddress = storeAddress.store_street || storeAddress.store_city || storeAddress.store_neighborhood;
+                    const storeData = store as any;
+                    const showAddressOnStorePage = (storeData.show_address_on_store_page ?? true) as boolean;
+                    const hasAddress = storeData.store_street || storeData.store_city || storeData.store_neighborhood;
                     
                     if (!hasAddress || !showAddressOnStorePage) return null;
                     
                     const addressParts = [];
-                    if (storeAddress.store_street) {
+                    if (storeData.store_street) {
                       const streetLine = [
-                        storeAddress.store_street,
-                        storeAddress.store_street_number
+                        storeData.store_street,
+                        storeData.store_street_number
                       ].filter(Boolean).join(', ');
                       addressParts.push(streetLine);
                     }
                     
-                    if (storeAddress.store_complement) {
-                      addressParts.push(storeAddress.store_complement);
+                    if (storeData.store_complement) {
+                      addressParts.push(storeData.store_complement);
                     }
                     
-                    if (storeAddress.store_neighborhood) {
-                      addressParts.push(storeAddress.store_neighborhood);
+                    if (storeData.store_neighborhood) {
+                      addressParts.push(storeData.store_neighborhood);
                     }
                     
-                    if (storeAddress.store_city) {
-                      addressParts.push(storeAddress.store_city);
+                    if (storeData.store_city) {
+                      addressParts.push(storeData.store_city);
                     }
                     
-                    if (storeAddress.store_cep) {
-                      addressParts.push(`CEP: ${storeAddress.store_cep}`);
+                    if (storeData.store_cep) {
+                      addressParts.push(`CEP: ${storeData.store_cep}`);
                     }
                     
                     const fullAddress = addressParts.join(' - ');
                     
+                     return (
+                       <motion.div 
+                         initial={{ opacity: 0 }}
+                         animate={{ opacity: 1 }}
+                         transition={{ delay: 0.6 }}
+                         className="flex items-start gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit max-w-full"
+                       >
+                         <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                         <span className="break-words">{fullAddress}</span>
+                       </motion.div>
+                     );
+                   })()}
+
+                  {(() => {
+                    const storeData = store as any;
+                    const showPhoneOnStorePage = (storeData.show_phone_on_store_page ?? true) as boolean;
+                    const hasPhone = storeData.phone;
+                    
+                    if (!hasPhone || !showPhoneOnStorePage) return null;
+
                     return (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        className="flex items-start gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit max-w-full"
+                        transition={{ delay: 0.7 }}
+                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 px-3 py-2 rounded-lg w-fit"
                       >
-                        <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="break-words">{fullAddress}</span>
+                        <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span>{storeData.phone}</span>
                       </motion.div>
                     );
                   })()}
