@@ -49,7 +49,7 @@ export const MobileBottomNav = () => {
   useEffect(() => {
     if (itemCount > 0) {
       setIsPulsing(true);
-      const timer = setTimeout(() => setIsPulsing(false), 1500);
+      const timer = setTimeout(() => setIsPulsing(false), 1000);
       return () => clearTimeout(timer);
     }
   }, [itemCount]);
