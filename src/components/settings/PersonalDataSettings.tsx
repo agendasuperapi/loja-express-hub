@@ -122,11 +122,21 @@ export const PersonalDataSettings = () => {
   };
 
   const handleCepChange = (value: string) => {
-    form.setValue("cep", value);
-    
+    // Remove tudo que não é número
     const cleanCep = value.replace(/\D/g, "");
+    
+    // Aplica a máscara 00000-000
+    let maskedCep = cleanCep;
+    if (cleanCep.length > 5) {
+      maskedCep = cleanCep.slice(0, 5) + "-" + cleanCep.slice(5, 8);
+    }
+    
+    // Atualiza o formulário com o valor formatado
+    form.setValue("cep", maskedCep);
+    
+    // Busca o endereço quando tiver 8 dígitos
     if (cleanCep.length === 8) {
-      fetchAddressByCep(value);
+      fetchAddressByCep(cleanCep);
     }
   };
 
@@ -235,6 +245,7 @@ export const PersonalDataSettings = () => {
                       <div className="relative">
                         <Input 
                           placeholder="00000-000" 
+                          maxLength={9}
                           {...field}
                           onChange={(e) => handleCepChange(e.target.value)}
                           disabled={isLoadingCep}
