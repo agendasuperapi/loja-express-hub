@@ -2959,7 +2959,7 @@ export const StoreOwnerDashboard = () => {
                             }}
                             className="flex items-center justify-center gap-2 w-full sm:w-auto"
                           >
-                            <Receipt className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                            <Receipt className={`w-3 h-3 sm:w-4 sm:h-4 ${(order as any).payment_received ? 'text-green-600' : 'text-red-600'}`} />
                             Pagamento
                           </Button>
                           
