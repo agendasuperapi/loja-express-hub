@@ -2882,7 +2882,9 @@ export const StoreOwnerDashboard = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Tipo:</span>
-                            <span className="font-medium capitalize">{order.delivery_type}</span>
+                            <span className="font-medium capitalize">
+                              {order.delivery_type === 'pickup' ? 'Retirada' : order.delivery_type === 'delivery' ? 'Entrega' : order.delivery_type}
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Pagamento:</span>
