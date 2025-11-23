@@ -21,6 +21,7 @@ export const MobileBottomNav = () => {
   const [lastStore, setLastStore] = useState<{ slug: string; name: string } | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEmployee, setIsEmployee] = useState(false);
+  const [isPulsing, setIsPulsing] = useState(false);
 
   // Verificar se é funcionário
   useEffect(() => {
@@ -44,6 +45,14 @@ export const MobileBottomNav = () => {
     checkEmployee();
   }, [user]);
 
+  // Pulsar quando item for adicionado ao carrinho
+  useEffect(() => {
+    if (itemCount > 0) {
+      setIsPulsing(true);
+      const timer = setTimeout(() => setIsPulsing(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [itemCount]);
 
   useEffect(() => {
     const loadLastStore = () => {
@@ -123,7 +132,10 @@ export const MobileBottomNav = () => {
         <div className="flex flex-col items-center -mt-2 sm:-mt-3">
           <button
             onClick={() => navigate('/cart', { state: { scrollToTop: true } })}
-            className="flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 -mt-6 sm:-mt-8 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative"
+            className={cn(
+              "flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 -mt-6 sm:-mt-8 rounded-full bg-gradient-primary shadow-elegant hover:shadow-glow transition-all relative",
+              isPulsing && "animate-pulse-cart"
+            )}
           >
             <ShoppingCart className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
             {itemCount > 0 && (
