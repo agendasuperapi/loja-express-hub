@@ -54,6 +54,7 @@ export interface StoreFormData {
   product_layout_template_mobile?: string;
   show_address_on_store_page?: boolean;
   show_phone_on_store_page?: boolean;
+  show_whatsapp_on_store_page?: boolean;
 }
 
 export const useStoreManagement = () => {

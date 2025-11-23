@@ -4,7 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { Navigation } from "@/components/layout/Navigation";
 import { FloatingCartButton } from "@/components/cart/FloatingCartButton";
 import { CartSidebar } from "@/components/cart/CartSidebar";
-import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag, Phone } from "lucide-react";
+import { Star, Clock, MapPin, ArrowLeft, Search, Share2, Plus, ShoppingBag, Phone, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -557,6 +557,40 @@ export default function StoreDetails() {
                       >
                         <Phone className="w-4 h-4 text-primary flex-shrink-0" />
                         <span>{formatPhoneWithoutCountry(storeData.phone)}</span>
+                      </motion.div>
+                    );
+                  })()}
+
+                  {(() => {
+                    const storeData = store as any;
+                    const showWhatsAppOnStorePage = (storeData.show_whatsapp_on_store_page ?? true) as boolean;
+                    const hasWhatsApp = storeData.whatsapp;
+                    
+                    if (!hasWhatsApp || !showWhatsAppOnStorePage) return null;
+
+                    // Remove country code for display
+                    const formatPhoneWithoutCountry = (phone: string) => {
+                      const digits = (phone || '').replace(/\D/g, '');
+                      const withoutCC = digits.startsWith('55') ? digits.slice(2) : digits;
+                      
+                      if (withoutCC.length === 11) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,7)}-${withoutCC.slice(7)}`;
+                      } else if (withoutCC.length === 10) {
+                        return `(${withoutCC.slice(0,2)}) ${withoutCC.slice(2,6)}-${withoutCC.slice(6)}`;
+                      }
+                      return withoutCC;
+                    };
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
+                        onClick={() => window.open(`https://wa.me/${storeData.whatsapp}`, '_blank')}
+                      >
+                        <MessageSquare className="w-4 h-4 text-green-600 dark:text-green-500 flex-shrink-0" />
+                        <span>{formatPhoneWithoutCountry(storeData.whatsapp)}</span>
                       </motion.div>
                     );
                   })()}
