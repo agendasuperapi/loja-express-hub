@@ -266,11 +266,21 @@ export const StoreOwnerDashboard = () => {
   };
 
   const handleCepChange = (value: string) => {
-    setStoreForm(prev => ({ ...prev, store_cep: value }));
-    
+    // Remove tudo que não é número
     const cleanCep = value.replace(/\D/g, "");
+    
+    // Aplica a máscara 00000-000
+    let maskedCep = cleanCep;
+    if (cleanCep.length > 5) {
+      maskedCep = cleanCep.slice(0, 5) + "-" + cleanCep.slice(5, 8);
+    }
+    
+    // Atualiza o formulário com o valor formatado
+    setStoreForm(prev => ({ ...prev, store_cep: maskedCep }));
+    
+    // Busca o endereço quando tiver 8 dígitos
     if (cleanCep.length === 8) {
-      fetchAddressByCep(value);
+      fetchAddressByCep(cleanCep);
     }
   };
 
@@ -4788,6 +4798,7 @@ export const StoreOwnerDashboard = () => {
                       value={storeForm.store_cep}
                       onChange={(e) => handleCepChange(e.target.value)}
                       placeholder="00000-000"
+                      maxLength={9}
                       disabled={isLoadingCep}
                     />
                     {isLoadingCep && (
