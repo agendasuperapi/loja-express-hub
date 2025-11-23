@@ -2954,6 +2954,19 @@ export const StoreOwnerDashboard = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => {
+                              setReceiptOrder(order);
+                              setIsReceiptDialogOpen(true);
+                            }}
+                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
+                          >
+                            <Receipt className="w-3 h-3 sm:w-4 sm:h-4" />
+                            Pagamento
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
                               setViewingOrder(order);
                               setIsViewOrderDialogOpen(true);
                             }}
@@ -2971,19 +2984,6 @@ export const StoreOwnerDashboard = () => {
                           >
                             <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
                             Imprimir
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setReceiptOrder(order);
-                              setIsReceiptDialogOpen(true);
-                            }}
-                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                          >
-                            <Receipt className="w-3 h-3 sm:w-4 sm:h-4" />
-                            Pagamento
                           </Button>
                           
                           {hasPermission('orders', 'edit_order_details') && (
