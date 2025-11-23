@@ -1219,6 +1219,7 @@ export type Database = {
           product_layout_template_mobile: string | null
           rating: number | null
           require_delivery_zone: boolean | null
+          show_address_on_store_page: boolean | null
           show_avg_delivery_time: boolean | null
           show_pix_key_to_customer: boolean | null
           slug: string
@@ -1274,6 +1275,7 @@ export type Database = {
           product_layout_template_mobile?: string | null
           rating?: number | null
           require_delivery_zone?: boolean | null
+          show_address_on_store_page?: boolean | null
           show_avg_delivery_time?: boolean | null
           show_pix_key_to_customer?: boolean | null
           slug: string
@@ -1329,6 +1331,7 @@ export type Database = {
           product_layout_template_mobile?: string | null
           rating?: number | null
           require_delivery_zone?: boolean | null
+          show_address_on_store_page?: boolean | null
           show_avg_delivery_time?: boolean | null
           show_pix_key_to_customer?: boolean | null
           slug?: string
