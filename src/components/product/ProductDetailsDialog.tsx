@@ -66,20 +66,22 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
     
     if (category?.is_exclusive) {
-      // For exclusive categories, only one can be selected
-      const categorySet = new Set(newByCategory[categoryId] || []);
-      
-      // Remove all items from this category first
-      categorySet.forEach(id => {
-        newSelected.delete(id);
-        newQuantities.delete(id);
-      });
-      
-      // Add the new selection
-      newSelected.add(addonId);
-      newByCategory[categoryId] = new Set([addonId]);
-      if (allowQuantity) {
-        newQuantities.set(addonId, 1);
+      // For exclusive categories, always replace previous selection
+      if (categoryId) {
+        const categorySet = newByCategory[categoryId] || new Set();
+        
+        // Remove all previous selections from this category
+        categorySet.forEach(id => {
+          newSelected.delete(id);
+          newQuantities.delete(id);
+        });
+        
+        // Add the new selection
+        newSelected.add(addonId);
+        newByCategory[categoryId] = new Set([addonId]);
+        if (allowQuantity) {
+          newQuantities.set(addonId, 1);
+        }
       }
     } else {
       // Normal behavior for non-exclusive categories
