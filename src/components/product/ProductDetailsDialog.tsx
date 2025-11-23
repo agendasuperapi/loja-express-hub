@@ -2,7 +2,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Share2, ShoppingCart, Store, Minus, Plus, X } from "lucide-react";
+import { Share2, ShoppingCart, Store, Minus, Plus, X, Check } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -58,31 +58,24 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
-    console.log('handleAddonToggle called:', { addonId, categoryId, allowQuantity });
-    console.log('Current selectedAddonsByCategory:', selectedAddonsByCategory);
-    
     const newSelected = new Set(selectedAddons);
     const newByCategory = { ...selectedAddonsByCategory };
     const newQuantities = new Map(addonQuantities);
     
     // Check if category is exclusive
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
-    console.log('Category found:', category);
     
     if (category?.is_exclusive && categoryId) {
       // For exclusive categories, always replace with new selection
       const previousSelections = newByCategory[categoryId] || new Set();
-      console.log('Previous selections in category:', Array.from(previousSelections));
       
       // Clear all previous selections from this category
       previousSelections.forEach(id => {
-        console.log('Removing previous selection:', id);
         newSelected.delete(id);
         newQuantities.delete(id);
       });
       
       // Set the new selection
-      console.log('Adding new selection:', addonId);
       newSelected.add(addonId);
       newByCategory[categoryId] = new Set([addonId]);
       if (allowQuantity) {
@@ -379,34 +372,46 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             <span className="text-destructive ml-1">*</span>
           </Label>
           <div className="space-y-1.5 max-h-60 overflow-y-auto">
-            {flavors?.filter(flavor => flavor.is_available).map((flavor) => (
-              <div
-                key={flavor.id}
-                className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-              >
-                <div className="flex items-center gap-2.5 flex-1">
-                  <Checkbox
-                    id={flavor.id}
-                    checked={selectedFlavors.has(flavor.id)}
-                    onCheckedChange={() => handleFlavorToggle(flavor.id)}
-                    disabled={!selectedFlavors.has(flavor.id) && selectedFlavors.size >= maxFlavors}
-                  />
-                  <Label htmlFor={flavor.id} className="flex-1 cursor-pointer text-sm">
-                    {flavor.name}
-                    {flavor.description && (
-                      <span className="text-xs text-muted-foreground block">
-                        {flavor.description}
+            {flavors?.filter(flavor => flavor.is_available).map((flavor) => {
+              const isSelected = selectedFlavors.has(flavor.id);
+              return (
+                <div
+                  key={flavor.id}
+                  className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                    isSelected 
+                      ? 'bg-primary/10 border-2 border-primary shadow-sm' 
+                      : 'bg-muted/50 border-2 border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 flex-1">
+                    <Checkbox
+                      id={flavor.id}
+                      checked={isSelected}
+                      onCheckedChange={() => handleFlavorToggle(flavor.id)}
+                      disabled={!isSelected && selectedFlavors.size >= maxFlavors}
+                    />
+                    <Label htmlFor={flavor.id} className="flex-1 cursor-pointer text-sm">
+                      {flavor.name}
+                      {flavor.description && (
+                        <span className="text-xs text-muted-foreground block">
+                          {flavor.description}
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {flavor.price > 0 && (
+                      <span className="text-sm font-semibold text-primary">
+                        + R$ {flavor.price.toFixed(2)}
                       </span>
                     )}
-                  </Label>
+                    {isSelected && (
+                      <Check className="h-5 w-5 text-primary" />
+                    )}
+                  </div>
                 </div>
-                {flavor.price > 0 && (
-                  <span className="text-sm font-semibold text-primary">
-                    + R$ {flavor.price.toFixed(2)}
-                  </span>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
           {selectedFlavors.size === 0 && (
             <p className="text-xs text-destructive">
@@ -477,28 +482,40 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                   (a, b) =>
                                     (a.display_order || 0) - (b.display_order || 0)
                                 )
-                                .map((addon) => (
-                                  <div
-                                    key={addon.id}
-                                    className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-                                  >
-                                    <div className="flex items-center gap-2.5 flex-1">
-                                      <RadioGroupItem
-                                        value={addon.id}
-                                        id={addon.id}
-                                      />
-                                      <Label
-                                        htmlFor={addon.id}
-                                        className="flex-1 cursor-pointer text-sm"
-                                      >
-                                        {addon.name}
-                                      </Label>
+                                .map((addon) => {
+                                  const isSelected = selectedAddons.has(addon.id);
+                                  return (
+                                    <div
+                                      key={addon.id}
+                                      className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                                        isSelected 
+                                          ? 'bg-primary/10 border-2 border-primary shadow-sm' 
+                                          : 'bg-muted/50 border-2 border-transparent'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 flex-1">
+                                        <RadioGroupItem
+                                          value={addon.id}
+                                          id={addon.id}
+                                        />
+                                        <Label
+                                          htmlFor={addon.id}
+                                          className="flex-1 cursor-pointer text-sm"
+                                        >
+                                          {addon.name}
+                                        </Label>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm font-semibold text-primary">
+                                          + R$ {addon.price.toFixed(2)}
+                                        </span>
+                                        {isSelected && (
+                                          <Check className="h-5 w-5 text-primary" />
+                                        )}
+                                      </div>
                                     </div>
-                                    <span className="text-sm font-semibold text-primary">
-                                      + R$ {addon.price.toFixed(2)}
-                                    </span>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                             </div>
                           </RadioGroup>
                         ) : (
@@ -512,54 +529,64 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                 (a, b) =>
                                   (a.display_order || 0) - (b.display_order || 0)
                               )
-                              .map((addon) => (
-                                <div
-                                  key={addon.id}
-                                  className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-                                >
-                                  <div className="flex items-center gap-2.5 flex-1">
-                                    <Checkbox
-                                      id={addon.id}
-                                      checked={selectedAddons.has(addon.id)}
-                                      onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
-                                    />
-                                    <Label
-                                      htmlFor={addon.id}
-                                      className="flex-1 cursor-pointer text-sm"
-                                    >
-                                      {addon.name}
+                              .map((addon) => {
+                                const isSelected = selectedAddons.has(addon.id);
+                                return (
+                                  <div
+                                    key={addon.id}
+                                    className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                                      isSelected 
+                                        ? 'bg-primary/10 border-2 border-primary shadow-sm' 
+                                        : 'bg-muted/50 border-2 border-transparent'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2.5 flex-1">
+                                      <Checkbox
+                                        id={addon.id}
+                                        checked={isSelected}
+                                        onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
+                                      />
+                                      <Label
+                                        htmlFor={addon.id}
+                                        className="flex-1 cursor-pointer text-sm"
+                                      >
+                                        {addon.name}
                                     </Label>
                                   </div>
-                                  <div className="flex items-center gap-2">
-                                    {addon.allow_quantity && selectedAddons.has(addon.id) && (
-                                      <div className="flex items-center gap-1">
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-6 w-6"
-                                          onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                                        >
-                                          <Minus className="w-3 h-3" />
-                                        </Button>
-                                        <span className="text-xs font-medium w-6 text-center">
-                                          {addonQuantities.get(addon.id) || 1}x
-                                        </span>
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          className="h-6 w-6"
-                                          onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                                        >
-                                          <Plus className="w-3 h-3" />
-                                        </Button>
-                                      </div>
-                                    )}
-                                    <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                                      + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      {addon.allow_quantity && selectedAddons.has(addon.id) && (
+                                        <div className="flex items-center gap-1">
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-6 w-6"
+                                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                          >
+                                            <Minus className="w-3 h-3" />
+                                          </Button>
+                                          <span className="text-xs font-medium w-6 text-center">
+                                            {addonQuantities.get(addon.id) || 1}x
+                                          </span>
+                                          <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-6 w-6"
+                                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                          >
+                                            <Plus className="w-3 h-3" />
+                                          </Button>
+                                        </div>
+                                      )}
+                                      <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                                        + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                                      </span>
+                                      {isSelected && (
+                                        <Check className="h-5 w-5 text-primary" />
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                           </div>
                         )}
                       </div>
@@ -577,108 +604,128 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                     </p>
                     {addons
                       .filter((addon) => !addon.category_id && addon.is_available)
-                      .map((addon) => (
-                        <div
-                          key={addon.id}
-                          className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-                        >
-                          <div className="flex items-center gap-2.5 flex-1">
-                            <Checkbox
-                              id={addon.id}
-                              checked={selectedAddons.has(addon.id)}
-                              onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
-                            />
-                            <Label
-                              htmlFor={addon.id}
-                              className="flex-1 cursor-pointer text-sm"
-                            >
-                              {addon.name}
-                            </Label>
+                      .map((addon) => {
+                        const isSelected = selectedAddons.has(addon.id);
+                        return (
+                          <div
+                            key={addon.id}
+                            className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                              isSelected 
+                                ? 'bg-primary/10 border-2 border-primary shadow-sm' 
+                                : 'bg-muted/50 border-2 border-transparent'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 flex-1">
+                              <Checkbox
+                                id={addon.id}
+                                checked={isSelected}
+                                onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
+                              />
+                              <Label
+                                htmlFor={addon.id}
+                                className="flex-1 cursor-pointer text-sm"
+                              >
+                                {addon.name}
+                              </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {addon.allow_quantity && isSelected && (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </Button>
+                                  <span className="text-xs font-medium w-6 text-center">
+                                    {addonQuantities.get(addon.id) || 1}x
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
+                              <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                                + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                              </span>
+                              {isSelected && (
+                                <Check className="h-5 w-5 text-primary" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {addon.allow_quantity && selectedAddons.has(addon.id) && (
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </Button>
-                                <span className="text-xs font-medium w-6 text-center">
-                                  {addonQuantities.get(addon.id) || 1}x
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            )}
-                            <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                              + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 )}
               </>
             ) : (
               addons
                 .filter((addon) => addon.is_available)
-                .map((addon) => (
-                  <div
-                    key={addon.id}
-                    className="flex items-center justify-between p-2.5 bg-muted/50 rounded-lg"
-                  >
-                    <div className="flex items-center gap-2.5 flex-1">
-                      <Checkbox
-                        id={addon.id}
-                        checked={selectedAddons.has(addon.id)}
-                        onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
-                      />
-                      <Label
-                        htmlFor={addon.id}
-                        className="flex-1 cursor-pointer text-sm"
-                      >
-                        {addon.name}
-                      </Label>
+                .map((addon) => {
+                  const isSelected = selectedAddons.has(addon.id);
+                  return (
+                    <div
+                      key={addon.id}
+                      className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                        isSelected 
+                          ? 'bg-primary/10 border-2 border-primary shadow-sm' 
+                          : 'bg-muted/50 border-2 border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 flex-1">
+                        <Checkbox
+                          id={addon.id}
+                          checked={isSelected}
+                          onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
+                        />
+                        <Label
+                          htmlFor={addon.id}
+                          className="flex-1 cursor-pointer text-sm"
+                        >
+                          {addon.name}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {addon.allow_quantity && isSelected && (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
+                            >
+                              <Minus className="w-3 h-3" />
+                            </Button>
+                            <span className="text-xs font-medium w-6 text-center">
+                              {addonQuantities.get(addon.id) || 1}x
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        )}
+                        <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                          + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
+                        </span>
+                        {isSelected && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {addon.allow_quantity && selectedAddons.has(addon.id) && (
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                          >
-                            <Minus className="w-3 h-3" />
-                          </Button>
-                          <span className="text-xs font-medium w-6 text-center">
-                            {addonQuantities.get(addon.id) || 1}x
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                          >
-                            <Plus className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
-                      <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                        + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
             )}
           </div>
         </div>
