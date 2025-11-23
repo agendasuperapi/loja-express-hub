@@ -5087,22 +5087,6 @@ export const StoreOwnerDashboard = () => {
                     }
                   />
                 </div>
-
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="require_delivery_zone" className="text-sm font-medium">Restringir Entrega por Zona</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Bloqueia pedidos de clientes fora das zonas de entrega cadastradas
-                    </p>
-                  </div>
-                  <Switch
-                    id="require_delivery_zone"
-                    checked={storeForm.require_delivery_zone ?? false}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('require_delivery_zone', checked)
-                    }
-                  />
-                </div>
               </CardContent>
             </Card>
 
