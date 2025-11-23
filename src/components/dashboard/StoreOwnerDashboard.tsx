@@ -64,6 +64,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { OwnerDataSettings } from "@/components/settings/OwnerDataSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { LayoutSettings } from "@/components/settings/LayoutSettings";
+import { StorePreview } from "./StorePreview";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
@@ -5427,6 +5428,16 @@ export const StoreOwnerDashboard = () => {
                 });
               }}
               isUpdating={false}
+              storeName={myStore.name}
+              storeDescription={myStore.description || undefined}
+              storeLogo={myStore.logo_url || undefined}
+              storeBanner={myStore.banner_url || undefined}
+              storeRating={myStore.rating || undefined}
+              storeAddress={
+                (myStore as any).store_street && (myStore as any).store_neighborhood && (myStore as any).store_city
+                  ? `${(myStore as any).store_street}${(myStore as any).store_street_number ? ', ' + (myStore as any).store_street_number : ''} - ${(myStore as any).store_neighborhood}, ${(myStore as any).store_city}`
+                  : myStore.address || undefined
+              }
             />
           </motion.div>
         </TabsContent>

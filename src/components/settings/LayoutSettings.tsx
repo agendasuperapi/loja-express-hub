@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StorePreview } from "@/components/dashboard/StorePreview";
 
 interface LayoutSettingsProps {
   currentTemplateDesktop?: string;
@@ -15,6 +16,12 @@ interface LayoutSettingsProps {
   showAddress?: boolean;
   onUpdate: (desktopTemplate: string, mobileTemplate: string, showAddress: boolean) => Promise<void>;
   isUpdating: boolean;
+  storeName?: string;
+  storeDescription?: string;
+  storeLogo?: string;
+  storeBanner?: string;
+  storeRating?: number;
+  storeAddress?: string;
 }
 
 const templates = [
@@ -67,7 +74,13 @@ export const LayoutSettings = ({
   currentTemplateMobile = 'template-2',
   showAddress = true,
   onUpdate, 
-  isUpdating 
+  isUpdating,
+  storeName,
+  storeDescription,
+  storeLogo,
+  storeBanner,
+  storeRating,
+  storeAddress,
 }: LayoutSettingsProps) => {
   const [selectedDesktop, setSelectedDesktop] = useState(currentTemplateDesktop);
   const [selectedMobile, setSelectedMobile] = useState(currentTemplateMobile);
@@ -201,107 +214,167 @@ export const LayoutSettings = ({
   };
 
   return (
-    <Card className="border-border/50 shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl flex items-center gap-2">
-          <LayoutGrid className="w-6 h-6" />
-          Layout dos Produtos
-        </CardTitle>
-        <CardDescription>
-          Escolha templates diferentes para desktop e mobile para otimizar a experiência em cada dispositivo
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <Tabs defaultValue="desktop" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="desktop" className="flex items-center gap-2">
-              <Monitor className="w-4 h-4" />
-              Desktop
-            </TabsTrigger>
-            <TabsTrigger value="mobile" className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4" />
-              Mobile
-            </TabsTrigger>
-          </TabsList>
+    <div className="grid lg:grid-cols-2 gap-6">
+      {/* Settings Panel */}
+      <Card className="border-border/50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <LayoutGrid className="w-6 h-6" />
+            Layout dos Produtos
+          </CardTitle>
+          <CardDescription>
+            Escolha templates diferentes para desktop e mobile
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Tabs defaultValue="desktop" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="desktop" className="flex items-center gap-2">
+                <Monitor className="w-4 h-4" />
+                Desktop
+              </TabsTrigger>
+              <TabsTrigger value="mobile" className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4" />
+                Mobile
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="desktop" className="space-y-4">
-            <div>
-              <Label className="text-base font-semibold mb-4 block">Template para Desktop</Label>
-              <TemplateSelector
-                selectedTemplate={selectedDesktop}
-                onSelectTemplate={setSelectedDesktop}
-                currentTemplate={currentTemplateDesktop}
-                isDesktop={true}
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="mobile" className="space-y-4">
-            <div>
-              <Label className="text-base font-semibold mb-4 block">Template para Mobile</Label>
-              <TemplateSelector
-                selectedTemplate={selectedMobile}
-                onSelectTemplate={setSelectedMobile}
-                currentTemplate={currentTemplateMobile}
-                isMobile={true}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="space-y-4 pt-4 border-t">
-          {/* Address visibility setting */}
-          <Card className="bg-muted/30">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-background">
-                    <MapPin className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <Label htmlFor="show-address" className="text-base font-semibold cursor-pointer">
-                      Exibir Endereço na Página da Loja
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      Mostrar o endereço completo no cabeçalho da sua loja
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  id="show-address"
-                  checked={showAddressEnabled}
-                  onCheckedChange={setShowAddressEnabled}
+            <TabsContent value="desktop" className="space-y-4">
+              <div>
+                <Label className="text-base font-semibold mb-4 block">Template para Desktop</Label>
+                <TemplateSelector
+                  selectedTemplate={selectedDesktop}
+                  onSelectTemplate={setSelectedDesktop}
+                  currentTemplate={currentTemplateDesktop}
+                  isDesktop={true}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
 
-          {/* Summary and save button */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Desktop:</span>{' '}
-                {templates.find(t => t.id === selectedDesktop)?.name}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Mobile:</span>{' '}
-                {templates.find(t => t.id === selectedMobile)?.name}
-              </p>
+            <TabsContent value="mobile" className="space-y-4">
+              <div>
+                <Label className="text-base font-semibold mb-4 block">Template para Mobile</Label>
+                <TemplateSelector
+                  selectedTemplate={selectedMobile}
+                  onSelectTemplate={setSelectedMobile}
+                  currentTemplate={currentTemplateMobile}
+                  isMobile={true}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="space-y-4 pt-4 border-t">
+            {/* Address visibility setting */}
+            <Card className="bg-muted/30">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-background">
+                      <MapPin className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <Label htmlFor="show-address" className="text-base font-semibold cursor-pointer">
+                        Exibir Endereço na Página da Loja
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Mostrar o endereço completo no cabeçalho da sua loja
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="show-address"
+                    checked={showAddressEnabled}
+                    onCheckedChange={setShowAddressEnabled}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Summary and save button */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Desktop:</span>{' '}
+                  {templates.find(t => t.id === selectedDesktop)?.name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">Mobile:</span>{' '}
+                  {templates.find(t => t.id === selectedMobile)?.name}
+                </p>
+              </div>
+              <Button
+                onClick={handleSave}
+                disabled={isUpdating || (
+                  selectedDesktop === currentTemplateDesktop && 
+                  selectedMobile === currentTemplateMobile &&
+                  showAddressEnabled === showAddress
+                )}
+                className="min-w-[120px]"
+              >
+                {isUpdating ? "Salvando..." : "Salvar Configurações"}
+              </Button>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={isUpdating || (
-                selectedDesktop === currentTemplateDesktop && 
-                selectedMobile === currentTemplateMobile &&
-                showAddressEnabled === showAddress
-              )}
-              className="min-w-[120px]"
-            >
-              {isUpdating ? "Salvando..." : "Salvar Configurações"}
-            </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Preview Panel */}
+      <div className="space-y-4">
+        <Card className="border-border/50 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Pré-visualização</CardTitle>
+            <CardDescription>
+              Veja como sua loja ficará com as configurações atuais
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Desktop Preview */}
+            <div className="hidden lg:block space-y-2">
+              <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <Monitor className="w-4 h-4" />
+                Visualização Desktop
+              </div>
+              <div className="border rounded-lg p-4 bg-muted/10">
+                <StorePreview
+                  storeName={storeName || "Minha Loja"}
+                  storeDescription={storeDescription}
+                  storeLogo={storeLogo}
+                  storeBanner={storeBanner}
+                  storeRating={storeRating}
+                  storeAddress={storeAddress}
+                  showAddress={showAddressEnabled}
+                  layoutTemplateDesktop={selectedDesktop}
+                  layoutTemplateMobile={selectedMobile}
+                  isMobileView={false}
+                />
+              </div>
+            </div>
+
+            {/* Mobile Preview */}
+            <div className="space-y-2">
+              <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <Smartphone className="w-4 h-4" />
+                Visualização Mobile
+              </div>
+              <div className="border rounded-lg p-4 bg-muted/10 max-w-sm mx-auto lg:mx-0">
+                <StorePreview
+                  storeName={storeName || "Minha Loja"}
+                  storeDescription={storeDescription}
+                  storeLogo={storeLogo}
+                  storeBanner={storeBanner}
+                  storeRating={storeRating}
+                  storeAddress={storeAddress}
+                  showAddress={showAddressEnabled}
+                  layoutTemplateDesktop={selectedDesktop}
+                  layoutTemplateMobile={selectedMobile}
+                  isMobileView={true}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
