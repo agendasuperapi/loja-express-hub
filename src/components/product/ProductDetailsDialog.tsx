@@ -362,7 +362,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       {hasFlavors && (
         <div className="space-y-2 px-4 md:px-0">
           <Label className="text-sm font-semibold">
-            Sabores {maxFlavors > 1 && `(máx. ${maxFlavors})`}
+            Sabores {maxFlavors > 1 && `(escolha máx. ${maxFlavors})`}
             <span className="text-destructive ml-1">*</span>
           </Label>
           <div className="space-y-1.5 max-h-60 overflow-y-auto">
