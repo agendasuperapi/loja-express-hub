@@ -1042,20 +1042,27 @@ export default function StoreDetails() {
                             </div>
                             <Separator className="my-2" />
                             <div className="mt-auto pt-1">
-                              {product.promotional_price ? (
-                                <div className="space-y-0.5 mb-2">
-                                  <span className="text-xs sm:text-sm text-muted-foreground line-through block">
-                                    R$ {Number(product.price).toFixed(2)}
-                                  </span>
-                                  <span className="text-lg sm:text-xl font-bold text-primary">
-                                    R$ {Number(product.promotional_price).toFixed(2)}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-lg sm:text-xl font-bold gradient-text block mb-2">
-                                  R$ {Number(product.price).toFixed(2)}
-                                </span>
-                              )}
+                              <div className="mb-2 h-[3.25rem] flex flex-col justify-center">
+                                {product.promotional_price ? (
+                                  <>
+                                    <span className="text-xs sm:text-sm text-muted-foreground line-through block">
+                                      R$ {Number(product.price).toFixed(2)}
+                                    </span>
+                                    <span className="text-lg sm:text-xl font-bold text-primary">
+                                      R$ {Number(product.promotional_price).toFixed(2)}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-xs sm:text-sm text-muted-foreground line-through block opacity-0 select-none">
+                                      R$ {Number(product.price).toFixed(2)}
+                                    </span>
+                                    <span className="text-lg sm:text-xl font-bold gradient-text block">
+                                      R$ {Number(product.price).toFixed(2)}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1.5 sm:gap-2">
                                 <motion.div
                                   whileHover={{ scale: 1.05 }}
@@ -1179,22 +1186,29 @@ export default function StoreDetails() {
                               </p>
                             </div>
                             <div className="space-y-3 mt-auto pt-2">
-                              {product.promotional_price ? (
-                                <div className="space-y-1">
-                                  <div className="text-sm text-muted-foreground line-through">
-                                    R$ {Number(product.price).toFixed(2)}
-                                  </div>
-                                  <div className="text-2xl md:text-2xl font-bold text-success flex items-baseline gap-1">
-                                    <span className="text-lg">R$</span>
-                                    {Number(product.promotional_price).toFixed(2)}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-2xl md:text-2xl font-bold text-success flex items-baseline gap-1">
-                                  <span className="text-lg">R$</span>
-                                  {Number(product.price).toFixed(2)}
-                                </div>
-                              )}
+                              <div className="space-y-1 h-[3.25rem] flex flex-col justify-center">
+                                {product.promotional_price ? (
+                                  <>
+                                    <div className="text-sm text-muted-foreground line-through">
+                                      R$ {Number(product.price).toFixed(2)}
+                                    </div>
+                                    <div className="text-2xl md:text-2xl font-bold text-success flex items-baseline gap-1">
+                                      <span className="text-lg">R$</span>
+                                      {Number(product.promotional_price).toFixed(2)}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="text-sm text-muted-foreground line-through opacity-0 select-none">
+                                      R$ {Number(product.price).toFixed(2)}
+                                    </div>
+                                    <div className="text-2xl md:text-2xl font-bold text-success flex items-baseline gap-1">
+                                      <span className="text-lg">R$</span>
+                                      {Number(product.price).toFixed(2)}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
                               <div className="flex gap-2 pt-1">
                                 <motion.div
                                   whileHover={{ scale: 1.05 }}
