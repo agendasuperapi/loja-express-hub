@@ -667,7 +667,7 @@ export default function Cart() {
         // Small delay to ensure state updates
         setTimeout(() => {
           console.log('➡️ Navigating to orders page...');
-          navigate('/orders');
+          navigate('/orders', { state: { fromCheckout: true } });
         }, 100);
         
       } catch (error) {

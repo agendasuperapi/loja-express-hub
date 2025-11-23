@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Navigation } from "@/components/layout/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ type PaymentFilterType = 'all' | 'pending' | 'received';
 
 export default function Orders() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { orders, isLoading } = useOrders();
   const [filterType, setFilterType] = useState<FilterType>('day');
   const [customDate, setCustomDate] = useState<Date>();
@@ -52,9 +53,11 @@ export default function Orders() {
     }
   }, []);
 
-  // Scroll to payment section when page loads (after completing an order)
+  // Scroll to payment section only when coming from checkout
   useEffect(() => {
-    if (orders && orders.length > 0 && paymentSectionRef.current) {
+    const fromCheckout = (location.state as any)?.fromCheckout;
+    
+    if (fromCheckout && orders && orders.length > 0 && paymentSectionRef.current) {
       setTimeout(() => {
         const element = paymentSectionRef.current;
         if (element) {
@@ -68,8 +71,11 @@ export default function Orders() {
           });
         }
       }, 300); // Small delay to ensure content is rendered
+      
+      // Clear the state after scrolling
+      window.history.replaceState({}, document.title);
     }
-  }, [orders]);
+  }, [orders, location.state]);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
