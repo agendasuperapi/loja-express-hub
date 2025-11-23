@@ -18,6 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useRef, useEffect } from "react";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
+import { formatDisplayPhone } from "@/lib/phone";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductDetailsDialog } from "@/components/product/ProductDetailsDialog";
@@ -531,13 +532,6 @@ export default function StoreDetails() {
                     const showPhoneOnStorePage = (storeData.show_phone_on_store_page ?? true) as boolean;
                     const hasPhone = storeData.phone;
                     
-                    // Debug log
-                    console.log('Phone display check:', {
-                      phone: storeData.phone,
-                      showPhoneOnStorePage,
-                      hasPhone
-                    });
-                    
                     if (!hasPhone || !showPhoneOnStorePage) return null;
 
                     return (
@@ -545,10 +539,11 @@ export default function StoreDetails() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.7 }}
-                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 px-3 py-2 rounded-lg w-fit"
+                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-muted/70 transition-colors"
+                        onClick={() => window.open(`tel:${storeData.phone}`, '_self')}
                       >
                         <Phone className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span>{storeData.phone}</span>
+                        <span>{formatDisplayPhone(storeData.phone)}</span>
                       </motion.div>
                     );
                   })()}

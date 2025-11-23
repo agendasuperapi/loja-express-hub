@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Phone } from "lucide-react";
+import { formatDisplayPhone } from "@/lib/phone";
 
 interface StorePreviewProps {
   storeName: string;
@@ -124,7 +125,7 @@ export const StorePreview = ({
               {showPhone && storePhone && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                   <Phone className="w-3 h-3" />
-                  <span className="line-clamp-1">{storePhone}</span>
+                  <span className="line-clamp-1">{formatDisplayPhone(storePhone)}</span>
                 </div>
               )}
             </div>
