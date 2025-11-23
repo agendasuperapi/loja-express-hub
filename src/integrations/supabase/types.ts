@@ -1223,6 +1223,7 @@ export type Database = {
           show_avg_delivery_time: boolean | null
           show_phone_on_store_page: boolean | null
           show_pix_key_to_customer: boolean | null
+          show_whatsapp_on_store_page: boolean | null
           slug: string
           status: Database["public"]["Enums"]["store_status"]
           store_cep: string | null
@@ -1281,6 +1282,7 @@ export type Database = {
           show_avg_delivery_time?: boolean | null
           show_phone_on_store_page?: boolean | null
           show_pix_key_to_customer?: boolean | null
+          show_whatsapp_on_store_page?: boolean | null
           slug: string
           status?: Database["public"]["Enums"]["store_status"]
           store_cep?: string | null
@@ -1339,6 +1341,7 @@ export type Database = {
           show_avg_delivery_time?: boolean | null
           show_phone_on_store_page?: boolean | null
           show_pix_key_to_customer?: boolean | null
+          show_whatsapp_on_store_page?: boolean | null
           slug?: string
           status?: Database["public"]["Enums"]["store_status"]
           store_cep?: string | null
