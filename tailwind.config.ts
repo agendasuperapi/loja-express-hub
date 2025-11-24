@@ -146,7 +146,7 @@ export default {
           },
           "50%": { 
             boxShadow: "0 0 50px hsl(var(--warning) / 0.9), 0 15px 50px -10px hsl(var(--warning) / 0.8)",
-            transform: "scale(1.5)"
+            transform: "scale(1.3)"
           },
         },
       },

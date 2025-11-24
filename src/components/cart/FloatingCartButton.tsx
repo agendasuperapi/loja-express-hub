@@ -36,7 +36,7 @@ export const FloatingCartButton = () => {
       
       // Trigger framer-motion animation
       controls.start({
-        scale: [1, 1.5, 1],
+        scale: [1, 1.3, 1],
         transition: { duration: 0.6, ease: "easeInOut" }
       });
 
