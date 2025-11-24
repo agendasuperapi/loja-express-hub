@@ -1083,7 +1083,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
       }
     }}>
-      <DialogContent className="max-w-[50vw] max-h-[80vh] w-[calc(100vw-2rem)] sm:w-full overflow-y-auto bg-background z-50">
+      <DialogContent className="max-w-[50vw] max-h-[95vh] w-[calc(100vw-2rem)] sm:w-full overflow-y-auto bg-background z-50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Store className="w-5 h-5" />
