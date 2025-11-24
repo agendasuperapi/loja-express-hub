@@ -1003,13 +1003,14 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
+            key={`dnd-${lastUpdate}-${componentKey}`}
           >
-            <div className="space-y-2 min-h-[800px]">
+            <div className="space-y-2 min-h-[800px]" key={`addons-list-${lastUpdate}`}>
               {categoryFilter === 'all' ? (
                 // Group by category view
                 <>
                   {addonsByCategory.uncategorized.length > 0 && (
-                    <div key="uncategorized" className="space-y-2">
+                    <div key={`uncategorized-${lastUpdate}`} className="space-y-2">
                       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
                         <FolderTree className="w-4 h-4" />
                         Sem categoria
@@ -1037,7 +1038,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     if (!categoryAddons || categoryAddons.length === 0) return null;
 
                     return (
-                      <div key={category.id} className="space-y-2">
+                      <div key={`${category.id}-${lastUpdate}`} className="space-y-2">
                         <Separator className="my-4" />
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
                           <FolderTree className="w-4 h-4" />
@@ -1067,10 +1068,11 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                 <SortableContext
                   items={filteredAddons.map((a) => a.id)}
                   strategy={verticalListSortingStrategy}
+                  key={`filtered-${lastUpdate}`}
                 >
                   {filteredAddons.map((addon) => (
                     <SortableAddon
-                      key={addon.id}
+                      key={`${addon.id}-${lastUpdate}`}
                       addon={addon}
                       onEdit={handleEdit}
                       onDelete={(id) => handleDeleteClick(id, addon.name)}
