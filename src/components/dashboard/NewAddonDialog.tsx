@@ -111,6 +111,9 @@ export const NewAddonDialog = ({
       const newCategory = await addCategory(data.name, data.min_items, data.max_items, data.is_exclusive);
       
       if (newCategory) {
+        // Refresh categories list to show the new category
+        await refetch();
+        
         // Update form to select the newly created category
         setFormData({ ...formData, category_id: newCategory.id });
         
