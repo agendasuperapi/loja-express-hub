@@ -301,14 +301,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       
       console.log('[ProductAddonsManager] Adicional salvo com sucesso');
       
-      // Forçar atualização imediata das queries
-      await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
-      await queryClient.refetchQueries({ queryKey: ['product-addons', productId] });
-      
       setIsDialogOpen(false);
       setEditingAddon(null);
       
-      console.log('[ProductAddonsManager] Interface atualizada');
+      // Aguardar 1 segundo e forçar refresh automático
+      setTimeout(async () => {
+        await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+        await queryClient.refetchQueries({ queryKey: ['product-addons', productId] });
+        console.log('[ProductAddonsManager] Refresh automático executado');
+      }, 1000);
+      
     } catch (error) {
       console.error('[ProductAddonsManager] Erro ao submeter:', error);
     }
