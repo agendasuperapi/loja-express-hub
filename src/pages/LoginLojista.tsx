@@ -60,10 +60,10 @@ export default function LoginLojista() {
         clearTimeout(hideTimer);
       }
 
-      // Set new timer to hide password after 2 seconds of inactivity
+      // Set new timer to hide password after 1 second of inactivity
       const timer = setTimeout(() => {
         setShowPassword(false);
-      }, 2000);
+      }, 1000);
 
       setHideTimer(timer);
     }
