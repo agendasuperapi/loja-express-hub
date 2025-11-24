@@ -53,7 +53,7 @@ export const useProductAddons = (productId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
       queryClient.invalidateQueries({ queryKey: ['store-addons'] });
       queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
@@ -83,7 +83,7 @@ export const useProductAddons = (productId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
       queryClient.invalidateQueries({ queryKey: ['store-addons'] });
       queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
@@ -110,7 +110,7 @@ export const useProductAddons = (productId?: string) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
       queryClient.invalidateQueries({ queryKey: ['store-addons'] });
       queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
@@ -141,7 +141,7 @@ export const useProductAddons = (productId?: string) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
       queryClient.invalidateQueries({ queryKey: ['store-addons'] });
       queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
     },
@@ -182,7 +182,7 @@ export const useProductAddons = (productId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
       queryClient.invalidateQueries({ queryKey: ['store-addons'] });
       queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
       toast({
