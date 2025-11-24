@@ -365,14 +365,20 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   };
 
   const handleToggleAvailability = (addon: any) => {
-    updateAddon({
-      id: addon.id,
-      name: addon.name,
-      price: addon.price,
-      is_available: !addon.is_available,
-      category_id: addon.category_id,
-      allow_quantity: addon.allow_quantity,
-    });
+    // Se está ativo e vai desativar, remove da lista
+    if (addon.is_available) {
+      deleteAddon(addon.id);
+    } else {
+      // Se está inativo e vai ativar, apenas ativa
+      updateAddon({
+        id: addon.id,
+        name: addon.name,
+        price: addon.price,
+        is_available: true,
+        category_id: addon.category_id,
+        allow_quantity: addon.allow_quantity,
+      });
+    }
   };
 
   const handleSelectAll = (checked: boolean) => {
