@@ -47,6 +47,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 import { NewAddonDialog } from "./NewAddonDialog";
+import { AddonCategoriesManager } from "./AddonCategoriesManager";
 
 interface ProductAddonsManagerProps {
   productId: string;
@@ -173,6 +174,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [products, setProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isEditCategoriesOpen, setIsEditCategoriesOpen] = useState(false);
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     min_items: 0,
@@ -1131,6 +1133,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setIsEditCategoriesOpen(true)}
+              className="shrink-0"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Categorias
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 const availableAddons = filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name && a.is_available));
                 availableAddons.forEach(addon => handleCopyStoreAddon(addon));
@@ -1576,6 +1587,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         } : null}
         isLoading={isCreating}
       />
+
+      {/* Dialog de Editar Categorias */}
+      <Dialog open={isEditCategoriesOpen} onOpenChange={setIsEditCategoriesOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Categorias de Adicionais</DialogTitle>
+          </DialogHeader>
+          <AddonCategoriesManager storeId={storeId} />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
