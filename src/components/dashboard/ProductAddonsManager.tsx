@@ -152,17 +152,21 @@ const SortableCategory = ({ category, addons, onEdit, onDelete, onToggleAvailabi
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isUncategorized = category.id === 'uncategorized';
+
   return (
     <div ref={setNodeRef} style={style} className="space-y-2">
       <Separator className="my-4" />
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
-        <button
-          className="cursor-grab active:cursor-grabbing touch-none"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="w-4 h-4" />
-        </button>
+        {!isUncategorized && (
+          <button
+            className="cursor-grab active:cursor-grabbing touch-none"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+        )}
         <FolderTree className="w-4 h-4" />
         {category.name}
       </div>
@@ -313,6 +317,30 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     return grouped;
   }, [addons, activeCategories, availabilityFilter, searchTerm]);
 
+  // Criar categoria virtual para "Sem categoria" e combiná-la com as categorias reais
+  const allCategoriesForDisplay = useMemo(() => {
+    const uncategorizedAddons = addonsByCategory.uncategorized || [];
+    
+    if (uncategorizedAddons.length === 0) {
+      return activeCategories;
+    }
+
+    const uncategorizedCategory = {
+      id: 'uncategorized',
+      name: 'Sem categoria',
+      store_id: storeId,
+      is_active: true,
+      display_order: -1,
+      created_at: '',
+      updated_at: '',
+      min_items: 0,
+      max_items: null,
+      is_exclusive: false
+    };
+
+    return [uncategorizedCategory, ...activeCategories];
+  }, [activeCategories, addonsByCategory.uncategorized, storeId]);
+
   // Autocomplete suggestions combining store addons and templates
   const autocompleteSuggestions = useMemo(() => {
     const term = '';
@@ -375,10 +403,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     if (!over || active.id === over.id) return;
 
     // Check if we're dragging a category or an addon
-    const isDraggingCategory = activeCategories.some(cat => cat.id === active.id);
+    const isDraggingCategory = allCategoriesForDisplay.some(cat => cat.id === active.id);
 
     if (isDraggingCategory) {
-      // Reorder categories
+      // Ignorar se for tentar arrastar a categoria "uncategorized"
+      if (active.id === 'uncategorized' || over.id === 'uncategorized') {
+        return;
+      }
+
+      // Reorder categories (apenas as reais, não a virtual)
       const oldIndex = activeCategories.findIndex((cat) => cat.id === active.id);
       const newIndex = activeCategories.findIndex((cat) => cat.id === over.id);
 
@@ -842,53 +875,27 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             <div className="space-y-2 min-h-[800px]">
               {categoryFilter === 'all' ? (
                 // Group by category view with sortable categories
-                <>
-                  {addonsByCategory.uncategorized.length > 0 && (
-                    <div key="uncategorized" className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
-                        <FolderTree className="w-4 h-4" />
-                        Sem categoria
-                      </div>
-                      <SortableContext
-                        items={addonsByCategory.uncategorized.map((a) => a.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {addonsByCategory.uncategorized.map((addon) => (
-                          <SortableAddon
-                            key={addon.id}
-                            addon={addon}
-                            onEdit={handleEdit}
-                            onDelete={(id) => handleDeleteClick(id, addon.name)}
-                            onToggleAvailability={handleToggleAvailability}
-                            isDeleting={isDeleting}
-                          />
-                        ))}
-                      </SortableContext>
-                    </div>
-                  )}
+                <SortableContext
+                  items={allCategoriesForDisplay.map((cat) => cat.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {allCategoriesForDisplay.map((category) => {
+                    const categoryAddons = addonsByCategory[category.id];
+                    if (!categoryAddons || categoryAddons.length === 0) return null;
 
-                  <SortableContext
-                    items={activeCategories.map((cat) => cat.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {activeCategories.map((category) => {
-                      const categoryAddons = addonsByCategory[category.id];
-                      if (!categoryAddons || categoryAddons.length === 0) return null;
-
-                      return (
-                        <SortableCategory
-                          key={category.id}
-                          category={category}
-                          addons={categoryAddons}
-                          onEdit={handleEdit}
-                          onDelete={handleDeleteClick}
-                          onToggleAvailability={handleToggleAvailability}
-                          isDeleting={isDeleting}
-                        />
-                      );
-                    })}
-                  </SortableContext>
-                </>
+                    return (
+                      <SortableCategory
+                        key={category.id}
+                        category={category}
+                        addons={categoryAddons}
+                        onEdit={handleEdit}
+                        onDelete={handleDeleteClick}
+                        onToggleAvailability={handleToggleAvailability}
+                        isDeleting={isDeleting}
+                      />
+                    );
+                  })}
+                </SortableContext>
               ) : (
                 // Filtered view
                 <SortableContext
