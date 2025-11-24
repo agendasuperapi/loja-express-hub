@@ -991,7 +991,7 @@ export default function StoreDetails() {
                           <Card
                           className={`overflow-hidden h-full flex flex-col transition-all duration-300 cursor-pointer ${
                             isInCart 
-                              ? 'border border-primary ring-4 ring-primary/40 bg-primary/5 scale-[1.02]' 
+                              ? 'border border-primary ring-2 ring-primary/40 bg-primary/5 scale-[1.02]' 
                               : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
                           }`}
                           onClick={() => setDetailsProduct(product)}
@@ -1139,7 +1139,7 @@ export default function StoreDetails() {
                           <Card
                           className={`overflow-hidden h-full flex flex-col transition-all duration-300 cursor-pointer ${
                             isInCart 
-                              ? 'border border-primary ring-4 ring-primary/40 bg-primary/5 scale-[1.02]' 
+                              ? 'border border-primary ring-2 ring-primary/40 bg-primary/5 scale-[1.02]' 
                               : 'border-2 border-orange-300 hover:border-orange-400 shadow-lg hover:shadow-2xl bg-card/50 backdrop-blur-sm'
                           }`}
                           onClick={() => setDetailsProduct(product)}
