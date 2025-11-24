@@ -103,9 +103,6 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailabil
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium">{addon.name}</span>
-            <Badge variant={addon.is_available ? "default" : "secondary"} className="text-xs">
-              {addon.is_available ? 'Disponível' : 'Indisponível'}
-            </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
             + R$ {addon.price.toFixed(2)}
