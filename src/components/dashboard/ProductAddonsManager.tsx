@@ -129,7 +129,7 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
 
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const queryClient = useQueryClient();
-  const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
+  const { addons, createAddon, createAddonAsync, updateAddon, updateAddonAsync, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
   const { categories, addCategory } = useAddonCategories(storeId);
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
@@ -272,21 +272,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     return grouped;
   }, [filteredStoreAddons, activeCategories]);
 
-  const handleSubmit = (data: {
+  const handleSubmit = async (data: {
     name: string;
     price: number;
     category_id: string | null;
     is_available: boolean;
     allow_quantity: boolean;
   }) => {
-    if (editingAddon) {
-      updateAddon({ id: editingAddon.id, ...data });
-    } else {
-      createAddon({ ...data, product_id: productId });
+    try {
+      if (editingAddon) {
+        await updateAddonAsync({ id: editingAddon.id, ...data });
+      } else {
+        await createAddonAsync({ ...data, product_id: productId });
+      }
+      
+      setIsDialogOpen(false);
+      setEditingAddon(null);
+    } catch (error) {
+      // Error is already handled in the mutation
+      console.error('Error submitting addon:', error);
     }
-    
-    setIsDialogOpen(false);
-    setEditingAddon(null);
   };
 
   const handleEdit = (addon: any) => {
