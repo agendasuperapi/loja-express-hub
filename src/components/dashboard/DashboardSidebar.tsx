@@ -77,7 +77,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     <motion.div
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      className="hidden md:flex w-[120px] bg-gray-50 dark:bg-gray-900 backdrop-blur-xl border-2 border-gray-300 dark:border-gray-700 h-full flex-col items-center pt-2 pb-2 shadow-lg overflow-hidden"
+      className="hidden md:flex w-[120px] bg-gray-50 dark:bg-gray-900 backdrop-blur-xl border-2 border-gray-300 dark:border-gray-700 h-full flex-col items-center pt-6 pb-2 shadow-lg overflow-hidden"
     >
       <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-2 border border-primary/20 overflow-hidden flex-shrink-0">
         {storeLogo ? (
