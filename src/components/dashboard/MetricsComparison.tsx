@@ -31,7 +31,7 @@ export const MetricsComparison = ({ orders, products }: MetricsComparisonProps) 
   });
 
   const filterOrdersByPeriod = (period: { from: Date | undefined; to: Date | undefined }) => {
-    if (!period.from || !period.to) return [];
+    if (!period.from || !period.to || !orders || !Array.isArray(orders)) return [];
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       return isWithinInterval(orderDate, {
