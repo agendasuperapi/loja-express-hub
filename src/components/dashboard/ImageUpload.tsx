@@ -72,16 +72,19 @@ export const ImageUpload = ({
 
         ctx?.drawImage(img, 0, 0, width, height);
 
+        // Compressão mais agressiva para reduzir tamanho do arquivo
+        // Qualidade 0.7 (70%) mantém boa qualidade visual mas reduz muito o tamanho
         canvas.toBlob(
           (blob) => {
             if (blob) {
+              console.log(`📦 Imagem compactada: ${(file.size / 1024).toFixed(2)}KB → ${(blob.size / 1024).toFixed(2)}KB (${Math.round((1 - blob.size / file.size) * 100)}% redução)`);
               resolve(blob);
             } else {
               reject(new Error('Erro ao redimensionar imagem'));
             }
           },
           'image/jpeg',
-          0.9
+          0.7
         );
       };
 
