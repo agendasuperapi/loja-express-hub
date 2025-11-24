@@ -90,6 +90,32 @@ jobs:
           fi
           echo "✅ Build verificado: $(ls -la dist | wc -l) arquivos encontrados"
 
+      - name: Validate FTP credentials
+        run: |
+          if [ -z "${{ secrets.HOSTINGER_FTP_HOST }}" ]; then
+            echo "❌ Erro: HOSTINGER_FTP_HOST não está configurado"
+            exit 1
+          fi
+          if [ -z "${{ secrets.HOSTINGER_FTP_USER }}" ]; then
+            echo "❌ Erro: HOSTINGER_FTP_USER não está configurado"
+            exit 1
+          fi
+          if [ -z "${{ secrets.HOSTINGER_FTP_PASSWORD }}" ]; then
+            echo "❌ Erro: HOSTINGER_FTP_PASSWORD não está configurado"
+            exit 1
+          fi
+          echo "✅ Credenciais FTP validadas"
+          echo "📋 Host: ${{ secrets.HOSTINGER_FTP_HOST }}"
+          echo "📋 Usuário: ${{ secrets.HOSTINGER_FTP_USER }}"
+          echo "📋 Caminho: ${{ secrets.HOSTINGER_FTP_PATH || '/public_html/' }}"
+          
+          # Verificar se o host é válido (sem protocolo)
+          HOST="${{ secrets.HOSTINGER_FTP_HOST }}"
+          if [[ "$HOST" == ftp://* ]] || [[ "$HOST" == http://* ]] || [[ "$HOST" == https://* ]]; then
+            echo "⚠️ Aviso: Remova o protocolo (ftp://, http://, https://) do HOSTINGER_FTP_HOST"
+            echo "   Use apenas: $(echo $HOST | sed 's|^[^/]*//||' | sed 's|/.*$||')"
+          fi
+
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

@@ -36,11 +36,16 @@ Este guia ajuda a resolver problemas comuns no workflow de deploy.
 
 ### Verificar credenciais FTP
 
-1. **Host FTP incorreto**
-   - Formato correto: `ftp.seusite.com` ou `IP:PORTA`
-   - Não inclua `ftp://` ou `http://`
-   - Exemplo correto: `ftp.ofertas.app`
-   - Exemplo errado: `ftp://ftp.ofertas.app`
+1. **Host FTP incorreto ou não resolvido (Erro: getaddrinfo NOT FOUND)**
+   - **Formato correto**: `ftp.seusite.com` ou `IP direto`
+   - **NÃO inclua**: `ftp://`, `http://`, `https://` ou porta `:21`
+   - **Exemplo correto**: `ftp.ofertas.app` ou `123.456.789.0`
+   - **Exemplo errado**: `ftp://ftp.ofertas.app` ou `ftp.ofertas.app:21`
+   - **Solução**: 
+     * Verifique no painel da Hostinger o host FTP exato
+     * Use apenas o hostname, sem protocolo
+     * Se o erro persistir, tente usar o IP direto do servidor
+     * Teste a resolução DNS: `nslookup ftp.seusite.com`
 
 2. **Usuário/Senha incorretos**
    - Verifique no painel da Hostinger (hPanel)

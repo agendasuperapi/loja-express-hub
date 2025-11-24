@@ -14,19 +14,47 @@ Vá em **Settings > Secrets and variables > Actions** no seu repositório GitHub
 
 ### Secrets Necessários para Deploy Web:
 
-- `HOSTINGER_FTP_HOST` - Host FTP (ex: `ftp.seusite.com` ou IP)
+- `HOSTINGER_FTP_HOST` - Host FTP (ex: `ftp.seusite.com` ou IP direto)
 - `HOSTINGER_FTP_USER` - Usuário FTP
 - `HOSTINGER_FTP_PASSWORD` - Senha FTP
 - `HOSTINGER_FTP_PATH` - Caminho no servidor (ex: `/public_html/` ou `/`)
 - `VITE_SUPABASE_URL` - URL do Supabase
 - `VITE_SUPABASE_ANON_KEY` - Chave anônima do Supabase
 
+### ⚠️ IMPORTANTE: Como configurar HOSTINGER_FTP_HOST
+
+**Formato correto:**
+- ✅ `ftp.seusite.com`
+- ✅ `ftp.ofertas.app`
+- ✅ `123.456.789.0` (IP direto)
+- ✅ `servidor123.hostinger.com`
+
+**Formato ERRADO:**
+- ❌ `ftp://ftp.seusite.com` (não inclua protocolo)
+- ❌ `http://ftp.seusite.com`
+- ❌ `ftp.seusite.com:21` (não inclua porta no host)
+
 ### Como encontrar as credenciais FTP na Hostinger:
 
 1. Acesse o painel da Hostinger (hPanel)
 2. Vá em **FTP** ou **Gerenciador de Arquivos**
 3. Crie um usuário FTP se ainda não tiver
-4. Anote o host, usuário e senha
+4. Anote o **host FTP** (geralmente `ftp.seudominio.com` ou um IP)
+5. **IMPORTANTE**: Use apenas o hostname, sem `ftp://` ou porta
+6. Anote o usuário e senha
+
+### Exemplo de configuração:
+
+Se no painel da Hostinger você vê:
+- **Host FTP**: `ftp://ftp.ofertas.app:21`
+- **Usuário**: `usuario123`
+- **Senha**: `senha456`
+
+Configure no GitHub Secrets:
+- `HOSTINGER_FTP_HOST`: `ftp.ofertas.app` (sem `ftp://` e sem `:21`)
+- `HOSTINGER_FTP_USER`: `usuario123`
+- `HOSTINGER_FTP_PASSWORD`: `senha456`
+- `HOSTINGER_FTP_PATH`: `/public_html/`
 
 ## 🚀 Deploy Automático
 
