@@ -1885,7 +1885,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         />
       
       
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-[85%]">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden w-[85%] mx-auto">
         {/* Home Tab */}
         <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 w-full", activeTab !== 'home' && 'hidden')}>
 
