@@ -433,25 +433,28 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
       if (oldIndex === -1 || newIndex === -1) return;
 
-      const newOrder = arrayMove(allCategoriesForDisplay, oldIndex, newIndex).map(
-        (cat, index) => ({
-          ...cat,
-          display_order: index
-        })
-      );
+      // Create new order with updated positions
+      const reordered = arrayMove(allCategoriesForDisplay, oldIndex, newIndex);
+      
+      // Assign sequential display_order to all categories
+      const updatedCategories = reordered.map((cat, index) => ({
+        ...cat,
+        display_order: index
+      }));
 
       try {
-        // If moving uncategorized, update its position in stores table
-        if (active.id === 'uncategorized') {
-          const uncatNewOrder = newOrder.find(cat => cat.id === 'uncategorized')?.display_order;
-          if (uncatNewOrder !== undefined && updateUncategorizedPosition) {
-            await updateUncategorizedPosition(uncatNewOrder);
-          }
+        // Update uncategorized position if it was moved
+        const uncategorizedCat = updatedCategories.find(cat => cat.id === 'uncategorized');
+        if (uncategorizedCat && updateUncategorizedPosition) {
+          await updateUncategorizedPosition(uncategorizedCat.display_order);
         }
 
         // Update real categories positions
-        const realCategories = newOrder.filter(cat => cat.id !== 'uncategorized');
+        const realCategories = updatedCategories.filter(cat => cat.id !== 'uncategorized');
         await reorderCategories(realCategories);
+        
+        // Force refetch to update UI
+        queryClient.invalidateQueries({ queryKey: ['store-uncategorized-order', storeId] });
       } catch (error) {
         console.error('Error reordering categories:', error);
       }
