@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Copy, Search, Store, Lightbulb, Download, Package, Filter, Power, PowerOff } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Search, Store, Lightbulb, Download, Package, Filter, Power, PowerOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -58,13 +58,11 @@ interface SortableAddonProps {
   addon: any;
   onEdit: (addon: any) => void;
   onDelete: (id: string) => void;
-  onDuplicate: (id: string) => void;
   onToggleAvailability: (addon: any) => void;
   isDeleting: boolean;
-  isDuplicating: boolean;
 }
 
-const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailability, isDeleting, isDuplicating }: SortableAddonProps) => {
+const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableAddonProps) => {
   const {
     attributes,
     listeners,
@@ -123,15 +121,6 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailabil
           >
             <Edit className="w-4 h-4" />
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onDuplicate(addon.id)}
-            disabled={isDuplicating}
-            title="Duplicar"
-          >
-            <Copy className="w-4 h-4" />
-          </Button>
         </div>
       </div>
     </div>
@@ -140,7 +129,7 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailabil
 
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const queryClient = useQueryClient();
-  const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, duplicateAddon, isCreating, isDeleting, isDuplicating } = useProductAddons(productId);
+  const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
   const { categories, addCategory } = useAddonCategories(storeId);
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
@@ -336,10 +325,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       deleteAddon(confirmDelete.id);
       setConfirmDelete(null);
     }
-  };
-
-  const handleDuplicate = (id: string) => {
-    duplicateAddon(id);
   };
 
   const handleToggleAvailability = (addon: any) => {
@@ -787,10 +772,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             addon={addon}
                             onEdit={handleEdit}
                             onDelete={(id) => handleDeleteClick(id, addon.name)}
-                            onDuplicate={handleDuplicate}
                             onToggleAvailability={handleToggleAvailability}
                             isDeleting={isDeleting}
-                            isDuplicating={isDuplicating}
                           />
                         ))}
                       </SortableContext>
@@ -818,10 +801,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             addon={addon}
                             onEdit={handleEdit}
                             onDelete={(id) => handleDeleteClick(id, addon.name)}
-                            onDuplicate={handleDuplicate}
                             onToggleAvailability={handleToggleAvailability}
                             isDeleting={isDeleting}
-                            isDuplicating={isDuplicating}
                           />
                           ))}
                         </SortableContext>
@@ -841,10 +822,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       addon={addon}
                       onEdit={handleEdit}
                       onDelete={(id) => handleDeleteClick(id, addon.name)}
-                      onDuplicate={handleDuplicate}
                       onToggleAvailability={handleToggleAvailability}
                       isDeleting={isDeleting}
-                      isDuplicating={isDuplicating}
                     />
                   ))}
                 </SortableContext>
