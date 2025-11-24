@@ -517,14 +517,34 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     }
   };
 
-  const handleCopyStoreAddon = (storeAddon: typeof storeAddons[0]) => {
-    createAddon({
-      name: storeAddon.name,
-      price: storeAddon.price,
-      is_available: storeAddon.is_available,
-      category_id: storeAddon.category_id || null,
-      product_id: productId,
-    });
+  const handleCopyStoreAddon = async (storeAddon: typeof storeAddons[0]) => {
+    // Verificar se já existe um adicional com o mesmo nome e categoria neste produto
+    const existingAddon = addons?.find(
+      a => a.name === storeAddon.name && a.category_id === storeAddon.category_id
+    );
+
+    if (existingAddon) {
+      // Se já existe mas está inativo, reativar
+      if (!existingAddon.is_available) {
+        updateAddon({
+          id: existingAddon.id,
+          name: existingAddon.name,
+          price: storeAddon.price,
+          is_available: true,
+          category_id: existingAddon.category_id,
+          allow_quantity: existingAddon.allow_quantity,
+        });
+      }
+    } else {
+      // Se não existe, criar novo
+      createAddon({
+        name: storeAddon.name,
+        price: storeAddon.price,
+        is_available: true,
+        category_id: storeAddon.category_id || null,
+        product_id: productId,
+      });
+    }
   };
 
   const handleSelectTemplate = (template: any) => {
