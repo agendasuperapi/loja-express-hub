@@ -3275,7 +3275,7 @@ export const StoreOwnerDashboard = () => {
                       Novo Produto
                     </Button>
                   </DialogTrigger>
-                <DialogContent className="w-[90vw] max-w-[90vw] max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                   <DialogHeader className="flex-shrink-0">
                     <DialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
@@ -3295,7 +3295,7 @@ export const StoreOwnerDashboard = () => {
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[60vh]" keepMounted>
+                        <TabsContent value="info" className="space-y-4 mt-4">
                       
                           <ImageUpload
                             bucket="product-images"
@@ -3460,7 +3460,7 @@ export const StoreOwnerDashboard = () => {
                           </div>
                         </TabsContent>
 
-                        <TabsContent value="addons" className="mt-4 min-h-[60vh]" keepMounted>
+                        <TabsContent value="addons" className="mt-4 max-h-[50vh] overflow-y-auto pr-2">
                           {editingProduct && myStore && (
                             <ProductAddonsManager 
                               productId={editingProduct.id}
@@ -3469,7 +3469,7 @@ export const StoreOwnerDashboard = () => {
                           )}
                         </TabsContent>
 
-                        <TabsContent value="flavors" className="mt-4 min-h-[60vh]" keepMounted>
+                        <TabsContent value="flavors" className="mt-4 max-h-[50vh] overflow-y-auto pr-2">
                           {editingProduct && (
                             <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
