@@ -134,6 +134,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
 
+  // Debug: Log quando addons mudar
+  console.log('[ProductAddonsManager] Addons atualizados:', {
+    count: addons?.length || 0,
+    addons: addons,
+    productId
+  });
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -280,17 +287,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     allow_quantity: boolean;
   }) => {
     try {
+      console.log('[ProductAddonsManager] handleSubmit chamado:', {
+        data,
+        isEditing: !!editingAddon,
+        productId
+      });
+      
       if (editingAddon) {
         await updateAddonAsync({ id: editingAddon.id, ...data });
       } else {
         await createAddonAsync({ ...data, product_id: productId });
       }
       
+      console.log('[ProductAddonsManager] Adicional salvo, fechando dialog...');
+      
       setIsDialogOpen(false);
       setEditingAddon(null);
+      
+      console.log('[ProductAddonsManager] Dialog fechado');
     } catch (error) {
-      // Error is already handled in the mutation
-      console.error('Error submitting addon:', error);
+      console.error('[ProductAddonsManager] Erro ao submeter:', error);
     }
   };
 
