@@ -351,20 +351,45 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         productId
       });
       
-      if (editingAddon) {
+      const isEditing = !!editingAddon;
+      const addonName = data.name;
+      const currentAddonsCount = addons?.length || 0;
+      
+      if (isEditing) {
         await updateAddonAsync({ id: editingAddon.id, ...data });
       } else {
         await createAddonAsync({ ...data, product_id: productId });
       }
       
-      console.log('[ProductAddonsManager] Adicional salvo - Acionando refresh automático em 2s');
+      console.log('[ProductAddonsManager] Adicional salvo - Iniciando verificação automática');
       
       setIsDialogOpen(false);
       setEditingAddon(null);
       
-      // Aguardar 2 segundos antes de acionar refresh automático
-      setTimeout(() => {
-        handleManualRefresh();
+      // Aguardar 2 segundos antes de verificar
+      setTimeout(async () => {
+        console.log('[ProductAddonsManager] 🔄 Primeira tentativa de refresh');
+        await handleManualRefresh();
+        
+        // Aguardar mais 1 segundo e verificar se carregou
+        setTimeout(async () => {
+          const currentData = queryClient.getQueryData(['product-addons', productId]) as any[];
+          const wasLoaded = isEditing 
+            ? currentData?.some(a => a.id === editingAddon.id && a.name === addonName)
+            : currentData?.length > currentAddonsCount;
+          
+          if (!wasLoaded) {
+            console.log('[ProductAddonsManager] ⚠️ Adicional não detectado, tentando novamente');
+            await handleManualRefresh();
+            
+            toast({
+              title: "🔄 Atualizando lista",
+              description: "Garantindo que o adicional foi carregado...",
+            });
+          } else {
+            console.log('[ProductAddonsManager] ✅ Adicional carregado com sucesso');
+          }
+        }, 1000);
       }, 2000);
       
     } catch (error) {
