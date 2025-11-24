@@ -49,6 +49,7 @@ export const ImageUpload = ({
       const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      const MAX_FILE_SIZE = 300 * 1024; // 300KB em bytes
 
       img.onload = () => {
         let width = img.width;
@@ -69,23 +70,45 @@ export const ImageUpload = ({
 
         canvas.width = width;
         canvas.height = height;
-
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Compressão mais agressiva para reduzir tamanho do arquivo
-        // Qualidade 0.7 (70%) mantém boa qualidade visual mas reduz muito o tamanho
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              console.log(`📦 Imagem compactada: ${(file.size / 1024).toFixed(2)}KB → ${(blob.size / 1024).toFixed(2)}KB (${Math.round((1 - blob.size / file.size) * 100)}% redução)`);
-              resolve(blob);
-            } else {
-              reject(new Error('Erro ao redimensionar imagem'));
-            }
-          },
-          'image/jpeg',
-          0.7
-        );
+        // Função recursiva para comprimir até atingir o tamanho desejado
+        const compressImage = (quality: number): Promise<Blob> => {
+          return new Promise((resolveCompress) => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Erro ao comprimir imagem'));
+                  return;
+                }
+
+                console.log(`🔄 Tentando qualidade ${Math.round(quality * 100)}%: ${(blob.size / 1024).toFixed(2)}KB`);
+
+                // Se o arquivo está dentro do limite ou a qualidade já está muito baixa
+                if (blob.size <= MAX_FILE_SIZE || quality <= 0.3) {
+                  const reduction = Math.round((1 - blob.size / file.size) * 100);
+                  const finalSize = (blob.size / 1024).toFixed(2);
+                  
+                  if (blob.size > MAX_FILE_SIZE) {
+                    console.warn(`⚠️ Imagem ainda está acima de 300KB (${finalSize}KB) mesmo com qualidade mínima`);
+                  } else {
+                    console.log(`✅ Imagem otimizada: ${(file.size / 1024).toFixed(2)}KB → ${finalSize}KB (${reduction}% redução)`);
+                  }
+                  
+                  resolveCompress(blob);
+                } else {
+                  // Reduzir qualidade e tentar novamente
+                  compressImage(quality - 0.1).then(resolveCompress);
+                }
+              },
+              'image/jpeg',
+              quality
+            );
+          });
+        };
+
+        // Começar com qualidade 0.8 (80%)
+        compressImage(0.8).then(resolve).catch(reject);
       };
 
       img.onerror = () => reject(new Error('Erro ao carregar imagem'));
