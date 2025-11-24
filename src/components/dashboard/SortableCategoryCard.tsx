@@ -47,7 +47,7 @@ export const SortableCategoryCard = ({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className={`hover:shadow-lg transition-shadow ${isReorderMode ? 'cursor-move' : ''}`}>
+      <Card className={`hover:shadow-lg transition-shadow h-full ${isReorderMode ? 'cursor-move' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 flex-1">
