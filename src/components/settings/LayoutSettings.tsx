@@ -208,7 +208,7 @@ export const LayoutSettings = ({
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       {/* Settings Panel */}
       <Card className="border-border/50 shadow-lg">
         <CardHeader>
