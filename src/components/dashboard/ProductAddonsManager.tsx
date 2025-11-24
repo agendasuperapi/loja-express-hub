@@ -390,42 +390,65 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       setIsDialogOpen(false);
       setEditingAddon(null);
       
-      // Resetar filtros para garantir visibilidade
+      // SOLUÇÃO ROBUSTA: Forçar visibilidade imediata
+      
+      // 1. Resetar TODOS os filtros ANTES de qualquer operação
       setCategoryFilter('all');
       setAvailabilityFilter('all');
       setSearchTerm('');
       
-      // Mostrar toast de "processando"
-      toast({
-        title: "⏳ Processando...",
-        description: "Aguarde enquanto o adicional é carregado",
+      // 2. Forçar atualização do timestamp para invalidar useMemo
+      setLastUpdate(Date.now());
+      
+      // 3. Invalidar cache AGRESSIVAMENTE
+      await queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      await queryClient.refetchQueries({ 
+        queryKey: ['product-addons', productId],
+        exact: true
       });
       
-      // Aguardar 2 segundos para propagação inicial
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 4. Aguardar apenas 500ms (reduzido de 2s)
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Usar polling para garantir carregamento
-      const loaded = await waitForAddonToLoad(addonName, newAddonId, 5);
+      // 5. Forçar mais uma atualização do timestamp
+      setLastUpdate(Date.now());
+      
+      // 6. Verificar se carregou
+      const currentData = queryClient.getQueryData(['product-addons', productId]) as any[];
+      const loaded = currentData?.some(a => a.id === newAddonId || a.name === addonName);
+      
+      console.log('[ProductAddonsManager] 📊 Status:', { 
+        loaded, 
+        totalAddons: currentData?.length,
+        names: currentData?.map(a => a.name)
+      });
       
       if (!loaded) {
-        console.error('[ProductAddonsManager] ❌ FALHA: Adicional não carregou após 5 tentativas');
+        console.error('[ProductAddonsManager] ❌ FALHA: Adicional não encontrado');
         toast({
-          title: "⚠️ Atenção",
-          description: "O adicional foi salvo, mas pode não estar visível. Tente recarregar a página.",
-          variant: "destructive",
+          title: "⚠️ Salvando...",
+          description: "O adicional foi salvo. Recarregando lista...",
         });
+        
+        // Última tentativa: recarregar página
+        setTimeout(() => window.location.reload(), 1500);
       } else {
-        // Destacar o novo adicional
+        // 7. Destacar o novo adicional COM GARANTIA DE VISIBILIDADE
         if (newAddonId) {
           setHighlightedAddonId(newAddonId);
           
-          // Scroll para o novo adicional após um pequeno delay
+          // Forçar mais uma atualização para garantir render
           setTimeout(() => {
-            newAddonRef.current?.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
-            });
-          }, 300);
+            setLastUpdate(Date.now());
+            
+            // Scroll após garantir render
+            setTimeout(() => {
+              newAddonRef.current?.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+              });
+            }, 200);
+          }, 100);
           
           // Remover destaque após 3 segundos
           setTimeout(() => {
@@ -435,7 +458,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         
         toast({
           title: "✅ Sucesso!",
-          description: `${addonName} foi ${isEditing ? 'atualizado' : 'adicionado'} com sucesso`,
+          description: `${addonName} foi ${isEditing ? 'atualizado' : 'adicionado'} e está visível (${currentData?.length} total)`,
         });
       }
       
