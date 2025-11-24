@@ -3295,7 +3295,7 @@ export const StoreOwnerDashboard = () => {
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4">
+                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[60vh]" keepMounted>
                       
                           <ImageUpload
                             bucket="product-images"
@@ -3460,7 +3460,7 @@ export const StoreOwnerDashboard = () => {
                           </div>
                         </TabsContent>
 
-                        <TabsContent value="addons" className="mt-4 max-h-[50vh] overflow-y-auto pr-2">
+                        <TabsContent value="addons" className="mt-4 min-h-[60vh]" keepMounted>
                           {editingProduct && myStore && (
                             <ProductAddonsManager 
                               productId={editingProduct.id}
@@ -3469,7 +3469,7 @@ export const StoreOwnerDashboard = () => {
                           )}
                         </TabsContent>
 
-                        <TabsContent value="flavors" className="mt-4 max-h-[50vh] overflow-y-auto pr-2">
+                        <TabsContent value="flavors" className="mt-4 min-h-[60vh]" keepMounted>
                           {editingProduct && (
                             <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
