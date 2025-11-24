@@ -185,12 +185,25 @@ export const Navigation = () => {
                     </Button>
                   </Link>
                 )}
-                <Link to="/auth">
-                  <AnimatedButton size="sm" className="bg-gradient-primary min-w-[140px] px-3">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Cadastrar
-                  </AnimatedButton>
-                </Link>
+                <AnimatedButton 
+                  size="sm" 
+                  className="bg-gradient-primary min-w-[140px] px-3"
+                  onClick={() => {
+                    const element = document.getElementById('cadastre-sua-loja');
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        const retryElement = document.getElementById('cadastre-sua-loja');
+                        retryElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }, 100);
+                    }
+                  }}
+                >
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Cadastrar
+                </AnimatedButton>
               </>
             )}
           </div>
@@ -272,12 +285,24 @@ export const Navigation = () => {
                       </Button>
                     </>
                   ) : (
-                    <Link to="/auth" className="block">
-                      <Button className="w-full bg-gradient-primary">
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
-                      </Button>
-                    </Link>
+                    <Button 
+                      className="w-full bg-gradient-primary"
+                      onClick={() => {
+                        const element = document.getElementById('cadastre-sua-loja');
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                          navigate('/');
+                          setTimeout(() => {
+                            const retryElement = document.getElementById('cadastre-sua-loja');
+                            retryElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }, 100);
+                        }
+                      }}
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
+                    </Button>
                   )}
                 </div>
               </div>
