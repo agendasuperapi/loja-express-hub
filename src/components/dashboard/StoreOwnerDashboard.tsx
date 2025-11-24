@@ -3295,7 +3295,7 @@ export const StoreOwnerDashboard = () => {
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4">
+                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[600px]">
                       
                           <ImageUpload
                             bucket="product-images"
