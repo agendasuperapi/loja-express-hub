@@ -185,11 +185,26 @@ export const Navigation = () => {
                     </Button>
                   </Link>
                 )}
-                <Link to="/auth">
-                  <AnimatedButton size="sm" className="bg-gradient-primary">
-                    {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
+                {location.pathname === '/become-partner' ? (
+                  <AnimatedButton 
+                    size="sm" 
+                    className="bg-gradient-primary"
+                    onClick={() => {
+                      document.getElementById('registration-form')?.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                      });
+                    }}
+                  >
+                    Cadastrar
                   </AnimatedButton>
-                </Link>
+                ) : (
+                  <Link to="/auth">
+                    <AnimatedButton size="sm" className="bg-gradient-primary">
+                      Entrar / Cadastrar
+                    </AnimatedButton>
+                  </Link>
+                )}
               </>
             )}
           </div>
@@ -270,10 +285,22 @@ export const Navigation = () => {
                         Sair
                       </Button>
                     </>
+                  ) : location.pathname === '/become-partner' ? (
+                    <Button 
+                      className="w-full bg-gradient-primary"
+                      onClick={() => {
+                        document.getElementById('registration-form')?.scrollIntoView({ 
+                          behavior: 'smooth', 
+                          block: 'center' 
+                        });
+                      }}
+                    >
+                      Cadastrar
+                    </Button>
                   ) : (
                     <Link to="/auth" className="block">
                       <Button className="w-full bg-gradient-primary">
-                        {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
+                        Entrar / Cadastrar
                       </Button>
                     </Link>
                   )}
