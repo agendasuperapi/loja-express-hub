@@ -52,17 +52,20 @@ export const SortableProductCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Card className={`hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg ${isReorderMode ? 'cursor-move' : ''}`}>
-        <CardContent className="p-4">
-          <div className="flex gap-2">
+      <Card className={cn(
+        "hover-scale border-muted/50 hover:border-primary/30 transition-all hover:shadow-lg h-full",
+        isReorderMode && 'cursor-move'
+      )}>
+        <CardContent className="p-4 h-full">
+          <div className="flex gap-3 h-full">
             {/* Drag Handle */}
             {isReorderMode && (
-              <div {...attributes} {...listeners} className="flex items-center cursor-grab active:cursor-grabbing">
+              <div {...attributes} {...listeners} className="flex items-start pt-2 cursor-grab active:cursor-grabbing">
                 <GripVertical className="w-5 h-5 text-muted-foreground" />
               </div>
             )}
 
-            <div className="flex-1">
+            <div className="flex-1 flex flex-col min-w-0">
               {product.image_url && (
                 <div className="aspect-video w-full rounded-lg overflow-hidden mb-3 bg-muted relative">
                   <img
@@ -94,7 +97,7 @@ export const SortableProductCard = ({
                   {product.description}
                 </p>
               )}
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mt-auto pt-3">
                 <span className="font-bold text-primary text-lg">
                   R$ {Number(product.price).toFixed(2)}
                 </span>
