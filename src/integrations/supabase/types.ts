@@ -1233,6 +1233,7 @@ export type Database = {
           store_street: string | null
           store_street_number: string | null
           total_reviews: number | null
+          uncategorized_display_order: number | null
           updated_at: string
           whatsapp: string | null
         }
@@ -1292,6 +1293,7 @@ export type Database = {
           store_street?: string | null
           store_street_number?: string | null
           total_reviews?: number | null
+          uncategorized_display_order?: number | null
           updated_at?: string
           whatsapp?: string | null
         }
@@ -1351,6 +1353,7 @@ export type Database = {
           store_street?: string | null
           store_street_number?: string | null
           total_reviews?: number | null
+          uncategorized_display_order?: number | null
           updated_at?: string
           whatsapp?: string | null
         }
