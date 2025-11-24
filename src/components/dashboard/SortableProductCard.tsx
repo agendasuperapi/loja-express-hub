@@ -7,6 +7,8 @@ import { Switch } from '@/components/ui/switch';
 import { Edit, GripVertical, Copy, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
 interface SortableProductCardProps {
   product: any;
@@ -29,6 +31,8 @@ export const SortableProductCard = ({
   onToggleFeatured,
   onDuplicate,
 }: SortableProductCardProps) => {
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  
   const {
     attributes,
     listeners,
@@ -121,7 +125,7 @@ export const SortableProductCard = ({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => onDuplicate(product)}
+                          onClick={() => setShowDuplicateDialog(true)}
                           className="hover-scale"
                           title="Duplicar produto"
                         >
@@ -144,6 +148,26 @@ export const SortableProductCard = ({
           </div>
         </CardContent>
       </Card>
+      
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicar Produto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja duplicar o produto "{product.name}"? Uma cópia será criada com os mesmos dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              onDuplicate(product);
+              setShowDuplicateDialog(false);
+            }}>
+              Duplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
