@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Menu, LogOut, Package, ShoppingCart, ShieldCheck, User, Store } from "lucide-react";
+import { LayoutDashboard, Menu, LogOut, Package, ShoppingCart, ShieldCheck, User, Store, Rocket } from "lucide-react";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -196,6 +196,7 @@ export const Navigation = () => {
                       });
                     }}
                   >
+                    <Rocket className="w-4 h-4 mr-2" />
                     Cadastrar
                   </AnimatedButton>
                 ) : (
@@ -295,6 +296,7 @@ export const Navigation = () => {
                         });
                       }}
                     >
+                      <Rocket className="w-4 h-4 mr-2" />
                       Cadastrar
                     </Button>
                   ) : (
