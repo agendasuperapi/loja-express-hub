@@ -196,7 +196,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const { data: storeData } = useQuery({
     queryKey: ['store-uncategorized-order', storeId],
     queryFn: async () => {
-      if (!storeId) return { uncategorized_display_order: 0 };
+      if (!storeId) return { uncategorized_display_order: -1 };
       try {
         const { data, error } = await (supabase as any)
           .from('stores')
@@ -208,13 +208,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         return data as { uncategorized_display_order: number };
       } catch (error) {
         // Column might not exist yet, return default
-        return { uncategorized_display_order: 0 };
+        return { uncategorized_display_order: -1 };
       }
     },
     enabled: !!storeId
   });
 
-  const uncategorizedDisplayOrder = storeData?.uncategorized_display_order ?? 0;
+  const uncategorizedDisplayOrder = storeData?.uncategorized_display_order ?? -1;
 
   // Listen for new categories created from NewAddonDialog
   useEffect(() => {
