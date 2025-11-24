@@ -55,7 +55,10 @@ export const useProductAddons = (productId?: string) => {
 
   // 🔥 REALTIME: Sistema de atualização em tempo real
   useEffect(() => {
-    if (!productId) return;
+    if (!productId) {
+      console.log('[useProductAddons] ⚠️ ProductId não definido, pulando realtime');
+      return;
+    }
 
     console.log('[useProductAddons] 🎧 Configurando REALTIME para product_id:', productId);
 
@@ -70,22 +73,17 @@ export const useProductAddons = (productId?: string) => {
           filter: `product_id=eq.${productId}`
         },
         async (payload) => {
-          console.log('[useProductAddons] 🔔 REALTIME INSERT:', payload.new);
+          console.log('[useProductAddons] 🔔 REALTIME INSERT detectado:', payload);
+          console.log('[useProductAddons] 🔔 Novo adicional:', payload.new);
           
-          // Atualização OTIMISTA: adiciona imediatamente sem esperar refetch
-          queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
-            if (!old) return [payload.new as ProductAddon];
-            return [...old, payload.new as ProductAddon];
-          });
-          
-          // Refetch completo para garantir ordem correta
+          // Forçar refetch completo para garantir consistência
           await queryClient.refetchQueries({ 
             queryKey: ['product-addons', productId],
             exact: true,
             type: 'active'
           });
           
-          console.log('[useProductAddons] ✅ Novo adicional adicionado via REALTIME!');
+          console.log('[useProductAddons] ✅ Lista atualizada após INSERT via REALTIME!');
         }
       )
       .on(
@@ -97,7 +95,8 @@ export const useProductAddons = (productId?: string) => {
           filter: `product_id=eq.${productId}`
         },
         async (payload) => {
-          console.log('[useProductAddons] 🔔 REALTIME UPDATE:', payload.new);
+          console.log('[useProductAddons] 🔔 REALTIME UPDATE detectado:', payload);
+          console.log('[useProductAddons] 🔔 Adicional atualizado:', payload.new);
           
           // Atualização OTIMISTA
           queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
@@ -119,7 +118,8 @@ export const useProductAddons = (productId?: string) => {
           filter: `product_id=eq.${productId}`
         },
         async (payload) => {
-          console.log('[useProductAddons] 🔔 REALTIME DELETE:', payload.old);
+          console.log('[useProductAddons] 🔔 REALTIME DELETE detectado:', payload);
+          console.log('[useProductAddons] 🔔 Adicional removido:', payload.old);
           
           // Atualização OTIMISTA
           queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
@@ -131,14 +131,16 @@ export const useProductAddons = (productId?: string) => {
         }
       )
       .subscribe((status) => {
-        console.log('[useProductAddons] 📡 REALTIME status:', status, 'para produto:', productId);
+        console.log('[useProductAddons] 📡 REALTIME Status mudou:', status, 'para produto:', productId);
         
         if (status === 'SUBSCRIBED') {
-          console.log('[useProductAddons] ✅ REALTIME ATIVO para produto:', productId);
+          console.log('[useProductAddons] ✅ ✅ ✅ REALTIME ATIVO E CONECTADO para produto:', productId);
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('[useProductAddons] ❌ ERRO no canal REALTIME');
+          console.error('[useProductAddons] ❌ ERRO no canal REALTIME - verifique permissões');
         } else if (status === 'TIMED_OUT') {
-          console.error('[useProductAddons] ⏱️ TIMEOUT no canal REALTIME');
+          console.error('[useProductAddons] ⏱️ TIMEOUT no canal REALTIME - reconectando...');
+        } else if (status === 'CLOSED') {
+          console.warn('[useProductAddons] 🔌 Canal REALTIME foi fechado');
         }
       });
 
