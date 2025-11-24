@@ -50,7 +50,7 @@ export const useEmployeeAccess = () => {
           `)
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
 
         if (error || !employeeData) {
           setEmployeeAccess({
