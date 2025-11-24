@@ -77,9 +77,9 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     <motion.div
       initial={{ x: -100, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      className="hidden md:flex w-32 bg-gray-50 dark:bg-gray-900 backdrop-blur-xl border-2 border-gray-300 dark:border-gray-700 h-screen sticky top-0 flex-col items-center py-8 shadow-lg overflow-y-auto"
+      className="hidden md:flex w-32 bg-gray-50 dark:bg-gray-900 backdrop-blur-xl border-2 border-gray-300 dark:border-gray-700 h-screen sticky top-0 flex-col items-center py-3 shadow-lg overflow-y-hidden"
     >
-      <div className="w-[94px] h-[94px] rounded-xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20 overflow-hidden">
+      <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-2 border border-primary/20 overflow-hidden flex-shrink-0">
         {storeLogo ? (
           <img 
             src={storeLogo} 
@@ -87,17 +87,17 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-primary font-bold text-3xl">U</span>
+          <span className="text-primary font-bold text-2xl">U</span>
         )}
       </div>
       
       {isEmployee && (
-        <Badge variant="secondary" className="mb-8 text-xs">
+        <Badge variant="secondary" className="mb-2 text-xs">
           Funcionário
         </Badge>
       )}
 
-      <nav className="flex-1 w-full space-y-1 px-2">
+      <nav className="flex-1 w-full space-y-0.5 px-2 overflow-y-hidden min-h-0">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -109,7 +109,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
             
             return (
               <div key={item.id}>
-                {index > 0 && <div className="h-0.5 bg-primary/20 my-2 mx-2" />}
+                {index > 0 && <div className="h-0.5 bg-primary/20 my-1 mx-2" />}
                 <Collapsible 
                   open={isOpen} 
                   onOpenChange={setOpen}
@@ -119,7 +119,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className={cn(
-                      "w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg relative transition-all duration-200",
+                      "w-full flex flex-col items-center gap-1 py-2 px-2 rounded-lg relative transition-all duration-200",
                       isOpen
                         ? "bg-primary/10 text-primary shadow-sm" 
                         : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -134,23 +134,23 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
                       />
                     )}
                     <Icon className={cn(
-                      "w-5 h-5 relative z-10 transition-colors",
+                      "w-4 h-4 relative z-10 transition-colors",
                       isOpen && "drop-shadow-sm"
                     )} />
                     <span className={cn(
-                      "text-xs relative z-10 transition-colors font-medium uppercase",
+                      "text-[10px] relative z-10 transition-colors font-medium uppercase leading-tight",
                       isOpen && "font-semibold"
                     )}>
                       {item.label}
                     </span>
                     <ChevronDown className={cn(
-                      "w-3 h-3 transition-transform duration-200",
+                      "w-2.5 h-2.5 transition-transform duration-200",
                       isOpen && "rotate-180"
                     )} />
                   </motion.button>
                 </CollapsibleTrigger>
                 
-                <CollapsibleContent className="space-y-0.5 mt-1">
+                <CollapsibleContent className="space-y-0.5 mt-0.5">
                   <AnimatePresence>
                     {subItems.map((subItem) => {
                       const SubIcon = subItem.icon;
@@ -166,7 +166,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className={cn(
-                            "w-full flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg relative transition-all duration-200",
+                            "w-full flex flex-col items-center gap-0.5 py-1.5 px-2 rounded-lg relative transition-all duration-200",
                             isSubActive 
                               ? "bg-primary/15 text-primary shadow-sm" 
                               : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
@@ -175,13 +175,13 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
                           {isSubActive && (
                             <motion.div
                               layoutId="activeSubTab"
-                              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-primary rounded-r-full"
+                              className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full"
                               initial={false}
                               transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                           )}
                           <SubIcon className={cn(
-                            "w-4 h-4 relative z-10 transition-colors",
+                            "w-3.5 h-3.5 relative z-10 transition-colors",
                             isSubActive && "drop-shadow-sm"
                           )} />
                           <span className={cn(
@@ -202,13 +202,13 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
           
           return (
             <div key={item.id}>
-              {index > 0 && <div className="h-0.5 bg-primary/20 my-2 mx-2" />}
+              {index > 0 && <div className="h-0.5 bg-primary/20 my-1 mx-2" />}
               <motion.button
               onClick={() => handleTabChange(item.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn(
-                "w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg relative transition-all duration-200",
+                "w-full flex flex-col items-center gap-1 py-2 px-2 rounded-lg relative transition-all duration-200",
                 isActive 
                   ? "bg-primary/10 text-primary shadow-sm" 
                   : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -217,17 +217,17 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 bg-primary rounded-r-full"
                   initial={false}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
               <Icon className={cn(
-                "w-5 h-5 relative z-10 transition-colors",
+                "w-4 h-4 relative z-10 transition-colors",
                 isActive && "drop-shadow-sm"
               )} />
               <span className={cn(
-                "text-xs relative z-10 transition-colors font-medium uppercase",
+                "text-[10px] relative z-10 transition-colors font-medium uppercase leading-tight",
                 isActive && "font-semibold"
               )}>
                 {item.label}
@@ -240,15 +240,15 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
 
       {/* Botão Sair no final */}
       {onSignOut && (
-        <div className="px-2 pb-4 pt-2">
-          <div className="h-0.5 bg-primary/20 my-2 mx-2" />
+        <div className="px-2 pb-2 pt-1 flex-shrink-0">
+          <div className="h-0.5 bg-primary/20 my-1 mx-2" />
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onSignOut}
-            className="w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all duration-200"
+            className="w-full flex flex-col items-center gap-1 py-2 px-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all duration-200"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />
             <span className="text-xs font-medium uppercase">Sair</span>
           </motion.button>
         </div>
