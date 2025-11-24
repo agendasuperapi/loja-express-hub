@@ -44,12 +44,12 @@ export const ImageUpload = ({
     };
   }, [previewUrl]);
 
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number, maxFileSize: number): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const MAX_FILE_SIZE = 300 * 1024; // 300KB em bytes
+      const MAX_FILE_SIZE = maxFileSize;
 
       img.onload = () => {
         let width = img.width;
@@ -88,9 +88,10 @@ export const ImageUpload = ({
                 if (blob.size <= MAX_FILE_SIZE || quality <= 0.3) {
                   const reduction = Math.round((1 - blob.size / file.size) * 100);
                   const finalSize = (blob.size / 1024).toFixed(2);
+                  const targetSize = (MAX_FILE_SIZE / 1024).toFixed(0);
                   
                   if (blob.size > MAX_FILE_SIZE) {
-                    console.warn(`⚠️ Imagem ainda está acima de 300KB (${finalSize}KB) mesmo com qualidade mínima`);
+                    console.warn(`⚠️ Imagem ainda está acima de ${targetSize}KB (${finalSize}KB) mesmo com qualidade mínima`);
                   } else {
                     console.log(`✅ Imagem otimizada: ${(file.size / 1024).toFixed(2)}KB → ${finalSize}KB (${reduction}% redução)`);
                   }
@@ -174,17 +175,17 @@ export const ImageUpload = ({
         });
       }
 
-      // Definir dimensões máximas baseadas no tipo de bucket
-      const maxDimensions = {
-        'product-images': { width: 800, height: 800 },
-        'store-logos': { width: 400, height: 400 },
-        'store-banners': { width: 1200, height: 400 },
+      // Definir dimensões e tamanho máximo de arquivo baseados no tipo de bucket
+      const compressionSettings = {
+        'product-images': { width: 800, height: 800, maxSize: 300 * 1024 }, // 300KB
+        'store-logos': { width: 400, height: 400, maxSize: 300 * 1024 }, // 300KB
+        'store-banners': { width: 1200, height: 400, maxSize: 1024 * 1024 }, // 1MB para manter qualidade
       };
 
-      const { width: maxWidth, height: maxHeight } = maxDimensions[bucket];
+      const settings = compressionSettings[bucket];
 
       // Redimensionar a imagem
-      const resizedBlob = await resizeImage(file, maxWidth, maxHeight);
+      const resizedBlob = await resizeImage(file, settings.width, settings.height, settings.maxSize);
 
       // Remover imagem antiga antes de fazer upload da nova
       if (currentImageUrl && bucket === 'product-images' && productId) {
