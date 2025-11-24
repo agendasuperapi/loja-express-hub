@@ -3813,7 +3813,7 @@ export const StoreOwnerDashboard = () => {
                                     <SortIndicator column="promotional_price" />
                                   </div>
                                 </TableHead>
-                                <TableHead className="text-center">Status</TableHead>
+                                <TableHead className="text-center">Destaque</TableHead>
                                 <TableHead className="text-center w-[120px]">Ações</TableHead>
                               </TableRow>
                             </TableHeader>
