@@ -62,6 +62,15 @@ interface SortableAddonProps {
   isDeleting: boolean;
 }
 
+interface SortableCategoryProps {
+  category: any;
+  addons: any[];
+  onEdit: (addon: any) => void;
+  onDelete: (id: string, name: string) => void;
+  onToggleAvailability: (addon: any) => void;
+  isDeleting: boolean;
+}
+
 const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableAddonProps) => {
   const {
     attributes,
@@ -127,10 +136,59 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
   );
 };
 
+const SortableCategory = ({ category, addons, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableCategoryProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="space-y-2">
+      <Separator className="my-4" />
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
+        <button
+          className="cursor-grab active:cursor-grabbing touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+        <FolderTree className="w-4 h-4" />
+        {category.name}
+      </div>
+      <SortableContext
+        items={addons.map((a) => a.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        {addons.map((addon) => (
+          <SortableAddon
+            key={addon.id}
+            addon={addon}
+            onEdit={onEdit}
+            onDelete={(id) => onDelete(id, addon.name)}
+            onToggleAvailability={onToggleAvailability}
+            isDeleting={isDeleting}
+          />
+        ))}
+      </SortableContext>
+    </div>
+  );
+};
+
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const queryClient = useQueryClient();
   const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
-  const { categories, addCategory, refetch: refetchCategories } = useAddonCategories(storeId);
+  const { categories, addCategory, reorderCategories, refetch: refetchCategories } = useAddonCategories(storeId);
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
 
@@ -314,18 +372,35 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id || !addons) return;
+    if (!over || active.id === over.id) return;
 
-    const oldIndex = addons.findIndex((addon) => addon.id === active.id);
-    const newIndex = addons.findIndex((addon) => addon.id === over.id);
+    // Check if we're dragging a category or an addon
+    const isDraggingCategory = activeCategories.some(cat => cat.id === active.id);
 
-    const reordered = arrayMove(addons, oldIndex, newIndex);
-    const updates = reordered.map((addon, index) => ({
-      id: addon.id,
-      display_order: index,
-    }));
+    if (isDraggingCategory) {
+      // Reorder categories
+      const oldIndex = activeCategories.findIndex((cat) => cat.id === active.id);
+      const newIndex = activeCategories.findIndex((cat) => cat.id === over.id);
 
-    reorderAddons(updates);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(activeCategories, oldIndex, newIndex);
+        reorderCategories(reordered);
+      }
+    } else if (addons) {
+      // Reorder addons
+      const oldIndex = addons.findIndex((addon) => addon.id === active.id);
+      const newIndex = addons.findIndex((addon) => addon.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reordered = arrayMove(addons, oldIndex, newIndex);
+        const updates = reordered.map((addon, index) => ({
+          id: addon.id,
+          display_order: index,
+        }));
+
+        reorderAddons(updates);
+      }
+    }
   };
 
   const handleDeleteClick = (id: string, name: string) => {
@@ -766,7 +841,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           >
             <div className="space-y-2 min-h-[800px]">
               {categoryFilter === 'all' ? (
-                // Group by category view
+                // Group by category view with sortable categories
                 <>
                   {addonsByCategory.uncategorized.length > 0 && (
                     <div key="uncategorized" className="space-y-2">
@@ -792,35 +867,27 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     </div>
                   )}
 
-                  {activeCategories.map((category) => {
-                    const categoryAddons = addonsByCategory[category.id];
-                    if (!categoryAddons || categoryAddons.length === 0) return null;
+                  <SortableContext
+                    items={activeCategories.map((cat) => cat.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {activeCategories.map((category) => {
+                      const categoryAddons = addonsByCategory[category.id];
+                      if (!categoryAddons || categoryAddons.length === 0) return null;
 
-                    return (
-                      <div key={category.id} className="space-y-2">
-                        <Separator className="my-4" />
-                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2">
-                          <FolderTree className="w-4 h-4" />
-                          {category.name}
-                        </div>
-                        <SortableContext
-                          items={categoryAddons.map((a) => a.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          {categoryAddons.map((addon) => (
-                            <SortableAddon
-                              key={addon.id}
-                            addon={addon}
-                            onEdit={handleEdit}
-                            onDelete={(id) => handleDeleteClick(id, addon.name)}
-                            onToggleAvailability={handleToggleAvailability}
-                            isDeleting={isDeleting}
-                          />
-                          ))}
-                        </SortableContext>
-                      </div>
-                    );
-                  })}
+                      return (
+                        <SortableCategory
+                          key={category.id}
+                          category={category}
+                          addons={categoryAddons}
+                          onEdit={handleEdit}
+                          onDelete={handleDeleteClick}
+                          onToggleAvailability={handleToggleAvailability}
+                          isDeleting={isDeleting}
+                        />
+                      );
+                    })}
+                  </SortableContext>
                 </>
               ) : (
                 // Filtered view
