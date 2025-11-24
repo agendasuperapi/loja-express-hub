@@ -11,6 +11,9 @@ import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet, Clock, Truck, Wallet, DollarSign, Filter, Settings } from "lucide-react";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -62,6 +65,23 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [storeData, setStoreData] = useState<{ operating_hours: any; allow_orders_when_closed: boolean } | null>(null);
+  const [showFilters, setShowFilters] = useState(true);
+  const [visibleColumns, setVisibleColumns] = useState({
+    order_number: true,
+    date: true,
+    customer_name: true,
+    customer_phone: true,
+    status: true,
+    subtotal: true,
+    delivery_fee: true,
+    discount: true,
+    total: true,
+    payment_method: true,
+    payment_status: true,
+    delivery_type: true,
+    scheduled: true,
+    coupon: true,
+  });
 
   // Mapeamento entre status do banco (enum) e status_key customizado
   const denormalizeStatusKey = (uiStatus: string): string => {
@@ -358,15 +378,174 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       <Card>
       <CardHeader className="flex flex-col gap-4">
           <div className="flex gap-3">
-            <Button variant="outline" size="default" className="gap-2">
+            <Button 
+              variant={showFilters ? "default" : "outline"} 
+              size="default" 
+              className="gap-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
               <Filter className="h-4 w-4" />
               Filtros
             </Button>
-            <Button variant="outline" size="default" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Colunas
-            </Button>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="default" className="gap-2">
+                  <Settings className="h-4 w-4" />
+                  Colunas
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Personalizar Colunas</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-order" 
+                      checked={visibleColumns.order_number}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, order_number: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-order" className="cursor-pointer">Pedido</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-date" 
+                      checked={visibleColumns.date}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, date: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-date" className="cursor-pointer">Data</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-customer" 
+                      checked={visibleColumns.customer_name}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, customer_name: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-customer" className="cursor-pointer">Cliente</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-phone" 
+                      checked={visibleColumns.customer_phone}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, customer_phone: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-phone" className="cursor-pointer">Telefone</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-status" 
+                      checked={visibleColumns.status}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, status: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-status" className="cursor-pointer">Status</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-subtotal" 
+                      checked={visibleColumns.subtotal}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, subtotal: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-subtotal" className="cursor-pointer">Subtotal</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-fee" 
+                      checked={visibleColumns.delivery_fee}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, delivery_fee: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-fee" className="cursor-pointer">Taxa</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-discount" 
+                      checked={visibleColumns.discount}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, discount: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-discount" className="cursor-pointer">Desconto</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-total" 
+                      checked={visibleColumns.total}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, total: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-total" className="cursor-pointer">Total</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-payment" 
+                      checked={visibleColumns.payment_method}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, payment_method: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-payment" className="cursor-pointer">Pagamento</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-payment-status" 
+                      checked={visibleColumns.payment_status}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, payment_status: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-payment-status" className="cursor-pointer">Status Pgto</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-delivery" 
+                      checked={visibleColumns.delivery_type}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, delivery_type: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-delivery" className="cursor-pointer">Entrega</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-scheduled" 
+                      checked={visibleColumns.scheduled}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, scheduled: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-scheduled" className="cursor-pointer">Agendado</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="col-coupon" 
+                      checked={visibleColumns.coupon}
+                      onCheckedChange={(checked) => 
+                        setVisibleColumns(prev => ({ ...prev, coupon: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="col-coupon" className="cursor-pointer">Cupom</Label>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
+          
+          {showFilters && (
           <div className="flex flex-col sm:flex-row gap-4 w-full">
             <div className="flex-1">
               <div className="relative">
@@ -479,6 +658,8 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               </Select>
             </div>
           </div>
+          )}
+          
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -517,26 +698,26 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
             <Table className="min-w-[1000px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Pedido</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                  <TableHead className="text-right">Taxa</TableHead>
-                  <TableHead className="text-right">Desconto</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead>Status Pgto</TableHead>
-                  <TableHead>Entrega</TableHead>
-                  <TableHead>Agendado</TableHead>
-                  <TableHead>Cupom</TableHead>
+                  {visibleColumns.order_number && <TableHead>Pedido</TableHead>}
+                  {visibleColumns.date && <TableHead>Data</TableHead>}
+                  {visibleColumns.customer_name && <TableHead>Cliente</TableHead>}
+                  {visibleColumns.customer_phone && <TableHead>Telefone</TableHead>}
+                  {visibleColumns.status && <TableHead>Status</TableHead>}
+                  {visibleColumns.subtotal && <TableHead className="text-right">Subtotal</TableHead>}
+                  {visibleColumns.delivery_fee && <TableHead className="text-right">Taxa</TableHead>}
+                  {visibleColumns.discount && <TableHead className="text-right">Desconto</TableHead>}
+                  {visibleColumns.total && <TableHead className="text-right">Total</TableHead>}
+                  {visibleColumns.payment_method && <TableHead>Pagamento</TableHead>}
+                  {visibleColumns.payment_status && <TableHead>Status Pgto</TableHead>}
+                  {visibleColumns.delivery_type && <TableHead>Entrega</TableHead>}
+                  {visibleColumns.scheduled && <TableHead>Agendado</TableHead>}
+                  {visibleColumns.coupon && <TableHead>Cupom</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredOrders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={14} className="text-center text-muted-foreground">
+                    <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "all" 
                         ? 'Nenhum pedido encontrado com os filtros selecionados' 
                         : 'Nenhum pedido no período selecionado'}
@@ -545,100 +726,128 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                 ) : (
                   paginatedOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-mono font-medium">
-                        #{order.order_number}
-                      </TableCell>
-                      <TableCell className="text-sm whitespace-nowrap">
-                        {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="font-medium">{order.customer_name}</TableCell>
-                      <TableCell className="text-sm">{order.customer_phone}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            order.status === 'delivered' ? 'default' :
-                            order.status === 'cancelled' ? 'destructive' :
-                            order.status === 'pending' ? 'secondary' :
-                            'outline'
-                          }
-                          className="capitalize"
-                        >
-                          {order.status === 'pending' && 'Pendente'}
-                          {order.status === 'confirmed' && 'Confirmado'}
-                          {order.status === 'preparing' && 'Preparando'}
-                          {order.status === 'ready' && 'Pronto'}
-                          {order.status === 'out_for_delivery' && 'Saiu p/ entrega'}
-                          {order.status === 'delivered' && 'Entregue'}
-                          {order.status === 'cancelled' && 'Cancelado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        R$ {order.subtotal.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {order.delivery_fee > 0 ? `R$ ${order.delivery_fee.toFixed(2)}` : '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {order.coupon_discount && order.coupon_discount > 0 ? (
-                          <span className="text-green-600">-R$ {order.coupon_discount.toFixed(2)}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right font-bold">
-                        R$ {order.total.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="capitalize text-sm">
-                        {order.payment_method === 'pix' && 'PIX'}
-                        {order.payment_method === 'credit_card' && 'Cartão Crédito'}
-                        {order.payment_method === 'debit_card' && 'Cartão Débito'}
-                        {order.payment_method === 'cash' && 'Dinheiro'}
-                        {order.payment_method === 'voucher' && 'Vale'}
-                        {!['pix', 'credit_card', 'debit_card', 'cash', 'voucher'].includes(order.payment_method) && order.payment_method}
-                        {order.change_amount && order.change_amount > 0 && (
-                          <div className="text-xs text-muted-foreground">
-                            Troco: R$ {order.change_amount.toFixed(2)}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={order.payment_received ? 'default' : 'secondary'}
-                          className={order.payment_received ? 'bg-green-600' : 'bg-yellow-600'}
-                        >
-                          {order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        <Badge variant={order.delivery_type === 'delivery' ? 'default' : 'secondary'}>
-                          {order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}
-                        </Badge>
-                        {order.delivery_type === 'delivery' && order.delivery_neighborhood && (
-                          <div className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">
-                            {order.delivery_neighborhood}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {isOrderScheduled(order) ? (
-                          <Badge variant="outline" className="gap-1">
-                            <Clock className="h-3 w-3" />
-                            Sim
+                      {visibleColumns.order_number && (
+                        <TableCell className="font-mono font-medium">
+                          #{order.order_number}
+                        </TableCell>
+                      )}
+                      {visibleColumns.date && (
+                        <TableCell className="text-sm whitespace-nowrap">
+                          {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        </TableCell>
+                      )}
+                      {visibleColumns.customer_name && (
+                        <TableCell className="font-medium">{order.customer_name}</TableCell>
+                      )}
+                      {visibleColumns.customer_phone && (
+                        <TableCell className="text-sm">{order.customer_phone}</TableCell>
+                      )}
+                      {visibleColumns.status && (
+                        <TableCell>
+                          <Badge
+                            variant={
+                              order.status === 'delivered' ? 'default' :
+                              order.status === 'cancelled' ? 'destructive' :
+                              order.status === 'pending' ? 'secondary' :
+                              'outline'
+                            }
+                            className="capitalize"
+                          >
+                            {order.status === 'pending' && 'Pendente'}
+                            {order.status === 'confirmed' && 'Confirmado'}
+                            {order.status === 'preparing' && 'Preparando'}
+                            {order.status === 'ready' && 'Pronto'}
+                            {order.status === 'out_for_delivery' && 'Saiu p/ entrega'}
+                            {order.status === 'delivered' && 'Entregue'}
+                            {order.status === 'cancelled' && 'Cancelado'}
                           </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {order.coupon_code ? (
-                          <Badge variant="outline" className="gap-1">
-                            <Tag className="h-3 w-3" />
-                            {order.coupon_code}
+                        </TableCell>
+                      )}
+                      {visibleColumns.subtotal && (
+                        <TableCell className="text-right">
+                          R$ {order.subtotal.toFixed(2)}
+                        </TableCell>
+                      )}
+                      {visibleColumns.delivery_fee && (
+                        <TableCell className="text-right text-muted-foreground">
+                          {order.delivery_fee > 0 ? `R$ ${order.delivery_fee.toFixed(2)}` : '-'}
+                        </TableCell>
+                      )}
+                      {visibleColumns.discount && (
+                        <TableCell className="text-right">
+                          {order.coupon_discount && order.coupon_discount > 0 ? (
+                            <span className="text-green-600">-R$ {order.coupon_discount.toFixed(2)}</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {visibleColumns.total && (
+                        <TableCell className="text-right font-bold">
+                          R$ {order.total.toFixed(2)}
+                        </TableCell>
+                      )}
+                      {visibleColumns.payment_method && (
+                        <TableCell className="capitalize text-sm">
+                          {order.payment_method === 'pix' && 'PIX'}
+                          {order.payment_method === 'credit_card' && 'Cartão Crédito'}
+                          {order.payment_method === 'debit_card' && 'Cartão Débito'}
+                          {order.payment_method === 'cash' && 'Dinheiro'}
+                          {order.payment_method === 'voucher' && 'Vale'}
+                          {!['pix', 'credit_card', 'debit_card', 'cash', 'voucher'].includes(order.payment_method) && order.payment_method}
+                          {order.change_amount && order.change_amount > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              Troco: R$ {order.change_amount.toFixed(2)}
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
+                      {visibleColumns.payment_status && (
+                        <TableCell>
+                          <Badge 
+                            variant={order.payment_received ? 'default' : 'secondary'}
+                            className={order.payment_received ? 'bg-green-600' : 'bg-yellow-600'}
+                          >
+                            {order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
                           </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
+                        </TableCell>
+                      )}
+                      {visibleColumns.delivery_type && (
+                        <TableCell className="capitalize">
+                          <Badge variant={order.delivery_type === 'delivery' ? 'default' : 'secondary'}>
+                            {order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}
+                          </Badge>
+                          {order.delivery_type === 'delivery' && order.delivery_neighborhood && (
+                            <div className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">
+                              {order.delivery_neighborhood}
+                            </div>
+                          )}
+                        </TableCell>
+                      )}
+                      {visibleColumns.scheduled && (
+                        <TableCell className="text-center">
+                          {isOrderScheduled(order) ? (
+                            <Badge variant="outline" className="gap-1">
+                              <Clock className="h-3 w-3" />
+                              Sim
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      )}
+                      {visibleColumns.coupon && (
+                        <TableCell>
+                          {order.coupon_code ? (
+                            <Badge variant="outline" className="gap-1">
+                              <Tag className="h-3 w-3" />
+                              {order.coupon_code}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}
