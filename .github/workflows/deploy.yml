@@ -89,6 +89,39 @@ jobs:
             exit 1
           fi
           echo "✅ Build verificado: $(ls -la dist | wc -l) arquivos encontrados"
+          
+          # Verificar se index.html existe e tem conteúdo
+          if [ ! -f "dist/index.html" ]; then
+            echo "❌ Erro: index.html não foi gerado"
+            exit 1
+          fi
+          echo "✅ index.html encontrado"
+          
+          # Verificar se index.html tem referências a assets (não deve ter /src/)
+          if grep -q "/src/" dist/index.html; then
+            echo "❌ Erro: index.html ainda referencia /src/ - build pode estar incorreto"
+            echo "Conteúdo do index.html:"
+            cat dist/index.html
+            exit 1
+          fi
+          echo "✅ index.html não referencia /src/ (correto)"
+          
+          # Verificar se há arquivos assets
+          if [ ! -d "dist/assets" ]; then
+            echo "⚠️ Aviso: Diretório assets não encontrado"
+          else
+            ASSET_COUNT=$(ls dist/assets | wc -l)
+            echo "✅ Diretório assets encontrado: $ASSET_COUNT arquivos"
+            if [ "$ASSET_COUNT" -eq 0 ]; then
+              echo "⚠️ Aviso: Nenhum arquivo asset encontrado"
+            fi
+          fi
+
+      - name: Copy .htaccess and share.php to dist
+        run: |
+          cp .htaccess dist/.htaccess
+          cp share.php dist/share.php
+          echo "✅ .htaccess e share.php copiados para dist/"
 
       - name: Validate FTP credentials
         run: |
@@ -132,19 +165,6 @@ jobs:
           dangerous-clean-slate: false
           dry-run: false
 
-      - name: Deploy .htaccess and share.php
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_HOST }}
-          username: ${{ secrets.HOSTINGER_FTP_USER }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          local-dir: ./
-          server-dir: ${{ secrets.HOSTINGER_FTP_PATH || '/public_html/' }}
-          include: |
-            .htaccess
-            share.php
-          dangerous-clean-slate: false
-          dry-run: false
 
   # Job 3: Build Android APK and AAB
   build-android:
