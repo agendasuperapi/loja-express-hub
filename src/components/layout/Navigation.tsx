@@ -186,7 +186,7 @@ export const Navigation = () => {
                   </Link>
                 )}
                 <Link to="/auth">
-                  <AnimatedButton size="sm" className="bg-gradient-primary min-w-[200px] px-4">
+                  <AnimatedButton size="sm" className="bg-gradient-primary min-w-[140px] px-3">
                     <UserPlus className="w-4 h-4 mr-2" />
                     Cadastrar
                   </AnimatedButton>
