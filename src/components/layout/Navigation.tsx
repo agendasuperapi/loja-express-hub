@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Menu, LogOut, Package, ShoppingCart, ShieldCheck, User, Store } from "lucide-react";
+import { LayoutDashboard, Menu, LogOut, Package, ShoppingCart, ShieldCheck, User, Store, UserPlus } from "lucide-react";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -187,6 +187,7 @@ export const Navigation = () => {
                 )}
                 <Link to="/auth">
                   <AnimatedButton size="sm" className="bg-gradient-primary">
+                    <UserPlus className="w-4 h-4 mr-2" />
                     {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
                   </AnimatedButton>
                 </Link>
@@ -273,6 +274,7 @@ export const Navigation = () => {
                   ) : (
                     <Link to="/auth" className="block">
                       <Button className="w-full bg-gradient-primary">
+                        <UserPlus className="w-4 h-4 mr-2" />
                         {location.pathname === '/become-partner' ? 'Cadastrar' : 'Entrar / Cadastrar'}
                       </Button>
                     </Link>
