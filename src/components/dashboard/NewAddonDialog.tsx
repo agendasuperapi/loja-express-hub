@@ -100,10 +100,15 @@ export const NewAddonDialog = ({
     });
   };
 
-  const handleCreateCategory = async (name: string) => {
+  const handleCreateCategory = async (data: {
+    name: string;
+    min_items: number;
+    max_items: number | null;
+    is_exclusive: boolean;
+  }) => {
     setIsCreatingCategory(true);
     try {
-      await addCategory(name);
+      await addCategory(data.name, data.min_items, data.max_items, data.is_exclusive);
       await refetch();
       toast.success("Categoria criada com sucesso!");
     } catch (error) {
