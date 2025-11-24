@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Search, Store, Lightbulb, Download, Package, Filter, Power, PowerOff } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, FolderTree, X, GripVertical, Search, Store, Lightbulb, Download, Package, Filter, Power, PowerOff, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
@@ -131,6 +131,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const queryClient = useQueryClient();
   const [componentKey, setComponentKey] = useState(0);
   
+  // ETAPA 2: Estado para forçar re-render
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+  
+  // ETAPA 4: Estado para feedback visual de realtime
+  const [isRealtimeUpdating, setIsRealtimeUpdating] = useState(false);
+  
   // Forçar refresh do realtime quando productId mudar
   useEffect(() => {
     console.log('[ProductAddonsManager] 🔄 ProductId mudou, forçando remount do realtime:', productId);
@@ -145,12 +151,52 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
 
+  // ETAPA 2: Forçar re-render quando addons mudarem
+  useEffect(() => {
+    if (addons) {
+      console.log('[ProductAddonsManager] 🔄 Adicionais mudaram, forçando re-render');
+      setLastUpdate(Date.now());
+    }
+  }, [addons]);
+
+  // ETAPA 4: Listener de realtime para feedback visual na UI
+  useEffect(() => {
+    if (!productId) return;
+
+    const channel = supabase.channel(`ui-product-addons-${productId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'product_addons',
+        filter: `product_id=eq.${productId}`
+      }, (payload) => {
+        console.log('[ProductAddonsManager UI] 🔔 Novo adicional detectado via realtime!');
+        setIsRealtimeUpdating(true);
+        
+        toast({
+          title: "✨ Novo adicional detectado!",
+          description: `${payload.new.name} foi adicionado`,
+        });
+        
+        // Resetar indicador após 2 segundos
+        setTimeout(() => {
+          setIsRealtimeUpdating(false);
+        }, 2000);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [productId]);
+
   // Debug: Log quando addons mudar
   console.log('[ProductAddonsManager] 📊 Addons atualizados:', {
     count: addons?.length || 0,
     addons: addons,
     productId,
-    componentKey
+    componentKey,
+    lastUpdate
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -229,7 +275,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     }
     
     return filtered;
-  }, [addons, categoryFilter, availabilityFilter, searchTerm]);
+  }, [addons, categoryFilter, availabilityFilter, searchTerm, lastUpdate]);
 
   const addonsByCategory = useMemo(() => {
     if (!addons) return {};
@@ -260,13 +306,13 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     });
 
     return grouped;
-  }, [addons, activeCategories, availabilityFilter, searchTerm]);
+  }, [addons, activeCategories, availabilityFilter, searchTerm, lastUpdate]);
 
   // Autocomplete suggestions combining store addons and templates
   const autocompleteSuggestions = useMemo(() => {
     const term = '';
     return [];
-  }, [storeAddons, addons]);
+  }, [storeAddons, addons, lastUpdate]);
 
   // Filtered store addons for the dialog
   const filteredStoreAddons = useMemo(() => {
@@ -375,6 +421,21 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       is_available: !addon.is_available,
       category_id: addon.category_id,
       allow_quantity: addon.allow_quantity,
+    });
+  };
+
+  // ETAPA 5: Função para refresh manual
+  const handleManualRefresh = async () => {
+    console.log('[ProductAddonsManager] 🔄 Refresh manual iniciado');
+    await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+    await queryClient.refetchQueries({ 
+      queryKey: ['product-addons', productId],
+      exact: true,
+      type: 'active'
+    });
+    toast({
+      title: "✅ Lista atualizada!",
+      description: "Adicionais foram recarregados",
     });
   };
 
@@ -667,6 +728,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Adicional
+              </Button>
+              {/* ETAPA 5: Botão de refresh manual */}
+              <Button
+                onClick={handleManualRefresh}
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto shrink-0"
+                disabled={isRealtimeUpdating}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRealtimeUpdating ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">Atualizar</span>
               </Button>
               <Button 
                 size="sm" 
