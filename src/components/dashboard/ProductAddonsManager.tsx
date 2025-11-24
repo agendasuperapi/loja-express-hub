@@ -208,7 +208,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('available');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all'); // ✅ CORRIGIDO: Mostrar TODOS por padrão
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
@@ -281,6 +281,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(a => a.name.toLowerCase().includes(term));
     }
+    
+    // 🔍 DEBUG: Log para verificar filtragem
+    console.log('[ProductAddonsManager] 📊 Filtragem:', {
+      total: addons?.length || 0,
+      filteredCount: filtered.length,
+      categoryFilter,
+      availabilityFilter,
+      searchTerm,
+      allNames: addons?.map(a => a.name),
+      filteredNames: filtered.map(a => a.name)
+    });
     
     return filtered;
   }, [addons, categoryFilter, availabilityFilter, searchTerm, lastUpdate]);
