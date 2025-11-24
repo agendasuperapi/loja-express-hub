@@ -3,18 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows, MapPin, Phone } from "lucide-react";
+import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LayoutSettingsProps {
   currentTemplateDesktop?: string;
   currentTemplateMobile?: string;
-  showAddress?: boolean;
-  showPhone?: boolean;
-  onUpdate: (desktopTemplate: string, mobileTemplate: string, showAddress: boolean, showPhone: boolean) => Promise<void>;
+  onUpdate: (desktopTemplate: string, mobileTemplate: string) => Promise<void>;
   isUpdating: boolean;
 }
 
@@ -66,15 +63,11 @@ const templates = [
 export const LayoutSettings = ({ 
   currentTemplateDesktop = 'template-4', 
   currentTemplateMobile = 'template-2',
-  showAddress = true,
-  showPhone = true,
   onUpdate, 
   isUpdating,
 }: LayoutSettingsProps) => {
   const [selectedDesktop, setSelectedDesktop] = useState(currentTemplateDesktop);
   const [selectedMobile, setSelectedMobile] = useState(currentTemplateMobile);
-  const [showAddressEnabled, setShowAddressEnabled] = useState(showAddress);
-  const [showPhoneEnabled, setShowPhoneEnabled] = useState(showPhone);
 
   // Sync state with props when they change
   useEffect(() => {
@@ -85,17 +78,9 @@ export const LayoutSettings = ({
     setSelectedMobile(currentTemplateMobile);
   }, [currentTemplateMobile]);
 
-  useEffect(() => {
-    setShowAddressEnabled(showAddress);
-  }, [showAddress]);
-
-  useEffect(() => {
-    setShowPhoneEnabled(showPhone);
-  }, [showPhone]);
-
   const handleSave = async () => {
     try {
-      await onUpdate(selectedDesktop, selectedMobile, showAddressEnabled, showPhoneEnabled);
+      await onUpdate(selectedDesktop, selectedMobile);
       toast({
         title: "Configurações atualizadas!",
         description: "As configurações de exibição foram aplicadas com sucesso.",
@@ -258,59 +243,7 @@ export const LayoutSettings = ({
             </TabsContent>
           </Tabs>
 
-          <div className="space-y-4 pt-4 border-t">
-            {/* Address visibility setting */}
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background">
-                      <MapPin className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <Label htmlFor="show-address" className="text-base font-semibold cursor-pointer">
-                        Exibir Endereço na Página da Loja
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        Mostrar o endereço completo no cabeçalho da sua loja
-                      </p>
-                    </div>
-                  </div>
-                  <Switch
-                    id="show-address"
-                    checked={showAddressEnabled}
-                    onCheckedChange={setShowAddressEnabled}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Phone visibility setting */}
-            <Card className="bg-muted/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background">
-                      <Phone className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <Label htmlFor="show-phone" className="text-base font-semibold cursor-pointer">
-                        Exibir Telefone na Página da Loja
-                      </Label>
-                      <p className="text-sm text-muted-foreground">
-                        Mostrar o telefone de contato no cabeçalho da sua loja
-                      </p>
-                    </div>
-                  </div>
-                  <Switch
-                    id="show-phone"
-                    checked={showPhoneEnabled}
-                    onCheckedChange={setShowPhoneEnabled}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
+          <div className="pt-4 border-t">
             {/* Summary and save button */}
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -327,9 +260,7 @@ export const LayoutSettings = ({
                 onClick={handleSave}
                 disabled={isUpdating || (
                   selectedDesktop === currentTemplateDesktop && 
-                  selectedMobile === currentTemplateMobile &&
-                  showAddressEnabled === showAddress &&
-                  showPhoneEnabled === showPhone
+                  selectedMobile === currentTemplateMobile
                 )}
                 className="min-w-[120px]"
               >

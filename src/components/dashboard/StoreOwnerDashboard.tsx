@@ -5451,9 +5451,7 @@ export const StoreOwnerDashboard = () => {
             <LayoutSettings
               currentTemplateDesktop={(myStore as any)?.product_layout_template_desktop || 'template-4'}
               currentTemplateMobile={(myStore as any)?.product_layout_template_mobile || 'template-2'}
-              showAddress={(myStore as any)?.show_address_on_store_page !== false}
-              showPhone={(myStore as any)?.show_phone_on_store_page !== false}
-              onUpdate={async (desktopTemplate: string, mobileTemplate: string, showAddress: boolean, showPhone: boolean) => {
+              onUpdate={async (desktopTemplate: string, mobileTemplate: string) => {
                 await updateStore({
                   id: myStore.id,
                   name: myStore.name,
@@ -5461,8 +5459,6 @@ export const StoreOwnerDashboard = () => {
                   category: myStore.category,
                   product_layout_template_desktop: desktopTemplate,
                   product_layout_template_mobile: mobileTemplate,
-                  show_address_on_store_page: showAddress,
-                  show_phone_on_store_page: showPhone,
                 });
               }}
               isUpdating={false}
