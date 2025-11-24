@@ -241,11 +241,21 @@ jobs:
         if: steps.check_android.outputs.exists == 'true'
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
+      - name: Accept SDK licenses
         if: steps.check_android.outputs.exists == 'true'
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+        run: yes | sdkmanager --licenses || true
+      
+      - name: Install platform-tools
+        if: steps.check_android.outputs.exists == 'true'
+        run: sdkmanager "platform-tools"
+      
+      - name: Install Android platform
+        if: steps.check_android.outputs.exists == 'true'
+        run: sdkmanager "platforms;android-33"
+      
+      - name: Install build-tools
+        if: steps.check_android.outputs.exists == 'true'
+        run: sdkmanager "build-tools;33.0.0"
 
       - name: Setup Keystore for signing
         if: steps.check_android.outputs.exists == 'true'
