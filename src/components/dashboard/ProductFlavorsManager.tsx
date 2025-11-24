@@ -661,7 +661,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
           </div>
         )}
 
-        <div className="space-y-2 min-h-[600px]">
+        <div className="space-y-2 min-h-[800px]">
           {filteredFlavors && filteredFlavors.length > 0 ? (
             <DndContext
               sensors={sensors}

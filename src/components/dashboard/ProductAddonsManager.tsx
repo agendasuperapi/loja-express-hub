@@ -752,7 +752,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <div className="space-y-2 min-h-[600px]">
+            <div className="space-y-2 min-h-[800px]">
               {categoryFilter === 'all' ? (
                 // Group by category view
                 <>
