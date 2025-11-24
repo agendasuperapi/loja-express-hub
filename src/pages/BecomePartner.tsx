@@ -300,6 +300,7 @@ export default function BecomePartner() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="max-w-3xl mx-auto"
+          id="registration-form"
         >
           <Card>
             <CardHeader>
