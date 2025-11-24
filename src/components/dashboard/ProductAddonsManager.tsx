@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,16 +129,28 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
 
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const queryClient = useQueryClient();
+  const [componentKey, setComponentKey] = useState(0);
+  
+  // Forçar refresh do realtime quando productId mudar
+  useEffect(() => {
+    console.log('[ProductAddonsManager] 🔄 ProductId mudou, forçando remount do realtime:', productId);
+    setComponentKey(prev => prev + 1);
+    
+    // Forçar refetch imediato
+    queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+  }, [productId, queryClient]);
+  
   const { addons, createAddon, createAddonAsync, updateAddon, updateAddonAsync, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
   const { categories, addCategory } = useAddonCategories(storeId);
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
 
   // Debug: Log quando addons mudar
-  console.log('[ProductAddonsManager] Addons atualizados:', {
+  console.log('[ProductAddonsManager] 📊 Addons atualizados:', {
     count: addons?.length || 0,
     addons: addons,
-    productId
+    productId,
+    componentKey
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
