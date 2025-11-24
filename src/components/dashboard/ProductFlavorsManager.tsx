@@ -697,7 +697,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Importar de Produto */}
         <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Importar Sabores de Produto</DialogTitle>
               <DialogDescription>
@@ -760,7 +760,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             setSelectedFlavors([]);
           }
         }}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5" />
@@ -914,7 +914,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Novo Sabor */}
         <Dialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Novo Sabor</DialogTitle>
               <DialogDescription>
@@ -1013,7 +1013,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Buscar Sabores da Loja */}
         <Dialog open={searchFlavorsOpen} onOpenChange={setSearchFlavorsOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Buscar Sabores da Loja</DialogTitle>
               <DialogDescription>

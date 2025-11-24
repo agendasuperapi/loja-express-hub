@@ -123,7 +123,7 @@ export const NewAddonDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editData ? "Editar Adicional" : "Novo Adicional"}

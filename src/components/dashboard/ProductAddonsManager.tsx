@@ -860,7 +860,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
       }
     }}>
-      <DialogContent className="max-w-[50vw] max-h-[95vh] w-[calc(100vw-2rem)] sm:w-full overflow-y-auto bg-background z-50">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto bg-background z-50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Store className="w-5 h-5" />
@@ -1040,7 +1040,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         setSelectedAddonsToImport([]);
       }
     }}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />
@@ -1219,7 +1219,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
     {/* Dialog: Importar de Produto */}
     <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Importar Adicionais de Produto</DialogTitle>
           <DialogDescription>
@@ -1276,7 +1276,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
       {/* Modal separado para criar categoria */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Criar Nova Categoria</DialogTitle>
             <DialogDescription>
@@ -1367,7 +1367,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
       {/* Dialog de Editar Categorias */}
       <Dialog open={isEditCategoriesOpen} onOpenChange={setIsEditCategoriesOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Gerenciar Categorias de Adicionais</DialogTitle>
           </DialogHeader>
