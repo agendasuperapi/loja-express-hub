@@ -521,19 +521,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     );
 
     if (existingAddon) {
-      // Se já existe mas está inativo, reativar
-      if (!existingAddon.is_available) {
-        updateAddon({
-          id: existingAddon.id,
-          name: existingAddon.name,
-          price: storeAddon.price,
-          is_available: true,
-          category_id: existingAddon.category_id,
-          allow_quantity: existingAddon.allow_quantity,
-        });
-      }
+      // Se já existe, alternar disponibilidade (ativo <-> inativo)
+      updateAddon({
+        id: existingAddon.id,
+        name: existingAddon.name,
+        price: storeAddon.price,
+        is_available: !existingAddon.is_available,
+        category_id: existingAddon.category_id,
+        allow_quantity: existingAddon.allow_quantity,
+      });
     } else {
-      // Se não existe, criar novo
+      // Se não existe, criar novo já disponível
       createAddon({
         name: storeAddon.name,
         price: storeAddon.price,
@@ -1179,14 +1177,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             </p>
                           </div>
                           <Button
-                            size="sm"
-                            onClick={() => handleCopyStoreAddon(addon)}
-                            disabled={isInProduct}
-                            className="w-full sm:w-auto"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar
-                          </Button>
+                             size="sm"
+                             onClick={() => handleCopyStoreAddon(addon)}
+                             className="w-full sm:w-auto"
+                           >
+                             <Plus className="w-4 h-4 mr-2" />
+                             {addons?.some(a => a.name === addon.name && a.category_id === addon.category_id && a.is_available)
+                               ? 'Remover do produto'
+                               : 'Adicionar'}
+                           </Button>
                         </div>
                       );
                     })}
@@ -1222,15 +1221,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                                 R$ {addon.price.toFixed(2)}
                               </p>
                             </div>
-                            <Button
-                              size="sm"
-                              onClick={() => handleCopyStoreAddon(addon)}
-                              disabled={isInProduct}
-                              className="w-full sm:w-auto"
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Adicionar
-                            </Button>
+                             <Button
+                               size="sm"
+                               onClick={() => handleCopyStoreAddon(addon)}
+                               className="w-full sm:w-auto"
+                             >
+                               <Plus className="w-4 h-4 mr-2" />
+                               {addons?.some(a => a.name === addon.name && a.category_id === addon.category_id && a.is_available)
+                                 ? 'Remover do produto'
+                                 : 'Adicionar'}
+                             </Button>
                           </div>
                         );
                       })}
