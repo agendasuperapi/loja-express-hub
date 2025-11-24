@@ -299,12 +299,16 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         await createAddonAsync({ ...data, product_id: productId });
       }
       
-      console.log('[ProductAddonsManager] Adicional salvo, fechando dialog...');
+      console.log('[ProductAddonsManager] Adicional salvo com sucesso');
+      
+      // Forçar atualização imediata das queries
+      await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+      await queryClient.refetchQueries({ queryKey: ['product-addons', productId] });
       
       setIsDialogOpen(false);
       setEditingAddon(null);
       
-      console.log('[ProductAddonsManager] Dialog fechado');
+      console.log('[ProductAddonsManager] Interface atualizada');
     } catch (error) {
       console.error('[ProductAddonsManager] Erro ao submeter:', error);
     }

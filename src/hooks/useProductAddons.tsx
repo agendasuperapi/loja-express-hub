@@ -114,43 +114,30 @@ export const useProductAddons = (productId?: string) => {
       return data;
     },
     onSuccess: async (data) => {
-      console.log('[useProductAddons] 🔄 onSuccess - Iniciando invalidação de queries');
-      console.log('[useProductAddons] Dados do adicional criado:', data);
-      console.log('[useProductAddons] productId atual:', productId);
+      console.log('[useProductAddons] 🔄 onSuccess - Forçando atualização imediata');
       
-      try {
-        // Invalidar e refetch em sequência para garantir que funcione
-        console.log('[useProductAddons] 1/4 - Invalidando product-addons...');
-        await queryClient.invalidateQueries({ 
-          queryKey: ['product-addons', productId],
-          exact: true 
-        });
-        
-        console.log('[useProductAddons] 2/4 - Invalidando store-addons...');
-        await queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-        
-        console.log('[useProductAddons] 3/4 - Invalidando store-all-addons...');
-        await queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
-        
-        console.log('[useProductAddons] 4/4 - Forçando refetch...');
-        await queryClient.refetchQueries({ 
-          queryKey: ['product-addons', productId],
-          exact: true,
-          type: 'active'
-        });
-        
-        console.log('[useProductAddons] ✅ Todas as queries atualizadas');
-        
-        toast({
-          title: 'Adicional criado!',
-          description: 'O adicional foi adicionado ao produto.',
-        });
-      } catch (error) {
-        console.error('[useProductAddons] ❌ Erro ao atualizar queries:', error);
-      }
+      // Invalidar todas as queries relacionadas
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['product-addons', productId] }),
+        queryClient.invalidateQueries({ queryKey: ['store-addons'] }),
+        queryClient.invalidateQueries({ queryKey: ['store-all-addons'] })
+      ]);
+      
+      // Refetch imediato e forçado
+      await queryClient.refetchQueries({ 
+        queryKey: ['product-addons', productId],
+        type: 'active'
+      });
+      
+      console.log('[useProductAddons] ✅ Queries atualizadas com sucesso');
+      
+      toast({
+        title: 'Adicional criado!',
+        description: 'O adicional foi adicionado ao produto.',
+      });
     },
     onError: (error: Error) => {
-      console.error('[useProductAddons] ❌ Erro no onError:', error);
+      console.error('[useProductAddons] ❌ Erro:', error);
       toast({
         title: 'Erro ao criar adicional',
         description: error.message,
