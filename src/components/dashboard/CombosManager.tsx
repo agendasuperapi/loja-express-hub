@@ -332,7 +332,7 @@ export const CombosManager = ({ storeId, products }: CombosManagerProps) => {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {combos.map((combo) => {
               const totalNormal = combo.combo_items?.reduce((sum, item) => {
                 const product = products.find(p => p.id === item.product_id);
