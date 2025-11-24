@@ -36,6 +36,12 @@ dist
 dist-ssr
 *.local
 
+# --- ANDROID KEYSTORE ---
+*.jks
+*.keystore
+my-release-key.jks
+android/app/my-release-key.jks
+
 # --- LOGS ---
 logs
 *.log

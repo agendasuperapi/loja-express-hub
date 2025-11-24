@@ -58,22 +58,37 @@ export const MobileBottomNav = () => {
     const loadLastStore = () => {
       const stored = localStorage.getItem('lastVisitedStore');
       if (stored) {
-        setLastStore(JSON.parse(stored));
+        try {
+          const parsed = JSON.parse(stored);
+          setLastStore(prev => {
+            // Só atualiza se o valor realmente mudou
+            if (JSON.stringify(prev) !== JSON.stringify(parsed)) {
+              return parsed;
+            }
+            return prev;
+          });
+        } catch (e) {
+          console.error('Error parsing lastVisitedStore:', e);
+        }
       }
     };
     
     // Load initially
     loadLastStore();
     
-    // Listen for storage changes
+    // Listen for storage changes (entre abas)
     window.addEventListener('storage', loadLastStore);
     
-    // Also check on interval to catch same-tab changes
-    const interval = setInterval(loadLastStore, 500);
+    // Verificar apenas quando a janela volta ao foco (não a cada 500ms)
+    const handleFocus = () => {
+      loadLastStore();
+    };
+    
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       window.removeEventListener('storage', loadLastStore);
-      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

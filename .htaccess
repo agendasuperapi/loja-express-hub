@@ -7,18 +7,20 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 2. Condição para BOTs de rede social (User-Agent)
-  RewriteCond %{HTTP_USER_AGENT} facebookexternalhit|WhatsApp|Twitterbot|LinkedInBot|Slackbot|Telegram|Discordbot|instagram|crawler|spider [NC]
+  # 2. Regras de reescrita para BOTs de rede social (Meta Tags)
+  # Verifica se é um bot E se a URL corresponde aos padrões de compartilhamento
   
-  # 3. Regras de reescrita para BOTs (Meta Tags)
-  
-  # /p/short_id (produtos)
+  # /p/short_id (produtos) - para bots
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Telegram|Discordbot|instagram|Googlebot|bingbot|crawler|spider) [NC]
   RewriteRule ^p/([a-zA-Z0-9_-]+)$ share.php?tipo=produto&id=$1 [QSA,L]
 
-  # /nomedaloja (lojas)
+  # /nomedaloja (lojas) - para bots (exclui rotas comuns do React e arquivos)
+  RewriteCond %{HTTP_USER_AGENT} (facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Telegram|Discordbot|instagram|Googlebot|bingbot|crawler|spider) [NC]
+  RewriteCond %{REQUEST_URI} !^/(dashboard|login|profile|cart|orders|admin|auth|forgot-password|reset-password|become-partner|store-details|product-page|not-found|api|assets|dist|src|node_modules|public) [NC]
+  RewriteCond %{REQUEST_URI} !\.(php|html|css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$ [NC]
   RewriteRule ^([a-zA-Z0-9_-]+)$ share.php?tipo=loja&username=$1 [QSA,L]
 
-  # 4. Todo o resto -> app web (SPA)
+  # 3. Todo o resto -> app web (SPA)
   RewriteRule ^.*$ /index.html [L]
 </IfModule>
 
