@@ -392,7 +392,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       
       // Resetar filtros para garantir visibilidade
       setCategoryFilter('all');
-      setAvailabilityFilter('available');
+      setAvailabilityFilter('all');
       setSearchTerm('');
       
       // Mostrar toast de "processando"
