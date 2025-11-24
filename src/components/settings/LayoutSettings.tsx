@@ -8,7 +8,6 @@ import { toast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Check, LayoutGrid, List, Grid2X2, Grid3x3, Monitor, Smartphone, Rows, MapPin, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StorePreview } from "@/components/dashboard/StorePreview";
 
 interface LayoutSettingsProps {
   currentTemplateDesktop?: string;
@@ -17,13 +16,6 @@ interface LayoutSettingsProps {
   showPhone?: boolean;
   onUpdate: (desktopTemplate: string, mobileTemplate: string, showAddress: boolean, showPhone: boolean) => Promise<void>;
   isUpdating: boolean;
-  storeName?: string;
-  storeDescription?: string;
-  storeLogo?: string;
-  storeBanner?: string;
-  storeRating?: number;
-  storeAddress?: string;
-  storePhone?: string;
 }
 
 const templates = [
@@ -78,13 +70,6 @@ export const LayoutSettings = ({
   showPhone = true,
   onUpdate, 
   isUpdating,
-  storeName,
-  storeDescription,
-  storeLogo,
-  storeBanner,
-  storeRating,
-  storeAddress,
-  storePhone,
 }: LayoutSettingsProps) => {
   const [selectedDesktop, setSelectedDesktop] = useState(currentTemplateDesktop);
   const [selectedMobile, setSelectedMobile] = useState(currentTemplateMobile);
@@ -223,7 +208,7 @@ export const LayoutSettings = ({
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
+    <div className="max-w-4xl">
       {/* Settings Panel */}
       <Card className="border-border/50 shadow-lg">
         <CardHeader>
@@ -354,67 +339,6 @@ export const LayoutSettings = ({
           </div>
         </CardContent>
       </Card>
-
-      {/* Preview Panel */}
-      <div className="space-y-4">
-        <Card className="border-border/50 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">Pré-visualização</CardTitle>
-            <CardDescription>
-              Veja como sua loja ficará com as configurações atuais
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Desktop Preview */}
-            <div className="hidden lg:block space-y-2">
-              <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-                <Monitor className="w-4 h-4" />
-                Visualização Desktop
-              </div>
-              <div className="border rounded-lg p-4 bg-muted/10">
-                <StorePreview
-                  storeName={storeName || "Minha Loja"}
-                  storeDescription={storeDescription}
-                  storeLogo={storeLogo}
-                  storeBanner={storeBanner}
-                  storeRating={storeRating}
-                  storeAddress={storeAddress}
-                  storePhone={storePhone}
-                  showAddress={showAddressEnabled}
-                  showPhone={showPhoneEnabled}
-                  layoutTemplateDesktop={selectedDesktop}
-                  layoutTemplateMobile={selectedMobile}
-                  isMobileView={false}
-                />
-              </div>
-            </div>
-
-            {/* Mobile Preview */}
-            <div className="space-y-2">
-              <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                Visualização Mobile
-              </div>
-              <div className="border rounded-lg p-4 bg-muted/10 max-w-sm mx-auto lg:mx-0">
-                <StorePreview
-                  storeName={storeName || "Minha Loja"}
-                  storeDescription={storeDescription}
-                  storeLogo={storeLogo}
-                  storeBanner={storeBanner}
-                  storeRating={storeRating}
-                  storeAddress={storeAddress}
-                  storePhone={storePhone}
-                  showAddress={showAddressEnabled}
-                  showPhone={showPhoneEnabled}
-                  layoutTemplateDesktop={selectedDesktop}
-                  layoutTemplateMobile={selectedMobile}
-                  isMobileView={true}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };

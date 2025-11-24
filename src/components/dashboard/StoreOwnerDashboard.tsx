@@ -5466,17 +5466,6 @@ export const StoreOwnerDashboard = () => {
                 });
               }}
               isUpdating={false}
-              storeName={myStore.name}
-              storeDescription={myStore.description || undefined}
-              storeLogo={myStore.logo_url || undefined}
-              storeBanner={myStore.banner_url || undefined}
-              storeRating={myStore.rating || undefined}
-              storeAddress={
-                (myStore as any).store_street && (myStore as any).store_neighborhood && (myStore as any).store_city
-                  ? `${(myStore as any).store_street}${(myStore as any).store_street_number ? ', ' + (myStore as any).store_street_number : ''} - ${(myStore as any).store_neighborhood}, ${(myStore as any).store_city}`
-                  : myStore.address || undefined
-              }
-              storePhone={myStore.phone || undefined}
             />
           </motion.div>
         </TabsContent>
