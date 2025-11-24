@@ -18,8 +18,8 @@ export const AnimatedButton = ({
     stiffness: 400,
     damping: 17
   }}>
-      <Button className={cn("relative overflow-hidden", className)} {...props}>
-        
+      <Button className={cn("relative overflow-hidden font-semibold", className)} {...props}>
+        {children}
       </Button>
     </motion.div>;
 };
