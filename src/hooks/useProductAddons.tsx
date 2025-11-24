@@ -51,48 +51,99 @@ export const useProductAddons = (productId?: string) => {
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 3000, // 🔥 Atualização automática a cada 3 segundos
-    refetchIntervalInBackground: false,
   });
 
-  // 🔥 REALTIME: Escutar mudanças na tabela product_addons em tempo real
+  // 🔥 REALTIME: Sistema de atualização em tempo real
   useEffect(() => {
     if (!productId) return;
 
-    console.log('[useProductAddons] 🎧 Configurando listener realtime para product_id:', productId);
+    console.log('[useProductAddons] 🎧 Configurando REALTIME para product_id:', productId);
 
     const channel = supabase
-      .channel(`product-addons-${productId}`)
+      .channel(`product-addons-realtime-${productId}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // INSERT, UPDATE, DELETE
+          event: 'INSERT',
           schema: 'public',
           table: 'product_addons',
           filter: `product_id=eq.${productId}`
         },
-        (payload) => {
-          console.log('[useProductAddons] 🔔 Realtime event received:', {
-            eventType: payload.eventType,
-            new: payload.new,
-            old: payload.old
-          });
-
-          // Invalidar e refetch automaticamente quando houver mudanças
-          queryClient.invalidateQueries({ 
-            queryKey: ['product-addons', productId],
-            exact: true 
+        async (payload) => {
+          console.log('[useProductAddons] 🔔 REALTIME INSERT:', payload.new);
+          
+          // Atualização OTIMISTA: adiciona imediatamente sem esperar refetch
+          queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
+            if (!old) return [payload.new as ProductAddon];
+            return [...old, payload.new as ProductAddon];
           });
           
-          console.log('[useProductAddons] 🔄 Query invalidated due to realtime event');
+          // Refetch completo para garantir ordem correta
+          await queryClient.refetchQueries({ 
+            queryKey: ['product-addons', productId],
+            exact: true,
+            type: 'active'
+          });
+          
+          console.log('[useProductAddons] ✅ Novo adicional adicionado via REALTIME!');
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'product_addons',
+          filter: `product_id=eq.${productId}`
+        },
+        async (payload) => {
+          console.log('[useProductAddons] 🔔 REALTIME UPDATE:', payload.new);
+          
+          // Atualização OTIMISTA
+          queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
+            if (!old) return [payload.new as ProductAddon];
+            return old.map(addon => 
+              addon.id === payload.new.id ? payload.new as ProductAddon : addon
+            );
+          });
+          
+          console.log('[useProductAddons] ✅ Adicional atualizado via REALTIME!');
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'product_addons',
+          filter: `product_id=eq.${productId}`
+        },
+        async (payload) => {
+          console.log('[useProductAddons] 🔔 REALTIME DELETE:', payload.old);
+          
+          // Atualização OTIMISTA
+          queryClient.setQueryData(['product-addons', productId], (old: ProductAddon[] | undefined) => {
+            if (!old) return [];
+            return old.filter(addon => addon.id !== payload.old.id);
+          });
+          
+          console.log('[useProductAddons] ✅ Adicional removido via REALTIME!');
         }
       )
       .subscribe((status) => {
-        console.log('[useProductAddons] 📡 Realtime subscription status:', status);
+        console.log('[useProductAddons] 📡 REALTIME status:', status, 'para produto:', productId);
+        
+        if (status === 'SUBSCRIBED') {
+          console.log('[useProductAddons] ✅ REALTIME ATIVO para produto:', productId);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[useProductAddons] ❌ ERRO no canal REALTIME');
+        } else if (status === 'TIMED_OUT') {
+          console.error('[useProductAddons] ⏱️ TIMEOUT no canal REALTIME');
+        }
       });
 
     return () => {
-      console.log('[useProductAddons] 🔌 Unsubscribing from realtime channel');
+      console.log('[useProductAddons] 🔌 Desconectando REALTIME para produto:', productId);
       supabase.removeChannel(channel);
     };
   }, [productId, queryClient]);
