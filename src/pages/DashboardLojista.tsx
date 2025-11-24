@@ -14,7 +14,7 @@ const DashboardLojista = () => {
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm"
+        className="fixed top-0 left-0 right-0 z-50 bg-white/60 dark:bg-gray-950/60 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 shadow-sm"
       >
         <div className="container mx-auto px-4 h-16 flex items-center justify-between md:justify-end">
           {/* Espaço vazio em mobile para o menu hambúrguer (renderizado pelo DashboardMobileSidebar) */}

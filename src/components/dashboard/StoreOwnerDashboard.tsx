@@ -1873,8 +1873,8 @@ export const StoreOwnerDashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className="border-primary/30 shadow-lg overflow-hidden relative bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+              <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/30 via-purple-100/20 to-pink-100/10 dark:from-blue-900/20 dark:via-purple-900/10 dark:to-pink-900/5 rounded-full -mr-32 -mt-32 blur-3xl" />
                 <CardContent className="p-6 relative z-10">
                   <div className="flex items-center justify-between">
                     <div>
@@ -2188,8 +2188,8 @@ export const StoreOwnerDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <Card className="hover-scale overflow-hidden relative border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16" />
+                <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-purple-100/30 dark:from-blue-900/20 dark:to-purple-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <CardTitle className="text-sm font-medium">Total de Pedidos</CardTitle>
                     <ShoppingBag className="h-5 w-5 text-primary" />
@@ -2219,8 +2219,8 @@ export const StoreOwnerDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <Card className="hover-scale overflow-hidden relative border-green-500/20 bg-gradient-to-br from-green-500/5 to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16" />
+                <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/50 to-emerald-100/30 dark:from-green-900/20 dark:to-emerald-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
                     <DollarSign className="h-5 w-5 text-green-500" />
@@ -2252,8 +2252,8 @@ export const StoreOwnerDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Card className="hover-scale overflow-hidden relative border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16" />
+                <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100/50 to-pink-100/30 dark:from-purple-900/20 dark:to-pink-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
                     <TrendingUp className="h-5 w-5 text-purple-500" />
@@ -2285,8 +2285,8 @@ export const StoreOwnerDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <Card className="hover-scale overflow-hidden relative border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16" />
+                <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-cyan-100/30 dark:from-blue-900/20 dark:to-cyan-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <CardTitle className="text-sm font-medium">Pedidos Concluídos</CardTitle>
                     <Check className="h-5 w-5 text-blue-500" />
@@ -2319,8 +2319,8 @@ export const StoreOwnerDashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                <Card className="hover-scale overflow-hidden relative border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16" />
+                <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-100/50 to-yellow-100/30 dark:from-amber-900/20 dark:to-yellow-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <CardTitle className="text-sm font-medium">Status de Pagamento</CardTitle>
                     <DollarSign className="h-5 w-5 text-amber-500" />
@@ -2367,8 +2367,8 @@ export const StoreOwnerDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <Card className="shadow-lg">
-                      <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
+                    <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                      <CardHeader className="bg-gradient-to-r from-blue-100/30 to-transparent dark:from-blue-900/20">
                         <CardTitle className="flex items-center gap-2">
                           <TrendingUp className="h-5 w-5 text-primary" />
                           Pedidos ao Longo do Tempo
@@ -2415,8 +2415,8 @@ export const StoreOwnerDashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
                   >
-                    <Card className="shadow-lg">
-                      <CardHeader className="bg-gradient-to-r from-green-500/5 to-transparent">
+                    <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                      <CardHeader className="bg-gradient-to-r from-green-100/30 to-transparent dark:from-green-900/20">
                         <CardTitle className="flex items-center gap-2">
                           <DollarSign className="h-5 w-5 text-green-500" />
                           Receita ao Longo do Tempo
@@ -2463,8 +2463,8 @@ export const StoreOwnerDashboard = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 }}
                     >
-                      <Card className="shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-blue-500/5 to-transparent">
+                      <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                        <CardHeader className="bg-gradient-to-r from-blue-100/30 to-transparent dark:from-blue-900/20">
                           <CardTitle className="flex items-center gap-2">
                             <DollarSign className="h-5 w-5 text-blue-500" />
                             Métodos de Pagamento
@@ -2508,8 +2508,8 @@ export const StoreOwnerDashboard = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.8 }}
                     >
-                      <Card className="shadow-lg">
-                        <CardHeader className="bg-gradient-to-r from-purple-500/5 to-transparent">
+                      <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+                        <CardHeader className="bg-gradient-to-r from-purple-100/30 to-transparent dark:from-purple-900/20">
                           <CardTitle className="flex items-center gap-2">
                             <Package className="h-5 w-5 text-purple-500" />
                             Produtos Mais Vendidos
