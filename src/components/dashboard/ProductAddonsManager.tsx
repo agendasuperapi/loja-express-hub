@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -130,9 +130,21 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
 export default function ProductAddonsManager({ productId, storeId }: ProductAddonsManagerProps) {
   const queryClient = useQueryClient();
   const { addons, createAddon, updateAddon, deleteAddon, reorderAddons, isCreating, isDeleting } = useProductAddons(productId);
-  const { categories, addCategory } = useAddonCategories(storeId);
+  const { categories, addCategory, refetch: refetchCategories } = useAddonCategories(storeId);
   const storeAddonsQuery = useStoreAddons(storeId);
   const storeAddons = storeAddonsQuery.addons || [];
+
+  // Listen for new categories created from NewAddonDialog
+  useEffect(() => {
+    const handleCategoryCreated = () => {
+      refetchCategories();
+    };
+
+    window.addEventListener('addonCategoryCreated', handleCategoryCreated);
+    return () => {
+      window.removeEventListener('addonCategoryCreated', handleCategoryCreated);
+    };
+  }, [refetchCategories]);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
