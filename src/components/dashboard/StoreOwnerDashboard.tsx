@@ -351,14 +351,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const tabFromUrl = searchParams.get('tab') || 'home';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
   
-  // Atualizar URL quando a aba mudar
+  // Sincronizar estado quando a URL mudar (ex: ao recarregar a página)
   useEffect(() => {
-    if (activeTab !== tabFromUrl) {
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+  
+  // Atualizar URL quando a aba mudar pelo usuário
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    if (activeTab !== currentTab) {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('tab', activeTab);
       setSearchParams(newSearchParams, { replace: true });
     }
-  }, [activeTab, tabFromUrl, setSearchParams]);
+  }, [activeTab, searchParams, setSearchParams]);
 
   // Sync local products with fetched products
   useEffect(() => {
