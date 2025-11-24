@@ -86,18 +86,33 @@ export const NewAddonDialog = ({
   }, [editData, open]);
 
   const handleSubmit = () => {
-    if (!formData.name.trim()) return;
+    console.log('[NewAddonDialog] handleSubmit iniciado', {
+      formData,
+      hasName: !!formData.name.trim(),
+      price: formData.price
+    });
+    
+    if (!formData.name.trim()) {
+      console.warn('[NewAddonDialog] Nome vazio, cancelando');
+      return;
+    }
 
     const price = parseFloat(formData.price);
-    if (isNaN(price) || price < 0) return;
+    if (isNaN(price) || price < 0) {
+      console.warn('[NewAddonDialog] Preço inválido, cancelando', { price });
+      return;
+    }
 
-    onSubmit({
+    const submitData = {
       name: formData.name.trim(),
       price,
       category_id: formData.category_id || null,
       is_available: formData.is_available,
       allow_quantity: formData.allow_quantity,
-    });
+    };
+    
+    console.log('[NewAddonDialog] Chamando onSubmit com:', submitData);
+    onSubmit(submitData);
   };
 
   const handleCreateCategory = async (data: {

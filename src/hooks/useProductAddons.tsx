@@ -48,7 +48,7 @@ export const useProductAddons = (productId?: string) => {
 
   const createAddonMutation = useMutation({
     mutationFn: async (addonData: AddonFormData & { product_id: string }) => {
-      console.log('[Create Addon] Iniciando criação:', addonData);
+      console.log('[useProductAddons] 🔵 Iniciando criação de adicional:', addonData);
       
       const { data, error } = await supabase
         .from('product_addons')
@@ -57,40 +57,51 @@ export const useProductAddons = (productId?: string) => {
         .single();
 
       if (error) {
-        console.error('[Create Addon] Erro ao criar:', error);
+        console.error('[useProductAddons] ❌ Erro ao inserir:', error);
         throw error;
       }
       
-      console.log('[Create Addon] Adicional criado com sucesso:', data);
+      console.log('[useProductAddons] ✅ Adicional inserido com sucesso:', data);
       return data;
     },
     onSuccess: async (data) => {
-      console.log('[Create Addon] onSuccess chamado, invalidando queries...');
+      console.log('[useProductAddons] 🔄 onSuccess - Iniciando invalidação de queries');
+      console.log('[useProductAddons] Dados do adicional criado:', data);
+      console.log('[useProductAddons] productId atual:', productId);
       
-      // Invalidar todas as queries relacionadas
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['product-addons', productId] }),
-        queryClient.invalidateQueries({ queryKey: ['store-addons'] }),
-        queryClient.invalidateQueries({ queryKey: ['store-all-addons'] }),
-      ]);
-      
-      console.log('[Create Addon] Queries invalidadas, forçando refetch...');
-      
-      // Forçar refetch imediato
-      await queryClient.refetchQueries({ 
-        queryKey: ['product-addons', productId],
-        type: 'active'
-      });
-      
-      console.log('[Create Addon] Refetch concluído');
-      
-      toast({
-        title: 'Adicional criado!',
-        description: 'O adicional foi adicionado ao produto.',
-      });
+      try {
+        // Invalidar e refetch em sequência para garantir que funcione
+        console.log('[useProductAddons] 1/4 - Invalidando product-addons...');
+        await queryClient.invalidateQueries({ 
+          queryKey: ['product-addons', productId],
+          exact: true 
+        });
+        
+        console.log('[useProductAddons] 2/4 - Invalidando store-addons...');
+        await queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+        
+        console.log('[useProductAddons] 3/4 - Invalidando store-all-addons...');
+        await queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+        
+        console.log('[useProductAddons] 4/4 - Forçando refetch...');
+        await queryClient.refetchQueries({ 
+          queryKey: ['product-addons', productId],
+          exact: true,
+          type: 'active'
+        });
+        
+        console.log('[useProductAddons] ✅ Todas as queries atualizadas');
+        
+        toast({
+          title: 'Adicional criado!',
+          description: 'O adicional foi adicionado ao produto.',
+        });
+      } catch (error) {
+        console.error('[useProductAddons] ❌ Erro ao atualizar queries:', error);
+      }
     },
     onError: (error: Error) => {
-      console.error('[Create Addon] Erro no onError:', error);
+      console.error('[useProductAddons] ❌ Erro no onError:', error);
       toast({
         title: 'Erro ao criar adicional',
         description: error.message,
