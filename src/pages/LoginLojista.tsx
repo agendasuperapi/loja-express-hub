@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmailInput } from "@/components/ui/email-input";
 import { supabase } from "@/integrations/supabase/client";
-import { Store, LogIn, AlertCircle } from "lucide-react";
+import { Store, LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,8 @@ export default function LoginLojista() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [hideTimer, setHideTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Redirect if already logged in as store_owner or employee
   useEffect(() => {
@@ -49,6 +51,37 @@ export default function LoginLojista() {
     
     checkAccess();
   }, [user, hasRole, roleLoading, navigate]);
+
+  // Auto-hide password after user stops typing
+  useEffect(() => {
+    if (showPassword && password.length > 0) {
+      // Clear existing timer
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+      }
+
+      // Set new timer to hide password after 2 seconds of inactivity
+      const timer = setTimeout(() => {
+        setShowPassword(false);
+      }, 2000);
+
+      setHideTimer(timer);
+    }
+
+    return () => {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+      }
+    };
+  }, [password]);
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    // Show password while typing
+    if (e.target.value.length > 0) {
+      setShowPassword(true);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -191,15 +224,30 @@ export default function LoginLojista() {
 
                 <div className="space-y-2">
                   <Label htmlFor="password">Senha *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Digite sua senha"
-                    required
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={handlePasswordChange}
+                      placeholder="Digite sua senha"
+                      required
+                      minLength={6}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                   <Link
                     to="/forgot-password"
                     className="text-xs text-muted-foreground hover:text-primary transition-colors inline-block"
