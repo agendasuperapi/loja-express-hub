@@ -65,6 +65,8 @@ export const OrdersReport = ({
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'delivery' | 'pickup'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all');
   const [valueRangeFilter, setValueRangeFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [couponFilter, setCouponFilter] = useState<string>('all');
+  const [availableCoupons, setAvailableCoupons] = useState<Array<{code: string, id: string}>>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -105,6 +107,7 @@ export const OrdersReport = ({
       setDeliveryTypeFilter(filters.deliveryTypeFilter || "all");
       setPaymentMethodFilter(filters.paymentMethodFilter || "all");
       setValueRangeFilter(filters.valueRangeFilter || "all");
+      setCouponFilter(filters.couponFilter || "all");
     }
   }, [storeId]);
 
@@ -117,10 +120,11 @@ export const OrdersReport = ({
       scheduledFilter,
       deliveryTypeFilter,
       paymentMethodFilter,
-      valueRangeFilter
+      valueRangeFilter,
+      couponFilter
     };
     localStorage.setItem(`ordersReport-filters-${storeId}`, JSON.stringify(filters));
-  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, storeId]);
+  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, storeId]);
 
   // Salvar colunas visíveis no localStorage quando mudarem
   useEffect(() => {
@@ -143,6 +147,19 @@ export const OrdersReport = ({
       } = await supabase.from('stores').select('operating_hours, allow_orders_when_closed').eq('id', storeId).single();
       if (storeError) throw storeError;
       setStoreData(store);
+
+      // Buscar cupons usados nos pedidos
+      const { data: couponsData } = await supabase
+        .from('orders')
+        .select('coupon_code')
+        .eq('store_id', storeId)
+        .not('coupon_code', 'is', null);
+      
+      if (couponsData) {
+        const uniqueCoupons = Array.from(new Set(couponsData.map(o => o.coupon_code).filter(Boolean)))
+          .map((code, index) => ({ code: code as string, id: `coupon-${index}` }));
+        setAvailableCoupons(uniqueCoupons);
+      }
       let query = supabase.from('orders').select('*').eq('store_id', storeId).order('created_at', {
         ascending: false
       });
@@ -269,12 +286,20 @@ export const OrdersReport = ({
     } else if (valueRangeFilter === 'high') {
       filtered = filtered.filter(o => o.total >= 100);
     }
+
+    // Filtro por cupom específico
+    if (couponFilter === 'no-coupon') {
+      filtered = filtered.filter(o => !o.coupon_code);
+    } else if (couponFilter !== 'all') {
+      filtered = filtered.filter(o => o.coupon_code === couponFilter);
+    }
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(order => order.order_number.toLowerCase().includes(term) || order.customer_name.toLowerCase().includes(term) || order.customer_phone.includes(term) || order.coupon_code?.toLowerCase().includes(term));
     }
     return filtered;
-  }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, storeData]);
+  }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, storeData]);
 
   // Paginação
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -286,7 +311,7 @@ export const OrdersReport = ({
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, dateRange]);
+  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, dateRange]);
   const exportToCSV = () => {
     const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
     const rows = filteredOrders.map(order => [order.order_number, format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', {
@@ -508,6 +533,27 @@ export const OrdersReport = ({
                     </Select>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label>Cupom Aplicado</Label>
+                    <Select value={couponFilter} onValueChange={setCouponFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Cupom" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="no-coupon">Sem cupom</SelectItem>
+                        {availableCoupons.map((coupon) => (
+                          <SelectItem key={coupon.id} value={coupon.code}>
+                            <div className="flex items-center gap-2">
+                              <Tag className="h-4 w-4" />
+                              {coupon.code}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex gap-2 pt-4">
                     <Button variant="outline" className="flex-1" onClick={() => {
                     setSearchTerm("");
@@ -517,6 +563,7 @@ export const OrdersReport = ({
                     setDeliveryTypeFilter("all");
                     setPaymentMethodFilter("all");
                     setValueRangeFilter("all");
+                    setCouponFilter("all");
                   }}>
                       Limpar Filtros
                     </Button>
