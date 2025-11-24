@@ -72,18 +72,25 @@ export const useProductAddons = (productId?: string) => {
           table: 'product_addons',
           filter: `product_id=eq.${productId}`
         },
-        async (payload) => {
+        (payload) => {
           console.log('[useProductAddons] 🔔 REALTIME INSERT detectado:', payload);
           console.log('[useProductAddons] 🔔 Novo adicional:', payload.new);
           
-          // Forçar refetch completo para garantir consistência
-          await queryClient.refetchQueries({ 
-            queryKey: ['product-addons', productId],
-            exact: true,
-            type: 'active'
+          // ETAPA 1: Invalidar PRIMEIRO, depois refetch com delay
+          queryClient.invalidateQueries({ 
+            queryKey: ['product-addons', productId] 
           });
           
-          console.log('[useProductAddons] ✅ Lista atualizada após INSERT via REALTIME!');
+          // Aguardar um frame para garantir propagação do banco
+          setTimeout(() => {
+            queryClient.refetchQueries({ 
+              queryKey: ['product-addons', productId],
+              exact: true,
+              type: 'active'
+            }).then(() => {
+              console.log('[useProductAddons] ✅ Lista atualizada após INSERT via REALTIME!');
+            });
+          }, 100);
         }
       )
       .on(
