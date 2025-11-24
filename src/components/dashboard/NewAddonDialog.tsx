@@ -21,6 +21,7 @@ import {
 import { Check, X, Plus } from "lucide-react";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { toast } from "sonner";
+import { NewAddonCategoryDialog } from "./NewAddonCategoryDialog";
 
 interface NewAddonDialogProps {
   open: boolean;
@@ -59,8 +60,7 @@ export const NewAddonDialog = ({
     is_available: true,
     allow_quantity: false,
   });
-  const [showNewCategory, setShowNewCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   // Update form when editing
@@ -100,19 +100,12 @@ export const NewAddonDialog = ({
     });
   };
 
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) {
-      toast.error("Digite um nome para a categoria");
-      return;
-    }
-
+  const handleCreateCategory = async (name: string) => {
     setIsCreatingCategory(true);
     try {
-      await addCategory(newCategoryName.trim());
+      await addCategory(name);
       await refetch();
       toast.success("Categoria criada com sucesso!");
-      setNewCategoryName("");
-      setShowNewCategory(false);
     } catch (error) {
       toast.error("Erro ao criar categoria");
       console.error(error);
@@ -173,42 +166,6 @@ export const NewAddonDialog = ({
           <div className="space-y-2">
             <Label htmlFor="addon-category">Categoria</Label>
 
-            {showNewCategory && (
-              <div className="flex gap-2 p-3 border rounded-lg bg-muted/30">
-                <Input
-                  placeholder="Nome da nova categoria"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  disabled={isCreatingCategory}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleCreateCategory();
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleCreateCategory}
-                  disabled={isCreatingCategory || !newCategoryName.trim()}
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowNewCategory(false);
-                    setNewCategoryName("");
-                  }}
-                  disabled={isCreatingCategory}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
             <div className="flex gap-2">
               <Select
                 value={formData.category_id || "uncategorized"}
@@ -236,7 +193,7 @@ export const NewAddonDialog = ({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setShowNewCategory(!showNewCategory)}
+                onClick={() => setShowCategoryDialog(true)}
                 disabled={isLoading}
                 className="shrink-0"
               >
@@ -312,6 +269,13 @@ export const NewAddonDialog = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <NewAddonCategoryDialog
+        open={showCategoryDialog}
+        onOpenChange={setShowCategoryDialog}
+        onSubmit={handleCreateCategory}
+        isLoading={isCreatingCategory}
+      />
     </Dialog>
   );
 };
