@@ -97,21 +97,6 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
         </Badge>
       )}
 
-      {/* Botão Sair no topo */}
-      {onSignOut && (
-        <div className="px-3 pb-3 mb-2 flex-shrink-0 border-b border-primary/10">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onSignOut}
-            className="w-full flex flex-col items-center gap-2 py-3 px-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all duration-200"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-xs font-medium uppercase">Sair</span>
-          </motion.button>
-        </div>
-      )}
-
       <nav className="flex-1 w-full space-y-0.5 px-3 overflow-y-auto overflow-x-hidden min-h-0 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
