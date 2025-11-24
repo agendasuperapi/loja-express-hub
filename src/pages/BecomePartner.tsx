@@ -481,42 +481,6 @@ export default function BecomePartner() {
                   </div>
                 </div>
 
-                {/* Contact & Location */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Contato e Localização
-                  </h3>
-
-                  <div>
-                    <Label htmlFor="address">Endereço Completo</Label>
-                    <Textarea
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
-                      placeholder="Rua, número, bairro, cidade - UF"
-                      rows={2}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">Telefone da Loja</Label>
-                    <PhoneInput
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(value) =>
-                        setFormData({ ...formData, phone: value })
-                      }
-                      className={errors.phone ? "border-red-500" : ""}
-                    />
-                    {errors.phone && (
-                      <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
-                    )}
-                  </div>
-                </div>
-
                 {/* User Account Section - Only if not logged in */}
                 {!user && (
                   <div className="space-y-4">
