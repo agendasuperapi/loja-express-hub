@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet, Clock } from "lucide-react";
+import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet, Clock, Truck, Wallet, DollarSign } from "lucide-react";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -55,6 +55,9 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'received' | 'pending'>('all');
   const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
+  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'delivery' | 'pickup'>('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<string>('all');
+  const [valueRangeFilter, setValueRangeFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -201,6 +204,27 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       });
     }
 
+    // Filtro por tipo de entrega
+    if (deliveryTypeFilter === 'delivery') {
+      filtered = filtered.filter(o => o.delivery_type === 'delivery');
+    } else if (deliveryTypeFilter === 'pickup') {
+      filtered = filtered.filter(o => o.delivery_type === 'pickup');
+    }
+
+    // Filtro por método de pagamento
+    if (paymentMethodFilter !== 'all') {
+      filtered = filtered.filter(o => o.payment_method === paymentMethodFilter);
+    }
+
+    // Filtro por faixa de valor
+    if (valueRangeFilter === 'low') {
+      filtered = filtered.filter(o => o.total < 50);
+    } else if (valueRangeFilter === 'medium') {
+      filtered = filtered.filter(o => o.total >= 50 && o.total < 100);
+    } else if (valueRangeFilter === 'high') {
+      filtered = filtered.filter(o => o.total >= 100);
+    }
+
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -213,7 +237,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     }
 
     return filtered;
-  }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, storeData]);
+  }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, storeData]);
 
   // Paginação
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -225,7 +249,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, dateRange]);
+  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, dateRange]);
 
   const exportToCSV = () => {
     const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
@@ -388,6 +412,59 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                     </div>
                   </SelectItem>
                   <SelectItem value="normal">Normais</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-[150px]">
+              <Select value={deliveryTypeFilter} onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo Entrega" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="delivery">
+                    <div className="flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      Delivery
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pickup">Retirada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-[150px]">
+              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pgto Método" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pix">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="h-4 w-4" />
+                      PIX
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="cartao">Cartão</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-[150px]">
+              <Select value={valueRangeFilter} onValueChange={(value: 'all' | 'low' | 'medium' | 'high') => setValueRangeFilter(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Valor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="low">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Até R$ 50
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="medium">R$ 50 - R$ 100</SelectItem>
+                  <SelectItem value="high">Acima de R$ 100</SelectItem>
                 </SelectContent>
               </Select>
             </div>
