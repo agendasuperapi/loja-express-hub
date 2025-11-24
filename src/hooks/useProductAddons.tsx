@@ -50,7 +50,9 @@ export const useProductAddons = (productId?: string) => {
     enabled: !!productId,
     staleTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000, // 🔥 Atualização automática a cada 3 segundos
+    refetchIntervalInBackground: false,
   });
 
   // 🔥 REALTIME: Escutar mudanças na tabela product_addons em tempo real
