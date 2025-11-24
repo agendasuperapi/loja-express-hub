@@ -51,15 +51,13 @@ interface ProductFlavorsManagerProps {
 
 interface SortableFlavorItemProps {
   flavor: any;
-  isSelected: boolean;
-  onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onToggleAvailability: () => void;
   isDeleting: boolean;
 }
 
-const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableFlavorItemProps) => {
+const SortableFlavorItem = ({ flavor, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableFlavorItemProps) => {
   const {
     attributes,
     listeners,
@@ -84,10 +82,6 @@ const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDele
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
         <GripVertical className="w-5 h-5 text-muted-foreground" />
       </div>
-      <Checkbox
-        checked={isSelected}
-        onCheckedChange={onToggleSelect}
-      />
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
           <p className="font-medium">{flavor.name}</p>
@@ -144,8 +138,6 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
-  const [selectedFlavorIds, setSelectedFlavorIds] = useState<string[]>([]);
-  const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
   const [showFlavorFormInModal, setShowFlavorFormInModal] = useState(false);
   const [flavorFormData, setFlavorFormData] = useState({
     name: '',
@@ -868,8 +860,6 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   <SortableFlavorItem
                     key={flavor.id}
                     flavor={flavor}
-                    isSelected={selectedFlavorIds.includes(flavor.id)}
-                    onToggleSelect={() => handleToggleFlavorSelect(flavor.id)}
                     onEdit={() => handleEdit(flavor)}
                     onDelete={() => deleteFlavor(flavor.id)}
                     onToggleAvailability={() => handleToggleAvailability(flavor)}

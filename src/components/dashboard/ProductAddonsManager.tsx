@@ -62,11 +62,9 @@ interface SortableAddonProps {
   onToggleAvailability: (addon: any) => void;
   isDeleting: boolean;
   isDuplicating: boolean;
-  isSelected: boolean;
-  onToggleSelect: (id: string, checked: boolean) => void;
 }
 
-const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailability, isDeleting, isDuplicating, isSelected, onToggleSelect }: SortableAddonProps) => {
+const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailability, isDeleting, isDuplicating }: SortableAddonProps) => {
   const {
     attributes,
     listeners,
@@ -89,11 +87,6 @@ const SortableAddon = ({ addon, onEdit, onDelete, onDuplicate, onToggleAvailabil
       className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
     >
       <div className="flex items-center gap-3 flex-1">
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={(checked) => onToggleSelect(addon.id, Boolean(checked))}
-          className="mr-1"
-        />
         <button
           className="cursor-grab active:cursor-grabbing touch-none"
           {...attributes}
@@ -158,9 +151,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('available');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
-  const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
@@ -345,22 +335,11 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     if (confirmDelete) {
       deleteAddon(confirmDelete.id);
       setConfirmDelete(null);
-      setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== confirmDelete.id));
     }
   };
 
   const handleDuplicate = (id: string) => {
     duplicateAddon(id);
-  };
-
-  const handleToggleSelect = (id: string, checked: boolean) => {
-    const newSelected = new Set(selectedAddons);
-    if (checked) {
-      newSelected.add(id);
-    } else {
-      newSelected.delete(id);
-    }
-    setSelectedAddons(newSelected);
   };
 
   const handleToggleAvailability = (addon: any) => {
@@ -372,118 +351,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       category_id: addon.category_id,
       allow_quantity: addon.allow_quantity,
     });
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = new Set(filteredAddons.map(a => a.id));
-      setSelectedAddons(allIds);
-    } else {
-      setSelectedAddons(new Set());
-    }
-  };
-
-  const handleBulkToggleAvailability = async (makeAvailable: boolean) => {
-    if (selectedAddons.size === 0) return;
-    
-    setIsBulkActionLoading(true);
-    try {
-      const updates = Array.from(selectedAddons).map(async (addonId) => {
-        const addon = addons?.find(a => a.id === addonId);
-        if (addon) {
-          await updateAddon({
-            id: addonId,
-            name: addon.name,
-            price: addon.price,
-            is_available: makeAvailable,
-            category_id: addon.category_id,
-          });
-        }
-      });
-      
-      await Promise.all(updates);
-      
-      toast({
-        title: makeAvailable ? "Adicionais ativados" : "Adicionais desativados",
-        description: `${selectedAddons.size} adicionais foram ${makeAvailable ? 'ativados' : 'desativados'} com sucesso.`,
-      });
-      
-      setSelectedAddons(new Set());
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar adicionais.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsBulkActionLoading(false);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedAddons.size === 0) return;
-    
-    setIsBulkActionLoading(true);
-    try {
-      const deletions = Array.from(selectedAddons).map(addonId => deleteAddon(addonId));
-      await Promise.all(deletions);
-      
-      toast({
-        title: "Adicionais excluídos",
-        description: `${selectedAddons.size} adicionais foram excluídos com sucesso.`,
-      });
-      
-      setSelectedAddons(new Set());
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir adicionais.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsBulkActionLoading(false);
-    }
-  };
-
-  const handleBulkChangeCategory = async (categoryId: string) => {
-    if (selectedAddons.size === 0) return;
-    
-    setIsBulkActionLoading(true);
-    try {
-      const updates = Array.from(selectedAddons).map(async (addonId) => {
-        const addon = addons?.find(a => a.id === addonId);
-        if (addon) {
-          await updateAddon({
-            id: addonId,
-            name: addon.name,
-            price: addon.price,
-            is_available: addon.is_available,
-            category_id: categoryId === 'none' ? null : categoryId,
-          });
-        }
-      });
-      
-      await Promise.all(updates);
-      
-      const categoryName = categoryId === 'none' 
-        ? "Sem categoria" 
-        : categories.find(c => c.id === categoryId)?.name || "Sem categoria";
-      
-      toast({
-        title: "Categoria alterada",
-        description: `${selectedAddons.size} adicionais foram movidos para "${categoryName}".`,
-      });
-      
-      setSelectedAddons(new Set());
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao alterar categoria dos adicionais.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsBulkActionLoading(false);
-    }
   };
 
   const handleCreateCategory = async () => {
@@ -747,72 +614,9 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
   const totalAddons = addons?.length || 0;
   const availableAddons = addons?.filter(a => a.is_available).length || 0;
-  const allFilteredSelected = filteredAddons.length > 0 && filteredAddons.every(a => selectedAddons.has(a.id));
-  const someFilteredSelected = filteredAddons.some(a => selectedAddons.has(a.id)) && !allFilteredSelected;
 
   return (
     <>
-      {/* Bulk Actions Floating Bar */}
-      {selectedAddons.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-5">
-          <Card className="shadow-lg border-2">
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="text-sm">
-                    {selectedAddons.size} selecionado{selectedAddons.size > 1 ? 's' : ''}
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedAddons(new Set())}
-                    disabled={isBulkActionLoading}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-                
-                <Separator orientation="vertical" className="h-6 hidden sm:block" />
-                
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleBulkToggleAvailability(true)}
-                    disabled={isBulkActionLoading}
-                  >
-                    Ativar
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleBulkToggleAvailability(false)}
-                    disabled={isBulkActionLoading}
-                  >
-                    Desativar
-                  </Button>
-                  
-                  <Select onValueChange={handleBulkChangeCategory} disabled={isBulkActionLoading}>
-                    <SelectTrigger className="h-9 w-auto min-w-[140px]">
-                      <SelectValue placeholder="Mudar categoria" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[60]">
-                      <SelectItem value="none">Sem categoria</SelectItem>
-                      {categories.filter(c => c.is_active).map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -987,8 +791,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                             onToggleAvailability={handleToggleAvailability}
                             isDeleting={isDeleting}
                             isDuplicating={isDuplicating}
-                            isSelected={selectedAddons.has(addon.id)}
-                            onToggleSelect={handleToggleSelect}
                           />
                         ))}
                       </SortableContext>
@@ -1013,16 +815,14 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                           {categoryAddons.map((addon) => (
                             <SortableAddon
                               key={addon.id}
-                              addon={addon}
-                              onEdit={handleEdit}
-                              onDelete={(id) => handleDeleteClick(id, addon.name)}
-                              onDuplicate={handleDuplicate}
-                              onToggleAvailability={handleToggleAvailability}
-                              isDeleting={isDeleting}
-                              isDuplicating={isDuplicating}
-                              isSelected={selectedAddons.has(addon.id)}
-                              onToggleSelect={handleToggleSelect}
-                            />
+                            addon={addon}
+                            onEdit={handleEdit}
+                            onDelete={(id) => handleDeleteClick(id, addon.name)}
+                            onDuplicate={handleDuplicate}
+                            onToggleAvailability={handleToggleAvailability}
+                            isDeleting={isDeleting}
+                            isDuplicating={isDuplicating}
+                          />
                           ))}
                         </SortableContext>
                       </div>
@@ -1045,8 +845,6 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       onToggleAvailability={handleToggleAvailability}
                       isDeleting={isDeleting}
                       isDuplicating={isDuplicating}
-                      isSelected={selectedAddons.has(addon.id)}
-                      onToggleSelect={handleToggleSelect}
                     />
                   ))}
                 </SortableContext>
