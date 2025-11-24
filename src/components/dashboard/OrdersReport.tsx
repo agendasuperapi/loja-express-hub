@@ -65,7 +65,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [storeData, setStoreData] = useState<{ operating_hours: any; allow_orders_when_closed: boolean } | null>(null);
-  const [showFilters, setShowFilters] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState({
     order_number: true,
     date: true,
@@ -378,15 +378,168 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       <Card>
       <CardHeader className="flex flex-col gap-4">
           <div className="flex gap-3">
-            <Button 
-              variant={showFilters ? "default" : "outline"} 
-              size="default" 
-              className="gap-2"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="h-4 w-4" />
-              Filtros
-            </Button>
+            <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="default" className="gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filtros
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Filtros de Pedidos</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Buscar</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar pedido por número, cliente ou cupom..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Status do Pedido</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="confirmed">Confirmado</SelectItem>
+                        <SelectItem value="preparing">Preparando</SelectItem>
+                        <SelectItem value="ready">Pronto</SelectItem>
+                        <SelectItem value="out_for_delivery">Saiu para entrega</SelectItem>
+                        <SelectItem value="delivered">Entregue</SelectItem>
+                        <SelectItem value="cancelled">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Status do Pagamento</Label>
+                    <Select value={paymentFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentFilter(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Status Pgto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="received">Pagamento Recebido</SelectItem>
+                        <SelectItem value="pending">Pagamento Pendente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Tipo de Pedido</Label>
+                    <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo de Pedido" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="scheduled">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Agendados
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="normal">Normais</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Tipo de Entrega</Label>
+                    <Select value={deliveryTypeFilter} onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tipo Entrega" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="delivery">
+                          <div className="flex items-center gap-2">
+                            <Truck className="h-4 w-4" />
+                            Delivery
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="pickup">Retirada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Método de Pagamento</Label>
+                    <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pgto Método" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="pix">
+                          <div className="flex items-center gap-2">
+                            <Wallet className="h-4 w-4" />
+                            PIX
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="cartao">Cartão</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Faixa de Valor</Label>
+                    <Select value={valueRangeFilter} onValueChange={(value: 'all' | 'low' | 'medium' | 'high') => setValueRangeFilter(value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Valor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="low">
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4" />
+                            Até R$ 50
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="medium">R$ 50 - R$ 100</SelectItem>
+                        <SelectItem value="high">Acima de R$ 100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setStatusFilter("all");
+                        setPaymentFilter("all");
+                        setScheduledFilter("all");
+                        setDeliveryTypeFilter("all");
+                        setPaymentMethodFilter("all");
+                        setValueRangeFilter("all");
+                      }}
+                    >
+                      Limpar Filtros
+                    </Button>
+                    <Button 
+                      className="flex-1"
+                      onClick={() => setFiltersOpen(false)}
+                    >
+                      Aplicar Filtros
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             <Dialog>
               <DialogTrigger asChild>
@@ -544,121 +697,6 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
               </DialogContent>
             </Dialog>
           </div>
-          
-          {showFilters && (
-          <div className="flex flex-col sm:flex-row gap-4 w-full">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar pedido por número, cliente ou cupom..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="w-full sm:w-[150px]">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="confirmed">Confirmado</SelectItem>
-                  <SelectItem value="preparing">Preparando</SelectItem>
-                  <SelectItem value="ready">Pronto</SelectItem>
-                  <SelectItem value="out_for_delivery">Saiu para entrega</SelectItem>
-                  <SelectItem value="delivered">Entregue</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[150px]">
-              <Select value={paymentFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status Pgto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="received">Pgto Recebido</SelectItem>
-                  <SelectItem value="pending">Pgto Pendente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[170px]">
-              <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo de Pedido" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="scheduled">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Agendados
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="normal">Normais</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[150px]">
-              <Select value={deliveryTypeFilter} onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tipo Entrega" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="delivery">
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
-                      Delivery
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="pickup">Retirada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[150px]">
-              <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pgto Método" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pix">
-                    <div className="flex items-center gap-2">
-                      <Wallet className="h-4 w-4" />
-                      PIX
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="cartao">Cartão</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-[150px]">
-              <Select value={valueRangeFilter} onValueChange={(value: 'all' | 'low' | 'medium' | 'high') => setValueRangeFilter(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Valor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="low">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Até R$ 50
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="medium">R$ 50 - R$ 100</SelectItem>
-                  <SelectItem value="high">Acima de R$ 100</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          )}
           
           <div className="flex gap-2">
             <Button
