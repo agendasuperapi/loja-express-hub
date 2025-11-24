@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical, X, Filter } from "lucide-react";
+import { Plus, Trash2, Edit, DollarSign, Package, Search, GripVertical, X, Filter, Power, PowerOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
@@ -55,10 +55,11 @@ interface SortableFlavorItemProps {
   onToggleSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleAvailability: () => void;
   isDeleting: boolean;
 }
 
-const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDelete, isDeleting }: SortableFlavorItemProps) => {
+const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableFlavorItemProps) => {
   const {
     attributes,
     listeners,
@@ -99,9 +100,18 @@ const SortableFlavorItem = ({ flavor, isSelected, onToggleSelect, onEdit, onDele
         )}
       </div>
       <div className="flex items-center gap-2">
-        <Badge variant={flavor.is_available ? "default" : "secondary"}>
-          {flavor.is_available ? 'Disponível' : 'Indisponível'}
-        </Badge>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleAvailability}
+          title={flavor.is_available ? 'Inativar' : 'Ativar'}
+        >
+          {flavor.is_available ? (
+            <PowerOff className="w-4 h-4" />
+          ) : (
+            <Power className="w-4 h-4" />
+          )}
+        </Button>
         <Button
           variant="ghost"
           size="icon"
@@ -144,7 +154,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
     is_available: true,
   });
   const [storeFlavorSearch, setStoreFlavorSearch] = useState('');
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('available');
   const [flavorSearchTerm, setFlavorSearchTerm] = useState('');
   const [newFlavorModalOpen, setNewFlavorModalOpen] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
@@ -423,25 +433,41 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
   };
 
   const handleAddStoreFlavor = async (flavor: any) => {
-    try {
-      await createFlavor({
-        product_id: productId,
-        name: flavor.name,
-        description: flavor.description || '',
+    // Verificar se já existe um sabor com o mesmo nome neste produto
+    const existingFlavor = flavors?.find(f => f.name === flavor.name);
+
+    if (existingFlavor) {
+      // Se já existe, alternar disponibilidade (ativo <-> inativo)
+      updateFlavor({
+        id: existingFlavor.id,
+        name: existingFlavor.name,
+        description: existingFlavor.description,
         price: flavor.price,
-        is_available: true,
+        is_available: !existingFlavor.is_available,
+        product_id: productId,
       });
-      
-      toast({
-        title: 'Sabor adicionado!',
-        description: `${flavor.name} foi adicionado ao produto.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao adicionar sabor',
-        description: error.message,
-        variant: 'destructive',
-      });
+    } else {
+      // Se não existe, criar novo já disponível
+      try {
+        await createFlavor({
+          product_id: productId,
+          name: flavor.name,
+          description: flavor.description || '',
+          price: flavor.price,
+          is_available: true,
+        });
+        
+        toast({
+          title: 'Sabor adicionado!',
+          description: `${flavor.name} foi adicionado ao produto.`,
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Erro ao adicionar sabor',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -477,6 +503,17 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         });
       }
     }
+  };
+
+  const handleToggleAvailability = (flavor: any) => {
+    updateFlavor({
+      id: flavor.id,
+      name: flavor.name,
+      description: flavor.description,
+      price: flavor.price,
+      is_available: !flavor.is_available,
+      product_id: productId,
+    });
   };
 
   const handleToggleFlavorSelect = (flavorId: string) => {
@@ -835,6 +872,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                     onToggleSelect={() => handleToggleFlavorSelect(flavor.id)}
                     onEdit={() => handleEdit(flavor)}
                     onDelete={() => deleteFlavor(flavor.id)}
+                    onToggleAvailability={() => handleToggleAvailability(flavor)}
                     isDeleting={isDeleting}
                   />
                 ))}
@@ -1287,7 +1325,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                   
                   try {
                     for (const flavor of filteredStoreFlavors) {
-                      const isInProduct = flavors?.some(f => f.name === flavor.name);
+                      const isInProduct = flavors?.some(f => f.name === flavor.name && f.is_available);
                       if (!isInProduct) {
                         await handleAddStoreFlavor(flavor);
                       }
@@ -1317,7 +1355,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             <div className="overflow-y-auto max-h-[50vh] space-y-2">
               {filteredStoreFlavors && filteredStoreFlavors.length > 0 ? (
                 filteredStoreFlavors.map((flavor) => {
-                  const isInProduct = flavors?.some(f => f.name === flavor.name);
+                  const isInProduct = flavors?.some(f => f.name === flavor.name && f.is_available);
                   
                   return (
                     <div
@@ -1341,11 +1379,10 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                       <Button
                         size="sm"
                         onClick={() => handleAddStoreFlavor(flavor)}
-                        disabled={isInProduct}
                         className="w-full sm:w-auto"
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Adicionar
+                        {isInProduct ? 'Remover do produto' : 'Adicionar'}
                       </Button>
                     </div>
                   );
