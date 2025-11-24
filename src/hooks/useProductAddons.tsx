@@ -52,10 +52,12 @@ export const useProductAddons = (productId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+      await queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      await queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      // Force refetch
+      await queryClient.refetchQueries({ queryKey: ['product-addons', productId] });
       toast({
         title: 'Adicional criado!',
         description: 'O adicional foi adicionado ao produto.',
@@ -82,10 +84,11 @@ export const useProductAddons = (productId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+      await queryClient.invalidateQueries({ queryKey: ['store-addons'] });
+      await queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      await queryClient.refetchQueries({ queryKey: ['product-addons', productId] });
       toast({
         title: 'Adicional atualizado!',
         description: 'As informações do adicional foram atualizadas.',
