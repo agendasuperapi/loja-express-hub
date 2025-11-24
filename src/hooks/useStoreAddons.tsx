@@ -83,8 +83,9 @@ export const useStoreAddons = (storeId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons-and-flavors', storeId] });
       toast({
         title: 'Adicional criado!',
         description: 'O adicional foi adicionado com sucesso.',
@@ -113,8 +114,9 @@ export const useStoreAddons = (storeId?: string) => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons-and-flavors', storeId] });
       toast({
         title: 'Adicional atualizado!',
         description: 'As informações do adicional foram atualizadas.',
@@ -140,8 +142,9 @@ export const useStoreAddons = (storeId?: string) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons-and-flavors', storeId] });
       toast({
         title: 'Adicional removido!',
         description: 'O adicional foi removido com sucesso.',
@@ -174,8 +177,9 @@ export const useStoreAddons = (storeId?: string) => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store-addons'] });
-      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons-and-flavors', storeId] });
       toast({
         title: 'Adicionais atualizados!',
         description: 'Os adicionais foram atualizados em massa.',
