@@ -1862,7 +1862,6 @@ export const StoreOwnerDashboard = () => {
           employeePermissions={employeeAccess.permissions}
         />
       
-      
       <div className="flex-1 min-w-0 overflow-x-hidden">
         {activeTab === 'home' && (
           <motion.div
@@ -2553,9 +2552,10 @@ export const StoreOwnerDashboard = () => {
                 <p className="text-muted-foreground">
                   Não há pedidos no período selecionado
                 </p>
-              </motion.div>
-            )}
-          </motion.div>
+              )}
+            </motion.div>
+          )}
+        </motion.div>
         )}
 
         {activeTab === 'metricas' && (
@@ -2565,17 +2565,9 @@ export const StoreOwnerDashboard = () => {
             transition={{ duration: 0.5 }}
             className="p-8"
           >
-            <MetricsComparison orders={orders} products={products} />
-          </motion.div>
+          <MetricsComparison orders={orders} products={products} />
+        </motion.div>
         )}
-
-        {activeTab === 'pedidos' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
-          >
             <div className="mb-6">
               <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -3151,38 +3143,10 @@ export const StoreOwnerDashboard = () => {
                 </CardContent>
               </Card>
             )}
-          </motion.div>
+        </motion.div>
         )}
 
         {activeTab === 'cupons' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8"
-          >
-            <CouponsManager storeId={myStore.id} />
-          </motion.div>
-        )}
-
-        {activeTab === 'funcionarios' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8"
-          >
-            <EmployeesManager storeId={myStore.id} />
-          </motion.div>
-        )}
-
-        {activeTab === 'whatsapp' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
-          >
             <Tabs defaultValue="integracao" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 gap-2 bg-muted/50 h-auto p-2">
                 <TabsTrigger value="integracao" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
@@ -3229,17 +3193,10 @@ export const StoreOwnerDashboard = () => {
                 </motion.div>
               </TabsContent>
             </Tabs>
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
         {activeTab === 'produtos' && myStore?.id && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
-          >
-            <Tabs defaultValue="lista" className="w-full">
               <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
@@ -4343,50 +4300,32 @@ export const StoreOwnerDashboard = () => {
                     <TabsContent value="sabores">
                       <ProductFlavorsManagement storeId={myStore.id} />
                     </TabsContent>
-                  </Tabs>
+                    </Tabs>
                 </div>
               </TabsContent>
-            </Tabs>
+              </Tabs>
+            )}
           </motion.div>
         )}
 
-        {(activeTab === 'relatorio-clientes' || 
+        {(activeTab === 'relatorio-clientes' ||
           activeTab === 'relatorio-produtos-vendidos' || 
-          activeTab === 'relatorio-produtos-cadastrados' || 
-          activeTab === 'relatorio-pedidos') && myStore?.id && (
-          <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
-            <ReportsFilters
-              periodFilter={reportsPeriodFilter}
-              onPeriodFilterChange={setReportsPeriodFilter}
-              customDateRange={reportsCustomDateRange}
-              onCustomDateRangeChange={setReportsCustomDateRange}
-            />
-            
-            {activeTab === 'relatorio-clientes' && (
-              <CustomersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
-
-            {activeTab === 'relatorio-produtos-vendidos' && (
-              <BestSellingProductsReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
-
-            {activeTab === 'relatorio-produtos-cadastrados' && (
-              <RegisteredProductsReport storeId={myStore.id} storeName={myStore.name} />
-            )}
-
-            {activeTab === 'relatorio-pedidos' && (
-              <OrdersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
-          </div>
-        )}
+          activeTab === 'relatorio-pedidos' ? 'block' : 'hidden'
+        }`}>
+          {myStore?.id && (
+            <>
+              <ReportsFilters
+                periodFilter={reportsPeriodFilter}
+                onPeriodFilterChange={setReportsPeriodFilter}
+                customDateRange={reportsCustomDateRange}
+                onCustomDateRangeChange={setReportsCustomDateRange}
+              />
+              
+            </>
+          )}
+        </div>
 
         {activeTab === 'result' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="p-8 space-y-6"
-          >
             {/* Tabs */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -5468,9 +5407,8 @@ export const StoreOwnerDashboard = () => {
       </Tabs>
       </motion.div>
     </motion.div>
-  )}
       </div>
-
+      
       {/* Edit Order Dialog */}
       <EditOrderDialog
         open={isEditOrderDialogOpen}
