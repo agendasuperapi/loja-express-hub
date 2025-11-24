@@ -157,7 +157,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('available');
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -365,20 +365,14 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   };
 
   const handleToggleAvailability = (addon: any) => {
-    // Se está ativo e vai desativar, remove da lista
-    if (addon.is_available) {
-      deleteAddon(addon.id);
-    } else {
-      // Se está inativo e vai ativar, apenas ativa
-      updateAddon({
-        id: addon.id,
-        name: addon.name,
-        price: addon.price,
-        is_available: true,
-        category_id: addon.category_id,
-        allow_quantity: addon.allow_quantity,
-      });
-    }
+    updateAddon({
+      id: addon.id,
+      name: addon.name,
+      price: addon.price,
+      is_available: !addon.is_available,
+      category_id: addon.category_id,
+      allow_quantity: addon.allow_quantity,
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {
