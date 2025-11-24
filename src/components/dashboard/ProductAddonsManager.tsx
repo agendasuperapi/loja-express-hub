@@ -357,13 +357,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         await createAddonAsync({ ...data, product_id: productId });
       }
       
-      console.log('[ProductAddonsManager] Adicional salvo - Acionando refresh automático');
+      console.log('[ProductAddonsManager] Adicional salvo - Acionando refresh automático em 2s');
       
       setIsDialogOpen(false);
       setEditingAddon(null);
       
-      // Acionar refresh automático após criar adicional
-      handleManualRefresh();
+      // Aguardar 2 segundos antes de acionar refresh automático
+      setTimeout(() => {
+        handleManualRefresh();
+      }, 2000);
       
     } catch (error) {
       console.error('[ProductAddonsManager] Erro ao submeter:', error);
