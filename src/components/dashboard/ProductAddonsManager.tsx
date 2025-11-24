@@ -78,11 +78,19 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
     opacity: isDragging ? 0.5 : 1,
   };
 
+  console.log('[SortableAddon] Renderizando:', { 
+    id: addon.id, 
+    name: addon.name, 
+    isAvailable: addon.is_available,
+    isDragging,
+    style 
+  });
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-background"
     >
       <div className="flex items-center gap-3 flex-1">
         <button
@@ -94,7 +102,10 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
         </button>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-medium">{addon.name}</span>
+            <span className="font-medium text-foreground">{addon.name}</span>
+            {!addon.is_available && (
+              <Badge variant="outline" className="text-xs">Inativo</Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground">
             + R$ {addon.price.toFixed(2)}
@@ -1005,7 +1016,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             onDragEnd={handleDragEnd}
             key={`dnd-${lastUpdate}-${componentKey}`}
           >
-            <div className="space-y-2 min-h-[800px]" key={`addons-list-${lastUpdate}`}>
+            <div className="space-y-3" key={`addons-list-${lastUpdate}`}>
               {categoryFilter === 'all' ? (
                 // Group by category view
                 <>
