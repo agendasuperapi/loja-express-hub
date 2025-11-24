@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +29,20 @@ export const ImageUpload = ({
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
+
+  // Sincronizar previewUrl com currentImageUrl quando mudar
+  useEffect(() => {
+    setPreviewUrl(currentImageUrl || null);
+  }, [currentImageUrl]);
+
+  // Limpar URLs de objetos quando o componente é desmontado
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -93,6 +107,11 @@ export const ImageUpload = ({
       
       const file = event.target.files?.[0];
       if (!file) return;
+
+      // Limpar preview anterior se existir
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
 
       // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
@@ -165,7 +184,10 @@ export const ImageUpload = ({
         .from(bucket)
         .getPublicUrl(fileName);
 
-      setPreviewUrl(publicUrl);
+      // Adicionar timestamp para forçar atualização da imagem no cache
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      
+      setPreviewUrl(urlWithTimestamp);
       onUploadComplete(publicUrl);
 
       toast({
@@ -181,6 +203,8 @@ export const ImageUpload = ({
       });
     } finally {
       setUploading(false);
+      // Limpar o input para permitir o upload do mesmo arquivo novamente
+      event.target.value = '';
     }
   };
 
