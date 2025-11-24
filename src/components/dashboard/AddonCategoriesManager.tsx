@@ -264,12 +264,6 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
             </CardTitle>
             <CardDescription>Organize os adicionais em categorias para melhor gestão</CardDescription>
           </div>
-          {!isAdding && hasPermission('create') && (
-            <Button size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Categoria
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
