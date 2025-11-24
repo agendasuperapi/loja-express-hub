@@ -32,7 +32,7 @@ const DashboardLojista = () => {
         </div>
       </motion.header>
 
-      <main className="container mx-auto max-w-7xl px-2 sm:px-4 pb-24 md:pb-32 pt-20 md:pt-20">
+      <main className="container mx-auto max-w-full md:max-w-7xl px-2 sm:px-4 pb-24 md:pb-32 pt-20 md:pt-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
