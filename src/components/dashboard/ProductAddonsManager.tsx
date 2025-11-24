@@ -311,10 +311,18 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         await createAddonAsync({ ...data, product_id: productId });
       }
       
-      console.log('[ProductAddonsManager] Adicional salvo - REALTIME irá atualizar automaticamente');
+      console.log('[ProductAddonsManager] Adicional salvo - Forçando refresh imediato');
       
       setIsDialogOpen(false);
       setEditingAddon(null);
+      
+      // Forçar refresh imediato da lista de adicionais
+      await queryClient.invalidateQueries({ queryKey: ['product-addons', productId] });
+      await queryClient.refetchQueries({ 
+        queryKey: ['product-addons', productId],
+        exact: true,
+        type: 'active'
+      });
       
     } catch (error) {
       console.error('[ProductAddonsManager] Erro ao submeter:', error);
