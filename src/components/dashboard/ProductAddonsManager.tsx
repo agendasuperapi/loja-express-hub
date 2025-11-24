@@ -1117,10 +1117,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               variant="outline"
               size="sm"
               onClick={() => {
-                const availableAddons = filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name));
+                const availableAddons = filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name && a.is_available));
                 availableAddons.forEach(addon => handleCopyStoreAddon(addon));
               }}
-              disabled={filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name)).length === 0}
+              disabled={filteredStoreAddons.filter(addon => !addons?.some(a => a.name === addon.name && a.is_available)).length === 0}
               className="shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1145,8 +1145,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                       Sem categoria
                     </div>
                     {groupedStoreAddons.uncategorized.map((addon) => {
-                      const isInProduct = addons?.some(a => a.name === addon.name);
-                      return (
+                       const isInProduct = addons?.some(a => a.name === addon.name && a.is_available);
+                       return (
                         <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1189,8 +1189,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                         {category.name}
                       </div>
                       {categoryAddons.map((addon) => {
-                        const isInProduct = addons?.some(a => a.name === addon.name);
-                        return (
+                         const isInProduct = addons?.some(a => a.name === addon.name && a.is_available);
+                         return (
                           <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
