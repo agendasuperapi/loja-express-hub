@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store, Truck } from "lucide-react";
+import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store, Truck, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ interface DashboardMobileSidebarProps {
   storeName?: string;
   isEmployee?: boolean;
   employeePermissions?: EmployeePermissions | null;
+  onSignOut?: () => void;
 }
 
 export const DashboardMobileSidebar = ({
@@ -24,6 +25,7 @@ export const DashboardMobileSidebar = ({
   storeName,
   isEmployee,
   employeePermissions,
+  onSignOut,
 }: DashboardMobileSidebarProps) => {
   const [open, setOpen] = useState(false);
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
@@ -220,6 +222,24 @@ export const DashboardMobileSidebar = ({
                 <Settings className="w-5 h-5" />
                 <span className="capitalize">Configurações</span>
               </Button>
+            )}
+
+            {/* Botão Sair */}
+            {onSignOut && (
+              <>
+                <div className="h-px bg-border my-2" />
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-12 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    onSignOut();
+                    setOpen(false);
+                  }}
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="capitalize">Sair</span>
+                </Button>
+              </>
             )}
           </nav>
         </div>

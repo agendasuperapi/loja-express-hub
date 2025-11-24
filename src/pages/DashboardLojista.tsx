@@ -10,25 +10,13 @@ const DashboardLojista = () => {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/20">
-      {/* Header com botão de sair */}
+      {/* Header sem botão de sair */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="flex-shrink-0 w-full z-50 bg-white/60 dark:bg-gray-950/60 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 shadow-sm"
       >
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between md:justify-end">
-          {/* Espaço vazio em mobile para o menu hambúrguer (renderizado pelo DashboardMobileSidebar) */}
-          <div className="w-10 md:hidden"></div>
-          
-          <Button
-            onClick={signOut}
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Sair</span>
-          </Button>
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-end">
         </div>
       </motion.header>
 
@@ -40,7 +28,7 @@ const DashboardLojista = () => {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="w-full"
           >
-            <StoreOwnerDashboard />
+            <StoreOwnerDashboard onSignOut={signOut} />
           </motion.div>
         </div>
       </main>

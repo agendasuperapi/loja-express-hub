@@ -1,4 +1,4 @@
-import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, FileBarChart, FileText } from "lucide-react";
+import { Home, BarChart3, MessageSquare, Mail, Bell, Settings, FolderOpen, ChevronDown, Package, FolderTree, Users, UserCog, Truck, MapPin, Bike, Tag, TrendingUp, DollarSign, ShoppingCart, Calendar, FileBarChart, FileText, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -14,9 +14,10 @@ interface DashboardSidebarProps {
   storeName?: string;
   isEmployee?: boolean;
   employeePermissions?: EmployeePermissions | null;
+  onSignOut?: () => void;
 }
 
-export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions }: DashboardSidebarProps) => {
+export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions, onSignOut }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
 
@@ -236,6 +237,22 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
           );
         })}
       </nav>
+
+      {/* Botão Sair no final */}
+      {onSignOut && (
+        <div className="px-2 pb-4 pt-2">
+          <div className="h-0.5 bg-primary/20 my-2 mx-2" />
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onSignOut}
+            className="w-full flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg text-destructive hover:bg-destructive/10 transition-all duration-200"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="text-xs font-medium uppercase">Sair</span>
+          </motion.button>
+        </div>
+      )}
     </motion.div>
   );
 };

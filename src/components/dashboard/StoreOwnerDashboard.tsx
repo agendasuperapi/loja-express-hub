@@ -86,7 +86,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const StoreOwnerDashboard = () => {
+interface StoreOwnerDashboardProps {
+  onSignOut?: () => void;
+}
+
+export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
@@ -1866,6 +1870,7 @@ export const StoreOwnerDashboard = () => {
           storeName={myStore?.name}
           isEmployee={employeeAccess.isEmployee}
           employeePermissions={employeeAccess.permissions}
+          onSignOut={onSignOut}
         />
         
         {/* Desktop Sidebar */}
@@ -1876,6 +1881,7 @@ export const StoreOwnerDashboard = () => {
           storeName={myStore?.name}
           isEmployee={employeeAccess.isEmployee}
           employeePermissions={employeeAccess.permissions}
+          onSignOut={onSignOut}
         />
       
       
