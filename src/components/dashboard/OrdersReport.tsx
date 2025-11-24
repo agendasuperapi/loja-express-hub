@@ -22,7 +22,6 @@ import { cn } from "@/lib/utils";
 import { generateOrdersReport } from "@/lib/pdfReports";
 import { isStoreOpen } from "@/lib/storeUtils";
 import * as XLSX from 'xlsx';
-
 interface OrderReport {
   id: string;
   order_number: string;
@@ -45,14 +44,19 @@ interface OrderReport {
   notes: string | null;
   created_at: string;
 }
-
 interface OrdersReportProps {
   storeId: string;
   storeName?: string;
-  dateRange: { from: Date | undefined; to: Date | undefined };
+  dateRange: {
+    from: Date | undefined;
+    to: Date | undefined;
+  };
 }
-
-export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: OrdersReportProps) => {
+export const OrdersReport = ({
+  storeId,
+  storeName = "Minha Loja",
+  dateRange
+}: OrdersReportProps) => {
   const [orders, setOrders] = useState<OrderReport[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -64,7 +68,10 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [storeData, setStoreData] = useState<{ operating_hours: any; allow_orders_when_closed: boolean } | null>(null);
+  const [storeData, setStoreData] = useState<{
+    operating_hours: any;
+    allow_orders_when_closed: boolean;
+  } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(() => {
     const saved = localStorage.getItem(`ordersReport-columns-${storeId}`);
@@ -82,7 +89,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       payment_status: true,
       delivery_type: true,
       scheduled: true,
-      coupon: true,
+      coupon: true
     };
   });
 
@@ -110,7 +117,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       scheduledFilter,
       deliveryTypeFilter,
       paymentMethodFilter,
-      valueRangeFilter,
+      valueRangeFilter
     };
     localStorage.setItem(`ordersReport-filters-${storeId}`, JSON.stringify(filters));
   }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, storeId]);
@@ -123,40 +130,33 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   // Mapeamento entre status do banco (enum) e status_key customizado
   const denormalizeStatusKey = (uiStatus: string): string => {
     const statusMap: Record<string, string> = {
-      'out_for_delivery': 'in_delivery', // UI usa out_for_delivery, mas DB precisa in_delivery
+      'out_for_delivery': 'in_delivery' // UI usa out_for_delivery, mas DB precisa in_delivery
     };
     return statusMap[uiStatus] || uiStatus;
   };
-
   const fetchOrders = async () => {
     try {
       // Buscar dados da loja
-      const { data: store, error: storeError } = await supabase
-        .from('stores')
-        .select('operating_hours, allow_orders_when_closed')
-        .eq('id', storeId)
-        .single();
-
+      const {
+        data: store,
+        error: storeError
+      } = await supabase.from('stores').select('operating_hours, allow_orders_when_closed').eq('id', storeId).single();
       if (storeError) throw storeError;
       setStoreData(store);
-
-      let query = supabase
-        .from('orders')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('created_at', { ascending: false });
-
+      let query = supabase.from('orders').select('*').eq('store_id', storeId).order('created_at', {
+        ascending: false
+      });
       if (dateRange.from) {
         query = query.gte('created_at', dateRange.from.toISOString());
       }
       if (dateRange.to) {
         query = query.lte('created_at', dateRange.to.toISOString());
       }
-
-      const { data, error } = await query;
-
+      const {
+        data,
+        error
+      } = await query;
       if (error) throw error;
-
       const mappedData: OrderReport[] = (data || []).map((order: any) => ({
         id: order.id,
         order_number: order.order_number,
@@ -177,22 +177,20 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
         delivery_complement: order.delivery_complement || null,
         change_amount: order.change_amount || null,
         notes: order.notes || null,
-        created_at: order.created_at,
+        created_at: order.created_at
       }));
-
       setOrders(mappedData);
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os pedidos",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (storeId) {
       fetchOrders();
@@ -202,44 +200,36 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   // Função para verificar se um pedido é agendado
   const isOrderScheduled = (order: OrderReport): boolean => {
     if (!storeData?.allow_orders_when_closed) return false;
-    
     const orderDate = new Date(order.created_at);
     const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
     const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
-    
     const daySchedule = storeData.operating_hours?.[dayOfWeek];
     if (!daySchedule) return false;
-    
+
     // Pedido agendado: feito quando loja estava fechada
     const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
     return !wasOpen;
   };
-
   const filteredOrders = useMemo(() => {
     let filtered = orders;
-
     if (statusFilter !== "all") {
       const normalizedFilter = denormalizeStatusKey(statusFilter);
       filtered = filtered.filter(o => o.status === normalizedFilter);
     }
-
     if (paymentFilter === 'received') {
       filtered = filtered.filter(o => o.payment_received === true);
     } else if (paymentFilter === 'pending') {
       filtered = filtered.filter(o => o.payment_received !== true);
     }
-
     if (scheduledFilter === 'scheduled') {
       filtered = filtered.filter(o => {
         if (!storeData?.allow_orders_when_closed) return false;
-        
         const orderDate = new Date(o.created_at);
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
         const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
-        
         const daySchedule = storeData.operating_hours?.[dayOfWeek];
         if (!daySchedule) return false;
-        
+
         // Pedido agendado: feito quando loja estava fechada
         const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
         return !wasOpen;
@@ -247,14 +237,12 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     } else if (scheduledFilter === 'normal') {
       filtered = filtered.filter(o => {
         if (!storeData?.operating_hours) return true;
-        
         const orderDate = new Date(o.created_at);
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
         const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
-        
         const daySchedule = storeData.operating_hours?.[dayOfWeek];
         if (!daySchedule) return true;
-        
+
         // Pedido normal: feito quando loja estava aberta
         const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
         return wasOpen;
@@ -281,18 +269,10 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
     } else if (valueRangeFilter === 'high') {
       filtered = filtered.filter(o => o.total >= 100);
     }
-
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (order) =>
-          order.order_number.toLowerCase().includes(term) ||
-          order.customer_name.toLowerCase().includes(term) ||
-          order.customer_phone.includes(term) ||
-          order.coupon_code?.toLowerCase().includes(term)
-      );
+      filtered = filtered.filter(order => order.order_number.toLowerCase().includes(term) || order.customer_name.toLowerCase().includes(term) || order.customer_phone.includes(term) || order.coupon_code?.toLowerCase().includes(term));
     }
-
     return filtered;
   }, [orders, searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, storeData]);
 
@@ -307,43 +287,22 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, dateRange]);
-
   const exportToCSV = () => {
     const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
-    
-    const rows = filteredOrders.map(order => [
-      order.order_number,
-      format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-      order.customer_name,
-      order.customer_phone,
-      order.status,
-      `R$ ${order.subtotal.toFixed(2)}`,
-      `R$ ${order.delivery_fee.toFixed(2)}`,
-      order.coupon_discount ? `R$ ${order.coupon_discount.toFixed(2)}` : '-',
-      `R$ ${order.total.toFixed(2)}`,
-      order.payment_method,
-      order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente',
-      order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
-      order.coupon_code || '-'
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const rows = filteredOrders.map(order => [order.order_number, format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', {
+      locale: ptBR
+    }), order.customer_name, order.customer_phone, order.status, `R$ ${order.subtotal.toFixed(2)}`, `R$ ${order.delivery_fee.toFixed(2)}`, order.coupon_discount ? `R$ ${order.coupon_discount.toFixed(2)}` : '-', `R$ ${order.total.toFixed(2)}`, order.payment_method, order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente', order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada', order.coupon_code || '-']);
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;'
+    });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `relatorio_pedidos_${format(new Date(), 'dd-MM-yyyy')}.csv`;
     link.click();
   };
-
   const exportToPDF = () => {
-    const periodLabel = dateRange.from && dateRange.to
-      ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}`
-      : "Todos os períodos";
-    
+    const periodLabel = dateRange.from && dateRange.to ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}` : "Todos os períodos";
     const ordersForReport = filteredOrders.map(order => ({
       id: order.id,
       created_at: order.created_at,
@@ -352,21 +311,19 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       status: order.status,
       payment_method: order.payment_method
     }));
-
     generateOrdersReport(ordersForReport, storeName, periodLabel);
-    
     toast({
       title: "PDF gerado!",
-      description: "O relatório foi exportado com sucesso.",
+      description: "O relatório foi exportado com sucesso."
     });
   };
-
   const exportToExcel = () => {
     const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
-    
     const data = filteredOrders.map(order => ({
       'Pedido': order.order_number,
-      'Data': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
+      'Data': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', {
+        locale: ptBR
+      }),
       'Cliente': order.customer_name,
       'Telefone': order.customer_phone,
       'Status': order.status,
@@ -379,34 +336,39 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
       'Entrega': order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
       'Cupom': order.coupon_code || '-'
     }));
-
     const ws = XLSX.utils.json_to_sheet(data);
-    
+
     // Formatação de colunas
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + "1";
       if (!ws[address]) continue;
-      ws[address].s = { font: { bold: true }, fill: { fgColor: { rgb: "4F46E5" } } };
+      ws[address].s = {
+        font: {
+          bold: true
+        },
+        fill: {
+          fgColor: {
+            rgb: "4F46E5"
+          }
+        }
+      };
     }
-    
-    // Auto-width das colunas
-    const colWidths = headers.map(h => ({ wch: Math.max(h.length, 15) }));
-    ws['!cols'] = colWidths;
 
+    // Auto-width das colunas
+    const colWidths = headers.map(h => ({
+      wch: Math.max(h.length, 15)
+    }));
+    ws['!cols'] = colWidths;
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
-    
     XLSX.writeFile(wb, `relatorio_pedidos_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
-    
     toast({
       title: "Excel gerado!",
-      description: "O relatório foi exportado com sucesso.",
+      description: "O relatório foi exportado com sucesso."
     });
   };
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold gradient-text">Relatório de Pedidos</h2>
         <p className="text-muted-foreground">Visualize e exporte todos os pedidos do período selecionado</p>
@@ -431,12 +393,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                     <Label>Buscar</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Buscar pedido por número, cliente ou cupom..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9"
-                      />
+                      <Input placeholder="Buscar pedido por número, cliente ou cupom..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9" />
                     </div>
                   </div>
 
@@ -552,25 +509,18 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   </div>
 
                   <div className="flex gap-2 pt-4">
-                    <Button 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => {
-                        setSearchTerm("");
-                        setStatusFilter("all");
-                        setPaymentFilter("all");
-                        setScheduledFilter("all");
-                        setDeliveryTypeFilter("all");
-                        setPaymentMethodFilter("all");
-                        setValueRangeFilter("all");
-                      }}
-                    >
+                    <Button variant="outline" className="flex-1" onClick={() => {
+                    setSearchTerm("");
+                    setStatusFilter("all");
+                    setPaymentFilter("all");
+                    setScheduledFilter("all");
+                    setDeliveryTypeFilter("all");
+                    setPaymentMethodFilter("all");
+                    setValueRangeFilter("all");
+                  }}>
                       Limpar Filtros
                     </Button>
-                    <Button 
-                      className="flex-1"
-                      onClick={() => setFiltersOpen(false)}
-                    >
+                    <Button className="flex-1" onClick={() => setFiltersOpen(false)}>
                       Aplicar Filtros
                     </Button>
                   </div>
@@ -591,143 +541,101 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-order" 
-                      checked={visibleColumns.order_number}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, order_number: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-order" checked={visibleColumns.order_number} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    order_number: checked as boolean
+                  }))} />
                     <Label htmlFor="col-order" className="cursor-pointer">Pedido</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-date" 
-                      checked={visibleColumns.date}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, date: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-date" checked={visibleColumns.date} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    date: checked as boolean
+                  }))} />
                     <Label htmlFor="col-date" className="cursor-pointer">Data</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-customer" 
-                      checked={visibleColumns.customer_name}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, customer_name: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-customer" checked={visibleColumns.customer_name} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    customer_name: checked as boolean
+                  }))} />
                     <Label htmlFor="col-customer" className="cursor-pointer">Cliente</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-phone" 
-                      checked={visibleColumns.customer_phone}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, customer_phone: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-phone" checked={visibleColumns.customer_phone} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    customer_phone: checked as boolean
+                  }))} />
                     <Label htmlFor="col-phone" className="cursor-pointer">Telefone</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-status" 
-                      checked={visibleColumns.status}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, status: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-status" checked={visibleColumns.status} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    status: checked as boolean
+                  }))} />
                     <Label htmlFor="col-status" className="cursor-pointer">Status</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-subtotal" 
-                      checked={visibleColumns.subtotal}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, subtotal: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-subtotal" checked={visibleColumns.subtotal} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    subtotal: checked as boolean
+                  }))} />
                     <Label htmlFor="col-subtotal" className="cursor-pointer">Subtotal</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-fee" 
-                      checked={visibleColumns.delivery_fee}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, delivery_fee: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-fee" checked={visibleColumns.delivery_fee} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    delivery_fee: checked as boolean
+                  }))} />
                     <Label htmlFor="col-fee" className="cursor-pointer">Taxa</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-discount" 
-                      checked={visibleColumns.discount}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, discount: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-discount" checked={visibleColumns.discount} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    discount: checked as boolean
+                  }))} />
                     <Label htmlFor="col-discount" className="cursor-pointer">Desconto</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-total" 
-                      checked={visibleColumns.total}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, total: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-total" checked={visibleColumns.total} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    total: checked as boolean
+                  }))} />
                     <Label htmlFor="col-total" className="cursor-pointer">Total</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-payment" 
-                      checked={visibleColumns.payment_method}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, payment_method: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-payment" checked={visibleColumns.payment_method} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    payment_method: checked as boolean
+                  }))} />
                     <Label htmlFor="col-payment" className="cursor-pointer">Pagamento</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-payment-status" 
-                      checked={visibleColumns.payment_status}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, payment_status: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-payment-status" checked={visibleColumns.payment_status} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    payment_status: checked as boolean
+                  }))} />
                     <Label htmlFor="col-payment-status" className="cursor-pointer">Status Pgto</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-delivery" 
-                      checked={visibleColumns.delivery_type}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, delivery_type: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-delivery" checked={visibleColumns.delivery_type} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    delivery_type: checked as boolean
+                  }))} />
                     <Label htmlFor="col-delivery" className="cursor-pointer">Entrega</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-scheduled" 
-                      checked={visibleColumns.scheduled}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, scheduled: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-scheduled" checked={visibleColumns.scheduled} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    scheduled: checked as boolean
+                  }))} />
                     <Label htmlFor="col-scheduled" className="cursor-pointer">Agendado</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="col-coupon" 
-                      checked={visibleColumns.coupon}
-                      onCheckedChange={(checked) => 
-                        setVisibleColumns(prev => ({ ...prev, coupon: checked as boolean }))
-                      }
-                    />
+                    <Checkbox id="col-coupon" checked={visibleColumns.coupon} onCheckedChange={checked => setVisibleColumns(prev => ({
+                    ...prev,
+                    coupon: checked as boolean
+                  }))} />
                     <Label htmlFor="col-coupon" className="cursor-pointer">Cupom</Label>
                   </div>
                 </div>
@@ -736,33 +644,15 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
           </div>
           
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToCSV}
-              disabled={filteredOrders.length === 0}
-              className="flex-1 sm:flex-none"
-            >
+            <Button variant="outline" size="sm" onClick={exportToCSV} disabled={filteredOrders.length === 0} className="flex-1 sm:flex-none">
               <Download className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">CSV</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToExcel}
-              disabled={filteredOrders.length === 0}
-              className="flex-1 sm:flex-none"
-            >
+            <Button variant="outline" size="sm" onClick={exportToExcel} disabled={filteredOrders.length === 0} className="flex-1 sm:flex-none">
               <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Excel</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToPDF}
-              disabled={filteredOrders.length === 0}
-              className="flex-1 sm:flex-none"
-            >
+            <Button variant="outline" size="sm" onClick={exportToPDF} disabled={filteredOrders.length === 0} className="flex-1 sm:flex-none">
               <FileText className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">PDF</span>
             </Button>
@@ -782,7 +672,7 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   {visibleColumns.delivery_fee && <TableHead className="text-right">Taxa</TableHead>}
                   {visibleColumns.discount && <TableHead className="text-right">Desconto</TableHead>}
                   {visibleColumns.total && <TableHead className="text-right">Total</TableHead>}
-                  {visibleColumns.payment_method && <TableHead>Forma Pagamento</TableHead>}
+                  {visibleColumns.payment_method && <TableHead>Forma Pag</TableHead>}
                   {visibleColumns.payment_status && <TableHead>Status Pgto</TableHead>}
                   {visibleColumns.delivery_type && <TableHead>Entrega</TableHead>}
                   {visibleColumns.scheduled && <TableHead>Agendado</TableHead>}
@@ -790,44 +680,23 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredOrders.length === 0 ? (
-                  <TableRow>
+                {filteredOrders.length === 0 ? <TableRow>
                     <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length} className="text-center text-muted-foreground">
-                      {searchTerm || statusFilter !== "all" 
-                        ? 'Nenhum pedido encontrado com os filtros selecionados' 
-                        : 'Nenhum pedido no período selecionado'}
+                      {searchTerm || statusFilter !== "all" ? 'Nenhum pedido encontrado com os filtros selecionados' : 'Nenhum pedido no período selecionado'}
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      {visibleColumns.order_number && (
-                        <TableCell className="font-mono font-medium">
+                  </TableRow> : paginatedOrders.map(order => <TableRow key={order.id}>
+                      {visibleColumns.order_number && <TableCell className="font-mono font-medium">
                           #{order.order_number}
-                        </TableCell>
-                      )}
-                      {visibleColumns.date && (
-                        <TableCell className="text-sm whitespace-nowrap">
-                          {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                      )}
-                      {visibleColumns.customer_name && (
-                        <TableCell className="font-medium">{order.customer_name}</TableCell>
-                      )}
-                      {visibleColumns.customer_phone && (
-                        <TableCell className="text-sm">{order.customer_phone}</TableCell>
-                      )}
-                      {visibleColumns.status && (
-                        <TableCell>
-                          <Badge
-                            variant={
-                              order.status === 'delivered' ? 'default' :
-                              order.status === 'cancelled' ? 'destructive' :
-                              order.status === 'pending' ? 'secondary' :
-                              'outline'
-                            }
-                            className="capitalize"
-                          >
+                        </TableCell>}
+                      {visibleColumns.date && <TableCell className="text-sm whitespace-nowrap">
+                          {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", {
+                    locale: ptBR
+                  })}
+                        </TableCell>}
+                      {visibleColumns.customer_name && <TableCell className="font-medium">{order.customer_name}</TableCell>}
+                      {visibleColumns.customer_phone && <TableCell className="text-sm">{order.customer_phone}</TableCell>}
+                      {visibleColumns.status && <TableCell>
+                          <Badge variant={order.status === 'delivered' ? 'default' : order.status === 'cancelled' ? 'destructive' : order.status === 'pending' ? 'secondary' : 'outline'} className="capitalize">
                             {order.status === 'pending' && 'Pendente'}
                             {order.status === 'confirmed' && 'Confirmado'}
                             {order.status === 'preparing' && 'Preparando'}
@@ -836,102 +705,61 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                             {order.status === 'delivered' && 'Entregue'}
                             {order.status === 'cancelled' && 'Cancelado'}
                           </Badge>
-                        </TableCell>
-                      )}
-                      {visibleColumns.subtotal && (
-                        <TableCell className="text-right">
+                        </TableCell>}
+                      {visibleColumns.subtotal && <TableCell className="text-right">
                           R$ {order.subtotal.toFixed(2)}
-                        </TableCell>
-                      )}
-                      {visibleColumns.delivery_fee && (
-                        <TableCell className="text-right text-muted-foreground">
+                        </TableCell>}
+                      {visibleColumns.delivery_fee && <TableCell className="text-right text-muted-foreground">
                           {order.delivery_fee > 0 ? `R$ ${order.delivery_fee.toFixed(2)}` : '-'}
-                        </TableCell>
-                      )}
-                      {visibleColumns.discount && (
-                        <TableCell className="text-right">
-                          {order.coupon_discount && order.coupon_discount > 0 ? (
-                            <span className="text-green-600">-R$ {order.coupon_discount.toFixed(2)}</span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {visibleColumns.total && (
-                        <TableCell className="text-right font-bold">
+                        </TableCell>}
+                      {visibleColumns.discount && <TableCell className="text-right">
+                          {order.coupon_discount && order.coupon_discount > 0 ? <span className="text-green-600">-R$ {order.coupon_discount.toFixed(2)}</span> : <span className="text-muted-foreground">-</span>}
+                        </TableCell>}
+                      {visibleColumns.total && <TableCell className="text-right font-bold">
                           R$ {order.total.toFixed(2)}
-                        </TableCell>
-                      )}
-                      {visibleColumns.payment_method && (
-                        <TableCell className="capitalize text-sm">
+                        </TableCell>}
+                      {visibleColumns.payment_method && <TableCell className="capitalize text-sm">
                           {order.payment_method === 'pix' && 'PIX'}
                           {order.payment_method === 'credit_card' && 'Cartão Crédito'}
                           {order.payment_method === 'debit_card' && 'Cartão Débito'}
                           {order.payment_method === 'cash' && 'Dinheiro'}
                           {order.payment_method === 'voucher' && 'Vale'}
                           {!['pix', 'credit_card', 'debit_card', 'cash', 'voucher'].includes(order.payment_method) && order.payment_method}
-                          {order.change_amount && order.change_amount > 0 && (
-                            <div className="text-xs text-muted-foreground">
+                          {order.change_amount && order.change_amount > 0 && <div className="text-xs text-muted-foreground">
                               Troco: R$ {order.change_amount.toFixed(2)}
-                            </div>
-                          )}
-                        </TableCell>
-                      )}
-                      {visibleColumns.payment_status && (
-                        <TableCell>
-                          <Badge 
-                            variant={order.payment_received ? 'default' : 'secondary'}
-                            className={order.payment_received ? 'bg-green-600' : 'bg-yellow-600'}
-                          >
+                            </div>}
+                        </TableCell>}
+                      {visibleColumns.payment_status && <TableCell>
+                          <Badge variant={order.payment_received ? 'default' : 'secondary'} className={order.payment_received ? 'bg-green-600' : 'bg-yellow-600'}>
                             {order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente'}
                           </Badge>
-                        </TableCell>
-                      )}
-                      {visibleColumns.delivery_type && (
-                        <TableCell className="capitalize">
+                        </TableCell>}
+                      {visibleColumns.delivery_type && <TableCell className="capitalize">
                           <Badge variant={order.delivery_type === 'delivery' ? 'default' : 'secondary'}>
                             {order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada'}
                           </Badge>
-                          {order.delivery_type === 'delivery' && order.delivery_neighborhood && (
-                            <div className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">
+                          {order.delivery_type === 'delivery' && order.delivery_neighborhood && <div className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">
                               {order.delivery_neighborhood}
-                            </div>
-                          )}
-                        </TableCell>
-                      )}
-                      {visibleColumns.scheduled && (
-                        <TableCell className="text-center">
-                          {isOrderScheduled(order) ? (
-                            <Badge variant="outline" className="gap-1">
+                            </div>}
+                        </TableCell>}
+                      {visibleColumns.scheduled && <TableCell className="text-center">
+                          {isOrderScheduled(order) ? <Badge variant="outline" className="gap-1">
                               <Clock className="h-3 w-3" />
                               Sim
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                      {visibleColumns.coupon && (
-                        <TableCell>
-                          {order.coupon_code ? (
-                            <Badge variant="outline" className="gap-1">
+                            </Badge> : <span className="text-muted-foreground">-</span>}
+                        </TableCell>}
+                      {visibleColumns.coupon && <TableCell>
+                          {order.coupon_code ? <Badge variant="outline" className="gap-1">
                               <Tag className="h-3 w-3" />
                               {order.coupon_code}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                )}
+                            </Badge> : <span className="text-muted-foreground">-</span>}
+                        </TableCell>}
+                    </TableRow>)}
               </TableBody>
               </Table>
             </ScrollableTable>
 
-          {filteredOrders.length > 0 && (
-            <>
+          {filteredOrders.length > 0 && <>
               <Separator className="my-4" />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
@@ -957,45 +785,31 @@ export const OrdersReport = ({ storeId, storeName = "Minha Loja", dateRange }: O
                   </p>
                 </div>
               </div>
-            </>
-          )}
+            </>}
 
           {/* Paginação */}
-          {totalPages > 1 && (
-            <div className="mt-4">
+          {totalPages > 1 && <div className="mt-4">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
+                    <PaginationPrevious onClick={() => setCurrentPage(p => Math.max(1, p - 1))} className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
                   </PaginationItem>
                   
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(page)}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
+                  {Array.from({
+                length: totalPages
+              }, (_, i) => i + 1).map(page => <PaginationItem key={page}>
+                      <PaginationLink onClick={() => setCurrentPage(page)} isActive={currentPage === page} className="cursor-pointer">
                         {page}
                       </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                    </PaginationItem>)}
 
                   <PaginationItem>
-                    <PaginationNext 
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
+                    <PaginationNext onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
