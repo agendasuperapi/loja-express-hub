@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 export interface ProductAddon {
   id: string;
@@ -29,6 +30,7 @@ export const useProductAddons = (productId?: string) => {
   const addonsQuery = useQuery({
     queryKey: ['product-addons', productId],
     queryFn: async () => {
+      console.log('[useProductAddons] 🔍 Fetching addons for product:', productId);
       if (!productId) return [];
       
       const { data, error } = await supabase
@@ -37,14 +39,61 @@ export const useProductAddons = (productId?: string) => {
         .eq('product_id', productId)
         .order('display_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[useProductAddons] ❌ Error fetching:', error);
+        throw error;
+      }
+      
+      console.log('[useProductAddons] ✅ Fetched addons:', data?.length || 0, 'items');
       return data as ProductAddon[];
     },
     enabled: !!productId,
-    staleTime: 0, // Always consider data stale
+    staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
+
+  // 🔥 REALTIME: Escutar mudanças na tabela product_addons em tempo real
+  useEffect(() => {
+    if (!productId) return;
+
+    console.log('[useProductAddons] 🎧 Configurando listener realtime para product_id:', productId);
+
+    const channel = supabase
+      .channel(`product-addons-${productId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'product_addons',
+          filter: `product_id=eq.${productId}`
+        },
+        (payload) => {
+          console.log('[useProductAddons] 🔔 Realtime event received:', {
+            eventType: payload.eventType,
+            new: payload.new,
+            old: payload.old
+          });
+
+          // Invalidar e refetch automaticamente quando houver mudanças
+          queryClient.invalidateQueries({ 
+            queryKey: ['product-addons', productId],
+            exact: true 
+          });
+          
+          console.log('[useProductAddons] 🔄 Query invalidated due to realtime event');
+        }
+      )
+      .subscribe((status) => {
+        console.log('[useProductAddons] 📡 Realtime subscription status:', status);
+      });
+
+    return () => {
+      console.log('[useProductAddons] 🔌 Unsubscribing from realtime channel');
+      supabase.removeChannel(channel);
+    };
+  }, [productId, queryClient]);
 
   const createAddonMutation = useMutation({
     mutationFn: async (addonData: AddonFormData & { product_id: string }) => {
