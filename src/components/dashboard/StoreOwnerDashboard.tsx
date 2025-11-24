@@ -2552,9 +2552,9 @@ export const StoreOwnerDashboard = () => {
                 <p className="text-muted-foreground">
                   Não há pedidos no período selecionado
                 </p>
-              )}
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </div>
         </motion.div>
         )}
 
@@ -3143,10 +3143,15 @@ export const StoreOwnerDashboard = () => {
                 </CardContent>
               </Card>
             )}
+          </div>
         </motion.div>
-        )}
 
-        {activeTab === 'cupons' && myStore?.id && (
+        {activeTab === 'whatsapp' && myStore?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <Tabs defaultValue="integracao" className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 gap-2 bg-muted/50 h-auto p-2">
                 <TabsTrigger value="integracao" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
@@ -3193,10 +3198,16 @@ export const StoreOwnerDashboard = () => {
                 </motion.div>
               </TabsContent>
             </Tabs>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         {activeTab === 'produtos' && myStore?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Tabs defaultValue="lista" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="lista" className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
@@ -4300,13 +4311,11 @@ export const StoreOwnerDashboard = () => {
                     <TabsContent value="sabores">
                       <ProductFlavorsManagement storeId={myStore.id} />
                     </TabsContent>
-                    </Tabs>
-                </div>
-              </TabsContent>
+                  </Tabs>
+                </TabsContent>
               </Tabs>
-            )}
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
         {(activeTab === 'relatorio-clientes' ||
           activeTab === 'relatorio-produtos-vendidos' || 
