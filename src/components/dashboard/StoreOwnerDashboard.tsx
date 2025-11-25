@@ -99,7 +99,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
   const { products, createProduct, updateProduct, toggleProductAvailability, toggleProductFeatured, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
-  const { orders, updateOrderStatus, updateOrder } = useStoreOrders(myStore?.id);
+  const { orders, updateOrderStatus, updateOrder, isUpdating } = useStoreOrders(myStore?.id);
   
 
   // Função helper para verificar permissões
@@ -3058,6 +3058,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           )}
                           <Select
                             value={normalizeStatusKey(order.status)}
+                            disabled={isUpdating}
                             onValueChange={(newStatus) => {
                               // Verificar permissão antes de permitir mudança
                               if (!canChangeTo(newStatus)) {
@@ -3081,7 +3082,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             }}
                           >
                             <SelectTrigger className="flex-1">
-                              <SelectValue placeholder="Alterar status" />
+                              {isUpdating ? (
+                                <div className="flex items-center gap-2">
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <span>Atualizando...</span>
+                                </div>
+                              ) : (
+                                <SelectValue placeholder="Alterar status" />
+                              )}
                             </SelectTrigger>
                             <SelectContent>
                               {customStatuses.length > 0 ? (
