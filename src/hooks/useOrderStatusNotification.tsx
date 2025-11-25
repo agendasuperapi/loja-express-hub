@@ -10,7 +10,7 @@ export const useOrderStatusNotification = (storeId: string | undefined) => {
   useEffect(() => {
     if (!storeId) return;
 
-    // Subscribe to order status changes (not creation)
+    // Subscribe to order status changes to invalidate queries only
     const channel = supabase
       .channel('order-status-changes')
       .on(
@@ -22,13 +22,12 @@ export const useOrderStatusNotification = (storeId: string | undefined) => {
           filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
-          // Skip if it's a new insert (payload.old is null) - creation is handled by useOrders
+          // Skip if it's a new insert (payload.old is null)
           if (!payload.old) {
-            console.log('Skipping WhatsApp for new order insert - already handled by useOrders');
             return;
           }
 
-          // Only send WhatsApp if status actually changed
+          // Only invalidate if status actually changed
           if (payload.old.status === payload.new.status) return;
 
           console.log('Order status changed:', payload.old.status, '->', payload.new.status);
@@ -37,10 +36,6 @@ export const useOrderStatusNotification = (storeId: string | undefined) => {
           queryClient.invalidateQueries({ queryKey: ['store-orders'] });
           
           console.log('✅ Lista de pedidos atualizada após mudança de status');
-          
-          // WhatsApp: envio pelo cliente desativado. Banco de dados (trigger) fará o envio.
-          console.log('🔕 WhatsApp via cliente desativado. Envio será feito pelo banco de dados.');
-
         }
       )
       .subscribe();

@@ -32,6 +32,7 @@ import { CombosManager } from "./CombosManager";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
+import { WhatsAppConfirmDialog } from "./WhatsAppConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
@@ -645,6 +646,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [receiptOrder, setReceiptOrder] = useState<any>(null);
   const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
   const [notesOrder, setNotesOrder] = useState<any>(null);
+  const [isWhatsAppConfirmOpen, setIsWhatsAppConfirmOpen] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    orderId: string;
+    orderNumber: string;
+    customerName: string;
+    customerPhone: string;
+    newStatus: string;
+  } | null>(null);
 
   // Ajustar filtro padrão baseado em permissões
   useEffect(() => {
@@ -3059,7 +3068,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                 });
                                 return;
                               }
-                              updateOrderStatus({ orderId: order.id, status: newStatus });
+                              
+                              // Abrir diálogo de confirmação de WhatsApp
+                              setPendingStatusChange({
+                                orderId: order.id,
+                                orderNumber: order.order_number,
+                                customerName: order.customer_name,
+                                customerPhone: order.customer_phone,
+                                newStatus: newStatus,
+                              });
+                              setIsWhatsAppConfirmOpen(true);
                             }}
                           >
                             <SelectTrigger className="flex-1">
@@ -5873,6 +5891,30 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           queryClient.invalidateQueries({ queryKey: ['store-orders'] });
         }}
       />
+
+      {/* WhatsApp Confirm Dialog */}
+      {pendingStatusChange && (
+        <WhatsAppConfirmDialog
+          open={isWhatsAppConfirmOpen}
+          onOpenChange={(open) => {
+            setIsWhatsAppConfirmOpen(open);
+            if (!open) {
+              setPendingStatusChange(null);
+            }
+          }}
+          orderId={pendingStatusChange.orderId}
+          orderNumber={pendingStatusChange.orderNumber}
+          customerName={pendingStatusChange.customerName}
+          customerPhone={pendingStatusChange.customerPhone}
+          newStatus={pendingStatusChange.newStatus}
+          onConfirm={() => {
+            updateOrderStatus({ 
+              orderId: pendingStatusChange.orderId, 
+              status: pendingStatusChange.newStatus 
+            });
+          }}
+        />
+      )}
 
       {/* Delete Product Confirmation */}
       <AlertDialog open={!!productToDelete} onOpenChange={() => setProductToDelete(null)}>
