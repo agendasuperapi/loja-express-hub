@@ -481,7 +481,7 @@ export default function StoreDetails() {
                     </motion.div>
                   </div>
                   
-                  <p className="text-muted-foreground mb-2 text-sm md:text-base leading-relaxed">{store.description}</p>
+                  <p className="text-muted-foreground mb-2 text-sm md:text-base leading-relaxed text-center md:text-left">{store.description}</p>
                   
                   {(() => {
                     const storeData = store as any;
@@ -522,7 +522,7 @@ export default function StoreDetails() {
                          initial={{ opacity: 0 }}
                          animate={{ opacity: 1 }}
                          transition={{ delay: 0.6 }}
-                         className="flex items-start gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit max-w-full"
+                         className="flex items-start gap-2 text-sm text-muted-foreground mt-4 bg-muted/50 px-3 py-2 rounded-lg w-fit max-w-full mx-auto md:mx-0"
                        >
                          <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
                          <span className="break-words">{fullAddress}</span>
@@ -555,7 +555,7 @@ export default function StoreDetails() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.7 }}
-                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-muted/70 transition-colors"
+                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-muted/50 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-muted/70 transition-colors mx-auto md:mx-0"
                         onClick={() => window.open(`tel:${storeData.phone}`, '_self')}
                       >
                         <Phone className="w-4 h-4 text-primary flex-shrink-0" />
@@ -589,7 +589,7 @@ export default function StoreDetails() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
-                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
+                        className="flex items-center gap-2 text-sm text-muted-foreground mt-2 bg-green-50 dark:bg-green-950/20 px-3 py-2 rounded-lg w-fit cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors mx-auto md:mx-0"
                         onClick={() => window.open(`https://wa.me/${storeData.whatsapp}`, '_blank')}
                       >
                         <img src={whatsappIcon} alt="WhatsApp" className="w-6 h-6 flex-shrink-0" />
