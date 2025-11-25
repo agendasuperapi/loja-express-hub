@@ -84,15 +84,15 @@ export const FeaturedProductsCarousel = ({
           loop: true,
           dragFree: true,
         }}
-        className="w-full"
+        className="w-full max-w-full overflow-hidden px-2 md:px-0"
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent className="-ml-1 md:-ml-4">
           {products.map((product) => {
             const finalPrice = product.promotional_price || product.price;
             const hasPromotion = product.promotional_price && product.promotional_price < product.price;
 
             return (
-              <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/4 xl:basis-1/4">
+              <CarouselItem key={product.id} className="pl-1 md:pl-4 basis-[45%] sm:basis-1/3 md:basis-1/4 lg:basis-1/4 xl:basis-1/4">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
@@ -184,8 +184,8 @@ export const FeaturedProductsCarousel = ({
         </CarouselContent>
         
         {/* Controles de Navegação */}
-        <CarouselPrevious className="left-0 -translate-x-1/2 bg-background shadow-xl border-2 border-yellow-500/30 hover:border-yellow-500" />
-        <CarouselNext className="right-0 translate-x-1/2 bg-background shadow-xl border-2 border-yellow-500/30 hover:border-yellow-500" />
+        <CarouselPrevious className="hidden md:flex left-2 bg-background shadow-xl border-2 border-yellow-500/30 hover:border-yellow-500" />
+        <CarouselNext className="hidden md:flex right-2 bg-background shadow-xl border-2 border-yellow-500/30 hover:border-yellow-500" />
       </Carousel>
     </motion.div>
   );
