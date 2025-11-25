@@ -60,45 +60,83 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     }
   }, [open]);
 
+  // Ajusta scroll quando o teclado abre/fecha usando visualViewport
+  useEffect(() => {
+    if (!isMobile || !open) return;
+
+    const handleViewportResize = () => {
+      if (document.activeElement === observationRef.current && observationRef.current) {
+        const element = observationRef.current;
+        const scrollContainer = element.closest('.overflow-y-auto');
+        
+        if (scrollContainer && window.visualViewport) {
+          const elementRect = element.getBoundingClientRect();
+          const visibleHeight = window.visualViewport.height;
+          const targetPosition = visibleHeight * 0.35;
+          const currentPosition = elementRect.top;
+          const scrollNeeded = currentPosition - targetPosition;
+          
+          if (Math.abs(scrollNeeded) > 20) {
+            scrollContainer.scrollBy({
+              top: scrollNeeded,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }
+    };
+
+    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleViewportResize);
+    };
+  }, [isMobile, open]);
+
   if (!product || !store) return null;
 
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
-  // Handler aprimorado para scroll automático em mobile
+  // Handler aprimorado para scroll automático em mobile usando visualViewport
   const handleObservationFocus = () => {
     if (!isMobile || !observationRef.current || isScrollingRef.current) return;
     
     isScrollingRef.current = true;
     
-    // Limpa timeout anterior se existir
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
     
-    // Usa requestAnimationFrame para garantir que o scroll ocorra no momento certo
     scrollTimeoutRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
         if (observationRef.current) {
           const element = observationRef.current;
-          const rect = element.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const keyboardOffset = viewportHeight * 0.5; // Assume que o teclado ocupa ~50% da tela
-          const isInView = rect.top >= 80 && rect.bottom <= (viewportHeight - keyboardOffset);
+          const scrollContainer = element.closest('.overflow-y-auto');
           
-          // Só faz scroll se o elemento não estiver totalmente visível
-          if (!isInView) {
-            element.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
-            });
+          if (scrollContainer) {
+            const elementRect = element.getBoundingClientRect();
+            
+            // Usa visualViewport para detectar altura real visível
+            const visibleHeight = window.visualViewport?.height || window.innerHeight;
+            
+            // Calcula posição ideal: 35% da área visível do topo
+            const targetPosition = visibleHeight * 0.35;
+            const currentPosition = elementRect.top;
+            const scrollNeeded = currentPosition - targetPosition;
+            
+            // Scroll suave apenas se necessário
+            if (Math.abs(scrollNeeded) > 20) {
+              scrollContainer.scrollBy({
+                top: scrollNeeded,
+                behavior: 'smooth'
+              });
+            }
           }
           
-          // Reset flag após animação
           setTimeout(() => {
             isScrollingRef.current = false;
-          }, 600);
+          }, 500);
         }
       });
     }, 350);
