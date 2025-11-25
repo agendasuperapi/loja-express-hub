@@ -764,7 +764,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
 
       {/* Observação */}
-      <div className="space-y-1.5 px-4 md:px-0 pb-32 md:pb-0">
+      <div className="space-y-1.5 px-4 md:px-0">
         <Label htmlFor="observation" className="text-sm font-semibold">
           Observações (opcional)
         </Label>
