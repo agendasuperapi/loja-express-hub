@@ -123,10 +123,10 @@ export const generateOrdersReport = (
           head: [['Produto', 'Qtd', 'Preço Unit.', 'Extras', 'Subtotal']],
           body: itemsData,
           startY: currentY,
-          styles: { fontSize: 8, cellPadding: 2 },
+          styles: { fontSize: 8, cellPadding: 2, fillColor: [255, 255, 255] },
           headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 8, fontStyle: 'bold' },
           margin: { left: 14, right: 14 },
-          theme: 'striped',
+          theme: 'plain',
         });
         
         currentY = (doc as any).lastAutoTable.finalY + 8;
