@@ -3,6 +3,22 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+interface OrderItem {
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  observation: string | null;
+  addons: Array<{
+    addon_name: string;
+    addon_price: number;
+  }>;
+  flavors: Array<{
+    flavor_name: string;
+    flavor_price: number;
+  }>;
+}
+
 interface Order {
   id: string;
   created_at: string;
@@ -10,6 +26,7 @@ interface Order {
   total: number;
   status: string;
   payment_method?: string;
+  items?: OrderItem[];
 }
 
 interface Product {
@@ -29,7 +46,8 @@ interface Customer {
 export const generateOrdersReport = (
   orders: Order[],
   storeName: string,
-  periodLabel: string
+  periodLabel: string,
+  includeItems: boolean = false
 ) => {
   const doc = new jsPDF();
   
@@ -50,23 +68,74 @@ export const generateOrdersReport = (
   doc.text(`Total de Pedidos: ${orders.length}`, 14, 52);
   doc.text(`Receita Total: R$ ${totalRevenue.toFixed(2)}`, 14, 58);
   
-  // Table
-  const tableData = orders.map(order => [
-    format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
-    order.customer_name,
-    order.status,
-    order.payment_method || '-',
-    `R$ ${order.total.toFixed(2)}`
-  ]);
-  
-  autoTable(doc, {
-    head: [['Data', 'Cliente', 'Status', 'Pagamento', 'Total']],
-    body: tableData,
-    startY: 65,
-    styles: { fontSize: 9, cellPadding: 3 },
-    headStyles: { fillColor: [79, 70, 229], textColor: 255 },
-    alternateRowStyles: { fillColor: [245, 245, 245] },
-  });
+  if (includeItems) {
+    // Table with items
+    let currentY = 65;
+    
+    orders.forEach((order, orderIndex) => {
+      // Check if we need a new page
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // Order header
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Pedido: ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${order.customer_name}`, 14, currentY);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Status: ${order.status} | Pagamento: ${order.payment_method || '-'} | Total: R$ ${order.total.toFixed(2)}`, 14, currentY + 5);
+      
+      currentY += 12;
+      
+      // Items table
+      if (order.items && order.items.length > 0) {
+        const itemsData = order.items.map(item => {
+          const addons = item.addons.map(a => `${a.addon_name} (+R$ ${a.addon_price.toFixed(2)})`).join(', ') || '-';
+          const flavors = item.flavors.map(f => `${f.flavor_name} (+R$ ${f.flavor_price.toFixed(2)})`).join(', ') || '-';
+          const extras = [addons !== '-' ? addons : '', flavors !== '-' ? flavors : ''].filter(Boolean).join(' | ') || '-';
+          
+          return [
+            item.product_name,
+            item.quantity.toString(),
+            `R$ ${item.unit_price.toFixed(2)}`,
+            extras,
+            `R$ ${item.subtotal.toFixed(2)}`
+          ];
+        });
+        
+        autoTable(doc, {
+          head: [['Produto', 'Qtd', 'Preço Unit.', 'Extras', 'Subtotal']],
+          body: itemsData,
+          startY: currentY,
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [79, 70, 229], textColor: 255, fontSize: 8 },
+          margin: { left: 14, right: 14 },
+          theme: 'striped',
+        });
+        
+        currentY = (doc as any).lastAutoTable.finalY + 8;
+      }
+    });
+  } else {
+    // Simple table without items
+    const tableData = orders.map(order => [
+      format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
+      order.customer_name,
+      order.status,
+      order.payment_method || '-',
+      `R$ ${order.total.toFixed(2)}`
+    ]);
+    
+    autoTable(doc, {
+      head: [['Data', 'Cliente', 'Status', 'Pagamento', 'Total']],
+      body: tableData,
+      startY: 65,
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+    });
+  }
   
   // Save
   doc.save(`relatorio-pedidos-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

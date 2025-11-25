@@ -387,14 +387,65 @@ export const OrdersReport = ({
     setCurrentPage(1);
   }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, dateRange]);
   const exportToCSV = () => {
-    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
-    const rows = filteredOrders.map(order => [order.order_number, format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', {
-      locale: ptBR
-    }), order.customer_name, order.customer_phone, order.status, `R$ ${order.subtotal.toFixed(2)}`, `R$ ${order.delivery_fee.toFixed(2)}`, order.coupon_discount ? `R$ ${order.coupon_discount.toFixed(2)}` : '-', `R$ ${order.total.toFixed(2)}`, order.payment_method, order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente', order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada', order.coupon_code || '-']);
-    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
-    const blob = new Blob([csvContent], {
-      type: 'text/csv;charset=utf-8;'
+    const headers = showOrderItems 
+      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
+      : ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
+    
+    const rows: string[][] = [];
+    
+    filteredOrders.forEach(order => {
+      const orderData = [
+        order.order_number, 
+        format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }), 
+        order.customer_name, 
+        order.customer_phone, 
+        order.status, 
+        `R$ ${order.subtotal.toFixed(2)}`, 
+        `R$ ${order.delivery_fee.toFixed(2)}`, 
+        order.coupon_discount ? `R$ ${order.coupon_discount.toFixed(2)}` : '-', 
+        `R$ ${order.total.toFixed(2)}`, 
+        order.payment_method, 
+        order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente', 
+        order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada', 
+        order.coupon_code || '-'
+      ];
+
+      if (showOrderItems && order.items && order.items.length > 0) {
+        order.items.forEach((item, itemIndex) => {
+          const addons = item.addons.map(a => `${a.addon_name} (+R$ ${a.addon_price.toFixed(2)})`).join(', ') || '-';
+          const flavors = item.flavors.map(f => `${f.flavor_name} (+R$ ${f.flavor_price.toFixed(2)})`).join(', ') || '-';
+          
+          if (itemIndex === 0) {
+            rows.push([
+              ...orderData,
+              item.product_name,
+              item.quantity.toString(),
+              `R$ ${item.unit_price.toFixed(2)}`,
+              `R$ ${item.subtotal.toFixed(2)}`,
+              addons,
+              flavors,
+              item.observation || '-'
+            ]);
+          } else {
+            rows.push([
+              '', '', '', '', '', '', '', '', '', '', '', '', '', // Empty order columns
+              item.product_name,
+              item.quantity.toString(),
+              `R$ ${item.unit_price.toFixed(2)}`,
+              `R$ ${item.subtotal.toFixed(2)}`,
+              addons,
+              flavors,
+              item.observation || '-'
+            ]);
+          }
+        });
+      } else {
+        rows.push(orderData);
+      }
     });
+
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `relatorio_pedidos_${format(new Date(), 'dd-MM-yyyy')}.csv`;
@@ -408,33 +459,85 @@ export const OrdersReport = ({
       customer_name: order.customer_name,
       total: order.total,
       status: order.status,
-      payment_method: order.payment_method
+      payment_method: order.payment_method,
+      items: showOrderItems ? order.items : undefined
     }));
-    generateOrdersReport(ordersForReport, storeName, periodLabel);
+    generateOrdersReport(ordersForReport, storeName, periodLabel, showOrderItems);
     toast({
       title: "PDF gerado!",
       description: "O relatório foi exportado com sucesso."
     });
   };
   const exportToExcel = () => {
-    const headers = ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
-    const data = filteredOrders.map(order => ({
-      'Pedido': order.order_number,
-      'Data': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', {
-        locale: ptBR
-      }),
-      'Cliente': order.customer_name,
-      'Telefone': order.customer_phone,
-      'Status': order.status,
-      'Subtotal': order.subtotal,
-      'Taxa de Entrega': order.delivery_fee,
-      'Desconto': order.coupon_discount || 0,
-      'Total': order.total,
-      'Pagamento': order.payment_method,
-      'Status Pgto': order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente',
-      'Entrega': order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
-      'Cupom': order.coupon_code || '-'
-    }));
+    const headers = showOrderItems 
+      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
+      : ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
+    
+    const data: any[] = [];
+    
+    filteredOrders.forEach(order => {
+      const orderData: any = {
+        'Pedido': order.order_number,
+        'Data': format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR }),
+        'Cliente': order.customer_name,
+        'Telefone': order.customer_phone,
+        'Status': order.status,
+        'Subtotal': order.subtotal,
+        'Taxa de Entrega': order.delivery_fee,
+        'Desconto': order.coupon_discount || 0,
+        'Total': order.total,
+        'Pagamento': order.payment_method,
+        'Status Pgto': order.payment_received ? 'Pagamento recebido' : 'Pagamento pendente',
+        'Entrega': order.delivery_type === 'delivery' ? 'Entrega' : 'Retirada',
+        'Cupom': order.coupon_code || '-'
+      };
+
+      if (showOrderItems && order.items && order.items.length > 0) {
+        order.items.forEach((item, itemIndex) => {
+          const addons = item.addons.map(a => `${a.addon_name} (+R$ ${a.addon_price.toFixed(2)})`).join(', ') || '-';
+          const flavors = item.flavors.map(f => `${f.flavor_name} (+R$ ${f.flavor_price.toFixed(2)})`).join(', ') || '-';
+          
+          if (itemIndex === 0) {
+            data.push({
+              ...orderData,
+              'Produto': item.product_name,
+              'Qtd': item.quantity,
+              'Preço Unit.': item.unit_price,
+              'Subtotal Item': item.subtotal,
+              'Adicionais': addons,
+              'Sabores': flavors,
+              'Observação': item.observation || '-'
+            });
+          } else {
+            data.push({
+              'Pedido': '',
+              'Data': '',
+              'Cliente': '',
+              'Telefone': '',
+              'Status': '',
+              'Subtotal': '',
+              'Taxa de Entrega': '',
+              'Desconto': '',
+              'Total': '',
+              'Pagamento': '',
+              'Status Pgto': '',
+              'Entrega': '',
+              'Cupom': '',
+              'Produto': item.product_name,
+              'Qtd': item.quantity,
+              'Preço Unit.': item.unit_price,
+              'Subtotal Item': item.subtotal,
+              'Adicionais': addons,
+              'Sabores': flavors,
+              'Observação': item.observation || '-'
+            });
+          }
+        });
+      } else {
+        data.push(orderData);
+      }
+    });
+
     const ws = XLSX.utils.json_to_sheet(data);
 
     // Formatação de colunas
