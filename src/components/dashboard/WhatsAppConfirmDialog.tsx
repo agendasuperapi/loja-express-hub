@@ -12,6 +12,7 @@ interface WhatsAppConfirmDialogProps {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
+  currentStatus: string;
   newStatus: string;
   onConfirm: () => void;
   onSkip: () => void;
@@ -24,6 +25,7 @@ export function WhatsAppConfirmDialog({
   orderNumber,
   customerName,
   customerPhone,
+  currentStatus,
   newStatus,
   onConfirm,
   onSkip,
@@ -31,6 +33,8 @@ export function WhatsAppConfirmDialog({
   const [messagePreview, setMessagePreview] = useState<string>('');
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [currentStatusLabel, setCurrentStatusLabel] = useState<string>('');
+  const [newStatusLabel, setNewStatusLabel] = useState<string>('');
 
   const loadMessagePreview = useCallback(async () => {
     setIsLoadingPreview(true);
@@ -60,7 +64,20 @@ export function WhatsAppConfirmDialog({
 
       if (storeError) throw storeError;
 
-      // Busca a configuração do status
+      // Busca os labels dos status
+      const { data: statusConfigs } = await supabase
+        .from('order_status_configs')
+        .select('status_key, status_label, whatsapp_message')
+        .eq('store_id', order.store_id)
+        .in('status_key', [currentStatus, newStatus]);
+
+      const currentConfig = statusConfigs?.find(s => s.status_key === currentStatus);
+      const newConfig = statusConfigs?.find(s => s.status_key === newStatus);
+
+      setCurrentStatusLabel(currentConfig?.status_label || currentStatus);
+      setNewStatusLabel(newConfig?.status_label || newStatus);
+
+      // Busca a configuração do status novo para mensagem
       const { data: statusConfig, error: statusError } = await supabase
         .from('order_status_configs')
         .select('whatsapp_message')
@@ -143,7 +160,7 @@ export function WhatsAppConfirmDialog({
     } finally {
       setIsLoadingPreview(false);
     }
-  }, [orderId, newStatus]);
+  }, [orderId, currentStatus, newStatus]);
 
   // Carrega o preview da mensagem quando o diálogo abre
   useEffect(() => {
@@ -189,8 +206,19 @@ export function WhatsAppConfirmDialog({
             <MessageSquare className="w-5 h-5 text-green-600" />
             Enviar mensagem WhatsApp?
           </DialogTitle>
-          <DialogDescription>
-            Deseja notificar o cliente <strong>{customerName}</strong> sobre a mudança de status do pedido <strong>#{orderNumber}</strong>?
+          <DialogDescription className="space-y-2">
+            <p>
+              Deseja notificar o cliente <strong>{customerName}</strong> sobre a mudança de status do pedido <strong>#{orderNumber}</strong>?
+            </p>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="px-2 py-1 rounded bg-muted font-medium">
+                {currentStatusLabel}
+              </span>
+              <span className="text-muted-foreground">→</span>
+              <span className="px-2 py-1 rounded bg-primary/10 text-primary font-medium">
+                {newStatusLabel}
+              </span>
+            </div>
           </DialogDescription>
         </DialogHeader>
 

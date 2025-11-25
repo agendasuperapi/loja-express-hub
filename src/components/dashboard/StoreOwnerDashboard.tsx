@@ -5914,6 +5914,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           orderNumber={pendingStatusChange.orderNumber}
           customerName={pendingStatusChange.customerName}
           customerPhone={pendingStatusChange.customerPhone}
+          currentStatus={normalizeStatusKey(
+            orders?.find(o => o.id === pendingStatusChange.orderId)?.status || ''
+          )}
           newStatus={pendingStatusChange.newStatus}
           onConfirm={() => {
             updateOrderStatus({ 
