@@ -101,6 +101,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const { products, createProduct, updateProduct, toggleProductAvailability, toggleProductFeatured, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
   const { orders, updateOrderStatus, updateOrder, isUpdating } = useStoreOrders(myStore?.id);
   
+  // Log de render
+  const renderCountRef = useRef(0);
+  const prevMyStoreRef = useRef<typeof myStore>(null);
+  renderCountRef.current++;
+
+  console.log('[StoreOwnerDashboard] 🔄 Render #' + renderCountRef.current, {
+    myStoreId: myStore?.id,
+    myStoreUpdatedAt: myStore?.updated_at,
+    prevMyStoreId: prevMyStoreRef.current?.id,
+    prevMyStoreUpdatedAt: prevMyStoreRef.current?.updated_at,
+    isLoading,
+    timestamp: Date.now()
+  });
+  
 
   // Função helper para verificar permissões
   const hasPermission = (module: string, action: string): boolean => {
@@ -393,22 +407,28 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     }
   }, [categories]);
 
-  // useRef para rastrear a última versão de myStore e evitar atualizações desnecessárias
-  const prevMyStoreRef = useRef<typeof myStore>(null);
-
   // Sync store form with myStore data (único ponto de sincronização)
   useEffect(() => {
     if (myStore) {
+      console.log('[StoreOwnerDashboard] 📊 useEffect[myStore] disparado:', {
+        storeId: myStore.id,
+        storeUpdatedAt: myStore.updated_at,
+        prevStoreId: prevMyStoreRef.current?.id,
+        prevUpdatedAt: prevMyStoreRef.current?.updated_at,
+        willUpdate: !(prevMyStoreRef.current?.id === myStore.id && prevMyStoreRef.current?.updated_at === myStore.updated_at),
+        timestamp: Date.now()
+      });
+      
       // Comparar IDs e timestamps para evitar updates desnecessários
       const isSameStore = prevMyStoreRef.current?.id === myStore.id && 
                           prevMyStoreRef.current?.updated_at === myStore.updated_at;
       
       if (isSameStore) {
-        console.log('⏭️ [StoreOwnerDashboard] Store não mudou, pulando sincronização');
+        console.log('[StoreOwnerDashboard] ⏭️ Store não mudou, pulando sincronização');
         return;
       }
 
-      console.log('🏪 [StoreOwnerDashboard] Carregando dados da loja no formulário:', {
+      console.log('[StoreOwnerDashboard] 🏪 Carregando dados da loja no formulário:', {
         store_id: myStore.id,
         store_name: myStore.name,
         address_fields: {

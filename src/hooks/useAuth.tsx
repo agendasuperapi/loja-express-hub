@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -23,6 +23,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const prevUserRef = useRef<User | null>(null);
 
+  // Log de visibilidade
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('[Auth] 👁️ Visibilidade mudou:', document.visibilityState, 'timestamp:', Date.now());
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     let initialSessionReceived = false;
@@ -30,8 +39,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener FIRST to avoid race conditions
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       if (!mounted) return;
+      
+      // Logar TODOS os eventos antes do filtro
+      console.log('[Auth] 📢 EVENTO RECEBIDO:', { 
+        event, 
+        userId: session?.user?.id,
+        prevUserId: prevUserRef.current?.id,
+        timestamp: Date.now(),
+        willProcess: event !== 'TOKEN_REFRESHED' || session?.user?.id !== prevUserRef.current?.id
+      });
       
       // Ignorar TOKEN_REFRESHED se o usuário não mudou (evita re-renders ao voltar ao foco)
       if (event === 'TOKEN_REFRESHED') {
@@ -39,12 +57,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const prevUserId = prevUserRef.current?.id;
         
         if (currentUserId === prevUserId) {
-          console.log('[Auth] TOKEN_REFRESHED ignorado - mesmo usuário');
+          console.log('[Auth] ⏭️ TOKEN_REFRESHED ignorado - mesmo usuário');
           return;
         }
       }
       
-      console.log('[Auth] onAuthStateChange:', { event, userId: session?.user?.id });
+      console.log('[Auth] ✅ Evento processado:', event, 'novo userId:', session?.user?.id);
       
       setSession(session ?? null);
       setUser(session?.user ?? null);

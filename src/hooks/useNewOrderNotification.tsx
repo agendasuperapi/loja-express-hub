@@ -143,10 +143,20 @@ export const useNewOrderNotification = (
           filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
-          // Ignorar eventos logo após voltar ao foco (janela de 2 segundos)
           const timeSinceVisible = Date.now() - lastVisibilityChangeRef.current;
+          
+          console.log('[NewOrderNotification] 📡 Evento realtime recebido:', {
+            eventType: 'INSERT',
+            orderId: payload.new.id,
+            orderNumber: payload.new.order_number,
+            timeSinceVisible,
+            willProcess: timeSinceVisible >= 2000,
+            timestamp: Date.now()
+          });
+          
+          // Ignorar eventos logo após voltar ao foco (janela de 2 segundos)
           if (timeSinceVisible < 2000) {
-            console.log('⏭️ Evento ignorado - janela de estabilização após foco');
+            console.log('[NewOrderNotification] ⏭️ Evento ignorado - janela de estabilização após foco');
             return;
           }
           
@@ -155,7 +165,7 @@ export const useNewOrderNotification = (
           // Prevenir processamento duplicado
           const eventId = `${order.id}-${order.created_at}`;
           if (lastProcessedEventRef.current === eventId) {
-            console.log('⏭️ Evento duplicado ignorado:', eventId);
+            console.log('[NewOrderNotification] ⏭️ Evento duplicado ignorado:', eventId);
             return;
           }
           lastProcessedEventRef.current = eventId;
@@ -215,6 +225,8 @@ export const useNewOrderNotification = (
           } else {
             console.log('ℹ️ Notificações do navegador desabilitadas nas configurações ou não suportadas');
           }
+          
+          console.log('[NewOrderNotification] ⏱️ Agendando invalidação de queries (debounced)');
           
           // Invalidar queries com debounce para atualizar a lista automaticamente
           debouncedInvalidateQueries();

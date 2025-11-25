@@ -65,6 +65,12 @@ export const useStoreManagement = () => {
     queryKey: ['my-store', user?.id],
     staleTime: 5 * 60 * 1000, // 5 minutos - evita refetch ao voltar ao foco
     queryFn: async () => {
+      console.log('[useStoreManagement] 🔍 Query executada:', {
+        userId: user?.id,
+        isEnabled: !!user,
+        timestamp: Date.now()
+      });
+      
       if (!user?.id) return null;
 
       console.log('🔍 [useStoreManagement] Buscando loja para user_id:', user.id);
@@ -124,6 +130,8 @@ export const useStoreManagement = () => {
           }
         });
       }
+      
+      console.log('[useStoreManagement] ✅ Query finalizada, store:', employeeStore?.id || 'null');
       return employeeStore;
     },
     enabled: !!user,

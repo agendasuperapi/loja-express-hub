@@ -17,6 +17,16 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
   const [isEmployee, setIsEmployee] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const checkedUserRef = useRef<string | null>(null);
+  const renderCountRef = useRef(0);
+  renderCountRef.current++;
+
+  console.log('[StoreAccessRoute] 🔄 Render #' + renderCountRef.current, {
+    userId: user?.id,
+    authLoading,
+    roleLoading,
+    isEmployee,
+    timestamp: Date.now()
+  });
 
   useEffect(() => {
     const checkEmployee = async () => {

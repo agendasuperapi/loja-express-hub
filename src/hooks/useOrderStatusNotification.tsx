@@ -73,30 +73,47 @@ export const useOrderStatusNotification = (
           filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
+          const timeSinceVisible = Date.now() - lastVisibilityChangeRef.current;
+          
           // Skip if it's a new insert (payload.old is null)
           if (!payload.old) {
             return;
           }
 
+          console.log('[OrderStatusNotification] 📡 Evento realtime recebido:', {
+            eventType: 'UPDATE',
+            orderId: payload.new.id,
+            orderNumber: payload.new.order_number,
+            oldStatus: payload.old.status,
+            newStatus: payload.new.status,
+            statusChanged: payload.old.status !== payload.new.status,
+            timeSinceVisible,
+            willProcess: payload.old.status !== payload.new.status && timeSinceVisible >= 2000,
+            timestamp: Date.now()
+          });
+
           // Only invalidate if status actually changed
-          if (payload.old.status === payload.new.status) return;
+          if (payload.old.status === payload.new.status) {
+            console.log('[OrderStatusNotification] ⏭️ Status não mudou, ignorando');
+            return;
+          }
           
           // Ignorar eventos logo após voltar ao foco (janela de 2 segundos)
-          const timeSinceVisible = Date.now() - lastVisibilityChangeRef.current;
           if (timeSinceVisible < 2000) {
-            console.log('⏭️ Evento ignorado - janela de estabilização após foco');
+            console.log('[OrderStatusNotification] ⏭️ Evento ignorado - janela de estabilização após foco');
             return;
           }
 
           // Prevenir processamento duplicado do mesmo evento
           const eventId = `${payload.new.id}-${payload.new.status}-${payload.new.updated_at}`;
           if (lastProcessedEventRef.current === eventId) {
-            console.log('⏭️ Evento duplicado ignorado:', eventId);
+            console.log('[OrderStatusNotification] ⏭️ Evento duplicado ignorado:', eventId);
             return;
           }
           lastProcessedEventRef.current = eventId;
 
-          console.log('Order status changed:', payload.old.status, '->', payload.new.status);
+          console.log('[OrderStatusNotification] ✅ Status mudou:', payload.old.status, '->', payload.new.status);
+          console.log('[OrderStatusNotification] ⏱️ Agendando invalidação de queries (debounced)');
           
           // Invalidar queries com debounce para atualizar a lista automaticamente
           debouncedInvalidateQueries();
