@@ -16,7 +16,9 @@ import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useKeyboardDetection } from "@/hooks/useKeyboardDetection";
 import { motion } from "framer-motion";
+import "@/styles/drawer-mobile.css";
 
 interface ProductDetailsDialogProps {
   product: any;
@@ -28,6 +30,7 @@ interface ProductDetailsDialogProps {
 export function ProductDetailsDialog({ product, store, open, onOpenChange }: ProductDetailsDialogProps) {
   const { addToCart } = useCart();
   const isMobile = useIsMobile();
+  const keyboardState = useKeyboardDetection();
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(new Set());
@@ -40,22 +43,38 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const observationRef = useRef<HTMLTextAreaElement>(null);
   const drawerContentRef = useRef<HTMLDivElement>(null);
 
+  // Atualiza atributos do body para debug visual
+  useEffect(() => {
+    if (isMobile && open) {
+      document.body.setAttribute('data-keyboard-height', `${keyboardState.keyboardHeight}px`);
+      document.body.setAttribute('data-viewport-height', `${keyboardState.viewportHeight}px`);
+      document.body.style.setProperty('--initial-viewport-height', `${window.innerHeight}px`);
+    }
+  }, [keyboardState, isMobile, open]);
+
   const handleObservationFocus = () => {
     if (isMobile && observationRef.current && drawerContentRef.current) {
+      // Delay maior para esperar o teclado abrir completamente
       setTimeout(() => {
         const drawerContent = drawerContentRef.current;
         const observationField = observationRef.current;
         
         if (drawerContent && observationField) {
-          const fieldTop = observationField.offsetTop;
-          const scrollPosition = fieldTop - 100;
+          const fieldRect = observationField.getBoundingClientRect();
+          const drawerRect = drawerContent.getBoundingClientRect();
           
-          drawerContent.scrollTo({
-            top: scrollPosition,
-            behavior: 'smooth'
-          });
+          // Calcula a posição considerando o teclado
+          const keyboardOffset = keyboardState.keyboardHeight || 0;
+          const availableSpace = window.innerHeight - keyboardOffset;
+          const fieldBottom = fieldRect.bottom;
+          
+          // Se o campo estiver sendo coberto pelo teclado
+          if (fieldBottom > availableSpace) {
+            const scrollOffset = fieldBottom - availableSpace + 120; // 120px de margem
+            drawerContent.scrollTop += scrollOffset;
+          }
         }
-      }, 300);
+      }, 400);
     }
   };
 
@@ -820,6 +839,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent 
+          data-vaul-drawer-visible={open}
           className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
           style={{
             position: 'fixed',
@@ -844,7 +864,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
             <div 
               ref={drawerContentRef}
-              className="flex-1 overflow-y-auto overscroll-contain"
+              className="drawer-scroll-container flex-1 overflow-y-auto overscroll-contain"
               style={{
                 touchAction: 'pan-y',
                 WebkitOverflowScrolling: 'touch'
