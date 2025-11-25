@@ -340,7 +340,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
   const [categoryViewMode, setCategoryViewMode] = useState<'grid' | 'table'>('grid');
   const [localCategories, setLocalCategories] = useState<any[]>([]);
-  const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [dateFilter, setDateFilter] = useState<'all' | 'daily' | 'weekly' | 'monthly' | 'custom'>('all');
   const [customDate, setCustomDate] = useState<Date | undefined>(new Date());
   const [currentOrderPage, setCurrentOrderPage] = useState(1);
   const ordersPerPage = 10;
