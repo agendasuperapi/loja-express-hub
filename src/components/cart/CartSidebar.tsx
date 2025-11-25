@@ -29,7 +29,7 @@ export const CartSidebar = ({ inDrawer = false, onClose }: CartSidebarProps) => 
     const firstItem = cart.items[0];
 
     return (
-      <div className="flex flex-col h-full relative bg-background max-w-full overflow-x-hidden">
+      <div className="flex flex-col h-full relative bg-background">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -62,92 +62,92 @@ export const CartSidebar = ({ inDrawer = false, onClose }: CartSidebarProps) => 
             )}
 
             {/* Conteúdo rolável */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              <div className="p-3 md:p-4 space-y-3 max-w-full">
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-3">
                 {cart.items.map((item) => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="bg-card border rounded-lg p-2 md:p-3 shadow-sm max-w-full"
+                    className="bg-card border rounded-lg p-3 shadow-sm"
                   >
-                    <div className="flex gap-2 md:gap-3 max-w-full">
+                    <div className="flex gap-3">
                       {item.imageUrl && (
                         <img
                           src={item.imageUrl}
                           alt={item.productName}
-                          className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg flex-shrink-0"
+                          className="w-20 h-20 object-cover rounded-lg"
                         />
                       )}
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <h4 className="font-semibold text-xs md:text-sm truncate">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm truncate">
                           {item.productName}
                         </h4>
                         {item.flavors && item.flavors.length > 0 && (
-                          <div className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 max-w-full">
+                          <div className="text-xs text-muted-foreground mt-1">
                             <span className="font-medium">Sabores:</span>
                             {item.flavors.map((flavor, idx) => (
-                              <div key={idx} className="ml-1 truncate">• {flavor.name}</div>
+                              <div key={idx} className="ml-1">• {flavor.name}</div>
                             ))}
                           </div>
                         )}
                         {item.addons && item.addons.length > 0 && (
-                          <div className="text-[10px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 max-w-full">
+                          <div className="text-xs text-muted-foreground mt-1">
                             {item.addons.map((addon, idx) => (
-                              <div key={idx} className="truncate">+ {addon.name}</div>
+                              <div key={idx}>+ {addon.name}</div>
                             ))}
                           </div>
                         )}
                         {item.observation && (
-                          <p className="text-[10px] md:text-xs text-muted-foreground truncate mt-0.5 md:mt-1">
+                          <p className="text-xs text-muted-foreground truncate mt-1">
                             Obs: {item.observation}
                           </p>
                         )}
-                        <p className="text-xs md:text-sm font-bold text-primary mt-0.5 md:mt-1">
+                        <p className="text-sm font-bold text-primary mt-1">
                           R$ {((item.promotionalPrice || item.price) + 
                             (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
                             (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)).toFixed(2)}
                         </p>
                         
-                        <div className="flex items-center justify-between mt-1.5 md:mt-2 gap-2">
-                          <div className="flex items-center gap-1 md:gap-2">
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-2">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 w-7 md:h-8 md:w-8 p-0"
+                              className="h-8 w-8 p-0"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             >
-                              <Minus className="w-3 h-3 md:w-4 md:h-4" />
+                              <Minus className="w-4 h-4" />
                             </Button>
-                            <span className="w-6 md:w-8 text-center text-xs md:text-sm font-semibold">
+                            <span className="w-8 text-center text-sm font-semibold">
                               {item.quantity}
                             </span>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 w-7 md:h-8 md:w-8 p-0"
+                              className="h-8 w-8 p-0"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             >
-                              <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                              <Plus className="w-4 h-4" />
                             </Button>
                           </div>
                           
-                          <div className="flex gap-0.5 md:gap-1">
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 w-7 md:h-8 md:w-8 p-0"
+                              className="h-8 w-8 p-0"
                               onClick={() => setEditingItem(item)}
                             >
-                              <Pencil className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <Pencil className="w-3 h-3" />
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 w-7 md:h-8 md:w-8 p-0 text-destructive"
+                              className="h-8 w-8 p-0 text-destructive"
                               onClick={() => removeFromCart(item.id)}
                             >
-                              <Trash2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
                         </div>
@@ -159,7 +159,7 @@ export const CartSidebar = ({ inDrawer = false, onClose }: CartSidebarProps) => 
             </div>
 
             {/* Fixed bottom section */}
-            <div className="border-t bg-background p-3 md:p-4 space-y-2 md:space-y-3 max-w-full overflow-hidden">
+            <div className="border-t bg-background p-4 space-y-3">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>

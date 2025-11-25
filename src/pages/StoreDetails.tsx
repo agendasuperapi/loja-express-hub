@@ -294,7 +294,7 @@ export default function StoreDetails() {
   const currentUrl = window.location.href;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 relative overflow-x-hidden overflow-y-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 relative overflow-hidden">
       <Helmet>
         {/* Primary Meta Tags */}
         <title>{pageTitle}</title>
@@ -351,7 +351,7 @@ export default function StoreDetails() {
       </div>
       <Navigation />
       
-      <main className="container mx-auto px-3 md:px-4 pt-0 md:pt-20 pb-20 max-w-full overflow-hidden">
+      <main className="container mx-auto px-4 pt-0 md:pt-20 pb-20">
         {/* Back Button */}
 
         {/* Store Header */}
@@ -359,7 +359,7 @@ export default function StoreDetails() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative rounded-2xl md:rounded-3xl overflow-hidden mb-4 md:mb-6 shadow-2xl hover:shadow-3xl transition-shadow duration-500 w-full max-w-full"
+          className="relative rounded-3xl overflow-hidden mb-4 md:mb-6 shadow-2xl hover:shadow-3xl transition-shadow duration-500 w-full max-w-full"
         >
           {/* Banner */}
           <div className="relative h-32 md:h-64 lg:h-80 bg-muted overflow-hidden group border-2 border-orange-300 hover:shadow-[0_0_20px_rgba(251,146,60,0.6)] transition-shadow duration-500 w-full max-w-full">
@@ -655,7 +655,7 @@ export default function StoreDetails() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="sticky top-20 z-10 bg-background/80 backdrop-blur-lg border-y border-border/50 -mx-3 md:-mx-4 px-3 md:px-4 py-3 shadow-sm"
+              className="sticky top-20 z-10 bg-background/80 backdrop-blur-lg border-y border-border/50 -mx-4 px-4 py-3 shadow-sm"
             >
               <ScrollArea className="w-full">
                 <div className="flex gap-2">
@@ -761,7 +761,7 @@ export default function StoreDetails() {
                           >
                             {/* Product Image on Left */}
                             <div className="flex-shrink-0 relative">
-                              <div className="w-24 h-20 sm:w-32 sm:h-24 md:w-40 md:h-28 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                              <div className="w-36 h-24 md:w-48 md:h-32 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                                 {product.image_url ? (
                                   <img 
                                     src={product.image_url} 
