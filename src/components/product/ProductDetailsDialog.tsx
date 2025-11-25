@@ -18,16 +18,21 @@ import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
 import { DialogFooter } from "@/components/ui/dialog";
-
 interface ProductDetailsDialogProps {
   product: any;
   store: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-export function ProductDetailsDialog({ product, store, open, onOpenChange }: ProductDetailsDialogProps) {
-  const { addToCart } = useCart();
+export function ProductDetailsDialog({
+  product,
+  store,
+  open,
+  onOpenChange
+}: ProductDetailsDialogProps) {
+  const {
+    addToCart
+  } = useCart();
   const isMobile = useIsMobile();
   const [quantity, setQuantity] = useState(1);
   const [observation, setObservation] = useState("");
@@ -35,33 +40,34 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
-  const { addons } = useProductAddons(product?.id);
-  const { flavors } = useProductFlavors(product?.id);
-  const { categories } = useAddonCategories(store?.id);
+  const {
+    addons
+  } = useProductAddons(product?.id);
+  const {
+    flavors
+  } = useProductFlavors(product?.id);
+  const {
+    categories
+  } = useAddonCategories(store?.id);
   const observationRef = useRef<HTMLTextAreaElement>(null);
   const drawerContentRef = useRef<HTMLDivElement>(null);
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
   const [tempObservation, setTempObservation] = useState("");
-
   const handleObservationClick = () => {
     if (isMobile) {
       setTempObservation(observation);
       setIsObservationModalOpen(true);
     }
   };
-
   const handleObservationSave = () => {
     setObservation(tempObservation);
     setIsObservationModalOpen(false);
   };
-
   const handleObservationCancel = () => {
     setIsObservationModalOpen(false);
   };
-
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
-
   useEffect(() => {
     if (!open) {
       setQuantity(1);
@@ -72,31 +78,29 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       setSelectedAddonsByCategory({});
     }
   }, [open]);
-
   if (!product || !store) return null;
-
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
-
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
-    const newByCategory = { ...selectedAddonsByCategory };
+    const newByCategory = {
+      ...selectedAddonsByCategory
+    };
     const newQuantities = new Map(addonQuantities);
-    
+
     // Check if category allows only single selection (max_items === 1)
     const category = categoryId ? categories?.find(c => c.id === categoryId) : null;
     const isSingleSelection = category?.max_items === 1;
-    
     if (isSingleSelection && categoryId) {
       // For single selection categories (radio button behavior), always replace with new selection
       const previousSelections = newByCategory[categoryId] || new Set();
-      
+
       // Clear all previous selections from this category
       previousSelections.forEach(id => {
         newSelected.delete(id);
         newQuantities.delete(id);
       });
-      
+
       // Set the new selection
       newSelected.add(addonId);
       newByCategory[categoryId] = new Set([addonId]);
@@ -123,27 +127,23 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
             toast({
               title: "Limite atingido",
               description: `Você pode selecionar no máximo ${category.max_items} ${category.max_items === 1 ? 'item' : 'itens'} de ${category.name}`,
-              variant: "destructive",
+              variant: "destructive"
             });
             return;
           }
-
           categorySet.add(addonId);
           newByCategory[categoryId] = categorySet;
         }
-
         newSelected.add(addonId);
         if (allowQuantity) {
           newQuantities.set(addonId, 1);
         }
       }
     }
-    
     setSelectedAddons(newSelected);
     setSelectedAddonsByCategory(newByCategory);
     setAddonQuantities(newQuantities);
   };
-
   const handleAddonQuantityChange = (addonId: string, newQuantity: number) => {
     const newQuantities = new Map(addonQuantities);
     if (newQuantity > 0) {
@@ -153,7 +153,6 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     }
     setAddonQuantities(newQuantities);
   };
-
   const handleFlavorToggle = (flavorId: string) => {
     const newSelected = new Set(selectedFlavors);
     if (newSelected.has(flavorId)) {
@@ -165,26 +164,18 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     }
     setSelectedFlavors(newSelected);
   };
-
-  const addonsTotal = addons
-    ?.filter(addon => selectedAddons.has(addon.id))
-    .reduce((sum, addon) => {
-      const qty = addonQuantities.get(addon.id) || 1;
-      return sum + (addon.price * qty);
-    }, 0) || 0;
-  
-  const flavorsTotal = flavors
-    ?.filter(flavor => selectedFlavors.has(flavor.id))
-    .reduce((sum, flavor) => sum + flavor.price, 0) || 0;
-  
+  const addonsTotal = addons?.filter(addon => selectedAddons.has(addon.id)).reduce((sum, addon) => {
+    const qty = addonQuantities.get(addon.id) || 1;
+    return sum + addon.price * qty;
+  }, 0) || 0;
+  const flavorsTotal = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).reduce((sum, flavor) => sum + flavor.price, 0) || 0;
   const total = (currentPrice + addonsTotal + flavorsTotal) * quantity;
-
   const handleAddToCart = () => {
     if (hasFlavors && selectedFlavors.size === 0) {
       toast({
         title: "Selecione os sabores",
         description: "É necessário selecionar pelo menos 1 sabor",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -193,128 +184,101 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
     if (categories && categories.length > 0) {
       for (const category of categories) {
         if (!category.is_active) continue;
-        
         const categoryAddons = addons?.filter(a => a.category_id === category.id && a.is_available) || [];
         if (categoryAddons.length === 0) continue;
-        
         const selectedCount = selectedAddonsByCategory[category.id]?.size || 0;
-        
         if (category.min_items > 0 && selectedCount < category.min_items) {
           toast({
             title: "Seleção obrigatória",
             description: `Você precisa selecionar pelo menos ${category.min_items} ${category.min_items === 1 ? 'item' : 'itens'} de ${category.name}`,
-            variant: "destructive",
+            variant: "destructive"
           });
           return;
         }
       }
     }
-
-    const addonsToAdd = addons
-      ?.filter(addon => selectedAddons.has(addon.id))
-      .map(addon => {
-        const qty = addonQuantities.get(addon.id) || 1;
-        return { 
-          id: addon.id, 
-          name: addon.name, 
-          price: addon.price,
-          quantity: qty
-        };
-      }) || [];
-    
-    const flavorsToAdd = flavors
-      ?.filter(flavor => selectedFlavors.has(flavor.id))
-      .map(flavor => ({ id: flavor.id, name: flavor.name, price: flavor.price })) || [];
-    
-    addToCart(
-      product.id,
-      product.name,
-      product.price,
-      store.id,
-      store.name,
-      quantity,
-      product.promotional_price,
-      product.image_url,
-      observation,
-      store.slug,
-      addonsToAdd,
-      flavorsToAdd
-    );
+    const addonsToAdd = addons?.filter(addon => selectedAddons.has(addon.id)).map(addon => {
+      const qty = addonQuantities.get(addon.id) || 1;
+      return {
+        id: addon.id,
+        name: addon.name,
+        price: addon.price,
+        quantity: qty
+      };
+    }) || [];
+    const flavorsToAdd = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).map(flavor => ({
+      id: flavor.id,
+      name: flavor.name,
+      price: flavor.price
+    })) || [];
+    addToCart(product.id, product.name, product.price, store.id, store.name, quantity, product.promotional_price, product.image_url, observation, store.slug, addonsToAdd, flavorsToAdd);
     onOpenChange(false);
     toast({
       title: "Adicionado ao carrinho!",
-      description: `${quantity}x ${product.name}`,
+      description: `${quantity}x ${product.name}`
     });
   };
-
   const handleShare = async () => {
     const shareUrl = `https://ofertas.app/p/${product.short_id}`;
     const shareText = `🛍️ ${product.name}\n💰 R$ ${Number(currentPrice).toFixed(2)}\n\n${product.description || ''}\n\n📍 ${store.name}`;
-
     try {
       if (navigator.share) {
         await navigator.share({
           title: `${product.name} - ${store.name}`,
           text: shareText,
-          url: shareUrl,
+          url: shareUrl
         });
         toast({
-          title: "Compartilhado com sucesso!",
+          title: "Compartilhado com sucesso!"
         });
       } else {
         await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
         toast({
           title: "Link copiado!",
-          description: "O link foi copiado para a área de transferência.",
+          description: "O link foi copiado para a área de transferência."
         });
       }
     } catch (error) {
       console.error('Erro ao compartilhar:', error);
     }
   };
-
-  const productContent = (
-    <>
+  const productContent = <>
       {/* Imagem do Produto */}
       <div className="relative w-full overflow-hidden group md:rounded-t-lg rounded-t-3xl">
-        <motion.img
-          initial={{ scale: 1.15, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-          src={product.image_url || '/placeholder.svg'}
-          alt={product.name}
-          className="w-full h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
-        />
+        <motion.img initial={{
+        scale: 1.15,
+        opacity: 0
+      }} animate={{
+        scale: 1,
+        opacity: 1
+      }} transition={{
+        duration: 1.2,
+        ease: [0.25, 0.1, 0.25, 1]
+      }} src={product.image_url || '/placeholder.svg'} alt={product.name} className="w-full h-56 md:h-64 object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
         {/* Animated shine effect */}
-        <motion.div
-          initial={{ x: '-100%' }}
-          animate={{ x: '200%' }}
-          transition={{
-            duration: 3,
-            ease: "easeInOut",
-            repeat: Infinity,
-            repeatDelay: 5
-          }}
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
-          style={{ width: '50%' }}
-        />
-        {hasDiscount && (
-          <Badge className="absolute top-16 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
-            {Math.round(((product.price - product.promotional_price) / product.price) * 100)}% OFF
-          </Badge>
-        )}
+        <motion.div initial={{
+        x: '-100%'
+      }} animate={{
+        x: '200%'
+      }} transition={{
+        duration: 3,
+        ease: "easeInOut",
+        repeat: Infinity,
+        repeatDelay: 5
+      }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none" style={{
+        width: '50%'
+      }} />
+        {hasDiscount && <Badge className="absolute top-16 right-4 bg-destructive text-destructive-foreground text-base px-3 py-1">
+            {Math.round((product.price - product.promotional_price) / product.price * 100)}% OFF
+          </Badge>}
       </div>
 
       <div className="md:px-5 md:pt-4">
       {/* Info da Loja */}
       <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl mx-4 md:mx-0">
-        {store.logo_url ? (
-          <img src={store.logo_url} alt={store.name} className="w-12 h-12 rounded-full object-cover" />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+        {store.logo_url ? <img src={store.logo_url} alt={store.name} className="w-12 h-12 rounded-full object-cover" /> : <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Store className="w-6 h-6 text-primary" />
-          </div>
-        )}
+          </div>}
         <div>
           <p className="font-semibold text-sm">{store.name}</p>
           <p className="text-xs text-muted-foreground">{product.category}</p>
@@ -324,27 +288,21 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       {/* Nome e Descrição */}
       <div className="px-4 md:px-0">
         <h2 className="text-xl font-bold text-foreground mb-1.5">{product.name}</h2>
-        {product.description && (
-          <p className="text-sm text-muted-foreground">{product.description}</p>
-        )}
+        {product.description && <p className="text-sm text-muted-foreground">{product.description}</p>}
       </div>
 
       {/* Preço */}
       <div className="space-y-1.5 px-4 md:px-0">
-        {hasDiscount && (
-          <p className="text-xs text-muted-foreground line-through">
+        {hasDiscount && <p className="text-xs text-muted-foreground line-through">
             De R$ {Number(product.price).toFixed(2)}
-          </p>
-        )}
+          </p>}
         <div className="flex items-baseline gap-2">
           <span className="text-2xl font-bold text-primary">
             R$ {Number(currentPrice).toFixed(2)}
           </span>
-          {hasDiscount && (
-            <Badge variant="secondary" className="text-xs">
+          {hasDiscount && <Badge variant="secondary" className="text-xs">
               Economize R$ {Number(product.price - product.promotional_price).toFixed(2)}
-            </Badge>
-          )}
+            </Badge>}
         </div>
       </div>
 
@@ -352,187 +310,94 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       <div className="space-y-1.5 px-4 md:px-0">
         <Label htmlFor="quantity" className="text-sm font-semibold">Quantidade</Label>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="h-9 w-9"
-          >
+          <Button variant="outline" size="icon" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="h-9 w-9">
             <Minus className="w-4 h-4" />
           </Button>
-          <Input
-            id="quantity"
-            type="number"
-            min="1"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-            className="text-center w-16 h-9 text-base font-semibold"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setQuantity(quantity + 1)}
-            className="h-9 w-9"
-          >
+          <Input id="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="text-center w-16 h-9 text-base font-semibold" />
+          <Button variant="outline" size="icon" onClick={() => setQuantity(quantity + 1)} className="h-9 w-9">
             <Plus className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
       {/* Sabores */}
-      {hasFlavors && (
-        <div className="space-y-2 px-4 md:px-0">
+      {hasFlavors && <div className="space-y-2 px-4 md:px-0">
           <Label className="text-sm font-semibold">
             Sabores {maxFlavors > 1 && `(escolha máx. ${maxFlavors})`}
             <span className="text-destructive ml-1">*</span>
           </Label>
           <div className="space-y-1.5 max-h-60 overflow-y-auto">
-            {flavors?.filter(flavor => flavor.is_available).map((flavor) => {
-              const isSelected = selectedFlavors.has(flavor.id);
-              return (
-                <div
-                  key={flavor.id}
-                  className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
-                    isSelected 
-                      ? 'bg-primary/10 border-2 border-primary shadow-sm' 
-                      : 'bg-muted/50 border-2 border-transparent'
-                  }`}
-                >
+            {flavors?.filter(flavor => flavor.is_available).map(flavor => {
+            const isSelected = selectedFlavors.has(flavor.id);
+            return <div key={flavor.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                   <div className="flex items-center gap-2.5 flex-1">
-                    <Checkbox
-                      id={flavor.id}
-                      checked={isSelected}
-                      onCheckedChange={() => handleFlavorToggle(flavor.id)}
-                      disabled={!isSelected && selectedFlavors.size >= maxFlavors}
-                    />
+                    <Checkbox id={flavor.id} checked={isSelected} onCheckedChange={() => handleFlavorToggle(flavor.id)} disabled={!isSelected && selectedFlavors.size >= maxFlavors} />
                     <Label htmlFor={flavor.id} className="flex-1 cursor-pointer text-sm">
                       {flavor.name}
-                      {flavor.description && (
-                        <span className="text-xs text-muted-foreground block">
+                      {flavor.description && <span className="text-xs text-muted-foreground block">
                           {flavor.description}
-                        </span>
-                      )}
+                        </span>}
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    {flavor.price > 0 && (
-                      <span className="text-sm font-semibold text-primary">
+                    {flavor.price > 0 && <span className="text-sm font-semibold text-primary">
                         + R$ {flavor.price.toFixed(2)}
-                      </span>
-                    )}
-                    {isSelected && (
-                      <Check className="h-5 w-5 text-primary" />
-                    )}
+                      </span>}
+                    {isSelected && <Check className="h-5 w-5 text-primary" />}
                   </div>
-                </div>
-              );
-            })}
+                </div>;
+          })}
           </div>
-          {selectedFlavors.size === 0 && (
-            <p className="text-xs text-destructive">
+          {selectedFlavors.size === 0 && <p className="text-xs text-destructive">
               Selecione pelo menos 1 sabor
-            </p>
-          )}
-        </div>
-      )}
+            </p>}
+        </div>}
 
       {/* Adicionais */}
-      {addons && addons.length > 0 && (
-        <div className="space-y-2 px-4 md:px-0">
+      {addons && addons.length > 0 && <div className="space-y-2 px-4 md:px-0">
           <Label className="text-sm font-semibold">Adicionais</Label>
           <div className="space-y-1.5">
-            {categories && categories.length > 0 ? (
-              <>
-                {categories
-                  .filter(
-                    (cat) =>
-                      cat.is_active &&
-                      addons.some(
-                        (addon) => addon.category_id === cat.id && addon.is_available
-                      )
-                  )
-                  .sort((a, b) => a.display_order - b.display_order)
-                  .map((category, index, array) => (
-                    <div key={category.id}>
+            {categories && categories.length > 0 ? <>
+                {categories.filter(cat => cat.is_active && addons.some(addon => addon.category_id === cat.id && addon.is_available)).sort((a, b) => a.display_order - b.display_order).map((category, index, array) => <div key={category.id}>
                       <div className="space-y-1.5">
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
                             <p className="text-sm font-bold text-foreground">
                               {category.name}
-                              {category.min_items > 0 && (
-                                <span className="text-destructive ml-1">*</span>
-                              )}
+                              {category.min_items > 0 && <span className="text-destructive ml-1">*</span>}
                             </p>
-                            {category.max_items !== null && category.max_items > 1 && (
-                              <motion.div
-                                key={`${category.id}-${selectedAddonsByCategory[category.id]?.size || 0}`}
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                              >
-                                <Badge 
-                                  variant={
-                                    (selectedAddonsByCategory[category.id]?.size || 0) >= category.min_items 
-                                      ? "default" 
-                                      : "secondary"
-                                  }
-                                  className="text-xs"
-                                >
+                            {category.max_items !== null && category.max_items > 1 && <motion.div key={`${category.id}-${selectedAddonsByCategory[category.id]?.size || 0}`} initial={{
+                      scale: 0.8,
+                      opacity: 0
+                    }} animate={{
+                      scale: 1,
+                      opacity: 1
+                    }} transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 25
+                    }}>
+                                <Badge variant={(selectedAddonsByCategory[category.id]?.size || 0) >= category.min_items ? "default" : "secondary"} className="text-xs">
                                   {selectedAddonsByCategory[category.id]?.size || 0}/{category.max_items}
                                 </Badge>
-                              </motion.div>
-                            )}
+                              </motion.div>}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {category.max_items === 1 ? (
-                              "Escolha Apenas 1 opção"
-                            ) : (
-                              <>
-                                {category.min_items > 0 
-                                  ? `Mín: ${category.min_items} ${category.min_items === 1 ? 'opção' : 'opções'}` 
-                                  : 'Escolha'}
-                                {category.max_items !== null && category.max_items > 1 &&
-                                  ` até ${category.max_items} opções`}
-                              </>
-                            )}
+                            {category.max_items === 1 ? "Escolha Apenas 1 opção" : <>
+                                {category.min_items > 0 ? `Mín: ${category.min_items} ${category.min_items === 1 ? 'opção' : 'opções'}` : 'Escolha'}
+                                {category.max_items !== null && category.max_items > 1 && ` até ${category.max_items} opções`}
+                              </>}
                           </p>
                         </div>
                         
-                        {category.max_items === 1 ? (
-                          <RadioGroup
-                            value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''}
-                            onValueChange={(value) => handleAddonToggle(value, category.id)}
-                          >
+                        {category.max_items === 1 ? <RadioGroup value={Array.from(selectedAddonsByCategory[category.id] || [])[0] || ''} onValueChange={value => handleAddonToggle(value, category.id)}>
                             <div className="space-y-1.5">
-                              {addons
-                                .filter(
-                                  (addon) =>
-                                    addon.category_id === category.id && addon.is_available
-                                )
-                                .sort(
-                                  (a, b) =>
-                                    (a.display_order || 0) - (b.display_order || 0)
-                                )
-                                .map((addon) => {
-                                  const isSelected = selectedAddons.has(addon.id);
-                                  return (
-                                    <div
-                                      key={addon.id}
-                                      className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
-                                        isSelected 
-                                          ? 'bg-primary/10 border-2 border-primary shadow-sm' 
-                                          : 'bg-muted/50 border-2 border-transparent'
-                                      }`}
-                                    >
+                              {addons.filter(addon => addon.category_id === category.id && addon.is_available).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(addon => {
+                      const isSelected = selectedAddons.has(addon.id);
+                      return <div key={addon.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                                       <div className="flex items-center gap-2.5 flex-1">
-                                        <RadioGroupItem
-                                          value={addon.id}
-                                          id={addon.id}
-                                        />
-                                        <Label
-                                          htmlFor={addon.id}
-                                          className="flex-1 cursor-pointer text-sm"
-                                        >
+                                        <RadioGroupItem value={addon.id} id={addon.id} />
+                                        <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
                                           {addon.name}
                                         </Label>
                                       </div>
@@ -540,227 +405,108 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
                                         <span className="text-sm font-semibold text-primary">
                                           + R$ {addon.price.toFixed(2)}
                                         </span>
-                                        {isSelected && (
-                                          <Check className="h-5 w-5 text-primary" />
-                                        )}
+                                        {isSelected && <Check className="h-5 w-5 text-primary" />}
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    </div>;
+                    })}
                             </div>
-                          </RadioGroup>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {addons
-                              .filter(
-                                (addon) =>
-                                  addon.category_id === category.id && addon.is_available
-                              )
-                              .sort(
-                                (a, b) =>
-                                  (a.display_order || 0) - (b.display_order || 0)
-                              )
-                              .map((addon) => {
-                                const isSelected = selectedAddons.has(addon.id);
-                                return (
-                                  <div
-                                    key={addon.id}
-                                    className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
-                                      isSelected 
-                                        ? 'bg-primary/10 border-2 border-primary shadow-sm' 
-                                        : 'bg-muted/50 border-2 border-transparent'
-                                    }`}
-                                  >
+                          </RadioGroup> : <div className="space-y-1.5">
+                            {addons.filter(addon => addon.category_id === category.id && addon.is_available).sort((a, b) => (a.display_order || 0) - (b.display_order || 0)).map(addon => {
+                    const isSelected = selectedAddons.has(addon.id);
+                    return <div key={addon.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                                     <div className="flex items-center gap-2.5 flex-1">
-                                      <Checkbox
-                                        id={addon.id}
-                                        checked={isSelected}
-                                        onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)}
-                                      />
-                                      <Label
-                                        htmlFor={addon.id}
-                                        className="flex-1 cursor-pointer text-sm"
-                                      >
+                                      <Checkbox id={addon.id} checked={isSelected} onCheckedChange={() => handleAddonToggle(addon.id, category.id, addon.allow_quantity)} />
+                                      <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
                                         {addon.name}
                                     </Label>
                                   </div>
                                     <div className="flex items-center gap-2">
-                                      {addon.allow_quantity && selectedAddons.has(addon.id) && (
-                                        <div className="flex items-center gap-1">
-                                          <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-6 w-6"
-                                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                                          >
+                                      {addon.allow_quantity && selectedAddons.has(addon.id) && <div className="flex items-center gap-1">
+                                          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}>
                                             <Minus className="w-3 h-3" />
                                           </Button>
                                           <span className="text-xs font-medium w-6 text-center">
                                             {addonQuantities.get(addon.id) || 1}x
                                           </span>
-                                          <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-6 w-6"
-                                            onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                                          >
+                                          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}>
                                             <Plus className="w-3 h-3" />
                                           </Button>
-                                        </div>
-                                      )}
+                                        </div>}
                                       <span className="text-sm font-semibold text-primary whitespace-nowrap">
                                         + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
                                       </span>
-                                      {isSelected && (
-                                        <Check className="h-5 w-5 text-primary" />
-                                      )}
+                                      {isSelected && <Check className="h-5 w-5 text-primary" />}
                                     </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        )}
+                                  </div>;
+                  })}
+                          </div>}
                       </div>
-                      {index < array.length - 1 && (
-                        <Separator className="my-4" />
-                      )}
-                    </div>
-                  ))}
+                      {index < array.length - 1 && <Separator className="my-4" />}
+                    </div>)}
 
-                {addons.filter((addon) => !addon.category_id && addon.is_available).length >
-                  0 && (
-                  <div className="space-y-1.5">
+                {addons.filter(addon => !addon.category_id && addon.is_available).length > 0 && <div className="space-y-1.5">
                     <p className="text-xs font-semibold text-muted-foreground">
                       Outros
                     </p>
-                    {addons
-                      .filter((addon) => !addon.category_id && addon.is_available)
-                      .map((addon) => {
-                        const isSelected = selectedAddons.has(addon.id);
-                        return (
-                          <div
-                            key={addon.id}
-                            className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
-                              isSelected 
-                                ? 'bg-primary/10 border-2 border-primary shadow-sm' 
-                                : 'bg-muted/50 border-2 border-transparent'
-                            }`}
-                          >
+                    {addons.filter(addon => !addon.category_id && addon.is_available).map(addon => {
+                const isSelected = selectedAddons.has(addon.id);
+                return <div key={addon.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                             <div className="flex items-center gap-2.5 flex-1">
-                              <Checkbox
-                                id={addon.id}
-                                checked={isSelected}
-                                onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
-                              />
-                              <Label
-                                htmlFor={addon.id}
-                                className="flex-1 cursor-pointer text-sm"
-                              >
+                              <Checkbox id={addon.id} checked={isSelected} onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)} />
+                              <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
                                 {addon.name}
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
-                              {addon.allow_quantity && isSelected && (
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                                  >
+                              {addon.allow_quantity && isSelected && <div className="flex items-center gap-1">
+                                  <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}>
                                     <Minus className="w-3 h-3" />
                                   </Button>
                                   <span className="text-xs font-medium w-6 text-center">
                                     {addonQuantities.get(addon.id) || 1}x
                                   </span>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                                  >
+                                  <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}>
                                     <Plus className="w-3 h-3" />
                                   </Button>
-                                </div>
-                              )}
+                                </div>}
                               <span className="text-sm font-semibold text-primary whitespace-nowrap">
                                 + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
                               </span>
-                              {isSelected && (
-                                <Check className="h-5 w-5 text-primary" />
-                              )}
+                              {isSelected && <Check className="h-5 w-5 text-primary" />}
                             </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </>
-            ) : (
-              addons
-                .filter((addon) => addon.is_available)
-                .map((addon) => {
-                  const isSelected = selectedAddons.has(addon.id);
-                  return (
-                    <div
-                      key={addon.id}
-                      className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${
-                        isSelected 
-                          ? 'bg-primary/10 border-2 border-primary shadow-sm' 
-                          : 'bg-muted/50 border-2 border-transparent'
-                      }`}
-                    >
+                          </div>;
+              })}
+                  </div>}
+              </> : addons.filter(addon => addon.is_available).map(addon => {
+            const isSelected = selectedAddons.has(addon.id);
+            return <div key={addon.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                       <div className="flex items-center gap-2.5 flex-1">
-                        <Checkbox
-                          id={addon.id}
-                          checked={isSelected}
-                          onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)}
-                        />
-                        <Label
-                          htmlFor={addon.id}
-                          className="flex-1 cursor-pointer text-sm"
-                        >
+                        <Checkbox id={addon.id} checked={isSelected} onCheckedChange={() => handleAddonToggle(addon.id, undefined, addon.allow_quantity)} />
+                        <Label htmlFor={addon.id} className="flex-1 cursor-pointer text-sm">
                           {addon.name}
                         </Label>
                       </div>
                       <div className="flex items-center gap-2">
-                        {addon.allow_quantity && isSelected && (
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}
-                            >
+                        {addon.allow_quantity && isSelected && <div className="flex items-center gap-1">
+                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) - 1)}>
                               <Minus className="w-3 h-3" />
                             </Button>
                             <span className="text-xs font-medium w-6 text-center">
                               {addonQuantities.get(addon.id) || 1}x
                             </span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}
-                            >
+                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => handleAddonQuantityChange(addon.id, (addonQuantities.get(addon.id) || 1) + 1)}>
                               <Plus className="w-3 h-3" />
                             </Button>
-                          </div>
-                        )}
+                          </div>}
                         <span className="text-sm font-semibold text-primary whitespace-nowrap">
                           + R$ {(addon.price * (addonQuantities.get(addon.id) || 1)).toFixed(2)}
                         </span>
-                        {isSelected && (
-                          <Check className="h-5 w-5 text-primary" />
-                        )}
+                        {isSelected && <Check className="h-5 w-5 text-primary" />}
                       </div>
-                    </div>
-                  );
-                })
-            )}
+                    </div>;
+          })}
           </div>
-        </div>
-      )}
+        </div>}
 
 
       {/* Observação */}
@@ -768,90 +514,52 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         <Label htmlFor="observation" className="text-sm font-semibold">
           Observações (opcional)
         </Label>
-        <Textarea
-          ref={observationRef}
-          id="observation"
-          placeholder="Observação..."
-          value={observation}
-          onChange={(e) => setObservation(e.target.value)}
-          onClick={handleObservationClick}
-          readOnly={isMobile}
-          className="min-h-16 resize-none text-base md:text-sm cursor-pointer md:cursor-text"
-        />
+        <Textarea ref={observationRef} id="observation" placeholder="Observação..." value={observation} onChange={e => setObservation(e.target.value)} onClick={handleObservationClick} readOnly={isMobile} className="min-h-16 resize-none text-base md:text-sm cursor-pointer md:cursor-text" />
       </div>
 
       {/* Informações Adicionais */}
-      {product.additional_info && (
-        <div className="p-3 bg-muted/50 rounded-lg mx-4 md:mx-0">
+      {product.additional_info && <div className="p-3 bg-muted/50 rounded-lg mx-4 md:mx-0">
           <p className="text-xs text-muted-foreground">{product.additional_info}</p>
-        </div>
-      )}
+        </div>}
       </div>
-    </>
-  );
-
-  const footerContent = (
-    <div className="space-y-2.5">
+    </>;
+  const footerContent = <div className="space-y-2.5">
       <div className="flex items-center justify-between text-base font-semibold">
         <span>Total:</span>
         <span className="text-xl text-primary">R$ {total.toFixed(2)}</span>
       </div>
       <div className="flex gap-2.5">
-        <Button
-          onClick={handleShare}
-          variant="outline"
-          size="lg"
-          className="w-12"
-        >
+        <Button onClick={handleShare} variant="outline" size="lg" className="w-12">
           <Share2 className="w-4 h-4" />
         </Button>
-        <Button
-          onClick={handleAddToCart}
-          className="flex-1 text-sm h-12"
-          disabled={hasFlavors && selectedFlavors.size === 0}
-        >
+        <Button onClick={handleAddToCart} className="flex-1 text-sm h-12" disabled={hasFlavors && selectedFlavors.size === 0}>
           <ShoppingCart className="w-4 h-4 mr-2" />
           Adicionar ao Carrinho
         </Button>
       </div>
-    </div>
-  );
-
+    </div>;
   if (isMobile) {
-    return (
-      <>
+    return <>
         <Drawer open={open} onOpenChange={onOpenChange}>
-          <DrawerContent 
-            className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
-            style={{
-              position: 'fixed',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              maxWidth: '100%'
-            }}
-          >
+          <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          maxWidth: '100%'
+        }}>
             <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
               <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
               
               {/* Botão de fechar flutuante sobre a imagem */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-orange-500 backdrop-blur-sm hover:bg-orange-600"
-              >
+              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-orange-500 backdrop-blur-sm hover:bg-orange-600">
                 <X className="w-6 h-6 text-white" />
               </Button>
 
-              <div 
-                ref={drawerContentRef}
-                className="flex-1 overflow-y-auto overscroll-contain"
-                style={{
-                  touchAction: 'pan-y',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              <div ref={drawerContentRef} className="flex-1 overflow-y-auto overscroll-contain" style={{
+              touchAction: 'pan-y',
+              WebkitOverflowScrolling: 'touch'
+            }}>
                 <div className="pb-4">
                   {productContent}
                 </div>
@@ -866,59 +574,35 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
         {/* Modal de Observação para Mobile */}
         <Dialog open={isObservationModalOpen} onOpenChange={setIsObservationModalOpen}>
-          <DialogContent 
-            className="w-[95vw] max-w-md p-6"
-            style={{
-              position: 'fixed',
-              top: '10vh',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              maxHeight: '40vh',
-              bottom: 'auto'
-            }}
-          >
+          <DialogContent className="w-[95vw] max-w-md p-6" style={{
+          position: 'fixed',
+          top: '10vh',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          maxHeight: '40vh',
+          bottom: 'auto'
+        }}>
             <DialogHeader>
               <DialogTitle>Adicionar Observação</DialogTitle>
             </DialogHeader>
-            <Textarea
-              autoFocus
-              placeholder="Ex: Sem cebola, ponto da carne..."
-              value={tempObservation}
-              onChange={(e) => setTempObservation(e.target.value)}
-              className="min-h-32 max-h-40 resize-none text-base"
-            />
+            <Textarea autoFocus value={tempObservation} onChange={e => setTempObservation(e.target.value)} className="min-h-32 max-h-40 resize-none text-base" placeholder="Observa\xE7\xE3o..." />
             <DialogFooter className="flex-row gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={handleObservationCancel}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={handleObservationCancel} className="flex-1">
                 Cancelar
               </Button>
-              <Button
-                onClick={handleObservationSave}
-                className="flex-1"
-              >
+              <Button onClick={handleObservationSave} className="flex-1">
                 Confirmar
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </>
-    );
+      </>;
   }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-lg">
         <DialogHeader className="absolute top-0 left-0 right-0 z-10 p-0">
           <DialogTitle className="sr-only">{product.name}</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-            className="absolute top-2 right-2 rounded-full h-10 w-10 bg-orange-500 hover:bg-orange-600 shadow-lg"
-          >
+          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="absolute top-2 right-2 rounded-full h-10 w-10 bg-orange-500 hover:bg-orange-600 shadow-lg">
             <X className="w-5 h-5 text-white" />
           </Button>
         </DialogHeader>
@@ -933,6 +617,5 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           {footerContent}
         </div>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 }
