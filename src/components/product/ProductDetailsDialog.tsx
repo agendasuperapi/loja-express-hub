@@ -812,6 +812,8 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
         snapPoints={snapPoints}
         activeSnapPoint={activeSnapPoint}
         setActiveSnapPoint={setActiveSnapPoint}
+        fadeFromIndex={1}
+        modal={false}
       >
         <DrawerContent className="p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300 touch-manipulation [&_input]:text-base [&_textarea]:text-base">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
