@@ -79,14 +79,29 @@ export const generateOrdersReport = (
         currentY = 20;
       }
       
-      // Order header
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Pedido: ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${order.customer_name}`, 14, currentY);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Status: ${order.status} | Pagamento: ${order.payment_method || '-'} | Total: R$ ${order.total.toFixed(2)}`, 14, currentY + 5);
+      // Order header como tabela com fundo cinza
+      const orderHeaderData = [[
+        `Pedido: ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${order.customer_name}`,
+        `Status: ${order.status}`,
+        `Pagamento: ${order.payment_method || '-'}`,
+        `Total: R$ ${order.total.toFixed(2)}`
+      ]];
       
-      currentY += 12;
+      autoTable(doc, {
+        body: orderHeaderData,
+        startY: currentY,
+        styles: { 
+          fontSize: 9, 
+          cellPadding: 3,
+          fillColor: [245, 245, 245],
+          textColor: 0,
+          fontStyle: 'bold'
+        },
+        margin: { left: 14, right: 14 },
+        theme: 'plain',
+      });
+      
+      currentY = (doc as any).lastAutoTable.finalY + 5;
       
       // Items table
       if (order.items && order.items.length > 0) {
@@ -109,7 +124,7 @@ export const generateOrdersReport = (
           body: itemsData,
           startY: currentY,
           styles: { fontSize: 8, cellPadding: 2 },
-          headStyles: { fillColor: [245, 245, 245], textColor: 0, fontSize: 8 },
+          headStyles: { fillColor: [255, 255, 255], textColor: 0, fontSize: 8, fontStyle: 'bold' },
           margin: { left: 14, right: 14 },
           theme: 'striped',
         });
