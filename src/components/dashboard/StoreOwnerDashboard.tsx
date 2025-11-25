@@ -5914,32 +5914,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             });
           }}
           onSkip={async () => {
-            // Atualiza o status diretamente sem enviar notificação WhatsApp
-            const { error } = await supabase
-              .from('orders')
-              .update({ 
-                status: pendingStatusChange.newStatus as any,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', pendingStatusChange.orderId);
-
-            if (error) {
-              console.error('Erro ao atualizar status:', error);
-              toast({
-                title: "Erro ao atualizar status",
-                description: "Não foi possível atualizar o status do pedido.",
-                variant: "destructive",
-              });
-              throw error;
-            }
-
-            toast({
-              title: "Status atualizado",
-              description: "O status do pedido foi atualizado sem enviar mensagem WhatsApp.",
+            // Chama a mutation com skipNotification=true
+            updateOrderStatus({ 
+              orderId: pendingStatusChange.orderId, 
+              status: pendingStatusChange.newStatus,
+              skipNotification: true
             });
-
-            // Invalida as queries para atualizar a UI
-            queryClient.invalidateQueries({ queryKey: ['store-orders'] });
             setPendingStatusChange(null);
           }}
         />

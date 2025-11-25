@@ -1,6 +1,6 @@
 // Edge Function: update-order-status
 // Validates the authenticated employee's permissions and updates an order status using service role
-// Expects: { orderId: string, status: string }
+// Expects: { orderId: string, status: string, skipNotification?: boolean }
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -28,8 +28,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { orderId, status } = await req.json().catch(() => ({ orderId: null, status: null }));
-    console.log('[update-order-status] Parâmetros recebidos:', { orderId, status });
+    const { orderId, status, skipNotification = false } = await req.json().catch(() => ({ orderId: null, status: null, skipNotification: false }));
+    console.log('[update-order-status] Parâmetros recebidos:', { orderId, status, skipNotification });
 
     if (!orderId || !status) {
       console.error('[update-order-status] Parâmetros inválidos:', { orderId, status });
@@ -165,8 +165,18 @@ Deno.serve(async (req) => {
       console.log('[update-order-status] Usuário é proprietário da loja');
     }
 
+    // If skipNotification is true, set session variable before update
+    if (skipNotification) {
+      console.log('[update-order-status] Definindo flag para pular notificação WhatsApp');
+      await supabaseAdmin.rpc('exec_sql' as any, {
+        sql: "SET LOCAL app.skip_whatsapp_notification = 'true';"
+      }).catch((err) => {
+        console.warn('[update-order-status] Não foi possível definir flag de sessão:', err);
+      });
+    }
+
     // Perform the update
-    console.log('[update-order-status] Atualizando pedido:', { orderId, newStatus: statusKey });
+    console.log('[update-order-status] Atualizando pedido:', { orderId, newStatus: statusKey, skipNotification });
     
     const { data: updated, error: updateErr } = await supabaseAdmin
       .from('orders' as any)
