@@ -316,18 +316,37 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
 export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const { categories } = useAddonCategories(storeId);
   const { addons, isLoading, createAddon, updateAddon, deleteAddon, isCreating, isUpdating } = useStoreAddons(storeId);
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
+  
+  // SEMPRE iniciar com "all" - usar key para forçar re-render do Select
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
+  const [selectKey, setSelectKey] = useState(0);
 
-  // Garantir que os filtros sejam resetados ao montar o componente
+  // Log para debugging - rastrear ciclo de vida do componente
   useEffect(() => {
+    console.log('[AddonsTab] Componente montado/atualizado', {
+      categoryFilter,
+      availabilityFilter,
+      timestamp: new Date().toISOString()
+    });
+  }, [categoryFilter, availabilityFilter]);
+
+  // Resetar filtros quando o componente aparecer
+  useEffect(() => {
+    console.log('[AddonsTab] Resetando filtros para estado inicial');
     setCategoryFilter("all");
     setAvailabilityFilter('all');
-  }, []);
+    setSelectKey(prev => prev + 1); // Força re-render do Select
+  }, [storeId]); // Dependência em storeId para garantir reset
+
+  // Log adicional para monitorar mudanças
+  useEffect(() => {
+    console.log('[AddonsTab] Filtro de disponibilidade alterado:', availabilityFilter);
+  }, [availabilityFilter]);
 
   const filteredAddons = addons?.filter(addon => {
     // Filtro de categoria
@@ -474,7 +493,14 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
 
           <div className="space-y-2">
             <Label>Filtrar por status</Label>
-            <Select value={availabilityFilter} onValueChange={(v: any) => setAvailabilityFilter(v)}>
+            <Select 
+              key={`availability-${selectKey}`}
+              value={availabilityFilter} 
+              onValueChange={(v: any) => {
+                console.log('[AddonsTab] Select onChange disparado:', v);
+                setAvailabilityFilter(v);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue>
                   {availabilityFilter === 'all' && 'Todos'}
