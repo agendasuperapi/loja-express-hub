@@ -312,7 +312,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [productToDelete, setProductToDelete] = useState<any>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editCategoryName, setEditCategoryName] = useState('');
-  const [categoryStatusFilter, setCategoryStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [categoryStatusFilter, setCategoryStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [slugAvailability, setSlugAvailability] = useState<{
@@ -326,7 +326,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
   const [localProducts, setLocalProducts] = useState<any[]>([]);
