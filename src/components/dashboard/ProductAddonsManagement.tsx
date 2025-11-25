@@ -46,7 +46,7 @@ export const ProductAddonsManagement = ({ storeId }: ProductAddonsManagementProp
         </TabsContent>
 
         <TabsContent value="addons" className="space-y-4">
-          <AddonsTab storeId={storeId} />
+          <AddonsTab key={activeTab === 'addons' ? 'addons-active' : 'addons-inactive'} storeId={storeId} />
         </TabsContent>
 
         <TabsContent value="library" className="space-y-4">
