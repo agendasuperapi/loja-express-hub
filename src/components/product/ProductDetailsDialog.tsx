@@ -866,7 +866,17 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
         {/* Modal de Observação para Mobile */}
         <Dialog open={isObservationModalOpen} onOpenChange={setIsObservationModalOpen}>
-          <DialogContent className="w-[95vw] max-w-md">
+          <DialogContent 
+            className="w-[95vw] max-w-md p-6"
+            style={{
+              position: 'fixed',
+              top: '10vh',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              maxHeight: '40vh',
+              bottom: 'auto'
+            }}
+          >
             <DialogHeader>
               <DialogTitle>Adicionar Observação</DialogTitle>
             </DialogHeader>
@@ -875,9 +885,9 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
               placeholder="Ex: Sem cebola, ponto da carne..."
               value={tempObservation}
               onChange={(e) => setTempObservation(e.target.value)}
-              className="min-h-32 resize-none text-base"
+              className="min-h-32 max-h-40 resize-none text-base"
             />
-            <DialogFooter className="flex-row gap-2">
+            <DialogFooter className="flex-row gap-2 mt-4">
               <Button
                 variant="outline"
                 onClick={handleObservationCancel}
