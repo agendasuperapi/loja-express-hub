@@ -3351,17 +3351,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             aspectRatio="aspect-video"
                           />
                           <div>
-                            <Label>Código Externo</Label>
-                            <Input
-                              value={productForm.external_code}
-                              onChange={(e) => setProductForm({ ...productForm, external_code: e.target.value.trim() })}
-                              placeholder="Código único do produto (opcional)"
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Código personalizado para controle interno da sua loja.
-                            </p>
-                          </div>
-                          <div>
                             <Label>Nome *</Label>
                             <Input
                               value={productForm.name}
@@ -3445,6 +3434,17 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                 </DialogContent>
                               </Dialog>
                             </div>
+                          </div>
+                          <div>
+                            <Label>Código Externo</Label>
+                            <Input
+                              value={productForm.external_code}
+                              onChange={(e) => setProductForm({ ...productForm, external_code: e.target.value.trim() })}
+                              placeholder="Código único do produto (opcional)"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Código personalizado para controle interno da sua loja.
+                            </p>
                           </div>
                           <div>
                             <Label>Descrição</Label>
