@@ -39,7 +39,6 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { categories } = useAddonCategories(store?.id);
   
   const observationRef = useRef<HTMLTextAreaElement>(null);
-  const pageScrollYRef = useRef(0);
 
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
@@ -60,36 +59,17 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
-  // Handler para scroll automático em mobile
+  // Handler para prevenir scroll no mobile (sem manipular position)
   const handleObservationFocus = () => {
-    if (!isMobile || !observationRef.current) return;
-
-    // Salva posição atual do scroll da página
-    pageScrollYRef.current = window.scrollY;
-    
-    // Previne scroll da página principal
+    if (!isMobile) return;
+    // Apenas previne scroll sem mudar position
     document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${pageScrollYRef.current}px`;
-    document.body.style.width = '100%';
-
-    setTimeout(() => {
-      observationRef.current?.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'nearest'
-      });
-    }, 350);
   };
 
   const handleObservationBlur = () => {
     if (!isMobile) return;
-    
-    // Restaura scroll da página
+    // Restaura overflow
     document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.width = '';
-    window.scrollTo(0, pageScrollYRef.current);
   };
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
