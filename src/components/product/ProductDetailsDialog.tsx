@@ -17,6 +17,7 @@ import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
+import { DialogFooter } from "@/components/ui/dialog";
 
 interface ProductDetailsDialogProps {
   product: any;
@@ -39,24 +40,23 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { categories } = useAddonCategories(store?.id);
   const observationRef = useRef<HTMLTextAreaElement>(null);
   const drawerContentRef = useRef<HTMLDivElement>(null);
+  const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
+  const [tempObservation, setTempObservation] = useState("");
 
-  const handleObservationFocus = () => {
-    if (isMobile && observationRef.current && drawerContentRef.current) {
-      setTimeout(() => {
-        const drawerContent = drawerContentRef.current;
-        const observationField = observationRef.current;
-        
-        if (drawerContent && observationField) {
-          const fieldTop = observationField.offsetTop;
-          const scrollPosition = fieldTop - 100;
-          
-          drawerContent.scrollTo({
-            top: scrollPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 300);
+  const handleObservationClick = () => {
+    if (isMobile) {
+      setTempObservation(observation);
+      setIsObservationModalOpen(true);
     }
+  };
+
+  const handleObservationSave = () => {
+    setObservation(tempObservation);
+    setIsObservationModalOpen(false);
+  };
+
+  const handleObservationCancel = () => {
+    setIsObservationModalOpen(false);
   };
 
   const maxFlavors = product?.max_flavors || 1;
@@ -774,8 +774,9 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
-          onFocus={handleObservationFocus}
-          className="min-h-16 resize-none text-base md:text-sm"
+          onClick={handleObservationClick}
+          readOnly={isMobile}
+          className="min-h-16 resize-none text-base md:text-sm cursor-pointer md:cursor-text"
         />
       </div>
 
@@ -818,49 +819,82 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent 
-          className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            maxWidth: '100%'
-          }}
-        >
-          <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
-            <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
-            
-            {/* Botão de fechar flutuante sobre a imagem */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-orange-500 backdrop-blur-sm hover:bg-orange-600"
-            >
-              <X className="w-6 h-6 text-white" />
-            </Button>
+      <>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent 
+            className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
+            style={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              maxWidth: '100%'
+            }}
+          >
+            <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
+              <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
+              
+              {/* Botão de fechar flutuante sobre a imagem */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onOpenChange(false)}
+                className="absolute top-1 right-2 z-10 rounded-full h-12 w-12 bg-orange-500 backdrop-blur-sm hover:bg-orange-600"
+              >
+                <X className="w-6 h-6 text-white" />
+              </Button>
 
-            <div 
-              ref={drawerContentRef}
-              className="flex-1 overflow-y-auto overscroll-contain"
-              style={{
-                touchAction: 'pan-y',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              <div className="pb-4">
-                {productContent}
+              <div 
+                ref={drawerContentRef}
+                className="flex-1 overflow-y-auto overscroll-contain"
+                style={{
+                  touchAction: 'pan-y',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                <div className="pb-4">
+                  {productContent}
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 border-t bg-background p-6">
+                {footerContent}
               </div>
             </div>
+          </DrawerContent>
+        </Drawer>
 
-            <div className="flex-shrink-0 border-t bg-background p-6">
-              {footerContent}
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
+        {/* Modal de Observação para Mobile */}
+        <Dialog open={isObservationModalOpen} onOpenChange={setIsObservationModalOpen}>
+          <DialogContent className="w-[95vw] max-w-md">
+            <DialogHeader>
+              <DialogTitle>Adicionar Observação</DialogTitle>
+            </DialogHeader>
+            <Textarea
+              autoFocus
+              placeholder="Ex: Sem cebola, ponto da carne..."
+              value={tempObservation}
+              onChange={(e) => setTempObservation(e.target.value)}
+              className="min-h-32 resize-none text-base"
+            />
+            <DialogFooter className="flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={handleObservationCancel}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleObservationSave}
+                className="flex-1"
+              >
+                Confirmar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
