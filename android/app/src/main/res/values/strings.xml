@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Loja Express</string>
-    <string name="title_activity_main">Loja Express</string>
+    <string name="app_name">App Ofertas</string>
+    <string name="title_activity_main">App Ofertas</string>
     <string name="package_name">com.lojaexpress.app</string>
     <string name="custom_url_scheme">com.lojaexpress.app</string>
 </resources>
