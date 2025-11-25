@@ -38,8 +38,6 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { flavors } = useProductFlavors(product?.id);
   const { categories } = useAddonCategories(store?.id);
   
-  const observationRef = useRef<HTMLTextAreaElement>(null);
-
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
 
@@ -58,19 +56,6 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
-
-  // Handler para prevenir scroll no mobile (sem manipular position)
-  const handleObservationFocus = () => {
-    if (!isMobile) return;
-    // Apenas previne scroll sem mudar position
-    document.body.style.overflow = 'hidden';
-  };
-
-  const handleObservationBlur = () => {
-    if (!isMobile) return;
-    // Restaura overflow
-    document.body.style.overflow = '';
-  };
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
@@ -763,13 +748,10 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           Observações (opcional)
         </Label>
         <Textarea
-          ref={observationRef}
           id="observation"
           placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
-          onFocus={handleObservationFocus}
-          onBlur={handleObservationBlur}
           className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
