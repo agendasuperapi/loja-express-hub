@@ -66,7 +66,10 @@ const requestNotificationPermission = async () => {
   }
 };
 
-export const useNewOrderNotification = (storeId: string | undefined) => {
+export const useNewOrderNotification = (
+  storeId: string | undefined,
+  options?: { pauseInvalidations?: boolean }
+) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const invalidateTimeoutRef = useRef<NodeJS.Timeout>();
@@ -78,8 +81,14 @@ export const useNewOrderNotification = (storeId: string | undefined) => {
     }
     
     invalidateTimeoutRef.current = setTimeout(() => {
+      // Não invalidar se estiver pausado (modal aberto)
+      if (options?.pauseInvalidations) {
+        console.log('⏸️ Invalidação pausada - modal aberto');
+        return;
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['store-orders'] });
-      console.log('✅ Lista de pedidos atualizada');
+      console.log('✅ Lista de pedidos atualizada após novo pedido');
     }, 2000); // Debounce de 2 segundos
   };
 

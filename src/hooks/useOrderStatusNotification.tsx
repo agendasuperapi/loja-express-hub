@@ -3,7 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
-export const useOrderStatusNotification = (storeId: string | undefined) => {
+export const useOrderStatusNotification = (
+  storeId: string | undefined, 
+  options?: { pauseInvalidations?: boolean }
+) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const invalidateTimeoutRef = useRef<NodeJS.Timeout>();
@@ -16,6 +19,12 @@ export const useOrderStatusNotification = (storeId: string | undefined) => {
     }
     
     invalidateTimeoutRef.current = setTimeout(() => {
+      // Não invalidar se estiver pausado (modal aberto)
+      if (options?.pauseInvalidations) {
+        console.log('⏸️ Invalidação pausada - modal aberto');
+        return;
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['store-orders'] });
       console.log('✅ Lista de pedidos atualizada após mudança de status');
     }, 2000); // Debounce de 2 segundos
