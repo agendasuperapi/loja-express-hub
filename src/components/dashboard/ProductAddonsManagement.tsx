@@ -331,26 +331,15 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
   
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
 
   const filteredAddons = addons?.filter(addon => {
     // Filtro de categoria
-    let matchesCategory = true;
     if (categoryFilter === "uncategorized") {
-      matchesCategory = !addon.category_id;
+      return !addon.category_id;
     } else if (categoryFilter !== "all") {
-      matchesCategory = addon.category_id === categoryFilter;
+      return addon.category_id === categoryFilter;
     }
-    
-    // Filtro de disponibilidade
-    let matchesAvailability = true;
-    if (availabilityFilter === 'available') {
-      matchesAvailability = addon.is_available;
-    } else if (availabilityFilter === 'unavailable') {
-      matchesAvailability = !addon.is_available;
-    }
-    
-    return matchesCategory && matchesAvailability;
+    return true;
   });
 
   const addonsByCategory = filteredAddons?.reduce((acc, addon) => {
@@ -472,23 +461,6 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                     {category.name}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Filtrar por status</Label>
-            <Select 
-              value={availabilityFilter}
-              onValueChange={(v: 'all' | 'available' | 'unavailable') => setAvailabilityFilter(v)}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-background z-50">
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="available">Disponíveis</SelectItem>
-                <SelectItem value="unavailable">Indisponíveis</SelectItem>
               </SelectContent>
             </Select>
           </div>
