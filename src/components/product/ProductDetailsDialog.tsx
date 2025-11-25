@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
 
@@ -37,6 +37,27 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { addons } = useProductAddons(product?.id);
   const { flavors } = useProductFlavors(product?.id);
   const { categories } = useAddonCategories(store?.id);
+  const observationRef = useRef<HTMLTextAreaElement>(null);
+  const drawerContentRef = useRef<HTMLDivElement>(null);
+
+  const handleObservationFocus = () => {
+    if (isMobile && observationRef.current && drawerContentRef.current) {
+      setTimeout(() => {
+        const drawerContent = drawerContentRef.current;
+        const observationField = observationRef.current;
+        
+        if (drawerContent && observationField) {
+          const fieldTop = observationField.offsetTop;
+          const scrollPosition = fieldTop - 100;
+          
+          drawerContent.scrollTo({
+            top: scrollPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 300);
+    }
+  };
 
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
@@ -743,15 +764,17 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
 
       {/* Observação */}
-      <div className="space-y-1.5 px-4 md:px-0">
+      <div className="space-y-1.5 px-4 md:px-0 pb-32 md:pb-0">
         <Label htmlFor="observation" className="text-sm font-semibold">
           Observações (opcional)
         </Label>
         <Textarea
+          ref={observationRef}
           id="observation"
           placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
+          onFocus={handleObservationFocus}
           className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
@@ -796,7 +819,16 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300">
+        <DrawerContent 
+          className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            maxWidth: '100%'
+          }}
+        >
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
@@ -810,7 +842,14 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
               <X className="w-6 h-6 text-white" />
             </Button>
 
-            <div className="flex-1 overflow-y-auto">
+            <div 
+              ref={drawerContentRef}
+              className="flex-1 overflow-y-auto overscroll-contain"
+              style={{
+                touchAction: 'pan-y',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               <div className="pb-4">
                 {productContent}
               </div>
