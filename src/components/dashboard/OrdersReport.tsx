@@ -26,6 +26,7 @@ import * as XLSX from 'xlsx';
 interface OrderItem {
   id: string;
   product_name: string;
+  external_code?: string | null;
   quantity: number;
   unit_price: number;
   subtotal: number;
@@ -212,6 +213,10 @@ export const OrdersReport = ({
             unit_price,
             subtotal,
             observation,
+            product_id,
+            products!inner (
+              external_code
+            ),
             order_item_addons (
               addon_name,
               addon_price
@@ -236,6 +241,7 @@ export const OrdersReport = ({
             orderItemsMap[item.order_id].push({
               id: item.id,
               product_name: item.product_name,
+              external_code: item.products?.external_code || null,
               quantity: item.quantity,
               unit_price: item.unit_price,
               subtotal: item.subtotal,
@@ -388,7 +394,7 @@ export const OrdersReport = ({
   }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, dateRange]);
   const exportToCSV = () => {
     const headers = showOrderItems 
-      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
+      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Cód. Externo', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
       : ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
     
     const rows: string[][] = [];
@@ -418,6 +424,7 @@ export const OrdersReport = ({
           if (itemIndex === 0) {
             rows.push([
               ...orderData,
+              item.external_code || '-',
               item.product_name,
               item.quantity.toString(),
               `R$ ${item.unit_price.toFixed(2)}`,
@@ -429,6 +436,7 @@ export const OrdersReport = ({
           } else {
             rows.push([
               '', '', '', '', '', '', '', '', '', '', '', '', '', // Empty order columns
+              item.external_code || '-',
               item.product_name,
               item.quantity.toString(),
               `R$ ${item.unit_price.toFixed(2)}`,
@@ -455,6 +463,7 @@ export const OrdersReport = ({
     const periodLabel = dateRange.from && dateRange.to ? `${format(dateRange.from, 'dd/MM/yyyy')} - ${format(dateRange.to, 'dd/MM/yyyy')}` : "Todos os períodos";
     const ordersForReport = filteredOrders.map(order => ({
       id: order.id,
+      order_number: order.order_number,
       created_at: order.created_at,
       customer_name: order.customer_name,
       total: order.total,
@@ -470,7 +479,7 @@ export const OrdersReport = ({
   };
   const exportToExcel = () => {
     const headers = showOrderItems 
-      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
+      ? ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom', 'Cód. Externo', 'Produto', 'Qtd', 'Preço Unit.', 'Subtotal Item', 'Adicionais', 'Sabores', 'Observação']
       : ['Pedido', 'Data', 'Cliente', 'Telefone', 'Status', 'Subtotal', 'Taxa de Entrega', 'Desconto', 'Total', 'Pagamento', 'Status Pgto', 'Entrega', 'Cupom'];
     
     const data: any[] = [];
@@ -500,6 +509,7 @@ export const OrdersReport = ({
           if (itemIndex === 0) {
             data.push({
               ...orderData,
+              'Cód. Externo': item.external_code || '-',
               'Produto': item.product_name,
               'Qtd': item.quantity,
               'Preço Unit.': item.unit_price,
@@ -523,6 +533,7 @@ export const OrdersReport = ({
               'Status Pgto': '',
               'Entrega': '',
               'Cupom': '',
+              'Cód. Externo': item.external_code || '-',
               'Produto': item.product_name,
               'Qtd': item.quantity,
               'Preço Unit.': item.unit_price,

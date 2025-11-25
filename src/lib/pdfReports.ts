@@ -5,6 +5,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface OrderItem {
   product_name: string;
+  external_code?: string | null;
   quantity: number;
   unit_price: number;
   subtotal: number;
@@ -26,6 +27,7 @@ interface Order {
   total: number;
   status: string;
   payment_method?: string;
+  order_number?: string;
   items?: OrderItem[];
 }
 
@@ -81,7 +83,7 @@ export const generateOrdersReport = (
       
       // Order header como tabela com fundo cinza
       const orderHeaderData = [[
-        `Pedido: ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${order.customer_name}`,
+        `Pedido #${order.order_number || order.id.slice(0, 8)} - ${format(new Date(order.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })} - ${order.customer_name}`,
         `Status: ${order.status}`,
         `Pagamento: ${order.payment_method || '-'}`,
         `Total: R$ ${order.total.toFixed(2)}`
@@ -111,6 +113,7 @@ export const generateOrdersReport = (
           const extras = [addons !== '-' ? addons : '', flavors !== '-' ? flavors : ''].filter(Boolean).join(' | ') || '-';
           
           return [
+            item.external_code || '-',
             item.product_name,
             item.quantity.toString(),
             `R$ ${item.unit_price.toFixed(2)}`,
@@ -120,7 +123,7 @@ export const generateOrdersReport = (
         });
         
         autoTable(doc, {
-          head: [['Produto', 'Qtd', 'Preço Unit.', 'Extras', 'Subtotal']],
+          head: [['Cód.', 'Produto', 'Qtd', 'Preço Unit.', 'Extras', 'Subtotal']],
           body: itemsData,
           startY: currentY,
           styles: { fontSize: 8, cellPadding: 2, fillColor: [255, 255, 255] },
