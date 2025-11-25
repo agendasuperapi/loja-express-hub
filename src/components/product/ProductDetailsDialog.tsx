@@ -34,6 +34,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const { addons } = useProductAddons(product?.id);
   const { flavors } = useProductFlavors(product?.id);
   const { categories } = useAddonCategories(store?.id);
@@ -49,8 +50,26 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
+      setViewportHeight(null);
     }
   }, [open]);
+
+  // Hook para detectar altura do viewport visual e evitar que o drawer suba
+  useEffect(() => {
+    if (!isMobile || !open) return;
+    
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    
+    const handleResize = () => {
+      setViewportHeight(viewport.height);
+    };
+    
+    viewport.addEventListener('resize', handleResize);
+    handleResize(); // Valor inicial
+    
+    return () => viewport.removeEventListener('resize', handleResize);
+  }, [isMobile, open]);
 
   if (!product || !store) return null;
 
@@ -795,8 +814,13 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300">
+      <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
+        <DrawerContent 
+          style={{ 
+            maxHeight: viewportHeight ? `${viewportHeight * 0.86}px` : '86vh' 
+          }}
+          className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300"
+        >
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
