@@ -168,11 +168,13 @@ Deno.serve(async (req) => {
     // If skipNotification is true, set session variable before update
     if (skipNotification) {
       console.log('[update-order-status] Definindo flag para pular notificação WhatsApp');
-      await supabaseAdmin.rpc('exec_sql' as any, {
+      const { error: rpcError } = await supabaseAdmin.rpc('exec_sql' as any, {
         sql: "SET LOCAL app.skip_whatsapp_notification = 'true';"
-      }).catch((err) => {
-        console.warn('[update-order-status] Não foi possível definir flag de sessão:', err);
       });
+      
+      if (rpcError) {
+        console.warn('[update-order-status] Não foi possível definir flag de sessão:', rpcError);
+      }
     }
 
     // Perform the update
