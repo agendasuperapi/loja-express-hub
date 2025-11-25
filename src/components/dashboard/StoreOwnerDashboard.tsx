@@ -323,6 +323,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   }>({ isChecking: false, isAvailable: null, message: '' });
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
+  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'delivery' | 'pickup'>('all');
   const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
@@ -1026,6 +1027,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         return false;
       }
 
+      // Filtro de tipo de entrega
+      if (deliveryTypeFilter === 'delivery' && order.delivery_type !== 'delivery') {
+        return false;
+      }
+      if (deliveryTypeFilter === 'pickup' && order.delivery_type !== 'pickup') {
+        return false;
+      }
+
       // Filtro de pedidos agendados
       if (scheduledFilter !== 'all' && myStore?.operating_hours) {
         const orderDate = new Date(order.created_at);
@@ -1073,7 +1082,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       const dateB = new Date(b.created_at).getTime();
       return orderSortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
-  }, [orders, orderStatusFilter, paymentStatusFilter, scheduledFilter, orderSortBy, dateFilter, customDateRange, orderSearchTerm, myStore]);
+  }, [orders, orderStatusFilter, paymentStatusFilter, deliveryTypeFilter, scheduledFilter, orderSortBy, dateFilter, customDateRange, orderSearchTerm, myStore]);
 
   // Paginação dos pedidos
   const paginatedOrdersData = useMemo(() => {
@@ -2656,6 +2665,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <SelectItem value="all">💳 Todos</SelectItem>
                       <SelectItem value="received">✅ Pgto Recebido</SelectItem>
                       <SelectItem value="pending">⏳ Pgto Pendente</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={deliveryTypeFilter}
+                    onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
+                      <SelectValue placeholder="Tipo Entrega" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="all">🚚 Todos</SelectItem>
+                      <SelectItem value="delivery">🚚 Entrega</SelectItem>
+                      <SelectItem value="pickup">🏪 Retirada</SelectItem>
                     </SelectContent>
                   </Select>
 
