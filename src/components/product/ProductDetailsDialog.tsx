@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
 
@@ -37,6 +37,8 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { addons } = useProductAddons(product?.id);
   const { flavors } = useProductFlavors(product?.id);
   const { categories } = useAddonCategories(store?.id);
+  
+  const observationRef = useRef<HTMLTextAreaElement>(null);
 
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
@@ -56,6 +58,18 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
+
+  // Handler para scroll automático em mobile quando o campo de observação recebe foco
+  const handleObservationFocus = () => {
+    if (isMobile && observationRef.current) {
+      setTimeout(() => {
+        observationRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300);
+    }
+  };
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
@@ -743,15 +757,17 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
 
       {/* Observação */}
-      <div className="space-y-1.5 px-4 md:px-0">
+      <div className="space-y-1.5 px-4 md:px-0 pb-32 md:pb-0">
         <Label htmlFor="observation" className="text-sm font-semibold">
           Observações (opcional)
         </Label>
         <Textarea
+          ref={observationRef}
           id="observation"
           placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
+          onFocus={handleObservationFocus}
           className="min-h-16 resize-none text-sm"
         />
       </div>
