@@ -324,6 +324,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'delivery' | 'pickup'>('all');
+  const [showOrderItems, setShowOrderItems] = useState(true);
   const [scheduledFilter, setScheduledFilter] = useState<'all' | 'scheduled' | 'normal'>('all');
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
@@ -2682,6 +2683,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
 
+                  <Select
+                    value={showOrderItems ? 'show' : 'hide'}
+                    onValueChange={(value) => setShowOrderItems(value === 'show')}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
+                      <SelectValue placeholder="Itens do pedido" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="show">📦 Mostrar itens</SelectItem>
+                      <SelectItem value="hide">👁️ Ocultar itens</SelectItem>
+                    </SelectContent>
+                  </Select>
+
                   <Select 
                     value={scheduledFilter} 
                     onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}
@@ -3006,6 +3020,40 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <div className="text-sm">
                               <p className="font-medium mb-1">Observações:</p>
                               <p className="text-muted-foreground">{order.notes}</p>
+                            </div>
+                          </>
+                        )}
+
+                        {showOrderItems && (
+                          <>
+                            <Separator className="my-4" />
+                            <div className="text-sm">
+                              <p className="font-medium mb-2">Itens do Pedido:</p>
+                              <div className="space-y-2">
+                                {order.order_items?.filter((item: any) => !item.deleted_at).map((item: any) => (
+                                  <div key={item.id} className="bg-muted/50 p-2 rounded-lg">
+                                    <div className="flex justify-between items-start">
+                                      <span className="text-sm">{item.quantity}x {item.product_name}</span>
+                                      <span className="text-sm font-medium">R$ {(Number(item.subtotal) || 0).toFixed(2)}</span>
+                                    </div>
+                                    {item.order_item_addons && item.order_item_addons.length > 0 && (
+                                      <div className="text-xs text-muted-foreground ml-4 mt-1">
+                                        Adicionais: {item.order_item_addons.map((addon: any) => addon.addon_name).join(', ')}
+                                      </div>
+                                    )}
+                                    {item.order_item_flavors && item.order_item_flavors.length > 0 && (
+                                      <div className="text-xs text-muted-foreground ml-4 mt-1">
+                                        Sabores: {item.order_item_flavors.map((flavor: any) => flavor.flavor_name).join(', ')}
+                                      </div>
+                                    )}
+                                    {item.observation && (
+                                      <div className="text-xs text-muted-foreground ml-4 mt-1">
+                                        Obs: {item.observation}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </>
                         )}
