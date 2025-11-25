@@ -801,7 +801,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
           onFocus={handleObservationFocus}
-          className="min-h-16 resize-none text-sm"
+          className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
 
@@ -845,7 +845,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300">
+        <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300 touch-manipulation [&_input]:text-base [&_textarea]:text-base">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
             
