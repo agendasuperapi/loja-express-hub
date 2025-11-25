@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -155,12 +155,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   };
 
   const { categories, loading: loadingCategories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory, reorderCategories } = useCategories(myStore?.id);
-  
-  // Enable automatic WhatsApp notifications
-  useOrderStatusNotification(myStore?.id);
-  
-  // Enable real-time new order notifications with sound
-  useNewOrderNotification(myStore?.id);
   
   // Load custom order statuses
   const { statuses: customStatuses } = useOrderStatuses(myStore?.id);
@@ -349,6 +343,21 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [currentHomeOrderPage, setCurrentHomeOrderPage] = useState(1);
   const homeOrdersPerPage = 10;
   
+  // Rastrear se algum modal está aberto para pausar invalidações
+  const isAnyModalOpen = useMemo(() => {
+    return isProductDialogOpen || 
+           isCategoryDialogOpen || 
+           isEditCategoryDialogOpen || 
+           isHoursDialogOpen ||
+           isDuplicateDialogOpen;
+  }, [isProductDialogOpen, isCategoryDialogOpen, isEditCategoryDialogOpen, isHoursDialogOpen, isDuplicateDialogOpen]);
+
+  // Enable automatic WhatsApp notifications (pausar quando modais estão abertos)
+  useOrderStatusNotification(myStore?.id, { pauseInvalidations: isAnyModalOpen });
+  
+  // Enable real-time new order notifications with sound (pausar quando modais estão abertos)
+  useNewOrderNotification(myStore?.id, { pauseInvalidations: isAnyModalOpen });
+  
   // Gerenciar aba ativa via URL para persistir ao recarregar
   const tabFromUrl = searchParams.get('tab') || 'home';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
@@ -384,9 +393,21 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     }
   }, [categories]);
 
+  // useRef para rastrear a última versão de myStore e evitar atualizações desnecessárias
+  const prevMyStoreRef = useRef<typeof myStore>(null);
+
   // Sync store form with myStore data (único ponto de sincronização)
   useEffect(() => {
     if (myStore) {
+      // Comparar IDs e timestamps para evitar updates desnecessários
+      const isSameStore = prevMyStoreRef.current?.id === myStore.id && 
+                          prevMyStoreRef.current?.updated_at === myStore.updated_at;
+      
+      if (isSameStore) {
+        console.log('⏭️ [StoreOwnerDashboard] Store não mudou, pulando sincronização');
+        return;
+      }
+
       console.log('🏪 [StoreOwnerDashboard] Carregando dados da loja no formulário:', {
         store_id: myStore.id,
         store_name: myStore.name,
@@ -462,6 +483,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       });
       
       setStoreForm(newFormData);
+      prevMyStoreRef.current = myStore;
 
       // Validar chave PIX inicial quando existir
       if ((myStore as any)?.pix_key) {
