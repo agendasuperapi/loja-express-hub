@@ -3107,7 +3107,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <SelectTrigger className="flex-1">
                               {isUpdating ? (
                                 <div className="flex items-center gap-2">
-                                  <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+                                  <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
                                   <span>Atualizando...</span>
                                 </div>
                               ) : (
