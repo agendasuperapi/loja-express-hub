@@ -39,8 +39,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const { categories } = useAddonCategories(store?.id);
   
   const observationRef = useRef<HTMLTextAreaElement>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isScrollingRef = useRef(false);
+  const pageScrollYRef = useRef(0);
 
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
@@ -53,93 +52,44 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
-      isScrollingRef.current = false;
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     }
   }, [open]);
-
-  // Ajusta scroll quando o teclado abre/fecha usando visualViewport
-  useEffect(() => {
-    if (!isMobile || !open) return;
-
-    const handleViewportResize = () => {
-      if (document.activeElement === observationRef.current && observationRef.current) {
-        const element = observationRef.current;
-        const scrollContainer = element.closest('.overflow-y-auto');
-        
-        if (scrollContainer && window.visualViewport) {
-          const elementRect = element.getBoundingClientRect();
-          const visibleHeight = window.visualViewport.height;
-          const targetPosition = visibleHeight * 0.35;
-          const currentPosition = elementRect.top;
-          const scrollNeeded = currentPosition - targetPosition;
-          
-          if (Math.abs(scrollNeeded) > 20) {
-            scrollContainer.scrollBy({
-              top: scrollNeeded,
-              behavior: 'smooth'
-            });
-          }
-        }
-      }
-    };
-
-    window.visualViewport?.addEventListener('resize', handleViewportResize);
-    
-    return () => {
-      window.visualViewport?.removeEventListener('resize', handleViewportResize);
-    };
-  }, [isMobile, open]);
 
   if (!product || !store) return null;
 
   const currentPrice = product.promotional_price || product.price || 0;
   const hasDiscount = product.promotional_price && product.promotional_price < product.price;
 
-  // Handler aprimorado para scroll automático em mobile usando visualViewport
+  // Handler para scroll automático em mobile
   const handleObservationFocus = () => {
-    if (!isMobile || !observationRef.current || isScrollingRef.current) return;
+    if (!isMobile || !observationRef.current) return;
+
+    // Salva posição atual do scroll da página
+    pageScrollYRef.current = window.scrollY;
     
-    isScrollingRef.current = true;
-    
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-    
-    scrollTimeoutRef.current = setTimeout(() => {
-      requestAnimationFrame(() => {
-        if (observationRef.current) {
-          const element = observationRef.current;
-          const scrollContainer = element.closest('.overflow-y-auto');
-          
-          if (scrollContainer) {
-            const elementRect = element.getBoundingClientRect();
-            
-            // Usa visualViewport para detectar altura real visível
-            const visibleHeight = window.visualViewport?.height || window.innerHeight;
-            
-            // Calcula posição ideal: 35% da área visível do topo
-            const targetPosition = visibleHeight * 0.35;
-            const currentPosition = elementRect.top;
-            const scrollNeeded = currentPosition - targetPosition;
-            
-            // Scroll suave apenas se necessário
-            if (Math.abs(scrollNeeded) > 20) {
-              scrollContainer.scrollBy({
-                top: scrollNeeded,
-                behavior: 'smooth'
-              });
-            }
-          }
-          
-          setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 500);
-        }
+    // Previne scroll da página principal
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${pageScrollYRef.current}px`;
+    document.body.style.width = '100%';
+
+    setTimeout(() => {
+      observationRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'nearest'
       });
     }, 350);
+  };
+
+  const handleObservationBlur = () => {
+    if (!isMobile) return;
+    
+    // Restaura scroll da página
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, pageScrollYRef.current);
   };
 
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
@@ -839,6 +789,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
           onFocus={handleObservationFocus}
+          onBlur={handleObservationBlur}
           className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
@@ -882,7 +833,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
         <DrawerContent className="h-[86vh] p-0 mt-0 rounded-t-3xl overflow-hidden border-0 [&>div:first-child]:hidden animate-in slide-in-from-bottom duration-300 touch-manipulation [&_input]:text-base [&_textarea]:text-base">
           <div className="flex flex-col h-full overflow-hidden relative animate-scale-in">
             <DrawerTitle className="sr-only">{product.name}</DrawerTitle>
