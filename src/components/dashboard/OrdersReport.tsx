@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, ShoppingCart, Download, Tag, FileText, FileSpreadsheet, Clock, Truck, Wallet, DollarSign, Filter, Settings } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -67,6 +68,7 @@ export const OrdersReport = ({
   const [valueRangeFilter, setValueRangeFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [couponFilter, setCouponFilter] = useState<string>('all');
   const [availableCoupons, setAvailableCoupons] = useState<Array<{code: string, id: string}>>([]);
+  const [showOrderItems, setShowOrderItems] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -108,6 +110,7 @@ export const OrdersReport = ({
       setPaymentMethodFilter(filters.paymentMethodFilter || "all");
       setValueRangeFilter(filters.valueRangeFilter || "all");
       setCouponFilter(filters.couponFilter || "all");
+      setShowOrderItems(filters.showOrderItems || false);
     }
   }, [storeId]);
 
@@ -121,10 +124,11 @@ export const OrdersReport = ({
       deliveryTypeFilter,
       paymentMethodFilter,
       valueRangeFilter,
-      couponFilter
+      couponFilter,
+      showOrderItems
     };
     localStorage.setItem(`ordersReport-filters-${storeId}`, JSON.stringify(filters));
-  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, storeId]);
+  }, [searchTerm, statusFilter, paymentFilter, scheduledFilter, deliveryTypeFilter, paymentMethodFilter, valueRangeFilter, couponFilter, showOrderItems, storeId]);
 
   // Salvar colunas visíveis no localStorage quando mudarem
   useEffect(() => {
@@ -551,22 +555,37 @@ export const OrdersReport = ({
                           </SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
-                  </div>
+                     </Select>
+                   </div>
 
-                  <div className="flex gap-2 pt-4">
-                    <Button variant="outline" className="flex-1" onClick={() => {
+                   <div className="space-y-2">
+                     <Label>Exibir Itens do Pedido</Label>
+                     <div className="flex items-center space-x-2">
+                       <Switch
+                         id="show-items"
+                         checked={showOrderItems}
+                         onCheckedChange={setShowOrderItems}
+                       />
+                       <Label htmlFor="show-items" className="cursor-pointer text-sm text-muted-foreground">
+                         Mostrar produtos de cada pedido na tabela
+                       </Label>
+                     </div>
+                   </div>
+
+                   <div className="flex gap-2 pt-4">
+                     <Button variant="outline" className="flex-1" onClick={() => {
                     setSearchTerm("");
                     setStatusFilter("all");
                     setPaymentFilter("all");
                     setScheduledFilter("all");
                     setDeliveryTypeFilter("all");
-                    setPaymentMethodFilter("all");
-                    setValueRangeFilter("all");
-                    setCouponFilter("all");
-                  }}>
-                      Limpar Filtros
-                    </Button>
+                     setPaymentMethodFilter("all");
+                     setValueRangeFilter("all");
+                     setCouponFilter("all");
+                     setShowOrderItems(false);
+                   }}>
+                       Limpar Filtros
+                     </Button>
                     <Button className="flex-1" onClick={() => setFiltersOpen(false)}>
                       Aplicar Filtros
                     </Button>
