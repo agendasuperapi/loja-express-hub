@@ -34,6 +34,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
+  const [isObservationFocused, setIsObservationFocused] = useState(false);
   const { addons } = useProductAddons(product?.id);
   const { flavors } = useProductFlavors(product?.id);
   const { categories } = useAddonCategories(store?.id);
@@ -41,21 +42,31 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const drawerContentRef = useRef<HTMLDivElement>(null);
 
   const handleObservationFocus = () => {
-    if (isMobile && observationRef.current && drawerContentRef.current) {
-      setTimeout(() => {
-        const drawerContent = drawerContentRef.current;
-        const observationField = observationRef.current;
-        
-        if (drawerContent && observationField) {
-          const fieldTop = observationField.offsetTop;
-          const scrollPosition = fieldTop - 100;
+    if (isMobile) {
+      setIsObservationFocused(true);
+      
+      if (observationRef.current && drawerContentRef.current) {
+        setTimeout(() => {
+          const drawerContent = drawerContentRef.current;
+          const observationField = observationRef.current;
           
-          drawerContent.scrollTo({
-            top: scrollPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 300);
+          if (drawerContent && observationField) {
+            const fieldTop = observationField.offsetTop;
+            const scrollPosition = fieldTop - 100;
+            
+            drawerContent.scrollTo({
+              top: scrollPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 300);
+      }
+    }
+  };
+
+  const handleObservationBlur = () => {
+    if (isMobile) {
+      setIsObservationFocused(false);
     }
   };
 
@@ -70,6 +81,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
       setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
+      setIsObservationFocused(false);
     }
   }, [open]);
 
@@ -276,6 +288,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
   const productContent = (
     <>
       {/* Imagem do Produto */}
+      {!(isMobile && isObservationFocused) && (
       <div className="relative w-full overflow-hidden group md:rounded-t-lg rounded-t-3xl">
         <motion.img
           initial={{ scale: 1.15, opacity: 0 }}
@@ -304,6 +317,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           </Badge>
         )}
       </div>
+      )}
 
       <div className="md:px-5 md:pt-4">
       {/* Info da Loja */}
@@ -775,6 +789,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
           onFocus={handleObservationFocus}
+          onBlur={handleObservationBlur}
           className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
