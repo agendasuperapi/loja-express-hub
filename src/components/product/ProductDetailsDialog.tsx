@@ -752,7 +752,7 @@ export function ProductDetailsDialog({ product, store, open, onOpenChange }: Pro
           placeholder="Observação..."
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
-          className="min-h-16 resize-none text-sm"
+          className="min-h-16 resize-none text-base md:text-sm"
         />
       </div>
 
