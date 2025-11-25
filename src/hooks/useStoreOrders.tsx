@@ -32,14 +32,15 @@ export const useStoreOrders = (storeId?: string) => {
   });
 
   const updateOrderStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status }: { 
+    mutationFn: async ({ orderId, status, skipNotification = false }: { 
       orderId: string; 
-      status: string
+      status: string;
+      skipNotification?: boolean;
     }) => {
-      console.log('[updateOrderStatus] Iniciando atualização:', { orderId, status });
+      console.log('[updateOrderStatus] Iniciando atualização:', { orderId, status, skipNotification });
       
       const { data, error } = await supabase.functions.invoke('update-order-status', {
-        body: { orderId, status },
+        body: { orderId, status, skipNotification },
       });
 
       console.log('[updateOrderStatus] Resposta recebida:', { data, error });
