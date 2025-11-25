@@ -424,7 +424,7 @@ export default function StoreDetails() {
             className="bg-gradient-to-br from-gray-200 via-white to-gray-100 p-4 md:p-6 border-2 border-orange-300 hover:shadow-[0_0_20px_rgba(251,146,60,0.6)] transition-shadow duration-500"
           >
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-              <div className="flex items-start gap-3 md:gap-4 flex-1">
+              <div className="flex flex-col items-center md:items-start gap-3 md:gap-4 flex-1">
                 {store.logo_url && (
                   <motion.img 
                     whileHover={{ scale: 1.05, rotate: 2 }}
@@ -434,7 +434,7 @@ export default function StoreDetails() {
                     className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover border-4 border-background shadow-lg"
                   />
                 )}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 w-full">
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-2">
                     <h1 className="text-2xl md:text-4xl font-bold gradient-text">{store.name}</h1>
                     <motion.div 
