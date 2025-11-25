@@ -5913,6 +5913,30 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               status: pendingStatusChange.newStatus 
             });
           }}
+          onSkip={async () => {
+            // Atualiza o status diretamente no banco sem acionar a edge function
+            const { error } = await supabase
+              .from('orders')
+              .update({ status: pendingStatusChange.newStatus as any })
+              .eq('id', pendingStatusChange.orderId);
+
+            if (error) {
+              toast({
+                title: "Erro ao atualizar status",
+                description: "Não foi possível atualizar o status do pedido.",
+                variant: "destructive",
+              });
+              throw error;
+            }
+
+            toast({
+              title: "Status atualizado",
+              description: "O status do pedido foi atualizado sem enviar mensagem.",
+            });
+
+            // Invalida as queries para atualizar a UI
+            queryClient.invalidateQueries({ queryKey: ['store-orders'] });
+          }}
         />
       )}
 

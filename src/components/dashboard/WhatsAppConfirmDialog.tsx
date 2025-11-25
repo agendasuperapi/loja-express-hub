@@ -14,6 +14,7 @@ interface WhatsAppConfirmDialogProps {
   customerPhone: string;
   newStatus: string;
   onConfirm: () => void;
+  onSkip: () => void;
 }
 
 export function WhatsAppConfirmDialog({
@@ -25,6 +26,7 @@ export function WhatsAppConfirmDialog({
   customerPhone,
   newStatus,
   onConfirm,
+  onSkip,
 }: WhatsAppConfirmDialogProps) {
   const [messagePreview, setMessagePreview] = useState<string>('');
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -169,16 +171,9 @@ export function WhatsAppConfirmDialog({
   const handleSkip = async () => {
     setIsSending(true);
     try {
-      // Atualiza o status diretamente no banco sem trigger de WhatsApp
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: newStatus as any })
-        .eq('id', orderId);
-
-      if (error) throw error;
-      
+      await onSkip();
       onOpenChange(false);
-      setMessagePreview(''); // Limpa o preview
+      setMessagePreview('');
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
     } finally {
