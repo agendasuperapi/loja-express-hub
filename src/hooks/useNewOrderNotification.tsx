@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -73,9 +73,21 @@ export const useNewOrderNotification = (
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const invalidateTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastProcessedEventRef = useRef<string>('');
+  const lastVisibilityChangeRef = useRef<number>(0);
+  const channelRef = useRef<any>(null);
+  
+  // Usar refs para evitar recriação do canal
+  const toastRef = useRef(toast);
+  const queryClientRef = useRef(queryClient);
+  
+  useEffect(() => {
+    toastRef.current = toast;
+    queryClientRef.current = queryClient;
+  }, [toast, queryClient]);
 
   // Função debounced para invalidar queries (evita múltiplas invalidações rápidas)
-  const debouncedInvalidateQueries = () => {
+  const debouncedInvalidateQueries = useCallback(() => {
     if (invalidateTimeoutRef.current) {
       clearTimeout(invalidateTimeoutRef.current);
     }
@@ -87,13 +99,32 @@ export const useNewOrderNotification = (
         return;
       }
       
-      queryClient.invalidateQueries({ queryKey: ['store-orders'] });
+      queryClientRef.current.invalidateQueries({ queryKey: ['store-orders'] });
       console.log('✅ Lista de pedidos atualizada após novo pedido');
-    }, 2000); // Debounce de 2 segundos
-  };
+    }, 2000);
+  }, [options?.pauseInvalidations]);
+  
+  // Rastrear mudanças de visibilidade
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        lastVisibilityChangeRef.current = Date.now();
+        console.log('👁️ Página voltou ao foco, aguardando estabilização...');
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (!storeId) return;
+    
+    // Evitar recriação do canal se já existe
+    if (channelRef.current) {
+      console.log('📡 Canal já existe, não recriando');
+      return;
+    }
 
     // Solicitar permissão para notificações
     requestNotificationPermission();
@@ -112,15 +143,30 @@ export const useNewOrderNotification = (
           filter: `store_id=eq.${storeId}`
         },
         async (payload) => {
-          console.log('🆕 Novo pedido recebido:', payload.new);
+          // Ignorar eventos logo após voltar ao foco (janela de 2 segundos)
+          const timeSinceVisible = Date.now() - lastVisibilityChangeRef.current;
+          if (timeSinceVisible < 2000) {
+            console.log('⏭️ Evento ignorado - janela de estabilização após foco');
+            return;
+          }
           
           const order = payload.new as any;
+          
+          // Prevenir processamento duplicado
+          const eventId = `${order.id}-${order.created_at}`;
+          if (lastProcessedEventRef.current === eventId) {
+            console.log('⏭️ Evento duplicado ignorado:', eventId);
+            return;
+          }
+          lastProcessedEventRef.current = eventId;
+          
+          console.log('🆕 Novo pedido recebido:', payload.new);
           
           // Tocar som de notificação
           playNotificationSound();
           
           // Mostrar toast com informações do pedido
-          toast({
+          toastRef.current({
             title: '🔔 Novo Pedido Recebido!',
             description: `Pedido #${order.order_number} - ${order.customer_name} - R$ ${order.total.toFixed(2)}`,
             duration: 10000,
@@ -177,13 +223,18 @@ export const useNewOrderNotification = (
       .subscribe((status) => {
         console.log('📡 Status da subscrição realtime:', status);
       });
+    
+    channelRef.current = channel;
 
     return () => {
       console.log('🔕 Encerrando escuta de novos pedidos');
       if (invalidateTimeoutRef.current) {
         clearTimeout(invalidateTimeoutRef.current);
       }
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [storeId, toast, queryClient]);
+  }, [storeId, debouncedInvalidateQueries]);
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const prevUserRef = useRef<User | null>(null);
+
   useEffect(() => {
     let mounted = true;
     let initialSessionReceived = false;
@@ -30,10 +32,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
-      console.log('[Auth] onAuthStateChange:', { event, session });
+      
+      // Ignorar TOKEN_REFRESHED se o usuário não mudou (evita re-renders ao voltar ao foco)
+      if (event === 'TOKEN_REFRESHED') {
+        const currentUserId = session?.user?.id;
+        const prevUserId = prevUserRef.current?.id;
+        
+        if (currentUserId === prevUserId) {
+          console.log('[Auth] TOKEN_REFRESHED ignorado - mesmo usuário');
+          return;
+        }
+      }
+      
+      console.log('[Auth] onAuthStateChange:', { event, userId: session?.user?.id });
       
       setSession(session ?? null);
       setUser(session?.user ?? null);
+      prevUserRef.current = session?.user ?? null;
 
       // INITIAL_SESSION é o evento que indica que o Supabase terminou de verificar o storage
       if (event === 'INITIAL_SESSION') {

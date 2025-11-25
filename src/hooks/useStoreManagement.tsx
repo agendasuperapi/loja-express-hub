@@ -63,6 +63,7 @@ export const useStoreManagement = () => {
 
   const myStoreQuery = useQuery({
     queryKey: ['my-store', user?.id],
+    staleTime: 5 * 60 * 1000, // 5 minutos - evita refetch ao voltar ao foco
     queryFn: async () => {
       if (!user?.id) return null;
 

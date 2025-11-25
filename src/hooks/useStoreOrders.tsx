@@ -7,6 +7,7 @@ export const useStoreOrders = (storeId?: string) => {
 
   const ordersQuery = useQuery({
     queryKey: ['store-orders', storeId],
+    staleTime: 30 * 1000, // 30 segundos - evita refetch imediato ao voltar ao foco
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,13 +16,22 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
   const { hasRole, loading: roleLoading } = useUserRole();
   const [isEmployee, setIsEmployee] = useState<boolean | null>(null);
   const navigate = useNavigate();
+  const checkedUserRef = useRef<string | null>(null);
 
   useEffect(() => {
     const checkEmployee = async () => {
       if (!user) {
         setIsEmployee(false);
+        checkedUserRef.current = null;
         return;
       }
+      
+      // Evitar re-verificação desnecessária para o mesmo usuário
+      if (checkedUserRef.current === user.id) {
+        console.log('[StoreAccessRoute] Usuário já verificado, pulando');
+        return;
+      }
+      
       try {
         const { data } = await (supabase
           .from('store_employees' as any)
@@ -32,8 +41,10 @@ export const StoreAccessRoute = ({ children, redirectPath = '/login-lojista' }: 
           .limit(1)
           .maybeSingle() as any);
         setIsEmployee(!!data);
+        checkedUserRef.current = user.id;
       } catch (e) {
         setIsEmployee(false);
+        checkedUserRef.current = user.id;
       }
     };
     checkEmployee();
