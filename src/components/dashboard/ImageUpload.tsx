@@ -52,25 +52,39 @@ export const ImageUpload = ({
       const MAX_FILE_SIZE = maxFileSize;
 
       img.onload = () => {
-        let width = img.width;
-        let height = img.height;
+        // Definir dimensões do canvas (800x450 para produtos)
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
 
-        // Calcular novas dimensões mantendo a proporção
-        if (width > height) {
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
+        // Calcular proporção da imagem
+        const imgAspect = img.width / img.height;
+        const canvasAspect = maxWidth / maxHeight;
+
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        // Redimensionar mantendo proporção e centralizando
+        if (imgAspect > canvasAspect) {
+          // Imagem mais larga - ajustar pela largura
+          drawWidth = maxWidth;
+          drawHeight = maxWidth / imgAspect;
+          offsetX = 0;
+          offsetY = (maxHeight - drawHeight) / 2;
         } else {
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height;
-            height = maxHeight;
-          }
+          // Imagem mais alta - ajustar pela altura
+          drawHeight = maxHeight;
+          drawWidth = maxHeight * imgAspect;
+          offsetX = (maxWidth - drawWidth) / 2;
+          offsetY = 0;
         }
 
-        canvas.width = width;
-        canvas.height = height;
-        ctx?.drawImage(img, 0, 0, width, height);
+        // Preencher fundo branco
+        if (ctx) {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, maxWidth, maxHeight);
+          
+          // Desenhar imagem centralizada
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+        }
 
         // Função recursiva para comprimir até atingir o tamanho desejado
         const compressImage = (quality: number): Promise<Blob> => {
@@ -152,7 +166,7 @@ export const ImageUpload = ({
 
       // Definir dimensões recomendadas baseadas no tipo de bucket
       const recommendedDimensions = {
-        'product-images': { width: 800, height: 800, label: 'Produtos (800x800px - Quadrada)' },
+        'product-images': { width: 800, height: 450, label: 'Produtos (800x450px)' },
         'store-logos': { width: 400, height: 400, label: 'Logo (400x400px - Quadrada)' },
         'store-banners': { width: 1200, height: 400, label: 'Banner (1200x400px - 3:1)' },
       };
@@ -177,7 +191,7 @@ export const ImageUpload = ({
 
       // Definir dimensões e tamanho máximo de arquivo baseados no tipo de bucket
       const compressionSettings = {
-        'product-images': { width: 800, height: 800, maxSize: 300 * 1024 }, // 300KB
+        'product-images': { width: 800, height: 450, maxSize: 300 * 1024 }, // 300KB
         'store-logos': { width: 400, height: 400, maxSize: 300 * 1024 }, // 300KB
         'store-banners': { width: 1200, height: 400, maxSize: 1024 * 1024 }, // 1MB para manter qualidade
       };
