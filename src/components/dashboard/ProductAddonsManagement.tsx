@@ -470,7 +470,11 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
             <Label>Filtrar por status</Label>
             <Select value={availabilityFilter} onValueChange={(v: any) => setAvailabilityFilter(v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Todos" />
+                <SelectValue>
+                  {availabilityFilter === 'all' && 'Todos'}
+                  {availabilityFilter === 'available' && 'Disponíveis'}
+                  {availabilityFilter === 'unavailable' && 'Indisponíveis'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
