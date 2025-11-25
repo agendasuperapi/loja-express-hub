@@ -165,27 +165,41 @@ Deno.serve(async (req) => {
       console.log('[update-order-status] Usuário é proprietário da loja');
     }
 
-    // If skipNotification is true, set session variable before update
-    if (skipNotification) {
-      console.log('[update-order-status] Definindo flag para pular notificação WhatsApp');
-      const { error: rpcError } = await supabaseAdmin.rpc('exec_sql' as any, {
-        sql: "SET LOCAL app.skip_whatsapp_notification = 'true';"
-      });
-      
-      if (rpcError) {
-        console.warn('[update-order-status] Não foi possível definir flag de sessão:', rpcError);
-      }
-    }
-
-    // Perform the update
     console.log('[update-order-status] Atualizando pedido:', { orderId, newStatus: statusKey, skipNotification });
     
-    const { data: updated, error: updateErr } = await supabaseAdmin
-      .from('orders' as any)
-      .update({ status: statusKey })
-      .eq('id', orderId)
-      .select('id, status, updated_at')
-      .single();
+    let updated;
+    let updateErr;
+
+    // Se skipNotification for true, usa a RPC que define a flag de sessão
+    if (skipNotification) {
+      console.log('[update-order-status] Usando RPC para pular notificação WhatsApp');
+      
+      const { data: rpcData, error: rpcError } = await supabaseAdmin
+        .rpc('update_order_status_skip_notification', {
+          p_order_id: orderId,
+          p_new_status: statusKey
+        });
+
+      if (rpcError) {
+        console.error('[update-order-status] Erro ao chamar RPC:', rpcError);
+        updateErr = rpcError;
+      } else {
+        updated = rpcData;
+      }
+    } else {
+      // Senão, faz o UPDATE normal (que acionará o trigger de WhatsApp)
+      console.log('[update-order-status] Atualizando com notificação WhatsApp');
+      
+      const { data, error } = await supabaseAdmin
+        .from('orders' as any)
+        .update({ status: statusKey })
+        .eq('id', orderId)
+        .select('id, status, updated_at')
+        .single();
+
+      updated = data;
+      updateErr = error;
+    }
 
     if (updateErr) {
       console.error('[update-order-status] Erro ao atualizar pedido:', updateErr);

@@ -1670,6 +1670,10 @@ export type Database = {
         Returns: undefined
       }
       text_to_bytea: { Args: { data: string }; Returns: string }
+      update_order_status_skip_notification: {
+        Args: { p_new_status: string; p_order_id: string }
+        Returns: Json
+      }
       update_order_status_without_notification: {
         Args: { p_new_status: string; p_order_id: string }
         Returns: undefined
