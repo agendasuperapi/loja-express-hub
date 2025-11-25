@@ -323,6 +323,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
 
+  // Garantir que os filtros sejam resetados ao montar o componente
+  useEffect(() => {
+    setCategoryFilter("all");
+    setAvailabilityFilter('all');
+  }, []);
+
   const filteredAddons = addons?.filter(addon => {
     // Filtro de categoria
     let matchesCategory = true;
