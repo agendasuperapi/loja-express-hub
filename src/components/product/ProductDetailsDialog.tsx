@@ -591,7 +591,7 @@ export function ProductDetailsDialog({
                 Cancelar
               </Button>
               <Button onClick={handleObservationSave} className="flex-1">
-                Confirmar
+                Adicionar
               </Button>
             </DialogFooter>
           </DialogContent>
