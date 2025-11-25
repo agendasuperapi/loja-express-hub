@@ -334,22 +334,26 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
 
-  // Log para debugging - rastrear montagem do componente
+  // Reset GARANTIDO ao montar - usar setTimeout para garantir que aconteça após renderização
   useEffect(() => {
-    console.log('[AddonsTab] ✅ Componente MONTADO', {
-      categoryFilter,
-      availabilityFilter,
-      timestamp: new Date().toISOString()
-    });
+    console.log('[AddonsTab] 🚀 Componente montado - iniciando reset');
+    
+    // Usar setTimeout para garantir que o reset aconteça após a renderização inicial do Select
+    const timer = setTimeout(() => {
+      console.log('[AddonsTab] ✅ Aplicando reset explícito para "all"');
+      setAvailabilityFilter('all');
+      setCategoryFilter('all');
+    }, 0);
     
     return () => {
-      console.log('[AddonsTab] 🔴 Componente DESMONTADO');
+      console.log('[AddonsTab] 🔴 Componente desmontado');
+      clearTimeout(timer);
     };
-  }, []);
+  }, []); // Executar APENAS no mount
 
   // Log para monitorar mudanças no filtro de disponibilidade
   useEffect(() => {
-    console.log('[AddonsTab] 🔄 Filtro de disponibilidade:', availabilityFilter);
+    console.log('[AddonsTab] 📊 Estado atual do filtro:', availabilityFilter);
   }, [availabilityFilter]);
 
   const filteredAddons = addons?.filter(addon => {
@@ -498,9 +502,9 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
           <div className="space-y-2">
             <Label>Filtrar por status</Label>
             <Select 
-              defaultValue="all"
-              onValueChange={(v: any) => {
-                console.log('[AddonsTab] 📝 Filtro alterado para:', v);
+              value={availabilityFilter}
+              onValueChange={(v: 'all' | 'available' | 'unavailable') => {
+                console.log('[AddonsTab] 📝 Usuário alterou filtro para:', v);
                 setAvailabilityFilter(v);
               }}
             >
