@@ -115,15 +115,15 @@ export const generateOrdersReport = (
           return [
             item.external_code || '-',
             item.product_name,
+            extras,
             item.quantity.toString(),
             `R$ ${item.unit_price.toFixed(2)}`,
-            extras,
             `R$ ${item.subtotal.toFixed(2)}`
           ];
         });
         
         autoTable(doc, {
-          head: [['Cód.', 'Produto', 'Qtd', 'Preço Unit.', 'Extras', 'Subtotal']],
+          head: [['Cód.', 'Produto', 'Extras', 'Qtd', 'Preço Unit.', 'Subtotal']],
           body: itemsData,
           startY: currentY,
           styles: { fontSize: 8, cellPadding: 2, fillColor: [255, 255, 255] },
