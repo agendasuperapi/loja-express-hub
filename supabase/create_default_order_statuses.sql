@@ -51,7 +51,7 @@ BEGIN
       '#10B981',
       3,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido #{{order_number}} Está Aguardando retirada.\n\n📍*ENDEREÇO RETIRADA*\n• {{pickup_address}} -\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido #{{order_number}} Está Aguardando retirada.\n\n📍*ENDEREÇO RETIRADA*\n• {{pickup_address}} -\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
     ),
     
     -- Status 5: Saiu para Entrega
@@ -153,7 +153,7 @@ BEGIN
           '#10B981',
           3,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido #{{order_number}} Está Aguardando retirada.\n\n📍*ENDEREÇO RETIRADA*\n• {{pickup_address}} -\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido #{{order_number}} Está Aguardando retirada.\n\n📍*ENDEREÇO RETIRADA*\n• {{pickup_address}} -\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
         ),
         (
           store_record.id,

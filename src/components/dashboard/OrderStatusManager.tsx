@@ -82,7 +82,7 @@ Seu pedido #{{order_number}} Está Aguardando retirada.
 📍*ENDEREÇO RETIRADA*
 • {{pickup_address}} -
 
-🛍️ *VISITE NOSSA VITRINE DE OFERTAS*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   saiu_para_entrega: `*PEDIDO {{store_name}}.*
@@ -164,7 +164,7 @@ Seu pedido #{{order_number}} Está Aguardando retirada.
 📍*ENDEREÇO RETIRADA*
 • {{pickup_address}} -
 
-🛍️ *VISITE NOSSA VITRINE DE OFERTAS*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   out_for_delivery: `*PEDIDO {{store_name}}.*
