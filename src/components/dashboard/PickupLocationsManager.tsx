@@ -33,7 +33,7 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("stores")
-        .select("store_street, store_street_number, store_neighborhood, store_city, store_complement, store_address_pickup_enabled")
+        .select("store_street, store_street_number, store_neighborhood, store_city, store_complement, store_address_pickup_enabled, store_address_pickup_name")
         .eq("id", storeId)
         .single();
 
@@ -59,7 +59,7 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
   // Formatar endereço da loja se existir
   const storeAddress = storeData && (storeData.store_street || storeData.store_city) ? {
     id: "store-address",
-    name: "Endereço da Loja",
+    name: storeData.store_address_pickup_name || "Endereço da Loja",
     address: [
       storeData.store_street,
       storeData.store_street_number,
@@ -133,6 +133,24 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
     },
   });
 
+  const updateStoreAddressNameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await (supabase as any)
+        .from("stores")
+        .update({ store_address_pickup_name: name })
+        .eq("id", storeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["store-address", storeId] });
+      toast.success("Nome atualizado");
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar nome");
+    },
+  });
+
   const updateLocationMutation = useMutation({
     mutationFn: async ({ id, name, address }: { id: string; name: string; address: string }) => {
       const { error } = await (supabase as any)
@@ -187,6 +205,16 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
     updateLocationMutation.mutate({ id, name: editLocation.name, address: editLocation.address });
   };
 
+  const handleEditStoreAddressName = () => {
+    if (!editLocation.name.trim()) {
+      toast.error("Preencha o nome");
+      return;
+    }
+    updateStoreAddressNameMutation.mutate(editLocation.name);
+    setEditingId(null);
+    setEditLocation({ name: "", address: "" });
+  };
+
   const startEditing = (location: PickupLocation) => {
     setEditingId(location.id);
     setEditLocation({ name: location.name, address: location.address });
@@ -227,18 +255,26 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                   className="h-8 text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor={`edit-address-${location.id}`} className="text-xs">Endereço Completo</Label>
-                <Input
-                  id={`edit-address-${location.id}`}
-                  placeholder="Rua, número, bairro, cidade"
-                  value={editLocation.address}
-                  onChange={(e) => setEditLocation({ ...editLocation, address: e.target.value })}
-                  className="h-8 text-sm"
-                />
-              </div>
+              {!location.isStoreAddress && (
+                <div className="space-y-2">
+                  <Label htmlFor={`edit-address-${location.id}`} className="text-xs">Endereço Completo</Label>
+                  <Input
+                    id={`edit-address-${location.id}`}
+                    placeholder="Rua, número, bairro, cidade"
+                    value={editLocation.address}
+                    onChange={(e) => setEditLocation({ ...editLocation, address: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+              )}
               <div className="flex gap-2">
-                <Button onClick={() => handleEditLocation(location.id)} size="sm" className="h-8">Salvar</Button>
+                <Button 
+                  onClick={() => location.isStoreAddress ? handleEditStoreAddressName() : handleEditLocation(location.id)} 
+                  size="sm" 
+                  className="h-8"
+                >
+                  Salvar
+                </Button>
                 <Button variant="outline" size="sm" className="h-8" onClick={cancelEditing}>
                   Cancelar
                 </Button>
@@ -264,25 +300,23 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                     }
                   }}
                 />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => startEditing(location)}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
                 {!location.isStoreAddress && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => startEditing(location)}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => deleteLocationMutation.mutate(location.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => deleteLocationMutation.mutate(location.id)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 )}
                 {location.isStoreAddress && (
                   <span className="text-xs text-muted-foreground ml-2">
