@@ -57,7 +57,7 @@ interface ProductAddonsManagerProps {
 interface SortableAddonProps {
   addon: any;
   onEdit: (addon: any) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
   onToggleAvailability: (addon: any) => void;
   isDeleting: boolean;
 }
@@ -136,6 +136,16 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
             title="Editar"
           >
             <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => onDelete(addon.id, addon.name)}
+            disabled={isDeleting}
+            title="Excluir"
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
