@@ -18,7 +18,7 @@ BEGIN
       '#F59E0B',
       0,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\n\nRecebemos seu pedido: {{order_number}}\n📌*Status: Pendente*\n\n---------------------------------------\n🛍RESUMO DO PEDIDO\n---------------------------------------\n\n{{items}}\n\n🛒 TOTAL PRODUTOS: {{subtotal}}\n🏍 TAXA ENTREGA : {{delivery_fee}}\n------------------------------\n💵 TOTAL PEDIDO : {{total}}\n\n💰 *FORMA PAG.: {{payment_method}} *\n\n📌 *ENDEREÇO:*\n {{delivery_address}}\n  {{pickup_address}}\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}\n\n*Salve nosso número nos seus contatos para não perder nenhuma atualização e novidades.*'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}! \n\nRecebemos seu pedido: *{{order_number}}*\n📌*Status: Pendente*\n\n---------------------------------------\n🛍*RESUMO DO PEDIDO*\n---------------------------------------\n\n{{items}}\n\n🛒 TOTAL PRODUTOS: {{subtotal}}\n🏍 TAXA  ENTREGA : {{delivery_fee}}\n------------------------------\n💵 TOTAL PEDIDO  : {{total}}\n\n💰 FORMA PAG.: {{payment_method}}\n\n📌 *{{delivery_type}}:*\n {{delivery_address}}\n {{pickup_address}}\n\n🛍️ *VISITE NOSSO SITE:*\nhttps://ofertas.app/drogaclaraofertas\n\n*Salve nosso número nos seus contatos para não perder nenhuma atualização e novidades.*'
     ),
     
     -- Status 2: Confirmado
@@ -126,7 +126,7 @@ BEGIN
           '#F59E0B',
           0,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\n\nRecebemos seu pedido: {{order_number}}\n📌*Status: Pendente*\n\n---------------------------------------\n🛍RESUMO DO PEDIDO\n---------------------------------------\n\n{{items}}\n\n🛒 TOTAL PRODUTOS: {{subtotal}}\n🏍 TAXA ENTREGA : {{delivery_fee}}\n------------------------------\n💵 TOTAL PEDIDO : {{total}}\n\n💰 *FORMA PAG.: {{payment_method}} *\n\n📌 *ENDEREÇO:*\n {{delivery_address}}\n  {{pickup_address}}\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}\n\n*Salve nosso número nos seus contatos para não perder nenhuma atualização e novidades.*'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}! \n\nRecebemos seu pedido: *{{order_number}}*\n📌*Status: Pendente*\n\n---------------------------------------\n🛍*RESUMO DO PEDIDO*\n---------------------------------------\n\n{{items}}\n\n🛒 TOTAL PRODUTOS: {{subtotal}}\n🏍 TAXA  ENTREGA : {{delivery_fee}}\n------------------------------\n💵 TOTAL PEDIDO  : {{total}}\n\n💰 FORMA PAG.: {{payment_method}}\n\n📌 *{{delivery_type}}:*\n {{delivery_address}}\n {{pickup_address}}\n\n🛍️ *VISITE NOSSO SITE:*\nhttps://ofertas.app/drogaclaraofertas\n\n*Salve nosso número nos seus contatos para não perder nenhuma atualização e novidades.*'
         ),
         (
           store_record.id,
