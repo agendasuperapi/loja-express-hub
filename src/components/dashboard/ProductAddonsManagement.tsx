@@ -14,15 +14,80 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useStoreAddons } from "@/hooks/useStoreAddons";
 import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
-import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown, Power, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Sparkles, Package, Copy, ChevronDown, Power, EyeOff, Link } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { addonTemplates, BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { NewAddonDialog } from "./NewAddonDialog";
+import { useQuery } from '@tanstack/react-query';
 
 interface ProductAddonsManagementProps {
   storeId: string;
 }
+
+// Componente para mostrar produtos vinculados
+const LinkedProducts = ({ addonName, categoryId, storeId }: { addonName: string; categoryId: string | null; storeId: string }) => {
+  const { data: linkedProducts, isLoading } = useQuery({
+    queryKey: ['linked-products', storeId, addonName, categoryId],
+    queryFn: async () => {
+      // Buscar produtos que têm este adicional
+      const { data: addons, error } = await supabase
+        .from('product_addons')
+        .select(`
+          product_id,
+          category_id,
+          products!inner(
+            id,
+            name,
+            store_id
+          )
+        `)
+        .eq('name', addonName)
+        .eq('products.store_id', storeId);
+
+      if (error) throw error;
+
+      // Filtrar por categoria se houver
+      const filtered = categoryId 
+        ? addons?.filter(a => a.category_id === categoryId)
+        : addons;
+
+      // Remover duplicatas e extrair nomes dos produtos
+      const uniqueProducts = new Map();
+      filtered?.forEach(addon => {
+        const product = addon.products;
+        if (product && !uniqueProducts.has(product.id)) {
+          uniqueProducts.set(product.id, product.name);
+        }
+      });
+
+      return Array.from(uniqueProducts.values());
+    },
+    enabled: !!storeId && !!addonName,
+  });
+
+  if (isLoading) {
+    return <div className="text-xs text-muted-foreground mt-1">Carregando produtos...</div>;
+  }
+
+  if (!linkedProducts || linkedProducts.length === 0) {
+    return (
+      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+        <Link className="w-3 h-3" />
+        Nenhum produto vinculado
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
+      <Link className="w-3 h-3 mt-0.5 flex-shrink-0" />
+      <span>
+        Usado em: {linkedProducts.join(', ')}
+      </span>
+    </div>
+  );
+};
 
 export const ProductAddonsManagement = ({ storeId }: ProductAddonsManagementProps) => {
   const [activeTab, setActiveTab] = useState("categories");
@@ -525,6 +590,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                         <div className="text-sm text-muted-foreground">
                           R$ {addon.price.toFixed(2)}
                         </div>
+                        <LinkedProducts addonName={addon.name} categoryId={addon.category_id} storeId={storeId} />
                       </div>
                       <div className="flex gap-1">
                         <Button
