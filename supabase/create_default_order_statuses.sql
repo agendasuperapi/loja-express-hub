@@ -62,7 +62,7 @@ BEGIN
       '#06B6D4',
       4,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSA LOJA*\n{{store_url}}'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
     ),
     
     -- Status 6: Entregue
@@ -162,7 +162,7 @@ BEGIN
           '#06B6D4',
           4,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSA LOJA*\n{{store_url}}'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
         ),
         (
           store_record.id,

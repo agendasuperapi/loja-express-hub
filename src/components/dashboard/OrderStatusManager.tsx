@@ -91,7 +91,7 @@ Olá {{customer_name}}
 Boa notícia seu pedido #{{order_number}} saiu para entrega!
 Chegará em breve.
 
-🛍️ *VISITE NOSSA LOJA*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   entregue: `*PEDIDO {{store_name}}.*
@@ -173,7 +173,7 @@ Olá {{customer_name}}
 Boa notícia seu pedido #{{order_number}} saiu para entrega!
 Chegará em breve.
 
-🛍️ *VISITE NOSSA LOJA*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   in_delivery: `*PEDIDO {{store_name}}.*
