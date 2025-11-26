@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
+import { useProductSizes } from "@/hooks/useProductSizes";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,12 +41,16 @@ export function ProductDetailsDialog({
   const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
+  const [selectedSize, setSelectedSize] = useState<string>("");
   const {
     addons
   } = useProductAddons(product?.id);
   const {
     flavors
   } = useProductFlavors(product?.id);
+  const {
+    sizes
+  } = useProductSizes(product?.id);
   const {
     categories
   } = useAddonCategories(store?.id);
@@ -68,6 +73,9 @@ export function ProductDetailsDialog({
   };
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
+  const hasSizes = product?.has_sizes && sizes && sizes.length > 0;
+  const availableSizes = sizes?.filter(s => s.is_available) || [];
+  
   useEffect(() => {
     if (!open) {
       setQuantity(1);
@@ -76,11 +84,17 @@ export function ProductDetailsDialog({
       setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
+      setSelectedSize("");
     }
   }, [open]);
+  
   if (!product || !store) return null;
-  const currentPrice = product.promotional_price || product.price || 0;
-  const hasDiscount = product.promotional_price && product.promotional_price < product.price;
+  
+  // Calculate current price considering size
+  const selectedSizeData = availableSizes.find(s => s.id === selectedSize);
+  const basePrice = selectedSizeData ? selectedSizeData.price : (product.promotional_price || product.price || 0);
+  const currentPrice = basePrice;
+  const hasDiscount = !selectedSizeData && product.promotional_price && product.promotional_price < product.price;
   const handleAddonToggle = (addonId: string, categoryId?: string, allowQuantity?: boolean) => {
     const newSelected = new Set(selectedAddons);
     const newByCategory = {
@@ -171,6 +185,16 @@ export function ProductDetailsDialog({
   const flavorsTotal = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).reduce((sum, flavor) => sum + flavor.price, 0) || 0;
   const total = (currentPrice + addonsTotal + flavorsTotal) * quantity;
   const handleAddToCart = () => {
+    // Validate size selection if product has sizes
+    if (hasSizes && !selectedSize) {
+      toast({
+        title: "Selecione um tamanho",
+        description: "É necessário selecionar um tamanho para este produto",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (hasFlavors && selectedFlavors.size === 0) {
       toast({
         title: "Selecione os sabores",
@@ -211,7 +235,14 @@ export function ProductDetailsDialog({
       name: flavor.name,
       price: flavor.price
     })) || [];
-    addToCart(product.id, product.name, product.price, store.id, store.name, quantity, product.promotional_price, product.image_url, observation, store.slug, addonsToAdd, flavorsToAdd);
+    
+    const sizeToAdd = selectedSizeData ? {
+      id: selectedSizeData.id,
+      name: selectedSizeData.name,
+      price: selectedSizeData.price
+    } : undefined;
+    
+    addToCart(product.id, product.name, product.price, store.id, store.name, quantity, product.promotional_price, product.image_url, observation, store.slug, addonsToAdd, flavorsToAdd, sizeToAdd);
     onOpenChange(false);
     toast({
       title: "Adicionado ao carrinho!",
@@ -319,6 +350,45 @@ export function ProductDetailsDialog({
           </Button>
         </div>
       </div>
+
+      {/* Tamanhos */}
+      {hasSizes && (
+        <div className="space-y-2 px-4 md:px-0">
+          <Label className="text-sm font-semibold">
+            Tamanhos
+            <span className="text-destructive ml-1">*</span>
+          </Label>
+          <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
+            {availableSizes.map(size => (
+              <div
+                key={size.id}
+                className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                  selectedSize === size.id
+                    ? 'bg-primary/10 border-primary shadow-sm'
+                    : 'bg-muted/50 border-transparent hover:border-primary/30'
+                }`}
+                onClick={() => setSelectedSize(size.id)}
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <RadioGroupItem value={size.id} id={size.id} />
+                  <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                    <span className="font-semibold">{size.name}</span>
+                    {size.description && (
+                      <span className="text-xs text-muted-foreground block">{size.description}</span>
+                    )}
+                  </Label>
+                </div>
+                <span className="text-lg font-bold text-primary">
+                  R$ {size.price.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </RadioGroup>
+          {!selectedSize && (
+            <p className="text-xs text-destructive">Selecione um tamanho</p>
+          )}
+        </div>
+      )}
 
       {/* Sabores */}
       {hasFlavors && <div className="space-y-2 px-4 md:px-0">

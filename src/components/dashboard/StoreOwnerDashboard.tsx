@@ -26,6 +26,7 @@ import { validatePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
+import { ProductSizesManager } from "./ProductSizesManager";
 import { ProductAddonsManagement, TemplatesTab, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
 import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
 import { CombosManager } from "./CombosManager";
@@ -3420,8 +3421,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <div className="flex-1 overflow-y-auto -mx-6 px-6">
                     <div className="pr-4 space-y-4 pb-4">
                       <Tabs value={activeProductTab} onValueChange={setActiveProductTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-4">
                           <TabsTrigger value="info">Informações</TabsTrigger>
+                          <TabsTrigger value="sizes" disabled={!editingProduct}>
+                            Tamanhos {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                          </TabsTrigger>
                           <TabsTrigger value="addons" disabled={!editingProduct}>
                             Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
@@ -3593,6 +3597,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               Produto em Destaque
                             </Label>
                           </div>
+                        </TabsContent>
+
+                        <TabsContent value="sizes" className="mt-4 pr-2 min-h-[800px]">
+                          {editingProduct && (
+                            <ProductSizesManager productId={editingProduct.id} />
+                          )}
                         </TabsContent>
 
                         <TabsContent value="addons" className="mt-4 pr-2 min-h-[800px]">
