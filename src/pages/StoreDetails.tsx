@@ -832,16 +832,6 @@ export default function StoreDetails() {
                               </motion.div>
                             </div>
                             
-                            {/* Offer Badge */}
-                            {product.promotional_price && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold"
-                              >
-                                OFERTA
-                              </motion.div>
-                            )}
                           </Card>
                         </motion.div>
                       );
@@ -945,16 +935,6 @@ export default function StoreDetails() {
                               </motion.div>
                             </div>
                             
-                            {/* Offer Badge */}
-                            {product.promotional_price && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold"
-                              >
-                                OFERTA
-                              </motion.div>
-                            )}
                           </Card>
                         </motion.div>
                       );
@@ -1011,16 +991,6 @@ export default function StoreDetails() {
                               />
                               {/* Subtle gray-blue gradient overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/15 via-blue-900/10 to-transparent pointer-events-none" />
-                              {product.promotional_price && (
-                                <motion.div
-                                  initial={{ scale: 0, rotate: -12 }}
-                                  animate={{ scale: 1, rotate: -12 }}
-                                  transition={{ type: "spring", stiffness: 200 }}
-                                  className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10"
-                                >
-                                  OFERTA
-                                </motion.div>
-                              )}
                               {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0 }}
