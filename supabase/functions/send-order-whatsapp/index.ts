@@ -60,6 +60,33 @@ serve(async (req) => {
     );
 
     const { record } = await req.json();
+    
+    // ====== LOGS DETALHADOS PARA DEBUGGING ======
+    console.log('=== SEND-ORDER-WHATSAPP INICIADO ===');
+    console.log('EVOLUTION_API_KEY presente:', !!EVOLUTION_API_KEY);
+    console.log('EVOLUTION_API_URL:', EVOLUTION_API_URL);
+    console.log('Order ID:', record?.id || record?.order_id);
+    console.log('Store ID:', record?.store_id);
+    console.log('Status:', record?.status);
+    console.log('Customer Phone:', record?.customer_phone);
+    console.log('Customer Name:', record?.customer_name);
+    
+    // Verificar se a API key está configurada
+    if (!EVOLUTION_API_KEY) {
+      console.error('❌ EVOLUTION_API_KEY não configurada nos secrets do Supabase');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'EVOLUTION_API_KEY não configurada. Configure o secret no painel do Supabase.' 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log('✅ API key verificada com sucesso');
     console.log('Processing order:', record);
 
     // ⏳ Aguardar 3s antes de enviar para evitar duplicidade e garantir itens na view
@@ -76,20 +103,24 @@ serve(async (req) => {
       .single();
 
     if (existingLog) {
-      console.log(`💬 Mensagem já enviada para order ${record.id || record.order_id} status ${orderStatus}`);
+      console.log(`💬 IDEMPOTÊNCIA: Mensagem já enviada para order ${record.id || record.order_id} status ${orderStatus}`);
       return new Response(
         JSON.stringify({ success: true, message: 'Message already sent', skipped: true }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('✅ Verificação de idempotência passou - nenhuma mensagem anterior encontrada');
 
     if (!record.customer_phone) {
-      console.log('No customer phone provided');
+      console.error('❌ TELEFONE AUSENTE: Pedido sem número de telefone do cliente');
       return new Response(
         JSON.stringify({ success: false, message: 'No phone number' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('✅ Telefone do cliente validado:', record.customer_phone);
 
     // Fetch complete order data from view (with retry logic for items)
     let order: any = null;
@@ -146,12 +177,15 @@ serve(async (req) => {
       .single();
  
      if (storeError || !store) {
-       console.error('Store not found:', storeError);
+       console.error('❌ LOJA NÃO ENCONTRADA:', storeError);
+       console.error('Store ID buscado:', order.store_id);
        return new Response(
          JSON.stringify({ success: false, message: 'Store not found' }),
          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
        );
      }
+     
+     console.log('✅ Loja encontrada:', store.name);
  
      // Get WhatsApp instance from store_instances table
      const { data: storeInstance, error: instanceError } = await supabaseClient
@@ -161,12 +195,20 @@ serve(async (req) => {
        .single();
 
     if (instanceError || !storeInstance?.evolution_instance_id) {
-      console.error('WhatsApp instance not found:', instanceError);
+      console.error('❌ INSTÂNCIA WHATSAPP NÃO CONFIGURADA');
+      console.error('Erro ao buscar instância:', instanceError);
+      console.error('Store ID:', order.store_id);
+      console.error('Dados retornados:', storeInstance);
       return new Response(
-        JSON.stringify({ success: false, message: 'WhatsApp not configured' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'WhatsApp não configurado para esta loja. Configure a instância no painel Evolution API.' 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('✅ Instância WhatsApp encontrada:', storeInstance.evolution_instance_id);
 
     // Normalize status key (in_delivery -> out_for_delivery for UI)
     const normalizeStatusForConfig = (dbStatus: string): string => {
@@ -188,20 +230,37 @@ serve(async (req) => {
       .single();
 
     if (statusError || !statusConfig || !statusConfig.is_active) {
-      console.log('No active status config found for:', record.status, '(searched as:', statusKeyToSearch + ')');
+      console.error('❌ CONFIGURAÇÃO DE STATUS NÃO ENCONTRADA OU INATIVA');
+      console.error('Status original:', record.status);
+      console.error('Status buscado:', statusKeyToSearch);
+      console.error('Store ID:', order.store_id);
+      console.error('Erro:', statusError);
+      console.error('Config encontrada:', statusConfig);
+      console.error('is_active:', statusConfig?.is_active);
       return new Response(
-        JSON.stringify({ success: false, message: 'Status not configured' }),
+        JSON.stringify({ 
+          success: false, 
+          message: `Status "${record.status}" não está configurado ou ativo no painel de configurações de status da loja.` 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('✅ Configuração de status encontrada e ativa');
+
     if (!statusConfig.whatsapp_message) {
-      console.log('No WhatsApp message configured for status:', record.status);
+      console.error('❌ MENSAGEM WHATSAPP NÃO CONFIGURADA para status:', record.status);
+      console.error('Configure uma mensagem no painel de configurações de status');
       return new Response(
-        JSON.stringify({ success: false, message: 'No message configured' }),
+        JSON.stringify({ 
+          success: false, 
+          message: `Mensagem WhatsApp não configurada para o status "${record.status}". Configure no painel.` 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('✅ Mensagem WhatsApp configurada para o status');
 
     // Format order items list
     let itemsList = '';
@@ -308,9 +367,14 @@ serve(async (req) => {
     // Phone is already normalized in database (includes 55)
     const phone = order.customer_phone;
 
-    console.log('Sending message to:', phone, 'via instance:', storeInstance.evolution_instance_id);
+    console.log('=== PREPARANDO ENVIO ===');
+    console.log('Telefone destino:', phone);
+    console.log('Instância Evolution:', storeInstance.evolution_instance_id);
+    console.log('Tamanho da mensagem:', message.length, 'caracteres');
+    console.log('Prévia da mensagem (100 primeiros chars):', message.substring(0, 100));
 
     // Check instance connection status first
+    console.log('Verificando status de conexão da instância...');
     const statusResponse = await fetch(`${EVOLUTION_API_URL}/instance/connectionState/${storeInstance.evolution_instance_id}`, {
       method: 'GET',
       headers: {
@@ -328,12 +392,16 @@ serve(async (req) => {
       
       // Check if instance is connected
       if (state !== 'open' && state !== 'connected') {
-        console.error('WhatsApp instance not connected. State:', state);
+        console.error('❌ INSTÂNCIA WHATSAPP NÃO CONECTADA');
+        console.error('Estado atual:', state);
+        console.error('Estados válidos: "open" ou "connected"');
+        console.error('Instância:', storeInstance.evolution_instance_id);
         return new Response(
           JSON.stringify({ 
             success: false, 
-            message: 'WhatsApp não está conectado. Por favor, conecte o WhatsApp no painel da loja.',
-            state: state
+            message: 'WhatsApp não está conectado. Por favor, conecte o WhatsApp escaneando o QR Code no painel da loja.',
+            state: state,
+            instance: storeInstance.evolution_instance_id
           }),
           { 
             status: 400,
@@ -342,12 +410,16 @@ serve(async (req) => {
         );
       }
       
-      console.log('WhatsApp instance is connected, proceeding with message send');
+      console.log('✅ WhatsApp conectado (state:', state + '), prosseguindo com envio');
     } else {
-      console.warn('Could not check instance status, proceeding with message send');
+      console.warn('⚠️ Não foi possível verificar status da conexão, prosseguindo com envio');
+      console.warn('Status HTTP:', statusResponse.status);
     }
 
     // Send message via Evolution API
+    console.log('=== ENVIANDO MENSAGEM VIA EVOLUTION API ===');
+    console.log('URL:', `${EVOLUTION_API_URL}/message/sendText/${storeInstance.evolution_instance_id}`);
+    
     const evolutionResponse = await fetch(`${EVOLUTION_API_URL}/message/sendText/${storeInstance.evolution_instance_id}`, {
       method: 'POST',
       headers: {
@@ -363,15 +435,22 @@ serve(async (req) => {
 
     if (!evolutionResponse.ok) {
       const errorText = await evolutionResponse.text();
-      console.error('Evolution API Error:', errorText);
+      console.error('❌ ERRO NA EVOLUTION API');
+      console.error('Status HTTP:', evolutionResponse.status);
+      console.error('Status Text:', evolutionResponse.statusText);
+      console.error('Resposta completa:', errorText);
+      console.error('Instância:', storeInstance.evolution_instance_id);
+      console.error('Telefone:', phone);
       
       // Check if it's a connection closed error
       if (errorText.includes('Connection Closed')) {
+        console.error('Erro específico: Conexão fechada - WhatsApp desconectado');
         return new Response(
           JSON.stringify({ 
             success: false, 
-            message: 'WhatsApp não está conectado. Por favor, conecte o WhatsApp no painel da loja.',
-            error: 'Connection closed'
+            message: 'WhatsApp não está conectado. Por favor, conecte o WhatsApp escaneando o QR Code no painel da loja.',
+            error: 'Connection closed',
+            details: errorText
           }),
           { 
             status: 400,
@@ -380,11 +459,12 @@ serve(async (req) => {
         );
       }
       
-      throw new Error(`Failed to send WhatsApp message: ${errorText}`);
+      throw new Error(`Failed to send WhatsApp message (${evolutionResponse.status}): ${errorText}`);
     }
 
     const evolutionData = await evolutionResponse.json();
-    console.log('Message sent successfully:', evolutionData);
+    console.log('✅ MENSAGEM ENVIADA COM SUCESSO');
+    console.log('Resposta Evolution API:', JSON.stringify(evolutionData, null, 2));
 
     // 📝 REGISTRAR mensagem enviada no log (idempotência)
     try {
