@@ -149,38 +149,12 @@ Deno.serve(async (req) => {
       'cancelled': 'cancelled',
     };
 
-    const enumStatuses = new Set([
-      'pending',
-      'confirmed',
-      'preparing',
-      'ready',
-      'in_delivery',
-      'delivered',
-      'cancelled',
-    ]);
-
     // Resulting value that will actually be written to the enum column
     const statusKey = statusMap[rawStatus] || rawStatus;
 
-    if (!enumStatuses.has(statusKey)) {
-      console.error('[update-order-status] Status inválido recebido:', {
-        rawStatus,
-        statusKey,
-        allowedStatuses: Array.from(enumStatuses),
-      });
-      return new Response(
-        JSON.stringify({
-          error:
-            'Status inválido. Use um status configurado na loja (por exemplo: pendente, separação, a_caminho).',
-        }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        }
-      );
-    }
-
-    console.log('[update-order-status] Status validado com sucesso:', { rawStatus, statusKey });
+    // Deixa a validação final a cargo do banco (enum order_status)
+    // Aqui apenas registramos para debug.
+    console.log('[update-order-status] Status normalizado:', { rawStatus, statusKey });
 
     // If not store owner, check employee permissions
     if (!isStoreOwner) {
