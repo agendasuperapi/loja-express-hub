@@ -32,14 +32,24 @@ interface OperatingHoursManagerProps {
   onSave: (hours: OperatingHours) => Promise<void>;
 }
 
+const DAYS_ORDER: Array<keyof OperatingHours> = [
+  'sunday',
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday'
+];
+
 const DAYS_PT = {
+  sunday: 'Domingo',
   monday: 'Segunda-feira',
   tuesday: 'Terça-feira',
   wednesday: 'Quarta-feira',
   thursday: 'Quinta-feira',
   friday: 'Sexta-feira',
-  saturday: 'Sábado',
-  sunday: 'Domingo'
+  saturday: 'Sábado'
 };
 
 export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursManagerProps) => {
@@ -179,7 +189,7 @@ export const OperatingHoursManager = ({ initialHours, onSave }: OperatingHoursMa
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {(Object.keys(hours) as Array<keyof OperatingHours>).map((day, index) => (
+        {DAYS_ORDER.map((day, index) => (
           <motion.div
             key={day}
             initial={{ opacity: 0, x: -20 }}
