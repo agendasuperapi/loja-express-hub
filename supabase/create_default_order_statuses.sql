@@ -21,26 +21,70 @@ BEGIN
       E'Olá {{customer_name}}! \n\nRecebemos seu pedido: *{{order_number}}*\n📌*Status: Pendente*\n\n---------------------------------------\n🛍RESUMO DO PEDIDO\n---------------------------------------\n\n{{items}}\n\n🛒 TOTAL PRODUTOS: {{subtotal}}\n🏍 TAXA  ENTREGA : {{delivery_fee}}\n------------------------------\n💵 TOTAL PEDIDO  : {{total}}\n\n💰 *FORMA PAG.: {{payment_method}} *\n\n\n📌 *{{delivery_location_label}}:* \n------------------------------\n*ENDEREÇO:* {{address}}'
     ),
     
-    -- Status 2: Separação
+    -- Status 2: Confirmado
     (
       NEW.id,
-      'separação',
-      'Separação',
+      'confirmado',
+      'Confirmado',
       '#3B82F6',
       1,
       true,
-      E'Olá {{customer_name}}!\n\nSeu pedido *{{order_number}}* está em separação e logo será enviado.\n\n📦 Estamos preparando tudo com muito cuidado!\n\nQualquer dúvida estamos à disposição.'
+      E'Pedido {{order_number}} confirmado! Estamos preparando seu pedido.'
     ),
     
-    -- Status 3: A caminho
+    -- Status 3: Preparando
     (
       NEW.id,
-      'a_caminho',
-      'A Caminho',
-      '#10B981',
+      'preparando',
+      'Preparando',
+      '#9333EA',
       2,
       true,
-      E'Temos novidades!! 🎉\n\nSeu pedido *{{order_number}}* acaba de ser enviado.\n\n🏍 Você pode rastrear diretamente em nossa loja.\n\nQualquer dúvida estamos à disposição.'
+      E'Seu pedido #{{order_number}} está sendo preparado com carinho!'
+    ),
+    
+    -- Status 4: Pronto
+    (
+      NEW.id,
+      'pronto',
+      'Pronto',
+      '#10B981',
+      3,
+      true,
+      E'Pedido #{{order_number}} pronto! {{#if_delivery}}Já saiu para entrega!{{else}}Pode vir buscar!{{/if_delivery}}'
+    ),
+    
+    -- Status 5: Saiu para Entrega
+    (
+      NEW.id,
+      'saiu_para_entrega',
+      'Saiu para Entrega',
+      '#06B6D4',
+      4,
+      true,
+      E'Seu pedido #{{order_number}} saiu para entrega! Chegará em breve.'
+    ),
+    
+    -- Status 6: Entregue
+    (
+      NEW.id,
+      'entregue',
+      'Entregue',
+      '#10B981',
+      5,
+      true,
+      E'Pedido #{{order_number}} entregue! Obrigado pela preferência! {{store_url}}'
+    ),
+    
+    -- Status 7: Cancelado
+    (
+      NEW.id,
+      'cancelado',
+      'Cancelado',
+      '#EF4444',
+      6,
+      true,
+      E'Pedido #{{order_number}} foi cancelado. Entre em contato para mais informações.'
     );
   
   RETURN NEW;
@@ -86,21 +130,57 @@ BEGIN
         ),
         (
           store_record.id,
-          'separação',
-          'Separação',
+          'confirmado',
+          'Confirmado',
           '#3B82F6',
           1,
           true,
-          E'Olá {{customer_name}}!\n\nSeu pedido *{{order_number}}* está em separação e logo será enviado.\n\n📦 Estamos preparando tudo com muito cuidado!\n\nQualquer dúvida estamos à disposição.'
+          E'Pedido {{order_number}} confirmado! Estamos preparando seu pedido.'
         ),
         (
           store_record.id,
-          'a_caminho',
-          'A Caminho',
-          '#10B981',
+          'preparando',
+          'Preparando',
+          '#9333EA',
           2,
           true,
-          E'Temos novidades!! 🎉\n\nSeu pedido *{{order_number}}* acaba de ser enviado.\n\n🏍 Você pode rastrear diretamente em nossa loja.\n\nQualquer dúvida estamos à disposição.'
+          E'Seu pedido #{{order_number}} está sendo preparado com carinho!'
+        ),
+        (
+          store_record.id,
+          'pronto',
+          'Pronto',
+          '#10B981',
+          3,
+          true,
+          E'Pedido #{{order_number}} pronto! {{#if_delivery}}Já saiu para entrega!{{else}}Pode vir buscar!{{/if_delivery}}'
+        ),
+        (
+          store_record.id,
+          'saiu_para_entrega',
+          'Saiu para Entrega',
+          '#06B6D4',
+          4,
+          true,
+          E'Seu pedido #{{order_number}} saiu para entrega! Chegará em breve.'
+        ),
+        (
+          store_record.id,
+          'entregue',
+          'Entregue',
+          '#10B981',
+          5,
+          true,
+          E'Pedido #{{order_number}} entregue! Obrigado pela preferência! {{store_url}}'
+        ),
+        (
+          store_record.id,
+          'cancelado',
+          'Cancelado',
+          '#EF4444',
+          6,
+          true,
+          E'Pedido #{{order_number}} foi cancelado. Entre em contato para mais informações.'
         );
       
       RAISE NOTICE 'Created default statuses for store %', store_record.id;
