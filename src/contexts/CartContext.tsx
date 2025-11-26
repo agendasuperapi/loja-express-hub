@@ -14,6 +14,12 @@ export interface CartFlavor {
   price: number;
 }
 
+export interface CartSize {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -27,6 +33,7 @@ export interface CartItem {
   observation?: string;
   addons?: CartAddon[];
   flavors?: CartFlavor[];
+  size?: CartSize;
 }
 
 export interface Cart {
@@ -52,7 +59,8 @@ interface CartContextType {
     observation?: string,
     storeSlug?: string,
     addons?: CartAddon[],
-    flavors?: CartFlavor[]
+    flavors?: CartFlavor[],
+    size?: CartSize
   ) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -101,9 +109,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     observation?: string,
     storeSlug?: string,
     addons?: CartAddon[],
-    flavors?: CartFlavor[]
+    flavors?: CartFlavor[],
+    size?: CartSize
   ) => {
-    console.log('🛒 CartProvider addToCart:', { productName, quantity });
+    console.log('🛒 CartProvider addToCart:', { productName, quantity, size });
     
     setCart((prev) => {
       if (prev.storeId && prev.storeId !== storeId) {
@@ -121,6 +130,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             observation,
             addons,
             flavors,
+            size,
           }],
           storeId,
           storeName,
@@ -136,7 +146,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         item => item.productId === productId && 
                 item.observation === observation &&
                 JSON.stringify(item.addons) === JSON.stringify(addons) &&
-                JSON.stringify(item.flavors) === JSON.stringify(flavors)
+                JSON.stringify(item.flavors) === JSON.stringify(flavors) &&
+                JSON.stringify(item.size) === JSON.stringify(size)
       );
       
       if (existingIndex >= 0) {
@@ -161,6 +172,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           observation,
           addons,
           flavors,
+          size,
         }],
         storeId,
         storeName,
@@ -224,10 +236,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const getTotal = () => {
     const total = cart.items.reduce((sum, item) => {
-      const itemPrice = item.promotionalPrice || item.price;
+      // If size is selected, use size price instead of base price
+      const basePrice = item.size ? item.size.price : (item.promotionalPrice || item.price);
       const addonsPrice = item.addons?.reduce((addonSum, addon) => addonSum + addon.price, 0) || 0;
       const flavorsPrice = item.flavors?.reduce((flavorSum, flavor) => flavorSum + flavor.price, 0) || 0;
-      return sum + ((itemPrice + addonsPrice + flavorsPrice) * item.quantity);
+      return sum + ((basePrice + addonsPrice + flavorsPrice) * item.quantity);
     }, 0);
     return total;
   };

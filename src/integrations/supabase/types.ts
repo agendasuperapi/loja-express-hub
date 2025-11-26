@@ -445,6 +445,38 @@ export type Database = {
           },
         ]
       }
+      order_item_sizes: {
+        Row: {
+          created_at: string
+          id: string
+          order_item_id: string
+          size_name: string
+          size_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_item_id: string
+          size_name: string
+          size_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_item_id?: string
+          size_name?: string
+          size_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_sizes_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -840,6 +872,50 @@ export type Database = {
           },
         ]
       }
+      product_sizes: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_available: boolean | null
+          name: string
+          price: number
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          name: string
+          price: number
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_available?: boolean | null
+          name?: string
+          price?: number
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_sizes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string
@@ -847,6 +923,7 @@ export type Database = {
           description: string | null
           display_order: number | null
           external_code: string | null
+          has_sizes: boolean | null
           id: string
           image_url: string | null
           is_available: boolean | null
@@ -867,6 +944,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           external_code?: string | null
+          has_sizes?: boolean | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null
@@ -887,6 +965,7 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           external_code?: string | null
+          has_sizes?: boolean | null
           id?: string
           image_url?: string | null
           is_available?: boolean | null

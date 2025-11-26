@@ -15,6 +15,7 @@ export interface ProductFormData {
   max_flavors?: number;
   external_code?: string;
   is_featured?: boolean;
+  has_sizes?: boolean;
 }
 
 export const useProductManagement = (storeId?: string) => {
