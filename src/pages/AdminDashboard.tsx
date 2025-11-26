@@ -76,7 +76,8 @@ export default function AdminDashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'users'>('overview');
-  const [users, setUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [userFilter, setUserFilter] = useState<string>("all");
   const [confirmingEmail, setConfirmingEmail] = useState<string | null>(null);
   const [processingUser, setProcessingUser] = useState<string | null>(null);
 
@@ -220,20 +221,11 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
 
-      // Fetch all user types
-      const [customersRes, storeOwnersRes, adminsRes] = await Promise.all([
-        supabase.rpc('get_customer_users' as any),
-        supabase.rpc('get_store_owner_users' as any),
-        supabase.rpc('get_admin_users' as any),
-      ]);
+      const { data, error } = await supabase.rpc('get_all_users_admin' as any);
 
-      const allUsers = [
-        ...((customersRes.data as any[]) || []).map((u: any) => ({ ...u, role: 'customer' })),
-        ...((storeOwnersRes.data as any[]) || []).map((u: any) => ({ ...u, role: 'store_owner' })),
-        ...((adminsRes.data as any[]) || []).map((u: any) => ({ ...u, role: 'admin' })),
-      ];
+      if (error) throw error;
 
-      setUsers(allUsers);
+      setAllUsers(data || []);
     } catch (error: any) {
       toast({
         title: "Erro ao carregar usuários",
@@ -344,7 +336,7 @@ export default function AdminDashboard() {
   };
 
   const pendingStores = stores.filter(s => s.status === 'pending_approval');
-  const unconfirmedUsers = users.filter(u => !u.email_confirmed_at);
+  const unconfirmedUsers = allUsers.filter(u => !u.email_confirmed_at);
 
   return (
     <div className="min-h-screen bg-background">
@@ -737,139 +729,190 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
-            {/* Users Management */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Todos os Usuários
-                </CardTitle>
-                <CardDescription>
-                  {unconfirmedUsers.length > 0 && (
-                    <span className="text-yellow-600">
-                      {unconfirmedUsers.length} usuário(s) com email não confirmado
-                    </span>
-                  )}
-                </CardDescription>
+                <CardTitle>Gerenciar Usuários</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-4 flex gap-2 flex-wrap">
+                  <Button
+                    variant={userFilter === "all" ? "default" : "outline"}
+                    onClick={() => setUserFilter("all")}
+                  >
+                    Todos ({allUsers.length})
+                  </Button>
+                  <Button
+                    variant={userFilter === "customer" ? "default" : "outline"}
+                    onClick={() => setUserFilter("customer")}
+                  >
+                    Clientes ({allUsers.filter(u => u.role === 'customer').length})
+                  </Button>
+                  <Button
+                    variant={userFilter === "store_owner" ? "default" : "outline"}
+                    onClick={() => setUserFilter("store_owner")}
+                  >
+                    Lojistas ({allUsers.filter(u => u.role === 'store_owner').length})
+                  </Button>
+                  <Button
+                    variant={userFilter === "admin" ? "default" : "outline"}
+                    onClick={() => setUserFilter("admin")}
+                  >
+                    Admins ({allUsers.filter(u => u.role === 'admin').length})
+                  </Button>
+                  <Button
+                    variant={userFilter === "no_role" ? "default" : "outline"}
+                    onClick={() => setUserFilter("no_role")}
+                  >
+                    Sem Role ({allUsers.filter(u => !u.role).length})
+                  </Button>
+                </div>
+
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Carregando...
                   </div>
-                ) : users.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum usuário encontrado
-                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {users.map((user) => (
-                      <Card key={user.id}>
-                        <CardContent className="pt-6">
-                          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                            <div className="flex-1 space-y-3">
-                              <div className="flex items-start justify-between gap-4">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-xl font-bold">
-                                      {user.full_name || 'Sem nome'}
-                                    </h3>
-                                    <Badge variant="outline">
-                                      {user.role === 'customer' ? 'Cliente' : 
-                                       user.role === 'store_owner' ? 'Dono de Loja' : 
-                                       'Admin'}
+                    {allUsers
+                      .filter(user => {
+                        if (userFilter === "all") return true;
+                        if (userFilter === "no_role") return !user.role;
+                        return user.role === userFilter;
+                      })
+                      .map((user) => (
+                        <Card key={user.id}>
+                          <CardContent className="pt-6">
+                            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-xl font-bold">
+                                    {user.full_name || 'Sem nome'}
+                                  </h3>
+                                  {user.role ? (
+                                    <Badge variant={
+                                      user.role === 'admin' ? 'default' : 
+                                      user.role === 'store_owner' ? 'secondary' : 
+                                      'outline'
+                                    }>
+                                      {user.role === 'admin' ? 'Admin' :
+                                       user.role === 'store_owner' ? 'Lojista' :
+                                       user.role === 'customer' ? 'Cliente' : user.role}
                                     </Badge>
-                                    {!user.email_confirmed_at && (
-                                      <Badge variant="destructive" className="gap-1">
-                                        <Mail className="w-3 h-3" />
-                                        Email não confirmado
-                                      </Badge>
-                                    )}
+                                  ) : (
+                                    <Badge variant="outline">
+                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                      Sem Role
+                                    </Badge>
+                                  )}
+                                  {user.email_confirmed_at ? (
+                                    <Badge variant="default">Email Confirmado</Badge>
+                                  ) : (
+                                    <Badge variant="secondary">Email Pendente</Badge>
+                                  )}
+                                  {user.banned_until ? (
+                                    <Badge variant="destructive">Inativo</Badge>
+                                  ) : (
+                                    <Badge variant="outline">Ativo</Badge>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Mail className="w-4 h-4 text-muted-foreground" />
+                                    <span>{user.email}</span>
+                                  </div>
+
+                                  {user.phone && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Phone className="w-4 h-4 text-muted-foreground" />
+                                      <span>{user.phone}</span>
+                                    </div>
+                                  )}
+
+                                  {user.store_name && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Store className="w-4 h-4 text-muted-foreground" />
+                                      <span>Loja: {user.store_name}</span>
+                                    </div>
+                                  )}
+
+                                  {user.orders_count > 0 && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Package className="w-4 h-4 text-muted-foreground" />
+                                      <span>{user.orders_count} pedidos realizados</span>
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Clock className="w-4 h-4" />
+                                    <span>
+                                      Cadastrado em {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Mail className="w-4 h-4 text-muted-foreground" />
-                                  <span>{user.email}</span>
-                                </div>
-
-                                {user.phone && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <span>{user.phone}</span>
-                                  </div>
+                              <div className="flex flex-col gap-2 md:min-w-[180px]">
+                                {!user.email_confirmed_at && (
+                                  <Button
+                                    onClick={() => handleConfirmEmail(user.id)}
+                                    className="w-full bg-gradient-primary"
+                                    size="sm"
+                                    disabled={confirmingEmail === user.id || processingUser === user.id}
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    {confirmingEmail === user.id ? 'Confirmando...' : 'Confirmar Email'}
+                                  </Button>
+                                )}
+                                
+                                {user.banned_until ? (
+                                  <Button
+                                    onClick={() => handleUserAction(user.id, 'activate')}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    disabled={processingUser === user.id}
+                                  >
+                                    <UserCheck className="w-4 h-4 mr-2" />
+                                    {processingUser === user.id ? 'Processando...' : 'Ativar'}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    onClick={() => handleUserAction(user.id, 'deactivate')}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    disabled={processingUser === user.id}
+                                  >
+                                    <UserX className="w-4 h-4 mr-2" />
+                                    {processingUser === user.id ? 'Processando...' : 'Inativar'}
+                                  </Button>
                                 )}
 
-                                {user.store_name && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Store className="w-4 h-4 text-muted-foreground" />
-                                    <span>Loja: {user.store_name}</span>
-                                  </div>
-                                )}
-
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Clock className="w-4 h-4" />
-                                  <span>
-                                    Cadastrado em {new Date(user.user_created_at).toLocaleDateString('pt-BR')}
-                                  </span>
-                                </div>
+                                <Button
+                                  onClick={() => handleUserAction(user.id, 'delete')}
+                                  variant="destructive"
+                                  size="sm"
+                                  className="w-full"
+                                  disabled={processingUser === user.id}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  {processingUser === user.id ? 'Processando...' : 'Deletar'}
+                                </Button>
                               </div>
                             </div>
-
-                            <div className="flex flex-col gap-2 md:min-w-[180px]">
-                              {!user.email_confirmed_at && (
-                                <Button
-                                  onClick={() => handleConfirmEmail(user.id)}
-                                  className="w-full bg-gradient-primary"
-                                  size="sm"
-                                  disabled={confirmingEmail === user.id || processingUser === user.id}
-                                >
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  {confirmingEmail === user.id ? 'Confirmando...' : 'Confirmar Email'}
-                                </Button>
-                              )}
-                              
-                              {user.banned_until ? (
-                                <Button
-                                  onClick={() => handleUserAction(user.id, 'activate')}
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full"
-                                  disabled={processingUser === user.id}
-                                >
-                                  <UserCheck className="w-4 h-4 mr-2" />
-                                  {processingUser === user.id ? 'Processando...' : 'Ativar'}
-                                </Button>
-                              ) : (
-                                <Button
-                                  onClick={() => handleUserAction(user.id, 'deactivate')}
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-full"
-                                  disabled={processingUser === user.id}
-                                >
-                                  <UserX className="w-4 h-4 mr-2" />
-                                  {processingUser === user.id ? 'Processando...' : 'Inativar'}
-                                </Button>
-                              )}
-
-                              <Button
-                                onClick={() => handleUserAction(user.id, 'delete')}
-                                variant="destructive"
-                                size="sm"
-                                className="w-full"
-                                disabled={processingUser === user.id}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                {processingUser === user.id ? 'Processando...' : 'Deletar'}
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    {allUsers.filter(user => {
+                      if (userFilter === "all") return true;
+                      if (userFilter === "no_role") return !user.role;
+                      return user.role === userFilter;
+                    }).length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Nenhum usuário encontrado nesta categoria
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
