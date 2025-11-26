@@ -22,7 +22,11 @@ import {
   Package,
   Activity,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Trash2,
+  UserX,
+  UserCheck,
+  AlertCircle
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -74,6 +78,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'stores' | 'users'>('overview');
   const [users, setUsers] = useState<any[]>([]);
   const [confirmingEmail, setConfirmingEmail] = useState<string | null>(null);
+  const [processingUser, setProcessingUser] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -270,6 +275,71 @@ export default function AdminDashboard() {
       });
     } finally {
       setConfirmingEmail(null);
+    }
+  };
+
+  const handleUserAction = async (userId: string, action: 'delete' | 'deactivate' | 'activate') => {
+    const actionMessages = {
+      delete: { 
+        confirm: 'Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita.',
+        success: 'Usuário deletado com sucesso',
+        error: 'Erro ao deletar usuário'
+      },
+      deactivate: {
+        confirm: 'Tem certeza que deseja inativar este usuário?',
+        success: 'Usuário inativado com sucesso',
+        error: 'Erro ao inativar usuário'
+      },
+      activate: {
+        confirm: 'Tem certeza que deseja ativar este usuário?',
+        success: 'Usuário ativado com sucesso',
+        error: 'Erro ao ativar usuário'
+      }
+    };
+
+    const confirmed = window.confirm(actionMessages[action].confirm);
+    if (!confirmed) return;
+
+    try {
+      setProcessingUser(userId);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Não autenticado');
+
+      const SUPABASE_URL = "https://mgpzowiahnwcmcaelogf.supabase.co";
+
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/admin-manage-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action, userId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || actionMessages[action].error);
+      }
+
+      toast({
+        title: "Sucesso!",
+        description: result.message || actionMessages[action].success,
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: actionMessages[action].error,
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingUser(null);
     }
   };
 
@@ -748,19 +818,54 @@ export default function AdminDashboard() {
                               </div>
                             </div>
 
-                            {!user.email_confirmed_at && (
-                              <div className="flex flex-col gap-2 md:min-w-[180px]">
+                            <div className="flex flex-col gap-2 md:min-w-[180px]">
+                              {!user.email_confirmed_at && (
                                 <Button
                                   onClick={() => handleConfirmEmail(user.id)}
                                   className="w-full bg-gradient-primary"
                                   size="sm"
-                                  disabled={confirmingEmail === user.id}
+                                  disabled={confirmingEmail === user.id || processingUser === user.id}
                                 >
                                   <CheckCircle className="w-4 h-4 mr-2" />
                                   {confirmingEmail === user.id ? 'Confirmando...' : 'Confirmar Email'}
                                 </Button>
-                              </div>
-                            )}
+                              )}
+                              
+                              {user.banned_until ? (
+                                <Button
+                                  onClick={() => handleUserAction(user.id, 'activate')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  disabled={processingUser === user.id}
+                                >
+                                  <UserCheck className="w-4 h-4 mr-2" />
+                                  {processingUser === user.id ? 'Processando...' : 'Ativar'}
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => handleUserAction(user.id, 'deactivate')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  disabled={processingUser === user.id}
+                                >
+                                  <UserX className="w-4 h-4 mr-2" />
+                                  {processingUser === user.id ? 'Processando...' : 'Inativar'}
+                                </Button>
+                              )}
+
+                              <Button
+                                onClick={() => handleUserAction(user.id, 'delete')}
+                                variant="destructive"
+                                size="sm"
+                                className="w-full"
+                                disabled={processingUser === user.id}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                {processingUser === user.id ? 'Processando...' : 'Deletar'}
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
