@@ -516,6 +516,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   };
 
   const handleDeleteClick = async (id: string, name: string) => {
+    console.log(`[Delete Addon] 🔴 INICIANDO EXCLUSÃO - ID: ${id}, Nome: "${name}"`);
+    
     // Buscar todos os produtos que têm esse adicional (mesmo nome)
     try {
       // Primeiro buscar todos os produtos da loja atual
@@ -524,9 +526,12 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         .select('id, name')
         .eq('store_id', storeId);
 
+      console.log(`[Delete Addon] 📦 Produtos da loja encontrados:`, storeProducts?.length || 0);
+
       if (productsError) throw productsError;
 
       if (!storeProducts || storeProducts.length === 0) {
+        console.log(`[Delete Addon] ❌ Nenhum produto da loja encontrado`);
         setConfirmDelete({ id, name, linkedProducts: [] });
         return;
       }
@@ -539,14 +544,17 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         .eq('name', name)
         .in('product_id', productIds);
 
+      console.log(`[Delete Addon] 🔍 Adicionais "${name}" encontrados:`, linkedAddons?.length || 0, linkedAddons);
+
       if (addonsError) throw addonsError;
 
       if (!linkedAddons || linkedAddons.length === 0) {
+        console.log(`[Delete Addon] ⚠️ Nenhum adicional encontrado com o nome "${name}"`);
         setConfirmDelete({ id, name, linkedProducts: [] });
         return;
       }
 
-      console.log(`[Delete Addon] Encontrados ${linkedAddons.length} adicionais "${name}" na loja`, linkedAddons);
+      console.log(`[Delete Addon] ✅ Encontrados ${linkedAddons.length} adicionais "${name}" na loja`);
 
       // Combinar os dados
       const linkedProducts = linkedAddons
@@ -560,10 +568,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         })
         .filter(Boolean) as Array<{ id: string; name: string; product_id: string }>;
 
-      console.log(`[Delete Addon] Produtos vinculados:`, linkedProducts);
+      console.log(`[Delete Addon] 📋 Produtos vinculados preparados:`, linkedProducts);
       setConfirmDelete({ id, name, linkedProducts });
     } catch (error) {
-      console.error('Error fetching linked products:', error);
+      console.error('[Delete Addon] ❌ ERRO:', error);
       toast({
         title: "Erro",
         description: "Não foi possível buscar os produtos vinculados.",
