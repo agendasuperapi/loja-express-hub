@@ -45,10 +45,6 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'inactive' | 'all'>('active');
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
 
   // Verificar permissões
   const hasPermission = (action: string): boolean => {
@@ -216,6 +212,12 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
     const newOrder = arrayMove(statuses, index, targetIndex);
     await reorderStatuses(newOrder);
   };
+
+  const filteredStatuses = statuses.filter((status) => {
+    if (activeFilter === 'active') return status.is_active;
+    if (activeFilter === 'inactive') return !status.is_active;
+    return true;
+  });
 
   return (
     <Card>
@@ -394,22 +396,14 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
         </div>
 
         <div className="space-y-2">
-          {statuses
-            .filter((status) => {
-              if (activeFilter === 'active') return status.is_active;
-              if (activeFilter === 'inactive') return !status.is_active;
-              return true;
-            })
-            .map((status) => (
+          {filteredStatuses.map((status, index) => (
             <div
               key={status.id}
               className="flex items-center gap-3 p-4 border rounded-lg hover:bg-accent/5 transition-colors"
             >
-              <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-              
               <Badge
                 style={{ backgroundColor: status.status_color }}
-                className="text-white"
+                className="text-white min-w-[90px] justify-center"
               >
                 {status.status_label}
               </Badge>
@@ -422,11 +416,34 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
-                {!status.is_active && (
-                  <Badge variant="outline" className="text-xs">Inativa</Badge>
+              <div className="flex items-center gap-1">
+                {canEdit && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => moveStatus(status.id, 'up')}
+                      disabled={index === 0}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => moveStatus(status.id, 'down')}
+                      disabled={index === filteredStatuses.length - 1}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </>
                 )}
-                
+
+                {!status.is_active && (
+                  <Badge variant="outline" className="text-xs ml-1">Inativa</Badge>
+                )}
+
                 {canEdit && (
                   <Button
                     variant="ghost"
@@ -443,16 +460,11 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
             </div>
           ))}
 
-          {statuses.filter((status) => {
-            if (activeFilter === 'active') return status.is_active;
-            if (activeFilter === 'inactive') return !status.is_active;
-            return true;
-          }).length === 0 && (
+          {filteredStatuses.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              {statuses.length === 0 
+              {statuses.length === 0
                 ? 'Nenhuma etapa configurada. Clique em "Adicionar Etapa" para começar.'
-                : `Nenhuma etapa ${activeFilter === 'active' ? 'ativa' : 'inativa'} encontrada.`
-              }
+                : `Nenhuma etapa ${activeFilter === 'active' ? 'ativa' : 'inativa'} encontrada.`}
             </div>
           )}
         </div>
