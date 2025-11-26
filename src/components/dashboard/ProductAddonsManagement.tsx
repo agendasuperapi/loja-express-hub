@@ -643,6 +643,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
           id,
           product_id,
           category_id,
+          is_available,
           products!inner(
             id,
             name,
@@ -660,21 +661,31 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
         : linkedAddons;
 
       // Remover duplicatas e extrair nomes dos produtos
+      // Também contar quantos estão ativos
       const uniqueProducts = new Map();
+      let activeCount = 0;
+      let totalCount = 0;
+      
       filtered?.forEach(addonItem => {
         const product = addonItem.products;
         if (product && !uniqueProducts.has(product.id)) {
           uniqueProducts.set(product.id, { id: product.id, name: product.name });
+          totalCount++;
+          if (addonItem.is_available) activeCount++;
         }
       });
 
       const linkedProducts = Array.from(uniqueProducts.values());
+      
+      // Determinar o estado atual: se a maioria está ativa, consideramos "ativos"
+      // Isso permite mostrar "Desativar" quando a maioria está ativa e vice-versa
+      const currentAvailability = activeCount > totalCount / 2;
 
       setAddonToToggle({ 
         id: addon.id, 
         name: addon.name,
         categoryId: addon.category_id,
-        currentAvailability: addon.is_available,
+        currentAvailability,
         linkedProducts 
       });
       
