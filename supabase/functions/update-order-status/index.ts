@@ -100,54 +100,53 @@ Deno.serve(async (req) => {
 
     const isStoreOwner = !storeErr && store && store.owner_id === user.id;
 
-    // Validate status - check against order_status_configs for custom statuses
+    // Normalize and validate status: accept custom keys but always write a valid enum to the DB
     const rawStatus = String(status);
     console.log('[update-order-status] Validando status:', { rawStatus, storeId: order.store_id });
-    
-    // Query order_status_configs to get valid statuses for this store
-    const { data: statusConfigs, error: statusErr } = await supabaseAdmin
-      .from('order_status_configs' as any)
-      .select('status_key, is_active')
-      .eq('store_id', order.store_id)
-      .eq('is_active', true);
-    
-    if (statusErr) {
-      console.error('[update-order-status] Erro ao buscar configurações de status:', statusErr);
-    }
-    
-    // Build set of valid statuses (both default enum values and custom from configs)
-    const allowedStatuses = new Set([
-      'pending', 'confirmed', 'preparing', 'ready', 'in_delivery', 'delivered', 'cancelled'
+
+    // Map possible custom/translated keys to the database enum values
+    const statusMap: Record<string, string> = {
+      // Portuguese aliases
+      pendente: 'pending',
+      'pagamento_pendente': 'pending',
+      'separação': 'preparing',
+      a_caminho: 'in_delivery',
+      // Legacy/custom aliases
+      out_for_delivery: 'in_delivery',
+    };
+
+    const enumStatuses = new Set([
+      'pending',
+      'confirmed',
+      'preparing',
+      'ready',
+      'in_delivery',
+      'delivered',
+      'cancelled',
     ]);
-    
-    // Add custom status keys from configs
-    if (statusConfigs && statusConfigs.length > 0) {
-      statusConfigs.forEach(config => {
-        if (config.status_key && config.is_active) {
-          allowedStatuses.add(config.status_key);
+
+    // Resulting value that will actually be written to the enum column
+    const statusKey = statusMap[rawStatus] || rawStatus;
+
+    if (!enumStatuses.has(statusKey)) {
+      console.error('[update-order-status] Status inválido recebido:', {
+        rawStatus,
+        statusKey,
+        allowedStatuses: Array.from(enumStatuses),
+      });
+      return new Response(
+        JSON.stringify({
+          error:
+            'Status inválido. Use um status configurado na loja (por exemplo: pendente, separação, a_caminho).',
+        }),
+        {
+          status: 400,
+          headers: corsHeaders,
         }
-      });
+      );
     }
-    
-    console.log('[update-order-status] Status permitidos:', Array.from(allowedStatuses));
-    
-    const statusKey = rawStatus;
-    
-    if (!allowedStatuses.has(statusKey)) {
-      console.error('[update-order-status] Status inválido recebido:', { 
-        rawStatus, 
-        statusKey, 
-        allowedStatuses: Array.from(allowedStatuses) 
-      });
-      return new Response(JSON.stringify({ 
-        error: 'Status inválido. Este status não está configurado para esta loja.' 
-      }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-    
-    console.log('[update-order-status] Status validado com sucesso:', statusKey);
+
+    console.log('[update-order-status] Status validado com sucesso:', { rawStatus, statusKey });
 
     // If not store owner, check employee permissions
     if (!isStoreOwner) {
