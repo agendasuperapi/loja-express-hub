@@ -17,7 +17,7 @@ export const usePickupLocations = (storeId?: string) => {
       // Buscar endereço da loja
       const { data: storeData, error: storeError } = await (supabase as any)
         .from('stores')
-        .select('store_street, store_street_number, store_neighborhood, store_city, store_complement, store_address_pickup_enabled')
+        .select('store_street, store_street_number, store_neighborhood, store_city, store_complement, store_address_pickup_enabled, store_address_pickup_name')
         .eq('id', storeId)
         .single();
 
@@ -38,7 +38,7 @@ export const usePickupLocations = (storeId?: string) => {
       // Adicionar endereço da loja se estiver habilitado e tiver dados
       const storeAddress = storeData && (storeData.store_street || storeData.store_city) && storeData.store_address_pickup_enabled ? {
         id: 'store-address',
-        name: 'Endereço da Loja',
+        name: storeData.store_address_pickup_name || 'Endereço da Loja',
         address: [
           storeData.store_street,
           storeData.store_street_number,

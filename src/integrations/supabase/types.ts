@@ -1306,6 +1306,7 @@ export type Database = {
           slug: string
           status: Database["public"]["Enums"]["store_status"]
           store_address_pickup_enabled: boolean | null
+          store_address_pickup_name: string | null
           store_cep: string | null
           store_city: string | null
           store_complement: string | null
@@ -1367,6 +1368,7 @@ export type Database = {
           slug: string
           status?: Database["public"]["Enums"]["store_status"]
           store_address_pickup_enabled?: boolean | null
+          store_address_pickup_name?: string | null
           store_cep?: string | null
           store_city?: string | null
           store_complement?: string | null
@@ -1428,6 +1430,7 @@ export type Database = {
           slug?: string
           status?: Database["public"]["Enums"]["store_status"]
           store_address_pickup_enabled?: boolean | null
+          store_address_pickup_name?: string | null
           store_cep?: string | null
           store_city?: string | null
           store_complement?: string | null
