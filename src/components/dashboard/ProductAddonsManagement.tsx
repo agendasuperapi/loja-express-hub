@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -399,6 +400,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
     categoryId: string | null;
     linkedProducts: Array<{ id: string; name: string }>;
   } | null>(null);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
@@ -526,6 +528,9 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
         categoryId,
         linkedProducts 
       });
+      
+      // Inicializar todos os produtos como selecionados
+      setSelectedProductIds(new Set(linkedProducts.map(p => p.id)));
       setDeleteDialogOpen(true);
     } catch (error) {
       console.error('Error fetching linked products:', error);
@@ -538,10 +543,84 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   };
 
   const handleDeleteConfirm = async () => {
-    if (addonToDelete) {
-      await deleteAddon(addonToDelete.id);
+    if (!addonToDelete || selectedProductIds.size === 0) {
+      toast({
+        title: "Nenhum produto selecionado",
+        description: "Selecione ao menos um produto para remover o adicional.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Buscar todos os addons vinculados aos produtos selecionados com o mesmo nome e categoria
+      const { data: addonsToDelete, error: fetchError } = await supabase
+        .from('product_addons')
+        .select('id, product_id, category_id')
+        .eq('name', addonToDelete.name)
+        .in('product_id', Array.from(selectedProductIds));
+
+      if (fetchError) throw fetchError;
+
+      // Filtrar por categoria se houver
+      const filteredAddons = addonToDelete.categoryId
+        ? addonsToDelete?.filter(a => a.category_id === addonToDelete.categoryId)
+        : addonsToDelete;
+
+      if (!filteredAddons || filteredAddons.length === 0) {
+        toast({
+          title: "Nenhum adicional encontrado",
+          description: "Não foram encontrados adicionais para remover.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Deletar os adicionais encontrados
+      const { error: deleteError } = await supabase
+        .from('product_addons')
+        .delete()
+        .in('id', filteredAddons.map(a => a.id));
+
+      if (deleteError) throw deleteError;
+
+      toast({
+        title: "Adicional removido",
+        description: `O adicional foi removido de ${selectedProductIds.size} produto(s).`,
+      });
+
       setAddonToDelete(null);
+      setSelectedProductIds(new Set());
       setDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Error deleting addon:', error);
+      toast({
+        title: "Erro ao remover adicional",
+        description: "Não foi possível remover o adicional dos produtos selecionados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProductIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAllProducts = () => {
+    if (!addonToDelete?.linkedProducts) return;
+    
+    if (selectedProductIds.size === addonToDelete.linkedProducts.length) {
+      setSelectedProductIds(new Set());
+    } else {
+      setSelectedProductIds(new Set(addonToDelete.linkedProducts.map(p => p.id)));
     }
   };
 
@@ -687,44 +766,63 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir adicional</AlertDialogTitle>
+            <AlertDialogTitle>Remover adicional dos produtos</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p>
-                Tem certeza que deseja excluir o adicional <strong>{addonToDelete?.name}</strong>?
+                Selecione de quais produtos deseja remover o adicional <strong>{addonToDelete?.name}</strong>:
               </p>
-              {addonToDelete?.linkedProducts && addonToDelete.linkedProducts.length > 0 && (
-                <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                  <p className="text-sm font-medium text-destructive mb-2">
-                    ⚠️ Este adicional será removido de {addonToDelete.linkedProducts.length} produto(s):
-                  </p>
-                </div>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
           {addonToDelete?.linkedProducts && addonToDelete.linkedProducts.length > 0 && (
-            <div className="flex-1 overflow-y-auto py-4 space-y-2 max-h-[300px]">
-              {addonToDelete.linkedProducts.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30"
-                >
-                  <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{product.name}</p>
+            <>
+              <div className="flex items-center gap-2 px-1 pb-2 border-b">
+                <Checkbox
+                  id="select-all"
+                  checked={selectedProductIds.size === addonToDelete.linkedProducts.length && addonToDelete.linkedProducts.length > 0}
+                  onCheckedChange={toggleAllProducts}
+                />
+                <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                  Selecionar todos ({addonToDelete.linkedProducts.length} produtos)
+                </Label>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto py-2 space-y-2 max-h-[300px]">
+                {addonToDelete.linkedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => toggleProductSelection(product.id)}
+                  >
+                    <Checkbox
+                      id={`product-${product.id}`}
+                      checked={selectedProductIds.has(product.id)}
+                      onCheckedChange={() => toggleProductSelection(product.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <Label 
+                      htmlFor={`product-${product.id}`}
+                      className="flex-1 font-medium text-sm cursor-pointer"
+                    >
+                      {product.name}
+                    </Label>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
           
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setSelectedProductIds(new Set())}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={selectedProductIds.size === 0}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             >
-              Excluir de {addonToDelete?.linkedProducts?.length || 0} produto(s)
+              Remover de {selectedProductIds.size} produto(s)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
