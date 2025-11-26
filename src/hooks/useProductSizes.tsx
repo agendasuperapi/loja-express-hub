@@ -51,8 +51,15 @@ export const useProductSizes = (productId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // Update product to has_sizes = true
+      await supabase
+        .from('products')
+        .update({ has_sizes: true })
+        .eq('id', data.product_id);
+
       queryClient.invalidateQueries({ queryKey: ['product-sizes'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: 'Tamanho criado!',
         description: 'O tamanho foi adicionado ao produto.',
@@ -97,15 +104,40 @@ export const useProductSizes = (productId?: string) => {
 
   const deleteSizeMutation = useMutation({
     mutationFn: async (sizeId: string) => {
+      // Get the product_id before deleting
+      const { data: sizeData } = await supabase
+        .from('product_sizes')
+        .select('product_id')
+        .eq('id', sizeId)
+        .single();
+
       const { error } = await supabase
         .from('product_sizes')
         .delete()
         .eq('id', sizeId);
 
       if (error) throw error;
+      return sizeData?.product_id;
     },
-    onSuccess: () => {
+    onSuccess: async (productId) => {
+      if (productId) {
+        // Check if there are any remaining sizes for this product
+        const { data: remainingSizes } = await supabase
+          .from('product_sizes')
+          .select('id')
+          .eq('product_id', productId);
+
+        // If no more sizes, update has_sizes to false
+        if (!remainingSizes || remainingSizes.length === 0) {
+          await supabase
+            .from('products')
+            .update({ has_sizes: false })
+            .eq('id', productId);
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['product-sizes'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: 'Tamanho removido!',
         description: 'O tamanho foi removido do produto.',
