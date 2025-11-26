@@ -541,6 +541,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         return;
       }
 
+      console.log(`[Delete Addon] Encontrados ${linkedAddons.length} adicionais "${name}" na loja`, linkedAddons);
+
       // Combinar os dados
       const linkedProducts = linkedAddons
         .map((addon: any) => {
@@ -553,6 +555,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         })
         .filter(Boolean) as Array<{ id: string; name: string; product_id: string }>;
 
+      console.log(`[Delete Addon] Produtos vinculados:`, linkedProducts);
       setConfirmDelete({ id, name, linkedProducts });
     } catch (error) {
       console.error('Error fetching linked products:', error);
@@ -577,19 +580,27 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         return;
       }
 
+      console.log(`[Delete Addon] Confirmando exclusão do adicional "${confirmDelete.name}"`);
+      console.log(`[Delete Addon] Produtos selecionados:`, selectedProductsToDelete);
+      console.log(`[Delete Addon] Total de produtos vinculados:`, confirmDelete.linkedProducts.length);
+
       // Se selecionou todos, usar a função de delete padrão
       if (selectedProductsToDelete.length === confirmDelete.linkedProducts.length) {
+        const idsToDelete = confirmDelete.linkedProducts.map(p => p.id);
+        console.log(`[Delete Addon] Deletando TODOS os adicionais. IDs:`, idsToDelete);
+        
         // Deletar todos os adicionais com esse nome
         const { error } = await supabase
           .from('product_addons')
           .delete()
-          .in('id', confirmDelete.linkedProducts.map(p => p.id));
+          .in('id', idsToDelete);
 
         if (error) throw error;
 
+        console.log(`[Delete Addon] ✅ Removido de ${idsToDelete.length} produto(s)`);
         toast({
           title: "Adicional removido",
-          description: `O adicional "${confirmDelete.name}" foi removido de todos os produtos.`,
+          description: `O adicional "${confirmDelete.name}" foi removido de ${idsToDelete.length} produto(s).`,
         });
       } else {
         // Deletar apenas dos produtos selecionados
@@ -597,6 +608,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
           .filter(p => selectedProductsToDelete.includes(p.product_id))
           .map(p => p.id);
 
+        console.log(`[Delete Addon] Deletando adicionais SELECIONADOS. IDs:`, addonsToDelete);
+        
         const { error } = await supabase
           .from('product_addons')
           .delete()
@@ -604,6 +617,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
         if (error) throw error;
 
+        console.log(`[Delete Addon] ✅ Removido de ${selectedProductsToDelete.length} produto(s)`);
         toast({
           title: "Adicional removido",
           description: `O adicional "${confirmDelete.name}" foi removido de ${selectedProductsToDelete.length} produto(s).`,
@@ -1113,7 +1127,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            O adicional <strong>"{confirmDelete?.name}"</strong> está vinculado aos seguintes produtos:
+            O adicional <strong>"{confirmDelete?.name}"</strong> está vinculado aos seguintes produtos.
+            <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm">
+              ⚠️ <strong>Atenção:</strong> Por padrão, todos os produtos estão selecionados. O adicional será removido de todos eles ao confirmar.
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         
