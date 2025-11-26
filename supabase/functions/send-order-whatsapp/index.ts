@@ -210,10 +210,15 @@ serve(async (req) => {
     
     console.log('✅ Instância WhatsApp encontrada:', storeInstance.evolution_instance_id);
 
-    // Normalize status key (in_delivery -> out_for_delivery for UI)
+    // Normaliza o status do banco (enum) para a chave usada nas configurações da loja
     const normalizeStatusForConfig = (dbStatus: string): string => {
+      // Mapeamentos padrão entre enum do banco e chaves personalizadas mais comuns
       const statusMap: Record<string, string> = {
-        'in_delivery': 'out_for_delivery'
+        // Enum -> chaves em português usadas nas configs
+        pending: 'pendente',
+        preparing: 'separação',
+        in_delivery: 'a_caminho',
+        out_for_delivery: 'a_caminho', // compatibilidade
       };
       return statusMap[dbStatus] || dbStatus;
     };
