@@ -124,9 +124,9 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
             className={addon.is_available ? 'text-green-600 hover:text-green-700' : 'text-red-600 hover:text-red-700'}
           >
             {addon.is_available ? (
-              <Power className="w-4 h-4" />
-            ) : (
               <PowerOff className="w-4 h-4" />
+            ) : (
+              <Power className="w-4 h-4" />
             )}
           </Button>
           <Button
