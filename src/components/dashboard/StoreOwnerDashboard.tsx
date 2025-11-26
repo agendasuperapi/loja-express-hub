@@ -138,20 +138,69 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const canViewCancelledOrders = hasPermission('orders', 'view_cancelled_orders');
 
 
-  // Mapeamento entre status do banco (enum) e status_key customizado
-  const normalizeStatusKey = (dbStatus: string): string => {
-    const statusMap: Record<string, string> = {
-      'in_delivery': 'out_for_delivery', // DB usa in_delivery, mas UI usa out_for_delivery
+  // Mapeamento dinâmico entre status do banco (enum) e status_key customizado
+  const getStatusKeyFromEnum = (enumStatus: string): string => {
+    if (!customStatuses || customStatuses.length === 0) {
+      return enumStatus;
+    }
+    
+    // Mapa de fallback de enums comuns para status_key
+    const enumToKeyMap: Record<string, string[]> = {
+      'pending': ['pendente', 'pending', 'aguardando', 'novo'],
+      'preparing': ['preparando', 'preparing', 'separação', 'separacao', 'em_preparacao'],
+      'ready': ['pronto', 'ready', 'finalizado'],
+      'in_delivery': ['a_caminho', 'out_for_delivery', 'em_entrega', 'saiu_para_entrega'],
+      'delivered': ['entregue', 'delivered', 'concluido', 'concluído'],
+      'cancelled': ['cancelado', 'cancelled', 'cancelada']
     };
-    return statusMap[dbStatus] || dbStatus;
+    
+    // Procura o status customizado que corresponde ao enum
+    const matchingStatus = customStatuses.find(s => {
+      const possibleKeys = enumToKeyMap[enumStatus] || [enumStatus];
+      return possibleKeys.includes(s.status_key.toLowerCase());
+    });
+    
+    return matchingStatus?.status_key || enumStatus;
   };
   
-  const denormalizeStatusKey = (uiStatus: string): string => {
-    const statusMap: Record<string, string> = {
-      'out_for_delivery': 'in_delivery', // UI usa out_for_delivery, mas DB precisa in_delivery
+  const getEnumFromStatusKey = (statusKey: string): string => {
+    if (!customStatuses || customStatuses.length === 0) {
+      return statusKey;
+    }
+    
+    // Mapa de fallback de status_key para enums
+    const keyToEnumMap: Record<string, string> = {
+      'pendente': 'pending',
+      'pending': 'pending',
+      'aguardando': 'pending',
+      'novo': 'pending',
+      'preparando': 'preparing',
+      'preparing': 'preparing',
+      'separação': 'preparing',
+      'separacao': 'preparing',
+      'em_preparacao': 'preparing',
+      'pronto': 'ready',
+      'ready': 'ready',
+      'finalizado': 'ready',
+      'a_caminho': 'in_delivery',
+      'out_for_delivery': 'in_delivery',
+      'em_entrega': 'in_delivery',
+      'saiu_para_entrega': 'in_delivery',
+      'entregue': 'delivered',
+      'delivered': 'delivered',
+      'concluido': 'delivered',
+      'concluído': 'delivered',
+      'cancelado': 'cancelled',
+      'cancelled': 'cancelled',
+      'cancelada': 'cancelled'
     };
-    return statusMap[uiStatus] || uiStatus;
+    
+    return keyToEnumMap[statusKey.toLowerCase()] || statusKey;
   };
+
+  // Funções de compatibilidade
+  const normalizeStatusKey = getStatusKeyFromEnum;
+  const denormalizeStatusKey = getEnumFromStatusKey;
 
   // Helpers para mudança de status conforme permissões
   const canChangeTo = (statusKey: string) => {
@@ -838,7 +887,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         break;
       default:
     return orders.filter(order => {
-      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
       const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
       const matchesPayment = statsPaymentFilter === 'all' || 
         (statsPaymentFilter === 'received' && order.payment_received === true) ||
@@ -850,7 +899,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       const matchesDate = isWithinInterval(orderDate, { start: startDate, end: endDate });
-      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
       const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
       const matchesPayment = statsPaymentFilter === 'all' || 
         (statsPaymentFilter === 'received' && order.payment_received === true) ||
@@ -919,7 +968,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
       const matchesDate = isWithinInterval(orderDate, { start: previousStartDate, end: previousEndDate });
-      const normalizedFilterStatus = denormalizeStatusKey(statsStatusFilter);
+      const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
       const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
       const matchesPayment = statsPaymentFilter === 'all' || 
         (statsPaymentFilter === 'received' && order.payment_received === true) ||
@@ -1056,7 +1105,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       
       // Filtro de status - normalizar ambos os lados da comparação
       if (orderStatusFilter !== 'all') {
-        const normalizedFilterStatus = denormalizeStatusKey(orderStatusFilter);
+        const normalizedFilterStatus = getEnumFromStatusKey(orderStatusFilter);
         if (order.status !== normalizedFilterStatus) {
           return false;
         }
@@ -2840,7 +2889,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 
                 {customStatuses.filter(status => status.is_active).map((status) => {
                   // Normalizar tanto o status do banco quanto o status_key para comparação
-                  const normalizedStatusKey = denormalizeStatusKey(status.status_key);
+                  const normalizedStatusKey = getEnumFromStatusKey(status.status_key);
                   const statusCount = orders?.filter(o => o.status === normalizedStatusKey).length || 0;
                   const isActive = orderStatusFilter === status.status_key;
                   
@@ -2978,7 +3027,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             </p>
                           </div>
                           <Badge variant="outline" className="capitalize text-xs self-start">
-                            {customStatuses.find(s => denormalizeStatusKey(s.status_key) === order.status)?.status_label || order.status}
+                            {customStatuses.find(s => getEnumFromStatusKey(s.status_key) === order.status)?.status_label || 
+                             customStatuses.find(s => s.status_key === normalizeStatusKey(order.status))?.status_label ||
+                             order.status}
                           </Badge>
                         </div>
 
@@ -3132,7 +3183,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             </Button>
                           )}
                           <Select
-                            value={normalizeStatusKey(order.status)}
+                            value={getStatusKeyFromEnum(order.status)}
                             disabled={isUpdating}
                             onValueChange={(newStatus) => {
                               // Verificar permissão antes de permitir mudança
@@ -3169,7 +3220,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <SelectContent>
                               {customStatuses.length > 0 ? (
                                 customStatuses
-                                  .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '' && canChangeTo(status.status_key))
+                                  .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '')
+                                  .sort((a, b) => a.display_order - b.display_order)
+                                  .filter(status => canChangeTo(status.status_key))
                                   .map((status) => (
                                     <SelectItem key={status.status_key} value={status.status_key}>
                                       {status.status_label}
@@ -5705,7 +5758,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               <div className="flex justify-between items-center">
                 <div>
                   <Badge variant="outline" className="capitalize">
-                    {customStatuses.find((s: any) => denormalizeStatusKey(s.status_key) === viewingOrder.status)?.status_label || viewingOrder.status}
+                    {customStatuses.find((s: any) => getEnumFromStatusKey(s.status_key) === viewingOrder.status)?.status_label || 
+                     customStatuses.find((s: any) => s.status_key === getStatusKeyFromEnum(viewingOrder.status))?.status_label ||
+                     viewingOrder.status}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -5995,16 +6050,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           )}
           newStatus={pendingStatusChange.newStatus}
           onConfirm={() => {
+            const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
             updateOrderStatus({ 
               orderId: pendingStatusChange.orderId, 
-              status: pendingStatusChange.newStatus 
+              status: enumStatus
             });
           }}
           onSkip={async () => {
             // Chama a mutation com skipNotification=true
+            const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
             updateOrderStatus({ 
               orderId: pendingStatusChange.orderId, 
-              status: pendingStatusChange.newStatus,
+              status: enumStatus,
               skipNotification: true
             });
             setPendingStatusChange(null);

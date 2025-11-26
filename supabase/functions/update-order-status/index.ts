@@ -106,13 +106,47 @@ Deno.serve(async (req) => {
 
     // Map possible custom/translated keys to the database enum values
     const statusMap: Record<string, string> = {
-      // Portuguese aliases
-      pendente: 'pending',
+      // Portuguese aliases for pending
+      'pendente': 'pending',
       'pagamento_pendente': 'pending',
+      'aguardando': 'pending',
+      'novo': 'pending',
+      'pending': 'pending',
+      
+      // Portuguese aliases for confirmed
+      'confirmado': 'confirmed',
+      'aceito': 'confirmed',
+      'confirmed': 'confirmed',
+      
+      // Portuguese aliases for preparing
+      'preparando': 'preparing',
       'separação': 'preparing',
-      a_caminho: 'in_delivery',
-      // Legacy/custom aliases
-      out_for_delivery: 'in_delivery',
+      'separacao': 'preparing',
+      'em_preparacao': 'preparing',
+      'preparing': 'preparing',
+      
+      // Portuguese aliases for ready
+      'pronto': 'ready',
+      'finalizado': 'ready',
+      'ready': 'ready',
+      
+      // Portuguese aliases for in_delivery
+      'a_caminho': 'in_delivery',
+      'out_for_delivery': 'in_delivery',
+      'em_entrega': 'in_delivery',
+      'saiu_para_entrega': 'in_delivery',
+      'in_delivery': 'in_delivery',
+      
+      // Portuguese aliases for delivered
+      'entregue': 'delivered',
+      'concluido': 'delivered',
+      'concluído': 'delivered',
+      'delivered': 'delivered',
+      
+      // Portuguese aliases for cancelled
+      'cancelado': 'cancelled',
+      'cancelada': 'cancelled',
+      'cancelled': 'cancelled',
     };
 
     const enumStatuses = new Set([
