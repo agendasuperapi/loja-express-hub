@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, MapPin, Pencil } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { formatCep, fetchCepData } from "@/lib/cepValidation";
 
 interface PickupLocation {
   id: string;
@@ -23,10 +24,19 @@ interface PickupLocationsManagerProps {
 
 export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps) => {
   const queryClient = useQueryClient();
-  const [newLocation, setNewLocation] = useState({ name: "", address: "" });
+  const [newLocation, setNewLocation] = useState({ 
+    name: "", 
+    cep: "",
+    street: "",
+    number: "",
+    neighborhood: "",
+    city: "",
+    complement: ""
+  });
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLocation, setEditLocation] = useState({ name: "", address: "" });
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
 
   const { data: storeData } = useQuery({
     queryKey: ["store-address", storeId],
@@ -76,19 +86,35 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
 
   const addLocationMutation = useMutation({
     mutationFn: async () => {
+      const fullAddress = [
+        newLocation.street,
+        newLocation.number,
+        newLocation.neighborhood,
+        newLocation.city,
+        newLocation.complement
+      ].filter(Boolean).join(", ");
+
       const { error } = await (supabase as any)
         .from("store_pickup_locations")
         .insert({
           store_id: storeId,
           name: newLocation.name,
-          address: newLocation.address,
+          address: fullAddress,
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pickup-locations", storeId] });
-      setNewLocation({ name: "", address: "" });
+      setNewLocation({ 
+        name: "", 
+        cep: "",
+        street: "",
+        number: "",
+        neighborhood: "",
+        city: "",
+        complement: ""
+      });
       setIsAdding(false);
       toast.success("Endereço de retirada adicionado");
     },
@@ -190,11 +216,35 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
   });
 
   const handleAddLocation = () => {
-    if (!newLocation.name.trim() || !newLocation.address.trim()) {
-      toast.error("Preencha todos os campos");
+    if (!newLocation.name.trim() || !newLocation.street.trim() || !newLocation.city.trim()) {
+      toast.error("Preencha nome, rua e cidade");
       return;
     }
     addLocationMutation.mutate();
+  };
+
+  const handleCepChange = async (cep: string) => {
+    const formatted = formatCep(cep);
+    setNewLocation({ ...newLocation, cep: formatted });
+
+    if (formatted.replace(/\D/g, '').length === 8) {
+      setIsLoadingCep(true);
+      const data = await fetchCepData(formatted);
+      
+      if (data) {
+        setNewLocation(prev => ({
+          ...prev,
+          street: data.logradouro,
+          neighborhood: data.bairro,
+          city: data.localidade,
+          complement: data.complemento
+        }));
+        toast.success("Endereço encontrado!");
+      } else {
+        toast.error("CEP não encontrado");
+      }
+      setIsLoadingCep(false);
+    }
   };
 
   const handleEditLocation = (id: string) => {
@@ -343,13 +393,77 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location-address" className="text-xs">Endereço Completo</Label>
+              <Label htmlFor="location-cep" className="text-xs">CEP</Label>
               <Input
-                id="location-address"
-                placeholder="Rua, número, bairro, cidade"
-                value={newLocation.address}
+                id="location-cep"
+                placeholder="00000-000"
+                value={newLocation.cep}
+                onChange={(e) => handleCepChange(e.target.value)}
+                disabled={isLoadingCep}
+                className="h-8 text-sm"
+                maxLength={9}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="location-street" className="text-xs">Rua</Label>
+                <Input
+                  id="location-street"
+                  placeholder="Nome da rua"
+                  value={newLocation.street}
+                  onChange={(e) =>
+                    setNewLocation({ ...newLocation, street: e.target.value })
+                  }
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location-number" className="text-xs">Número</Label>
+                <Input
+                  id="location-number"
+                  placeholder="Nº"
+                  value={newLocation.number}
+                  onChange={(e) =>
+                    setNewLocation({ ...newLocation, number: e.target.value })
+                  }
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="location-neighborhood" className="text-xs">Bairro</Label>
+                <Input
+                  id="location-neighborhood"
+                  placeholder="Bairro"
+                  value={newLocation.neighborhood}
+                  onChange={(e) =>
+                    setNewLocation({ ...newLocation, neighborhood: e.target.value })
+                  }
+                  className="h-8 text-sm"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location-city" className="text-xs">Cidade</Label>
+                <Input
+                  id="location-city"
+                  placeholder="Cidade"
+                  value={newLocation.city}
+                  onChange={(e) =>
+                    setNewLocation({ ...newLocation, city: e.target.value })
+                  }
+                  className="h-8 text-sm"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location-complement" className="text-xs">Complemento</Label>
+              <Input
+                id="location-complement"
+                placeholder="Complemento (opcional)"
+                value={newLocation.complement}
                 onChange={(e) =>
-                  setNewLocation({ ...newLocation, address: e.target.value })
+                  setNewLocation({ ...newLocation, complement: e.target.value })
                 }
                 className="h-8 text-sm"
               />
@@ -362,7 +476,15 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                 className="h-8"
                 onClick={() => {
                   setIsAdding(false);
-                  setNewLocation({ name: "", address: "" });
+                  setNewLocation({ 
+                    name: "", 
+                    cep: "",
+                    street: "",
+                    number: "",
+                    neighborhood: "",
+                    city: "",
+                    complement: ""
+                  });
                 }}
               >
                 Cancelar
