@@ -1130,6 +1130,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     <AlertDialog 
       open={!!confirmDelete} 
       onOpenChange={(open) => {
+        console.log(`[Dialog] onOpenChange - open: ${open}, confirmDelete:`, confirmDelete);
         if (!open) {
           setConfirmDelete(null);
           setSelectedProductsToDelete([]);
@@ -1148,6 +1149,14 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         </AlertDialogHeader>
         
         <div className="py-4 space-y-3 max-h-[400px] overflow-y-auto">
+          {(() => {
+            console.log(`[Dialog Render] confirmDelete:`, confirmDelete);
+            console.log(`[Dialog Render] linkedProducts:`, confirmDelete?.linkedProducts);
+            console.log(`[Dialog Render] linkedProducts.length:`, confirmDelete?.linkedProducts?.length);
+            console.log(`[Dialog Render] selectedProductsToDelete:`, selectedProductsToDelete);
+            return null;
+          })()}
+          
           {confirmDelete?.linkedProducts && confirmDelete.linkedProducts.length > 0 ? (
             <>
               <div className="flex items-center justify-between mb-3 pb-2 border-b">
@@ -1160,6 +1169,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      console.log(`[Dialog] Selecionar Todos clicado`);
                       setSelectedProductsToDelete(confirmDelete.linkedProducts.map(p => p.product_id));
                     }}
                   >
@@ -1169,7 +1179,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedProductsToDelete([])}
+                    onClick={() => {
+                      console.log(`[Dialog] Desmarcar Todos clicado`);
+                      setSelectedProductsToDelete([]);
+                    }}
                   >
                     Desmarcar Todos
                   </Button>
