@@ -100,24 +100,54 @@ Deno.serve(async (req) => {
 
     const isStoreOwner = !storeErr && store && store.owner_id === user.id;
 
-    // Normalize and validate status - map custom status keys to database enum values
+    // Validate status - check against order_status_configs for custom statuses
     const rawStatus = String(status);
+    console.log('[update-order-status] Validando status:', { rawStatus, storeId: order.store_id });
     
-    // Map custom status keys to valid database enum values
-    const statusMap: Record<string, string> = {
-      out_for_delivery: 'in_delivery',
-    };
+    // Query order_status_configs to get valid statuses for this store
+    const { data: statusConfigs, error: statusErr } = await supabaseAdmin
+      .from('order_status_configs' as any)
+      .select('status_key, is_active')
+      .eq('store_id', order.store_id)
+      .eq('is_active', true);
     
-    const statusKey = statusMap[rawStatus] || rawStatus;
-    const allowedStatuses = new Set(['pending','confirmed','preparing','ready','in_delivery','delivered','cancelled']);
+    if (statusErr) {
+      console.error('[update-order-status] Erro ao buscar configurações de status:', statusErr);
+    }
+    
+    // Build set of valid statuses (both default enum values and custom from configs)
+    const allowedStatuses = new Set([
+      'pending', 'confirmed', 'preparing', 'ready', 'in_delivery', 'delivered', 'cancelled'
+    ]);
+    
+    // Add custom status keys from configs
+    if (statusConfigs && statusConfigs.length > 0) {
+      statusConfigs.forEach(config => {
+        if (config.status_key && config.is_active) {
+          allowedStatuses.add(config.status_key);
+        }
+      });
+    }
+    
+    console.log('[update-order-status] Status permitidos:', Array.from(allowedStatuses));
+    
+    const statusKey = rawStatus;
     
     if (!allowedStatuses.has(statusKey)) {
-      console.error('[update-order-status] Status inválido recebido:', { rawStatus, statusKey });
-      return new Response(JSON.stringify({ error: 'Status inválido.' }), {
+      console.error('[update-order-status] Status inválido recebido:', { 
+        rawStatus, 
+        statusKey, 
+        allowedStatuses: Array.from(allowedStatuses) 
+      });
+      return new Response(JSON.stringify({ 
+        error: 'Status inválido. Este status não está configurado para esta loja.' 
+      }), {
         status: 400,
         headers: corsHeaders,
       });
     }
+    
+    console.log('[update-order-status] Status validado com sucesso:', statusKey);
 
     // If not store owner, check employee permissions
     if (!isStoreOwner) {
