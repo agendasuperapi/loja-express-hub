@@ -1010,7 +1010,7 @@ export default function StoreDetails() {
                                 className="w-full h-full object-cover transition-transform duration-500 ease-out"
                               />
                               {/* Subtle gray gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 to-transparent pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/25 to-transparent pointer-events-none" />
                               {product.promotional_price && (
                                 <motion.div
                                   initial={{ scale: 0, rotate: -12 }}
@@ -1156,7 +1156,7 @@ export default function StoreDetails() {
                                 className="w-full h-full object-cover transition-transform duration-500 ease-out"
                               />
                               {/* Subtle gray gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/30 to-transparent pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/25 to-transparent pointer-events-none" />
                               {product.promotional_price && (
                                 <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10 shadow-xl animate-pulse">
                                   OFERTA
