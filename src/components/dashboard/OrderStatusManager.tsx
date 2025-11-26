@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit } from "lucide-react";
+import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit, ArrowUp, ArrowDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { arrayMove } from "@dnd-kit/sortable";
 
 interface OrderStatus {
   id: string;
@@ -43,6 +44,11 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const [editingStatus, setEditingStatus] = useState<OrderStatus | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'inactive' | 'all'>('active');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   // Verificar permissões
   const hasPermission = (action: string): boolean => {
@@ -169,6 +175,47 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   if (loading) {
     return <div>Carregando...</div>;
   }
+
+  const reorderStatuses = async (newOrder: OrderStatus[]) => {
+    const ordered = newOrder.map((status, index) => ({
+      ...status,
+      display_order: index,
+    }));
+    setStatuses(ordered);
+
+    try {
+      await Promise.all(
+        ordered.map((status, index) =>
+          supabase
+            .from('order_status_configs' as any)
+            .update({ display_order: index })
+            .eq('id', status.id)
+        )
+      );
+      toast({
+        title: 'Ordem atualizada',
+        description: 'A nova ordem das etapas foi salva.',
+      });
+    } catch (error: any) {
+      console.error('Erro ao salvar ordem dos status:', error);
+      toast({
+        title: 'Erro ao salvar ordem',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const moveStatus = async (id: string, direction: 'up' | 'down') => {
+    const index = statuses.findIndex((s) => s.id === id);
+    if (index === -1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= statuses.length) return;
+
+    const newOrder = arrayMove(statuses, index, targetIndex);
+    await reorderStatuses(newOrder);
+  };
 
   return (
     <Card>
