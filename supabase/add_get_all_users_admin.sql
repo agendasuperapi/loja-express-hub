@@ -22,9 +22,9 @@ BEGIN
     RAISE EXCEPTION 'Unauthorized: Admin access required';
   END IF;
 
-  -- Return all users with their information
+  -- Return all users with their information (avoiding duplicates)
   RETURN QUERY
-  SELECT 
+  SELECT DISTINCT ON (u.id)
     u.id,
     u.email::text,
     u.created_at,
@@ -38,13 +38,13 @@ BEGIN
   FROM auth.users u
   LEFT JOIN public.user_roles ur ON ur.user_id = u.id
   LEFT JOIN public.profiles p ON p.id = u.id
-  LEFT JOIN public.stores s ON s.owner_id = u.id
+  LEFT JOIN public.stores s ON s.owner_id = u.id AND s.status = 'active'
   LEFT JOIN (
     SELECT customer_id, COUNT(*) as order_count
     FROM public.orders
     WHERE customer_id IS NOT NULL
     GROUP BY customer_id
   ) o ON o.customer_id = u.id
-  ORDER BY u.created_at DESC;
+  ORDER BY u.id, u.created_at DESC;
 END;
 $function$;
