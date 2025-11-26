@@ -65,8 +65,8 @@ function SortableSizeItem({ size, onEdit, onDelete, onToggleAvailability }: Sort
       
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <h4 className="font-semibold">{size.name}</h4>
-          <span className="text-lg font-bold text-primary">
+          <h4 className="text-sm font-semibold">{size.name}</h4>
+          <span className="text-base font-bold text-primary">
             R$ {size.price.toFixed(2)}
           </span>
         </div>
