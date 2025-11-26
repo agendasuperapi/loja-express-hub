@@ -393,7 +393,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAddon, setEditingAddon] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [addonToDelete, setAddonToDelete] = useState<string | null>(null);
+  const [addonToDelete, setAddonToDelete] = useState<{
+    id: string;
+    name: string;
+    categoryId: string | null;
+    linkedProducts: Array<{ id: string; name: string }>;
+  } | null>(null);
   
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
@@ -479,14 +484,62 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteClick = (addonId: string) => {
-    setAddonToDelete(addonId);
-    setDeleteDialogOpen(true);
+  const handleDeleteClick = async (addonId: string, addonName: string, categoryId: string | null) => {
+    // Buscar produtos vinculados a este adicional
+    try {
+      const { data: linkedAddons, error } = await supabase
+        .from('product_addons')
+        .select(`
+          id,
+          product_id,
+          category_id,
+          products!inner(
+            id,
+            name,
+            store_id
+          )
+        `)
+        .eq('name', addonName)
+        .eq('products.store_id', storeId);
+
+      if (error) throw error;
+
+      // Filtrar por categoria se houver
+      const filtered = categoryId 
+        ? linkedAddons?.filter(a => a.category_id === categoryId)
+        : linkedAddons;
+
+      // Remover duplicatas e extrair nomes dos produtos
+      const uniqueProducts = new Map();
+      filtered?.forEach(addon => {
+        const product = addon.products;
+        if (product && !uniqueProducts.has(product.id)) {
+          uniqueProducts.set(product.id, { id: product.id, name: product.name });
+        }
+      });
+
+      const linkedProducts = Array.from(uniqueProducts.values());
+
+      setAddonToDelete({ 
+        id: addonId, 
+        name: addonName,
+        categoryId,
+        linkedProducts 
+      });
+      setDeleteDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching linked products:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os produtos vinculados.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteConfirm = async () => {
     if (addonToDelete) {
-      await deleteAddon(addonToDelete);
+      await deleteAddon(addonToDelete.id);
       setAddonToDelete(null);
       setDeleteDialogOpen(false);
     }
@@ -616,7 +669,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteClick(addon.id)}
+                          onClick={() => handleDeleteClick(addon.id, addon.name, addon.category_id)}
                           title="Excluir"
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
@@ -632,17 +685,46 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
       </CardContent>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este adicional? Esta ação não pode ser desfeita.
+            <AlertDialogTitle>Excluir adicional</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Tem certeza que deseja excluir o adicional <strong>{addonToDelete?.name}</strong>?
+              </p>
+              {addonToDelete?.linkedProducts && addonToDelete.linkedProducts.length > 0 && (
+                <div className="mt-3 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-sm font-medium text-destructive mb-2">
+                    ⚠️ Este adicional será removido de {addonToDelete.linkedProducts.length} produto(s):
+                  </p>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          {addonToDelete?.linkedProducts && addonToDelete.linkedProducts.length > 0 && (
+            <div className="flex-1 overflow-y-auto py-4 space-y-2 max-h-[300px]">
+              {addonToDelete.linkedProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30"
+                >
+                  <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{product.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
-              Excluir
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir de {addonToDelete?.linkedProducts?.length || 0} produto(s)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
