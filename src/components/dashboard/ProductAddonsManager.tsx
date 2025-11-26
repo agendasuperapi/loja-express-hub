@@ -104,7 +104,10 @@ const SortableAddon = ({ addon, onEdit, onDelete, onToggleAvailability, isDeleti
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium">{addon.name}</span>
-            <Badge variant={addon.is_available ? "default" : "secondary"} className="text-xs">
+            <Badge 
+              variant={addon.is_available ? "default" : "secondary"} 
+              className={`text-xs ${addon.is_available ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+            >
               {addon.is_available ? 'Ativo' : 'Inativo'}
             </Badge>
           </div>
