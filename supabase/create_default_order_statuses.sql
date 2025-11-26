@@ -29,7 +29,7 @@ BEGIN
       '#3B82F6',
       1,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido {{order_number}} foi confirmado com sucesso!\nJá estamos preparando tudo com carinho.\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido {{order_number}} foi confirmado com sucesso!\nJá estamos preparando tudo com carinho.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
     ),
     
     -- Status 3: Preparando
@@ -135,7 +135,7 @@ BEGIN
           '#3B82F6',
           1,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido {{order_number}} foi confirmado com sucesso!\nJá estamos preparando tudo com carinho.\n\n🛍️ *VISITE NOSSA VITRINE DE OFERTAS*\n{{store_url}}'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido {{order_number}} foi confirmado com sucesso!\nJá estamos preparando tudo com carinho.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}'
         ),
         (
           store_record.id,

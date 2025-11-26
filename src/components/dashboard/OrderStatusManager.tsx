@@ -63,7 +63,7 @@ Olá {{customer_name}}
 Seu pedido {{order_number}} foi confirmado com sucesso!
 Já estamos preparando tudo com carinho.
 
-🛍️ *VISITE NOSSA VITRINE DE OFERTAS*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   preparando: `*PEDIDO {{store_name}}.*
@@ -145,7 +145,7 @@ Olá {{customer_name}}
 Seu pedido {{order_number}} foi confirmado com sucesso!
 Já estamos preparando tudo com carinho.
 
-🛍️ *VISITE NOSSA VITRINE DE OFERTAS*
+🛍️ *VISITE NOSSO SITE:*
 {{store_url}}`,
   
   preparing: `*PEDIDO {{store_name}}.*
