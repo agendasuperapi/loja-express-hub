@@ -1767,7 +1767,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   };
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/20">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-lg font-medium text-foreground">Carregando dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!myStore) {
