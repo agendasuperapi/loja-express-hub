@@ -93,7 +93,7 @@ export const ReportsPage = ({ storeId }: ReportsPageProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [orderSearchTerm, setOrderSearchTerm] = useState("");
-  const [productStatusFilter, setProductStatusFilter] = useState<string>("all");
+  const [productStatusFilter, setProductStatusFilter] = useState<string>("active");
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState("all");
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({

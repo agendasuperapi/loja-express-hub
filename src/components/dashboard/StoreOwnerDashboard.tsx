@@ -337,7 +337,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [orderSortBy, setOrderSortBy] = useState<'newest' | 'oldest'>('newest');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [productStatusFilter, setProductStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [productViewMode, setProductViewMode] = useState<'grid' | 'table'>('grid');
   const [localProducts, setLocalProducts] = useState<any[]>([]);
@@ -3711,11 +3711,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <SelectItem value="inactive">Apenas Inativos</SelectItem>
                       </SelectContent>
                     </Select>
-                    {productStatusFilter !== 'all' && (
+                    {productStatusFilter !== 'active' && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setProductStatusFilter('all')}
+                        onClick={() => setProductStatusFilter('active')}
                       >
                         <X className="w-4 h-4 mr-1" />
                         Limpar
