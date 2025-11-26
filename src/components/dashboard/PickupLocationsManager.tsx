@@ -14,6 +14,7 @@ interface PickupLocation {
   name: string;
   address: string;
   is_active: boolean;
+  isStoreAddress?: boolean;
 }
 
 interface PickupLocationsManagerProps {
@@ -26,6 +27,20 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLocation, setEditLocation] = useState({ name: "", address: "" });
+
+  const { data: storeData } = useQuery({
+    queryKey: ["store-address", storeId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("stores")
+        .select("store_street, store_street_number, store_neighborhood, store_city, store_complement")
+        .eq("id", storeId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: locations = [], isLoading } = useQuery({
     queryKey: ["pickup-locations", storeId],
@@ -40,6 +55,24 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
       return (data || []) as PickupLocation[];
     },
   });
+
+  // Formatar endereço da loja se existir
+  const storeAddress = storeData && (storeData.store_street || storeData.store_city) ? {
+    id: "store-address",
+    name: "Endereço da Loja",
+    address: [
+      storeData.store_street,
+      storeData.store_street_number,
+      storeData.store_neighborhood,
+      storeData.store_city,
+      storeData.store_complement
+    ].filter(Boolean).join(", "),
+    is_active: true,
+    isStoreAddress: true
+  } : null;
+
+  // Combinar endereço da loja com outros locais
+  const allLocations = storeAddress ? [storeAddress, ...locations] : locations;
 
   const addLocationMutation = useMutation({
     mutationFn: async () => {
@@ -163,7 +196,7 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 pt-3">
-        {locations.map((location) => (
+        {allLocations.map((location) => (
           editingId === location.id ? (
             <div key={location.id} className="space-y-3 p-3 border rounded-lg bg-muted/50">
               <div className="space-y-2">
@@ -203,28 +236,37 @@ export const PickupLocationsManager = ({ storeId }: PickupLocationsManagerProps)
                 <div className="text-xs text-muted-foreground">{location.address}</div>
               </div>
               <div className="flex items-center gap-2">
-                <Switch
-                  checked={location.is_active}
-                  onCheckedChange={(checked) =>
-                    toggleLocationMutation.mutate({ id: location.id, is_active: checked })
-                  }
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => startEditing(location)}
-                >
-                  <Pencil className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => deleteLocationMutation.mutate(location.id)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
+                {!location.isStoreAddress && (
+                  <>
+                    <Switch
+                      checked={location.is_active}
+                      onCheckedChange={(checked) =>
+                        toggleLocationMutation.mutate({ id: location.id, is_active: checked })
+                      }
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => startEditing(location)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => deleteLocationMutation.mutate(location.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </>
+                )}
+                {location.isStoreAddress && (
+                  <span className="text-xs text-muted-foreground">
+                    (Padrão da loja)
+                  </span>
+                )}
               </div>
             </div>
           )
