@@ -1160,7 +1160,7 @@ export default function StoreDetails() {
                               {/* Vignette effect */}
                               <div className="absolute inset-0 shadow-[inset_0_0_60px_20px_rgba(0,0,0,0.4)] pointer-events-none" />
                               {/* Enhanced hover overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-background/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                               {product.promotional_price && (
                                 <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10 shadow-xl animate-pulse">
                                   OFERTA
