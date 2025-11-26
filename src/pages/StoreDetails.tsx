@@ -1157,11 +1157,6 @@ export default function StoreDetails() {
                               />
                               {/* Subtle gray-blue gradient overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/15 via-blue-900/10 to-transparent pointer-events-none" />
-                              {product.promotional_price && (
-                                <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10 shadow-xl animate-pulse">
-                                  OFERTA
-                                </div>
-                              )}
                               {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0, rotate: -180 }}
