@@ -402,6 +402,16 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   } | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   
+  const [toggleDialogOpen, setToggleDialogOpen] = useState(false);
+  const [addonToToggle, setAddonToToggle] = useState<{
+    id: string;
+    name: string;
+    categoryId: string | null;
+    currentAvailability: boolean;
+    linkedProducts: Array<{ id: string; name: string }>;
+  } | null>(null);
+  const [selectedToggleProductIds, setSelectedToggleProductIds] = useState<Set<string>>(new Set());
+  
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
 
@@ -625,13 +635,144 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   };
 
   const handleToggleAvailability = async (addon: any) => {
-    await updateAddon({
-      id: addon.id,
-      name: addon.name,
-      price: addon.price,
-      category_id: addon.category_id || null,
-      is_available: !addon.is_available,
+    // Buscar produtos vinculados a este adicional
+    try {
+      const { data: linkedAddons, error } = await supabase
+        .from('product_addons')
+        .select(`
+          id,
+          product_id,
+          category_id,
+          products!inner(
+            id,
+            name,
+            store_id
+          )
+        `)
+        .eq('name', addon.name)
+        .eq('products.store_id', storeId);
+
+      if (error) throw error;
+
+      // Filtrar por categoria se houver
+      const filtered = addon.category_id 
+        ? linkedAddons?.filter(a => a.category_id === addon.category_id)
+        : linkedAddons;
+
+      // Remover duplicatas e extrair nomes dos produtos
+      const uniqueProducts = new Map();
+      filtered?.forEach(addonItem => {
+        const product = addonItem.products;
+        if (product && !uniqueProducts.has(product.id)) {
+          uniqueProducts.set(product.id, { id: product.id, name: product.name });
+        }
+      });
+
+      const linkedProducts = Array.from(uniqueProducts.values());
+
+      setAddonToToggle({ 
+        id: addon.id, 
+        name: addon.name,
+        categoryId: addon.category_id,
+        currentAvailability: addon.is_available,
+        linkedProducts 
+      });
+      
+      // Inicializar todos os produtos como selecionados
+      setSelectedToggleProductIds(new Set(linkedProducts.map(p => p.id)));
+      setToggleDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching linked products:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os produtos vinculados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleConfirm = async () => {
+    if (!addonToToggle || selectedToggleProductIds.size === 0) {
+      toast({
+        title: "Nenhum produto selecionado",
+        description: "Selecione ao menos um produto para alterar a disponibilidade.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const newAvailability = !addonToToggle.currentAvailability;
+      
+      // Buscar todos os addons vinculados aos produtos selecionados com o mesmo nome e categoria
+      const { data: addonsToUpdate, error: fetchError } = await supabase
+        .from('product_addons')
+        .select('id, product_id, category_id')
+        .eq('name', addonToToggle.name)
+        .in('product_id', Array.from(selectedToggleProductIds));
+
+      if (fetchError) throw fetchError;
+
+      // Filtrar por categoria se houver
+      const filteredAddons = addonToToggle.categoryId
+        ? addonsToUpdate?.filter(a => a.category_id === addonToToggle.categoryId)
+        : addonsToUpdate;
+
+      if (!filteredAddons || filteredAddons.length === 0) {
+        toast({
+          title: "Nenhum adicional encontrado",
+          description: "Não foram encontrados adicionais para atualizar.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Atualizar os adicionais encontrados
+      const { error: updateError } = await supabase
+        .from('product_addons')
+        .update({ is_available: newAvailability })
+        .in('id', filteredAddons.map(a => a.id));
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: newAvailability ? "Adicional ativado" : "Adicional desativado",
+        description: `O adicional foi ${newAvailability ? 'ativado' : 'desativado'} em ${selectedToggleProductIds.size} produto(s).`,
+      });
+
+      setAddonToToggle(null);
+      setSelectedToggleProductIds(new Set());
+      setToggleDialogOpen(false);
+    } catch (error) {
+      console.error('Error toggling addon availability:', error);
+      toast({
+        title: "Erro ao alterar disponibilidade",
+        description: "Não foi possível alterar a disponibilidade do adicional.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const toggleToggleProductSelection = (productId: string) => {
+    setSelectedToggleProductIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
     });
+  };
+
+  const toggleAllToggleProducts = () => {
+    if (!addonToToggle?.linkedProducts) return;
+    
+    if (selectedToggleProductIds.size === addonToToggle.linkedProducts.length) {
+      setSelectedToggleProductIds(new Set());
+    } else {
+      setSelectedToggleProductIds(new Set(addonToToggle.linkedProducts.map(p => p.id)));
+    }
   };
 
   if (isLoading) {
@@ -823,6 +964,73 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             >
               Remover de {selectedProductIds.size} produto(s)
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={toggleDialogOpen} onOpenChange={setToggleDialogOpen}>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {addonToToggle?.currentAvailability ? 'Desativar' : 'Ativar'} adicional
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Selecione em quais produtos deseja {addonToToggle?.currentAvailability ? 'desativar' : 'ativar'} o adicional <strong>{addonToToggle?.name}</strong>:
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          {addonToToggle?.linkedProducts && addonToToggle.linkedProducts.length > 0 && (
+            <>
+              <div className="flex items-center gap-2 px-1 pb-2 border-b">
+                <Checkbox
+                  id="select-all-toggle"
+                  checked={selectedToggleProductIds.size === addonToToggle.linkedProducts.length && addonToToggle.linkedProducts.length > 0}
+                  onCheckedChange={toggleAllToggleProducts}
+                />
+                <Label htmlFor="select-all-toggle" className="text-sm font-medium cursor-pointer">
+                  Selecionar todos ({addonToToggle.linkedProducts.length} produtos)
+                </Label>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto py-2 space-y-2 max-h-[300px]">
+                {addonToToggle.linkedProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => toggleToggleProductSelection(product.id)}
+                  >
+                    <Checkbox
+                      id={`toggle-product-${product.id}`}
+                      checked={selectedToggleProductIds.has(product.id)}
+                      onCheckedChange={() => toggleToggleProductSelection(product.id)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <Label 
+                      htmlFor={`toggle-product-${product.id}`}
+                      className="flex-1 font-medium text-sm cursor-pointer"
+                    >
+                      {product.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedToggleProductIds(new Set())}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleToggleConfirm}
+              disabled={selectedToggleProductIds.size === 0}
+              className="disabled:opacity-50"
+            >
+              {addonToToggle?.currentAvailability ? 'Desativar' : 'Ativar'} em {selectedToggleProductIds.size} produto(s)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
