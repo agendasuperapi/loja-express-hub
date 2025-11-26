@@ -333,7 +333,13 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   };
 
   const handleRestoreDefaultMessage = () => {
-    if (!editingStatus) return;
+    if (!editingStatus) {
+      console.log('Nenhum status sendo editado');
+      return;
+    }
+    
+    console.log('Status key:', editingStatus.status_key);
+    console.log('Chaves disponíveis:', Object.keys(defaultWhatsAppMessages));
     
     const defaultMessage = defaultWhatsAppMessages[editingStatus.status_key];
     
@@ -347,9 +353,10 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
         description: "A mensagem padrão foi restaurada com sucesso."
       });
     } else {
+      console.log('Mensagem padrão não encontrada para:', editingStatus.status_key);
       toast({
         title: "Mensagem padrão não encontrada",
-        description: "Não existe mensagem padrão para este status.",
+        description: `Status key "${editingStatus.status_key}" não possui mensagem padrão definida.`,
         variant: "destructive"
       });
     }
