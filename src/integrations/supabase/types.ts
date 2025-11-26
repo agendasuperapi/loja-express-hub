@@ -1587,6 +1587,21 @@ export type Database = {
           phone: string
         }[]
       }
+      get_all_users_admin: {
+        Args: never
+        Returns: {
+          banned_until: string
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          full_name: string
+          id: string
+          orders_count: number
+          phone: string
+          role: string
+          store_name: string
+        }[]
+      }
       get_app_setting: { Args: { setting_key: string }; Returns: string }
       get_customer_users: {
         Args: never
