@@ -20,7 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { addonTemplates, BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { NewAddonDialog } from "./NewAddonDialog";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface ProductAddonsManagementProps {
   storeId: string;
@@ -389,6 +389,7 @@ export const CategoriesTab = ({ storeId }: { storeId: string }) => {
 
 // Aba de Adicionais Globais
 export const AddonsTab = ({ storeId }: { storeId: string }) => {
+  const queryClient = useQueryClient();
   const { categories } = useAddonCategories(storeId);
   const { addons, isLoading, createAddon, updateAddon, deleteAddon, isCreating, isUpdating } = useStoreAddons(storeId);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -745,6 +746,10 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
         .in('id', filteredAddons.map(a => a.id));
 
       if (updateError) throw updateError;
+
+      // Invalidate all related queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-addons-flavors', storeId] });
 
       toast({
         title: newAvailability ? "Adicional ativado" : "Adicional desativado",
