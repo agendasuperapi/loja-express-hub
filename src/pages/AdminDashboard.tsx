@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -26,7 +27,8 @@ import {
   Trash2,
   UserX,
   UserCheck,
-  AlertCircle
+  AlertCircle,
+  Search
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -80,6 +82,8 @@ export default function AdminDashboard() {
   const [userFilter, setUserFilter] = useState<string>("all");
   const [confirmingEmail, setConfirmingEmail] = useState<string | null>(null);
   const [processingUser, setProcessingUser] = useState<string | null>(null);
+  const [storeSearch, setStoreSearch] = useState<string>("");
+  const [userSearch, setUserSearch] = useState<string>("");
 
   useEffect(() => {
     fetchDashboardData();
@@ -614,6 +618,15 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-4 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Buscar por nome, slug, email ou categoria..."
+                    value={storeSearch}
+                    onChange={(e) => setStoreSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Carregando...
@@ -624,7 +637,18 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {stores.map((store) => (
+                    {stores
+                      .filter(store => {
+                        const searchLower = storeSearch.toLowerCase();
+                        return (
+                          store.name.toLowerCase().includes(searchLower) ||
+                          store.slug.toLowerCase().includes(searchLower) ||
+                          store.category.toLowerCase().includes(searchLower) ||
+                          (store.email && store.email.toLowerCase().includes(searchLower)) ||
+                          (store.profiles?.full_name && store.profiles.full_name.toLowerCase().includes(searchLower))
+                        );
+                      })
+                      .map((store) => (
                       <Card key={store.id}>
                         <CardContent className="pt-6">
                           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -734,6 +758,15 @@ export default function AdminDashboard() {
                 <CardTitle>Gerenciar Usuários</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-4 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Buscar por nome, email, telefone ou loja..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 <div className="mb-4 flex gap-2 flex-wrap">
                   <Button
                     variant={userFilter === "all" ? "default" : "outline"}
@@ -778,6 +811,15 @@ export default function AdminDashboard() {
                         if (userFilter === "all") return true;
                         if (userFilter === "no_role") return !user.role;
                         return user.role === userFilter;
+                      })
+                      .filter(user => {
+                        const searchLower = userSearch.toLowerCase();
+                        return (
+                          (user.full_name && user.full_name.toLowerCase().includes(searchLower)) ||
+                          user.email.toLowerCase().includes(searchLower) ||
+                          (user.phone && user.phone.toLowerCase().includes(searchLower)) ||
+                          (user.store_name && user.store_name.toLowerCase().includes(searchLower))
+                        );
                       })
                       .map((user) => (
                         <Card key={user.id}>
@@ -904,11 +946,21 @@ export default function AdminDashboard() {
                           </CardContent>
                         </Card>
                       ))}
-                    {allUsers.filter(user => {
-                      if (userFilter === "all") return true;
-                      if (userFilter === "no_role") return !user.role;
-                      return user.role === userFilter;
-                    }).length === 0 && (
+                    {allUsers
+                      .filter(user => {
+                        if (userFilter === "all") return true;
+                        if (userFilter === "no_role") return !user.role;
+                        return user.role === userFilter;
+                      })
+                      .filter(user => {
+                        const searchLower = userSearch.toLowerCase();
+                        return (
+                          (user.full_name && user.full_name.toLowerCase().includes(searchLower)) ||
+                          user.email.toLowerCase().includes(searchLower) ||
+                          (user.phone && user.phone.toLowerCase().includes(searchLower)) ||
+                          (user.store_name && user.store_name.toLowerCase().includes(searchLower))
+                        );
+                      }).length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         Nenhum usuário encontrado nesta categoria
                       </div>
