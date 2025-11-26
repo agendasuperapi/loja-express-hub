@@ -1009,8 +1009,6 @@ export default function StoreDetails() {
                                 alt={product.name}
                                 className="w-full h-full object-cover animate-shine transition-transform duration-500 ease-out"
                               />
-                              {/* Vignette effect */}
-                              <div className="absolute inset-0 shadow-[inset_0_0_60px_20px_rgba(0,0,0,0.4)] pointer-events-none" />
                               {/* Enhanced hover overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                               {product.promotional_price && (
@@ -1157,8 +1155,6 @@ export default function StoreDetails() {
                                 alt={product.name}
                                 className="w-full h-full object-cover animate-shine transition-transform duration-500 ease-out"
                               />
-                              {/* Vignette effect */}
-                              <div className="absolute inset-0 shadow-[inset_0_0_60px_20px_rgba(0,0,0,0.4)] pointer-events-none" />
                               {/* Enhanced hover overlay */}
                               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                               {product.promotional_price && (
