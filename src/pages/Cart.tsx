@@ -154,6 +154,18 @@ export default function Cart() {
     }
   }, [user]);
 
+  // Proteção: Se currentStep é 2 mas usuário não está logado, volta para step 1
+  useEffect(() => {
+    if (currentStep === 2 && !user) {
+      setCurrentStep(1);
+      toast({
+        title: "Login necessário",
+        description: "Por favor, faça login ou crie uma conta para continuar.",
+        variant: "destructive",
+      });
+    }
+  }, [currentStep, user]);
+
 
   // Load last visited store from localStorage
   useEffect(() => {
@@ -449,6 +461,16 @@ export default function Cart() {
 
 
   const handleNextStep = () => {
+    // Verificar se está logado ANTES de qualquer validação
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Por favor, faça login ou crie uma conta para continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!customerName || !customerEmail || !customerPhone) {
       toast({
         title: "Campos obrigatórios",
@@ -1060,8 +1082,8 @@ export default function Cart() {
                   </motion.div>
                 )}
 
-                {/* Step 2: Delivery & Payment */}
-                {currentStep === 2 && (
+                {/* Step 2: Delivery & Payment - APENAS se logado */}
+                {currentStep === 2 && user && (
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
