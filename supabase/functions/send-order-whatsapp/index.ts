@@ -210,24 +210,33 @@ serve(async (req) => {
     
     console.log('✅ Instância WhatsApp encontrada:', storeInstance.evolution_instance_id);
 
-    // Normaliza o status do banco (enum) para a chave usada nas configurações da loja
-    const normalizeStatusForConfig = (dbStatus: string): string => {
-      // Mapeamentos padrão entre enum do banco e chaves personalizadas mais comuns
-      const statusMap: Record<string, string> = {
-        // Enum -> chaves em português usadas nas configs
-        'pending': 'pendente',
-        'confirmed': 'confirmado',
-        'preparing': 'separação',
-        'ready': 'pronto',
-        'in_delivery': 'a_caminho',
-        'delivered': 'entregue',
-        'cancelled': 'cancelado',
-        'out_for_delivery': 'a_caminho', // compatibilidade
-      };
-      return statusMap[dbStatus] || dbStatus;
+    // Buscar todos os status configurados para a loja primeiro
+    const { data: allStatuses } = await supabaseClient
+      .from('order_status_configs')
+      .select('status_key, whatsapp_message, is_active')
+      .eq('store_id', order.store_id)
+      .eq('is_active', true);
+
+    console.log('✅ Status configurados na loja:', allStatuses?.map(s => s.status_key).join(', '));
+
+    // Mapeamento de enums para possíveis status_key
+    const enumToKeyMap: Record<string, string[]> = {
+      'pending': ['pendente', 'pending', 'aguardando', 'novo'],
+      'confirmed': ['confirmado', 'confirmed', 'aceito'],
+      'preparing': ['preparando', 'preparing', 'separação', 'separacao', 'em_preparacao'],
+      'ready': ['pronto', 'ready', 'finalizado'],
+      'in_delivery': ['a_caminho', 'out_for_delivery', 'em_entrega', 'saiu_para_entrega'],
+      'delivered': ['entregue', 'delivered', 'concluido', 'concluído'],
+      'cancelled': ['cancelado', 'cancelled', 'cancelada']
     };
 
-    const statusKeyToSearch = normalizeStatusForConfig(record.status);
+    // Encontrar o status_key correto baseado no enum
+    const possibleKeys = enumToKeyMap[record.status] || [record.status];
+    const matchingStatus = allStatuses?.find(s => 
+      possibleKeys.includes(s.status_key.toLowerCase())
+    );
+
+    const statusKeyToSearch = matchingStatus?.status_key || record.status;
     console.log(`Buscando configuração para status: ${record.status} -> ${statusKeyToSearch}`);
 
     // Get status configuration and message
