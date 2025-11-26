@@ -2155,11 +2155,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <SelectContent>
                     <SelectItem value="all">Todos os Status</SelectItem>
                     {customStatuses.length > 0 ? (
-                      customStatuses.filter(status => status.is_active).map((status) => (
-                        <SelectItem key={status.id} value={status.status_key}>
-                          {status.status_label}
-                        </SelectItem>
-                      ))
+                      customStatuses
+                        .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '')
+                        .map((status) => (
+                          <SelectItem key={status.id} value={status.status_key}>
+                            {status.status_label}
+                          </SelectItem>
+                        ))
                     ) : (
                       <>
                         <SelectItem value="pending">Pendente</SelectItem>
@@ -3167,7 +3169,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <SelectContent>
                               {customStatuses.length > 0 ? (
                                 customStatuses
-                                  .filter(status => status.is_active && canChangeTo(status.status_key))
+                                  .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '' && canChangeTo(status.status_key))
                                   .map((status) => (
                                     <SelectItem key={status.status_key} value={status.status_key}>
                                       {status.status_label}
@@ -3443,11 +3445,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                   <SelectValue placeholder="Selecione uma categoria" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {categories.filter(cat => cat.is_active).map((cat) => (
-                                    <SelectItem key={cat.id} value={cat.name}>
-                                      {cat.name}
-                                    </SelectItem>
-                                  ))}
+                                  {categories
+                                    .filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
+                                    .map((cat) => (
+                                      <SelectItem key={cat.id} value={cat.name}>
+                                        {cat.name}
+                                      </SelectItem>
+                                    ))}
                                 </SelectContent>
                               </Select>
                               <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
@@ -3686,11 +3690,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todas as Categorias</SelectItem>
-                        {categories.filter(cat => cat.is_active).map((cat) => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
+                        {categories
+                          .filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
+                          .map((cat) => (
+                            <SelectItem key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     {categoryFilter !== 'all' && (
@@ -6065,7 +6071,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </SelectTrigger>
                 <SelectContent>
                   {categories
-                    ?.filter(cat => cat.is_active)
+                    ?.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
                     .map(category => (
                       <SelectItem key={category.id} value={category.name}>
                         {category.name}
