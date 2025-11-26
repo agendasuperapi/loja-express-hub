@@ -20,12 +20,6 @@ export const useOrderStatuses = (storeId?: string) => {
   const [statuses, setStatuses] = useState<OrderStatusConfig[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (storeId) {
-      fetchStatuses();
-    }
-  }, [storeId]);
-
   const fetchStatuses = async () => {
     if (!storeId) return;
 
@@ -46,6 +40,49 @@ export const useOrderStatuses = (storeId?: string) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (storeId) {
+      fetchStatuses();
+    }
+  }, [storeId]);
+
+  // Refetch quando houver mudanças no banco (polling leve)
+  useEffect(() => {
+    if (!storeId) return;
+
+    const intervalId = setInterval(() => {
+      fetchStatuses();
+    }, 10000); // Atualiza a cada 10 segundos
+
+    return () => clearInterval(intervalId);
+  }, [storeId]);
+
+  // Subscription em tempo real para mudanças
+  useEffect(() => {
+    if (!storeId) return;
+
+    const channel = supabase
+      .channel(`order_status_configs_${storeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_status_configs',
+          filter: `store_id=eq.${storeId}`,
+        },
+        () => {
+          console.log('[useOrderStatuses] Mudança detectada, atualizando...');
+          fetchStatuses();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [storeId]);
 
   return {
     statuses,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from '@tanstack/react-query';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -111,6 +112,7 @@ interface OrderStatusManagerProps {
 export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const { toast } = useToast();
   const employeeAccess = useEmployeeAccess();
+  const queryClient = useQueryClient();
   const [statuses, setStatuses] = useState<OrderStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingStatus, setEditingStatus] = useState<OrderStatus | null>(null);
@@ -280,6 +282,10 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
             .eq('id', status.id)
         )
       );
+      
+      // Força atualização em outras partes da UI
+      queryClient.invalidateQueries({ queryKey: ['order-statuses'] });
+      
       toast({
         title: 'Ordem atualizada',
         description: 'A nova ordem das etapas foi salva.',
