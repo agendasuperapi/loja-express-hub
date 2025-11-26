@@ -406,6 +406,22 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     is_available: boolean;
     allow_quantity: boolean;
   }) => {
+    // Verificar se já existe um adicional com o mesmo nome
+    const normalizedName = data.name.trim().toLowerCase();
+    const existingAddon = addons?.find(addon => 
+      addon.name.trim().toLowerCase() === normalizedName && 
+      (!editingAddon || addon.id !== editingAddon.id)
+    );
+
+    if (existingAddon) {
+      toast({
+        title: "Adicional já existe",
+        description: `Já existe um adicional com o nome "${data.name}". Por favor, escolha outro nome.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingAddon) {
       updateAddon({ id: editingAddon.id, ...data });
     } else {
