@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
@@ -32,6 +35,75 @@ interface OrderStatus {
   is_active: boolean;
 }
 
+interface SortableStatusItemProps {
+  status: OrderStatus;
+  index: number;
+  canEdit: boolean;
+  onEdit: (status: OrderStatus) => void;
+}
+
+const SortableStatusItem = ({ status, index, canEdit, onEdit }: SortableStatusItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: status.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-4 border rounded-lg hover:bg-accent/5 transition-colors"
+    >
+      {canEdit && (
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+      )}
+      
+      <Badge
+        style={{ backgroundColor: status.status_color }}
+        className="text-white min-w-[90px] justify-center"
+      >
+        {status.status_label}
+      </Badge>
+
+      <div className="flex-1 text-sm text-muted-foreground">
+        {status.whatsapp_message ? (
+          <span className="line-clamp-1">{status.whatsapp_message}</span>
+        ) : (
+          <span className="italic">Sem mensagem configurada</span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-1">
+        {!status.is_active && (
+          <Badge variant="outline" className="text-xs ml-1">Inativa</Badge>
+        )}
+
+        {canEdit && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(status)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};
+
 interface OrderStatusManagerProps {
   storeId: string;
 }
@@ -44,6 +116,13 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
   const [editingStatus, setEditingStatus] = useState<OrderStatus | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'active' | 'inactive' | 'all'>('active');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
 
   // Verificar permissões
@@ -172,11 +251,24 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
     return <div>Carregando...</div>;
   }
 
-  const reorderStatuses = async (newOrder: OrderStatus[]) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = statuses.findIndex((s) => s.id === active.id);
+    const newIndex = statuses.findIndex((s) => s.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newOrder = arrayMove(statuses, oldIndex, newIndex);
     const ordered = newOrder.map((status, index) => ({
       ...status,
       display_order: index,
     }));
+    
     setStatuses(ordered);
 
     try {
@@ -200,17 +292,6 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
         variant: 'destructive',
       });
     }
-  };
-
-  const moveStatus = async (id: string, direction: 'up' | 'down') => {
-    const index = statuses.findIndex((s) => s.id === id);
-    if (index === -1) return;
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= statuses.length) return;
-
-    const newOrder = arrayMove(statuses, index, targetIndex);
-    await reorderStatuses(newOrder);
   };
 
   const filteredStatuses = statuses.filter((status) => {
@@ -395,79 +476,39 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
           </Button>
         </div>
 
-        <div className="space-y-2">
-          {filteredStatuses.map((status, index) => (
-            <div
-              key={status.id}
-              className="flex items-center gap-3 p-4 border rounded-lg hover:bg-accent/5 transition-colors"
-            >
-              <Badge
-                style={{ backgroundColor: status.status_color }}
-                className="text-white min-w-[90px] justify-center"
-              >
-                {status.status_label}
-              </Badge>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredStatuses.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {filteredStatuses.map((status, index) => (
+                <SortableStatusItem
+                  key={status.id}
+                  status={status}
+                  index={index}
+                  canEdit={canEdit}
+                  onEdit={(status) => {
+                    setEditingStatus(status);
+                    setIsDialogOpen(true);
+                  }}
+                />
+              ))}
 
-              <div className="flex-1 text-sm text-muted-foreground">
-                {status.whatsapp_message ? (
-                  <span className="line-clamp-1">{status.whatsapp_message}</span>
-                ) : (
-                  <span className="italic">Sem mensagem configurada</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1">
-                {canEdit && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => moveStatus(status.id, 'up')}
-                      disabled={index === 0}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => moveStatus(status.id, 'down')}
-                      disabled={index === filteredStatuses.length - 1}
-                    >
-                      <ArrowDown className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
-
-                {!status.is_active && (
-                  <Badge variant="outline" className="text-xs ml-1">Inativa</Badge>
-                )}
-
-                {canEdit && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setEditingStatus(status);
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              {filteredStatuses.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {statuses.length === 0
+                    ? 'Nenhuma etapa configurada. Clique em "Adicionar Etapa" para começar.'
+                    : `Nenhuma etapa ${activeFilter === 'active' ? 'ativa' : 'inativa'} encontrada.`}
+                </div>
+              )}
             </div>
-          ))}
-
-          {filteredStatuses.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              {statuses.length === 0
-                ? 'Nenhuma etapa configurada. Clique em "Adicionar Etapa" para começar.'
-                : `Nenhuma etapa ${activeFilter === 'active' ? 'ativa' : 'inativa'} encontrada.`}
-            </div>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       </CardContent>
     </Card>
   );
