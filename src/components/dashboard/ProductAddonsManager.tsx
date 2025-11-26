@@ -249,10 +249,15 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
   // Auto-selecionar todos os produtos quando o dialog de exclusão abrir
   useEffect(() => {
-    if (confirmDelete?.linkedProducts) {
-      setSelectedProductsToDelete(confirmDelete.linkedProducts.map(p => p.product_id));
+    if (confirmDelete?.linkedProducts && confirmDelete.linkedProducts.length > 0) {
+      const productIds = confirmDelete.linkedProducts.map(p => p.product_id);
+      console.log(`[Delete Addon useEffect] Auto-selecionando ${productIds.length} produtos:`, productIds);
+      setSelectedProductsToDelete(productIds);
+    } else if (confirmDelete && confirmDelete.linkedProducts.length === 0) {
+      console.log(`[Delete Addon useEffect] Nenhum produto vinculado encontrado`);
+      setSelectedProductsToDelete([]);
     }
-  }, [confirmDelete?.linkedProducts]);
+  }, [confirmDelete]);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
