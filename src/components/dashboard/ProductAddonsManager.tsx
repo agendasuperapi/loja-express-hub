@@ -513,11 +513,26 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const handleDeleteClick = async (id: string, name: string) => {
     // Buscar todos os produtos que têm esse adicional (mesmo nome)
     try {
-      // Primeiro buscar todos os addons com esse nome
+      // Primeiro buscar todos os produtos da loja atual
+      const { data: storeProducts, error: productsError } = await supabase
+        .from('products')
+        .select('id, name')
+        .eq('store_id', storeId);
+
+      if (productsError) throw productsError;
+
+      if (!storeProducts || storeProducts.length === 0) {
+        setConfirmDelete({ id, name, linkedProducts: [] });
+        return;
+      }
+
+      // Buscar addons com esse nome apenas dos produtos da loja
+      const productIds = storeProducts.map(p => p.id);
       const { data: linkedAddons, error: addonsError } = await supabase
         .from('product_addons')
         .select('id, name, product_id')
-        .eq('name', name);
+        .eq('name', name)
+        .in('product_id', productIds);
 
       if (addonsError) throw addonsError;
 
@@ -526,20 +541,10 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
         return;
       }
 
-      // Buscar informações dos produtos
-      const productIds = linkedAddons.map(addon => addon.product_id);
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, store_id')
-        .in('id', productIds)
-        .eq('store_id', storeId);
-
-      if (productsError) throw productsError;
-
       // Combinar os dados
       const linkedProducts = linkedAddons
         .map((addon: any) => {
-          const product = products?.find(p => p.id === addon.product_id);
+          const product = storeProducts.find(p => p.id === addon.product_id);
           return product ? {
             id: addon.id,
             name: product.name,
