@@ -240,7 +240,19 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ 
+    id: string; 
+    name: string;
+    linkedProducts: Array<{ id: string; name: string; product_id: string }>;
+  } | null>(null);
+  const [selectedProductsToDelete, setSelectedProductsToDelete] = useState<string[]>([]);
+
+  // Auto-selecionar todos os produtos quando o dialog de exclusão abrir
+  useEffect(() => {
+    if (confirmDelete?.linkedProducts) {
+      setSelectedProductsToDelete(confirmDelete.linkedProducts.map(p => p.product_id));
+    }
+  }, [confirmDelete?.linkedProducts]);
   const [isStoreAddonsOpen, setIsStoreAddonsOpen] = useState(false);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [storeAddonsSearch, setStoreAddonsSearch] = useState('');
@@ -498,14 +510,102 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     }
   };
 
-  const handleDeleteClick = (id: string, name: string) => {
-    setConfirmDelete({ id, name });
+  const handleDeleteClick = async (id: string, name: string) => {
+    // Buscar todos os produtos que têm esse adicional (mesmo nome)
+    try {
+      const { data: linkedAddons, error } = await supabase
+        .from('product_addons')
+        .select(`
+          id,
+          name,
+          product_id,
+          product:products!inner(
+            id,
+            name,
+            store_id
+          )
+        `)
+        .eq('name', name)
+        .eq('product.store_id', storeId);
+
+      if (error) throw error;
+
+      const linkedProducts = linkedAddons?.map((addon: any) => ({
+        id: addon.id,
+        name: addon.product.name,
+        product_id: addon.product_id,
+      })) || [];
+
+      setConfirmDelete({ id, name, linkedProducts });
+    } catch (error) {
+      console.error('Error fetching linked products:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível buscar os produtos vinculados.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleConfirmDelete = () => {
-    if (confirmDelete) {
-      deleteAddon(confirmDelete.id);
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+
+    try {
+      if (selectedProductsToDelete.length === 0) {
+        toast({
+          title: "Nenhum produto selecionado",
+          description: "Selecione pelo menos um produto para remover o adicional.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Se selecionou todos, usar a função de delete padrão
+      if (selectedProductsToDelete.length === confirmDelete.linkedProducts.length) {
+        // Deletar todos os adicionais com esse nome
+        const { error } = await supabase
+          .from('product_addons')
+          .delete()
+          .in('id', confirmDelete.linkedProducts.map(p => p.id));
+
+        if (error) throw error;
+
+        toast({
+          title: "Adicional removido",
+          description: `O adicional "${confirmDelete.name}" foi removido de todos os produtos.`,
+        });
+      } else {
+        // Deletar apenas dos produtos selecionados
+        const addonsToDelete = confirmDelete.linkedProducts
+          .filter(p => selectedProductsToDelete.includes(p.product_id))
+          .map(p => p.id);
+
+        const { error } = await supabase
+          .from('product_addons')
+          .delete()
+          .in('id', addonsToDelete);
+
+        if (error) throw error;
+
+        toast({
+          title: "Adicional removido",
+          description: `O adicional "${confirmDelete.name}" foi removido de ${selectedProductsToDelete.length} produto(s).`,
+        });
+      }
+
+      // Invalidar queries para atualizar a UI
+      queryClient.invalidateQueries({ queryKey: ['product-addons'] });
+      queryClient.invalidateQueries({ queryKey: ['store-all-addons'] });
+      
       setConfirmDelete(null);
+      setSelectedProductsToDelete([]);
+    } catch (error) {
+      console.error('Error deleting addon:', error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir o adicional. Tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -983,18 +1083,102 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     </Card>
 
     {/* Delete Confirmation Dialog */}
-    <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
-      <AlertDialogContent>
+    <AlertDialog 
+      open={!!confirmDelete} 
+      onOpenChange={(open) => {
+        if (!open) {
+          setConfirmDelete(null);
+          setSelectedProductsToDelete([]);
+        }
+      }}
+    >
+      <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir o adicional <strong>"{confirmDelete?.name}"</strong>? Esta ação não pode ser desfeita.
+            O adicional <strong>"{confirmDelete?.name}"</strong> está vinculado aos seguintes produtos:
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        <div className="py-4 space-y-3 max-h-[400px] overflow-y-auto">
+          {confirmDelete?.linkedProducts && confirmDelete.linkedProducts.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between mb-3 pb-2 border-b">
+                <span className="text-sm font-medium">
+                  {selectedProductsToDelete.length} de {confirmDelete.linkedProducts.length} produto(s) selecionado(s)
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedProductsToDelete(confirmDelete.linkedProducts.map(p => p.product_id));
+                    }}
+                  >
+                    Selecionar Todos
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedProductsToDelete([])}
+                  >
+                    Desmarcar Todos
+                  </Button>
+                </div>
+              </div>
+              
+              {confirmDelete.linkedProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                    selectedProductsToDelete.includes(product.product_id)
+                      ? 'bg-primary/10 border-primary'
+                      : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => {
+                    setSelectedProductsToDelete(prev =>
+                      prev.includes(product.product_id)
+                        ? prev.filter(id => id !== product.product_id)
+                        : [...prev, product.product_id]
+                    );
+                  }}
+                >
+                  <Checkbox
+                    checked={selectedProductsToDelete.includes(product.product_id)}
+                    onCheckedChange={(checked) => {
+                      setSelectedProductsToDelete(prev =>
+                        checked
+                          ? [...prev, product.product_id]
+                          : prev.filter(id => id !== product.product_id)
+                      );
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium">{product.name}</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            <p className="text-center text-muted-foreground py-4">
+              Nenhum produto vinculado encontrado.
+            </p>
+          )}
+        </div>
+        
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Excluir
+          <AlertDialogCancel onClick={() => setSelectedProductsToDelete([])}>
+            Cancelar
+          </AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleConfirmDelete} 
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={selectedProductsToDelete.length === 0}
+          >
+            Remover de {selectedProductsToDelete.length} produto(s)
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
