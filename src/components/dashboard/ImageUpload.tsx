@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Loader2, ImageOff } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,9 +40,13 @@ export const ImageUpload = ({
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Sincronizar previewUrl com currentImageUrl quando mudar
   useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
     if (currentImageUrl) {
       // Remover query strings antigas e adicionar nova timestamp para forçar reload
       const cleanUrl = currentImageUrl.split('?')[0];
@@ -327,17 +331,36 @@ export const ImageUpload = ({
         
         {previewUrl ? (
           <div className="relative">
-            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto rounded-lg overflow-hidden border border-border bg-muted/30`}>
+            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto rounded-lg overflow-hidden border border-border bg-muted/30 relative`}>
+              {!imageLoaded && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {imageError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/30 z-10">
+                  <ImageOff className="h-8 w-8 text-muted-foreground mb-2" />
+                  <span className="text-xs text-muted-foreground">Imagem não carregada</span>
+                </div>
+              )}
               <img
-                src={previewUrl || currentImageUrl || ''}
+                src={previewUrl}
                 alt="Preview"
-                className="w-full h-full object-contain sm:object-cover"
+                className={`w-full h-full object-contain sm:object-cover transition-opacity ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                onLoad={() => {
+                  setImageLoaded(true);
+                  setImageError(false);
+                }}
                 onError={(e) => {
-                  // Se a URL com timestamp falhar, tenta carregar a URL original sem o parâmetro
                   const currentSrc = e.currentTarget.src;
                   if (currentSrc.includes('?t=')) {
+                    // Tentar sem timestamp
                     const cleanSrc = currentSrc.split('?t=')[0];
                     e.currentTarget.src = cleanSrc;
+                  } else {
+                    // Falhou em ambas tentativas
+                    setImageError(true);
+                    setImageLoaded(false);
                   }
                 }}
               />
@@ -345,7 +368,7 @@ export const ImageUpload = ({
             <Button
               type="button"
               size="icon"
-              className="absolute top-2 right-2 bg-orange-500 hover:bg-orange-600 text-white"
+              className="absolute top-2 right-2 bg-orange-500 hover:bg-orange-600 text-white z-20"
               onClick={handleRemove}
             >
               <X className="h-4 w-4" />
