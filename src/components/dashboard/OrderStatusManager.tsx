@@ -224,9 +224,10 @@ interface SortableStatusItemProps {
   index: number;
   canEdit: boolean;
   onEdit: (status: OrderStatus) => void;
+  onDelete: (id: string) => void;
 }
 
-const SortableStatusItem = ({ status, index, canEdit, onEdit }: SortableStatusItemProps) => {
+const SortableStatusItem = ({ status, index, canEdit, onEdit, onDelete }: SortableStatusItemProps) => {
   const {
     attributes,
     listeners,
@@ -281,6 +282,16 @@ const SortableStatusItem = ({ status, index, canEdit, onEdit }: SortableStatusIt
             onClick={() => onEdit(status)}
           >
             <Edit className="h-4 w-4" />
+          </Button>
+        )}
+
+        {!status.is_active && canEdit && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(status.id)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         )}
       </div>
@@ -727,6 +738,7 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                     setEditingStatus(status);
                     setIsDialogOpen(true);
                   }}
+                  onDelete={handleDeleteStatus}
                 />
               ))}
 
