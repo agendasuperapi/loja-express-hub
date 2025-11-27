@@ -155,7 +155,7 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
     case 'email':
       return { isValid: true, type, message: 'Chave PIX do tipo E-mail' };
     case 'phone':
-      return { isValid: true, type, message: 'Chave PIX do tipo Telefone ou cpf' };
+      return { isValid: true, type, message: 'Chave PIX do tipo Telefone' };
     case 'random':
       return { isValid: true, type, message: 'Chave PIX do tipo Aleatória' };
     case 'invalid':
