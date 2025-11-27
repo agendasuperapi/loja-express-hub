@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -5438,12 +5438,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     }
                     
                     try {
+                      // Normalize PIX key before saving (especially phone numbers to +55 format)
+                      const normalizedPixKey = storeForm.pix_key ? normalizePixKey(storeForm.pix_key) : null;
+                      
                       await updateStore({
                         id: myStore.id,
                         name: myStore.name,
                         slug: myStore.slug,
                         category: myStore.category,
-                        pix_key: storeForm.pix_key || null,
+                        pix_key: normalizedPixKey,
                       });
                       
                       toast({

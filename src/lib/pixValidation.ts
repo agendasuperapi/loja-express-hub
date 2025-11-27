@@ -123,6 +123,32 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
+ * Normalizes a PIX key to the standard format for storage
+ * Especially important for phone numbers to ensure +55 prefix
+ */
+export const normalizePixKey = (key: string): string => {
+  const type = detectPixKeyType(key);
+  
+  if (type === 'phone') {
+    const digitsOnly = key.replace(/\D/g, '');
+    
+    // Brazilian phone: normalize to +55XXXXXXXXXXX
+    if (digitsOnly.length === 11) {
+      // Format: 38999524679 -> +5538999524679
+      return `+55${digitsOnly}`;
+    } else if (digitsOnly.length === 13 && digitsOnly.startsWith('55')) {
+      // Format: 5538999524679 -> +5538999524679
+      return `+${digitsOnly}`;
+    } else if (digitsOnly.length === 10) {
+      // Format: 3899524679 (landline) -> +553899524679
+      return `+55${digitsOnly}`;
+    }
+  }
+  
+  return key.trim();
+};
+
+/**
  * Formats a PIX key for display based on its type
  */
 export const formatPixKey = (key: string): string => {
