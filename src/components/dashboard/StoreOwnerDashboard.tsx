@@ -4733,7 +4733,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <NotificationSettings />
+            <NotificationSettings storeId={myStore?.id} />
           </motion.div>
 
           <motion.div

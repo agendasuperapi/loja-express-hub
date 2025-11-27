@@ -9,7 +9,11 @@ import { toast } from "@/hooks/use-toast";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { useAuth } from "@/hooks/useAuth";
 
-export const NotificationSettings = () => {
+interface NotificationSettingsProps {
+  storeId?: string;
+}
+
+export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}) => {
   const { user } = useAuth();
   const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushSubscription();
   
@@ -132,7 +136,8 @@ export const NotificationSettings = () => {
     if (isSubscribed) {
       await unsubscribe();
     } else {
-      await subscribe(user.id);
+      // Passa o storeId se disponível (para lojistas)
+      await subscribe(user.id, storeId);
     }
   };
 
