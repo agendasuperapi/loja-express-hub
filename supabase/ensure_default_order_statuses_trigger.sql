@@ -48,6 +48,19 @@ BEGIN
     -- Status 4: Pronto / Aguardando Retirada (somente para retirada)
     (
       NEW.id,
+      'ready',
+      'Aguardando Retirada',
+      '#10B981',
+      3,
+      true,
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nSeu pedido #{{order_number}} Está Aguardando retirada.\n\n📍*ENDEREÇO RETIRADA*\n• {{pickup_address}} -\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}',
+      false,
+      true
+    ),
+    
+    -- Status 4b: Pronto (alias para compatibilidade)
+    (
+      NEW.id,
       'pronto',
       'Aguardando Retirada',
       '#10B981',
@@ -61,7 +74,33 @@ BEGIN
     -- Status 5: Saiu para Entrega (somente para entrega)
     (
       NEW.id,
+      'out_for_delivery',
+      'Saiu para Entrega',
+      '#06B6D4',
+      4,
+      true,
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}',
+      true,
+      false
+    ),
+    
+    -- Status 5b: Saiu para entrega (alias para compatibilidade)
+    (
+      NEW.id,
       'saiu_para_entrega',
+      'Saiu para Entrega',
+      '#06B6D4',
+      4,
+      true,
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nBoa notícia seu pedido #{{order_number}} saiu para entrega!\nChegará em breve.\n\n🛍️ *VISITE NOSSO SITE:*\n{{store_url}}',
+      true,
+      false
+    ),
+    
+    -- Status 5c: In delivery (alias para compatibilidade)
+    (
+      NEW.id,
+      'in_delivery',
       'Saiu para Entrega',
       '#06B6D4',
       4,
