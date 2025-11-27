@@ -6,9 +6,10 @@ interface DashboardBottomNavProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onMenuClick: () => void;
+  pendingOrdersCount?: number;
 }
 
-export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick }: DashboardBottomNavProps) => {
+export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick, pendingOrdersCount = 0 }: DashboardBottomNavProps) => {
   const navItems = [
     { id: "home", label: "Início", icon: Home },
     { id: "produtos", label: "Produtos", icon: Package },
@@ -48,13 +49,14 @@ export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick }: Dash
                 />
               )}
 
-              {/* Ícone com animação */}
+              {/* Ícone com animação e badge */}
               <motion.div
                 animate={{
                   scale: isActive && !item.isMenu ? 1.1 : 1,
                   y: isActive && !item.isMenu ? -2 : 0,
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="relative"
               >
                 <Icon 
                   className={cn(
@@ -62,6 +64,19 @@ export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick }: Dash
                     isActive && !item.isMenu && "stroke-[2.5]"
                   )} 
                 />
+                
+                {/* Badge de contagem de pedidos */}
+                {item.id === "pedidos" && pendingOrdersCount > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    className="absolute -top-1 -right-2 min-w-[18px] h-[18px] flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full px-1 shadow-lg"
+                  >
+                    {pendingOrdersCount > 99 ? "99+" : pendingOrdersCount}
+                  </motion.div>
+                )}
               </motion.div>
 
               {/* Label */}

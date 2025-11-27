@@ -461,6 +461,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Gerenciar aba ativa via URL para persistir ao recarregar
   const tabFromUrl = searchParams.get('tab') || 'home';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   
   // Sincronizar estado quando a URL mudar (ex: ao recarregar a página)
   useEffect(() => {
@@ -478,6 +479,48 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       setSearchParams(newSearchParams, { replace: true });
     }
   }, [activeTab, searchParams, setSearchParams]);
+
+  // Buscar contagem de pedidos pendentes em tempo real
+  useEffect(() => {
+    if (!myStore?.id) return;
+
+    const fetchPendingOrdersCount = async () => {
+      const { count, error } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('store_id', myStore.id)
+        .in('status', ['pending', 'confirmed']);
+
+      if (!error && count !== null) {
+        setPendingOrdersCount(count);
+      }
+    };
+
+    // Buscar inicial
+    fetchPendingOrdersCount();
+
+    // Configurar real-time subscription
+    const channel = supabase
+      .channel('pending-orders-count')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `store_id=eq.${myStore.id}`
+        },
+        () => {
+          // Quando houver qualquer mudança nos pedidos, recarregar contagem
+          fetchPendingOrdersCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myStore?.id]);
 
   // Sync local products with fetched products
   useEffect(() => {
@@ -6187,6 +6230,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           activeTab={activeTab}
           onTabChange={setActiveTab}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
+          pendingOrdersCount={pendingOrdersCount}
         />
       )}
     </div>
