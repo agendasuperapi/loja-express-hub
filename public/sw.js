@@ -1,12 +1,27 @@
 // Service Worker para Web Push Notifications
+const CACHE_VERSION = 'v1';
+
 self.addEventListener('install', (event) => {
   console.log('[SW] Service Worker instalado');
+  // Força a ativação imediata do novo SW
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   console.log('[SW] Service Worker ativado');
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    // Limpa caches antigos e assume controle imediatamente
+    Promise.all([
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames
+            .filter(name => name !== CACHE_VERSION)
+            .map(name => caches.delete(name))
+        );
+      }),
+      clients.claim()
+    ])
+  );
 });
 
 self.addEventListener('push', (event) => {

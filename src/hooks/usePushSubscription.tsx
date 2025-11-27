@@ -31,13 +31,23 @@ export function usePushSubscription() {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      // Adicionar timeout para não bloquear se não houver SW
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('SW timeout')), 3000)
+      );
+      
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        timeoutPromise
+      ]) as ServiceWorkerRegistration;
+      
       const existingSub = await registration.pushManager.getSubscription();
       
       setSubscription(existingSub);
       setIsSubscribed(!!existingSub);
     } catch (error) {
-      console.error('Erro ao verificar subscription existente:', error);
+      console.warn('Sem service worker ativo ou timeout:', error);
+      // Não é um erro crítico, apenas não há push notifications disponíveis
     } finally {
       setIsLoading(false);
     }

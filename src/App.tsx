@@ -8,6 +8,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { StoreAccessRoute } from "./components/auth/StoreAccessRoute";
 import { MobileBottomNav } from "./components/layout/MobileBottomNav";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import DashboardLojista from "./pages/DashboardLojista";
@@ -34,67 +35,69 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AuthProvider>
-        <CartProvider>
-          <div className="pb-20 md:pb-0">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard-lojista" 
-                element={
-                  // Permite acesso para dono da loja OU funcionário ativo
-                  <StoreAccessRoute redirectPath="/login-lojista">
-                    <DashboardLojista />
-                  </StoreAccessRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/become-partner" element={<BecomePartner />} />
-              <Route path="/login-lojista" element={<LoginLojista />} />
-              <Route
-                path="/admin" 
-                element={
-                  <ProtectedRoute requireAuth={true} requireRole="admin">
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              {/* Rotas específicas devem vir ANTES das rotas genéricas */}
-              <Route path="/p/:shortId" element={<ProductPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "/:slug" ROUTE */}
-              <Route path="/:slug" element={<StoreDetails />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-          <MobileBottomNav />
-        </CartProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AuthProvider>
+          <CartProvider>
+            <div className="pb-20 md:pb-0">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dashboard-lojista" 
+                  element={
+                    // Permite acesso para dono da loja OU funcionário ativo
+                    <StoreAccessRoute redirectPath="/login-lojista">
+                      <DashboardLojista />
+                    </StoreAccessRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/become-partner" element={<BecomePartner />} />
+                <Route path="/login-lojista" element={<LoginLojista />} />
+                <Route
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute requireAuth={true} requireRole="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                {/* Rotas específicas devem vir ANTES das rotas genéricas */}
+                <Route path="/p/:shortId" element={<ProductPage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "/:slug" ROUTE */}
+                <Route path="/:slug" element={<StoreDetails />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            <MobileBottomNav />
+          </CartProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
