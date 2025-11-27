@@ -87,6 +87,7 @@ import { SortableCategoryCard } from "./SortableCategoryCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NotificationPermissionBanner } from "./NotificationPermissionBanner";
 
 interface StoreOwnerDashboardProps {
   onSignOut?: () => void;
@@ -2023,6 +2024,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="w-full">
+        {/* Notification Permission Banner */}
+        <div className="p-3 sm:p-4 md:p-6 lg:p-8 pb-0">
+          <NotificationPermissionBanner />
+        </div>
+        
         {/* Home Tab */}
         <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 w-full", activeTab !== 'home' && 'hidden')}>
 

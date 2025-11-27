@@ -4,8 +4,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Bell, Volume2, BellOff, Loader2, AlertCircle } from "lucide-react";
+import { Bell, Volume2, BellOff, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { NotificationHelpModal } from "@/components/dashboard/NotificationHelpModal";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -33,6 +34,16 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
   });
 
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  const checkPermission = () => {
+    if ('Notification' in window) {
+      const current = Notification.permission;
+      setNotificationPermission(current);
+      return current;
+    }
+    return 'default';
+  };
 
   // Verificar permissão de notificações ao montar o componente
   useEffect(() => {
@@ -41,9 +52,8 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
       return;
     }
 
-    const checkPermission = async () => {
-      const currentPermission = Notification.permission;
-      setNotificationPermission(currentPermission);
+    const checkPermissionAsync = async () => {
+      const currentPermission = checkPermission();
       
       console.log('🔔 Status da permissão de notificações:', currentPermission);
 
@@ -81,7 +91,7 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
       }
     };
 
-    checkPermission();
+    checkPermissionAsync();
   }, [storeId]);
 
   useEffect(() => {
@@ -196,13 +206,23 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
       const currentPermission = Notification.permission;
       
       if (currentPermission === 'denied') {
-        toast({
-          title: "❌ Notificações bloqueadas",
-          description: "Clique no ícone 🔒 ao lado da URL e permita as Notificações.",
-          variant: "destructive",
-          duration: 8000,
-        });
+        setIsHelpModalOpen(true);
         return;
+      }
+      
+      // Se ainda for 'default', tenta solicitar permissão
+      if (currentPermission === 'default') {
+        try {
+          const permission = await Notification.requestPermission();
+          setNotificationPermission(permission);
+          
+          if (permission === 'denied') {
+            setIsHelpModalOpen(true);
+            return;
+          }
+        } catch (error) {
+          console.error('Erro ao solicitar permissão:', error);
+        }
       }
       
       // Passa o storeId se disponível (para lojistas)
@@ -311,14 +331,30 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
                   Você bloqueou as notificações. Para receber alertas:
                 </p>
                 <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1 ml-2">
-                  <li>Clique no ícone <strong>🔒</strong> ou <strong>ⓘ</strong> na barra de endereço</li>
+                   <li>Clique no ícone <strong>🔒</strong> ou <strong>ⓘ</strong> na barra de endereço</li>
                   <li>Encontre "Notificações" e mude para <strong>"Permitir"</strong></li>
                   <li>Recarregue a página</li>
                 </ol>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsHelpModalOpen(true)}
+                  className="mt-3"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Ver instruções detalhadas
+                </Button>
               </div>
             </div>
           </div>
         )}
+
+        {/* Modal de ajuda */}
+        <NotificationHelpModal
+          isOpen={isHelpModalOpen}
+          onClose={() => setIsHelpModalOpen(false)}
+          onRecheck={checkPermission}
+        />
 
         {/* Web Push Notifications */}
         <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-3">
