@@ -58,29 +58,29 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-background"
+      className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors bg-background"
     >
-      <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing touch-none"
+          className="cursor-grab active:cursor-grabbing touch-none shrink-0"
         >
-          <GripVertical className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
+          <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors" />
         </div>
-        <FolderTree className="w-4 h-4 text-muted-foreground" />
-        <div>
-          <div className="font-medium flex items-center gap-2">
-            {category.name}
+        <FolderTree className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="font-medium flex items-center gap-2 flex-wrap text-sm sm:text-base">
+            <span className="truncate">{category.name}</span>
             {category.is_exclusive && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-[10px] sm:text-xs shrink-0">
                 Exclusivo
               </Badge>
             )}
           </div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[11px] sm:text-xs text-muted-foreground">
             {category.is_exclusive ? (
-              'Apenas 1 item pode ser selecionado'
+              'Apenas 1 item'
             ) : (
               <>
                 {category.min_items > 0 ? `Mín: ${category.min_items}` : 'Opcional'}
@@ -92,9 +92,9 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        <Badge variant={category.is_active ? "default" : "secondary"}>
-          {category.is_active ? 'Ativa' : 'Inativa'}
+      <div className="flex items-center gap-1 sm:gap-1.5 justify-end sm:justify-start">
+        <Badge variant={category.is_active ? "default" : "secondary"} className="text-[10px] sm:text-xs shrink-0">
+          {category.is_active ? 'Ativo' : 'Inativo'}
         </Badge>
         
         {hasPermission('update') && (
@@ -103,11 +103,12 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             variant="ghost"
             onClick={() => onToggleStatus(category.id, category.is_active)}
             title={category.is_active ? 'Inativar' : 'Ativar'}
+            className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
             {category.is_active ? (
-              <EyeOff className="w-4 h-4" />
+              <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <Power className="w-4 h-4" />
+              <Power className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </Button>
         )}
@@ -118,8 +119,9 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             variant="ghost"
             onClick={() => onEdit(category)}
             title="Editar"
+            className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         )}
         
@@ -129,8 +131,9 @@ const SortableCategory = ({ category, hasPermission, onEdit, onDelete, onToggleS
             variant="ghost"
             onClick={() => onDelete(category.id)}
             title="Excluir"
+            className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
-            <Trash2 className="w-4 h-4 text-destructive" />
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" />
           </Button>
         )}
       </div>
@@ -269,37 +272,38 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <FolderTree className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <FolderTree className="w-4 h-4 sm:w-5 sm:h-5" />
               Categorias de Adicionais
             </CardTitle>
-            <CardDescription>Organize os adicionais em categorias para melhor gestão</CardDescription>
+            <CardDescription className="text-xs sm:text-sm mt-1">Organize seus adicionais em categorias para facilitar a gestão</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {isAdding && (
-          <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+          <div className="space-y-3 p-3 sm:p-4 border rounded-lg bg-muted/30">
             <div className="space-y-2">
-              <Label>Nome da Categoria</Label>
+              <Label className="text-sm">Nome da Categoria</Label>
               <Input
                 placeholder="Ex: Carnes, Queijos, Molhos..."
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                className="text-sm"
               />
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-4 border rounded-lg bg-background">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 border rounded-lg bg-background">
                 <div className="flex-1">
                   <Label htmlFor="exclusive-switch" className="text-sm font-medium cursor-pointer">
                     Seleção Exclusiva
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Permitir apenas 1 item selecionado (como tipo de carne, tamanho, etc.)
+                    Permitir apenas 1 item selecionado
                   </p>
                 </div>
                 <Switch
@@ -314,35 +318,37 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
             </div>
 
             {!formData.is_exclusive && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Mínimo de Itens</Label>
+                  <Label className="text-sm">Mínimo de Itens</Label>
                   <Input
                     type="number"
                     min="0"
                     placeholder="0 = opcional"
                     value={formData.min_items}
                     onChange={(e) => setFormData({ ...formData, min_items: parseInt(e.target.value) || 0 })}
+                    className="text-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Máximo de Itens</Label>
+                  <Label className="text-sm">Máximo de Itens</Label>
                   <Input
                     type="number"
                     min="0"
-                    placeholder="Deixe vazio = ilimitado"
+                    placeholder="Vazio = ilimitado"
                     value={formData.max_items || ''}
                     onChange={(e) => setFormData({ ...formData, max_items: e.target.value ? parseInt(e.target.value) : null })}
+                    className="text-sm"
                   />
                 </div>
               </div>
             )}
 
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSubmit} className="flex-1">
+              <Button onClick={handleSubmit} className="flex-1 text-sm h-9">
                 {editingId ? 'Atualizar' : 'Adicionar'}
               </Button>
-              <Button onClick={handleCancel} variant="outline">
+              <Button onClick={handleCancel} variant="outline" className="h-9 px-3">
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -350,10 +356,10 @@ export const AddonCategoriesManager = ({ storeId }: AddonCategoriesManagerProps)
         )}
 
         {categories.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <FolderTree className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Nenhuma categoria cadastrada</p>
-            <p className="text-sm">Crie categorias para organizar seus adicionais</p>
+          <div className="text-center py-6 sm:py-8 text-muted-foreground">
+            <FolderTree className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 opacity-50" />
+            <p className="text-sm sm:text-base">Nenhuma categoria cadastrada</p>
+            <p className="text-xs sm:text-sm mt-1">Crie categorias para organizar seus adicionais</p>
           </div>
         ) : (
           <DndContext
