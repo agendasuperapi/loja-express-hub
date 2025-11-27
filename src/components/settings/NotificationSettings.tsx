@@ -3,10 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Bell, Volume2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, Volume2, BellOff, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
+import { useAuth } from "@/hooks/useAuth";
 
 export const NotificationSettings = () => {
+  const { user } = useAuth();
+  const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushSubscription();
+  
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('notification-sound-enabled');
     return saved !== null ? JSON.parse(saved) : true;
@@ -113,6 +119,23 @@ export const NotificationSettings = () => {
     });
   };
 
+  const handlePushToggle = async () => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para ativar notificações push.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isSubscribed) {
+      await unsubscribe();
+    } else {
+      await subscribe(user.id);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -190,6 +213,56 @@ export const NotificationSettings = () => {
             className="w-full"
             disabled={!soundEnabled}
           />
+        </div>
+
+        {/* Web Push Notifications */}
+        <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <Label className="text-base font-semibold flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                Notificações Push (Web Push)
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Receba notificações mesmo com navegador <strong>fechado ou minimizado</strong>
+              </p>
+              {!isSupported && (
+                <p className="text-sm text-destructive mt-2">
+                  ⚠️ Seu navegador não suporta Web Push
+                </p>
+              )}
+            </div>
+            {isSupported && (
+              <Button
+                onClick={handlePushToggle}
+                disabled={isLoading}
+                variant={isSubscribed ? "destructive" : "default"}
+                size="sm"
+                className="shrink-0"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isSubscribed ? (
+                  <>
+                    <BellOff className="h-4 w-4 mr-2" />
+                    Desativar
+                  </>
+                ) : (
+                  <>
+                    <Bell className="h-4 w-4 mr-2" />
+                    Ativar Push
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          {isSubscribed && (
+            <div className="bg-green-50 dark:bg-green-950/50 p-3 rounded-lg border border-green-200 dark:border-green-900">
+              <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                ✓ Web Push ativo - Você receberá alertas mesmo com o app fechado!
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
