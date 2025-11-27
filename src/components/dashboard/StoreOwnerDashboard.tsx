@@ -5385,9 +5385,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       id="pix_key"
                       type="text"
                       placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                      value={storeForm.pix_key}
+                      value={storeForm.pix_key ? storeForm.pix_key.replace(/^\+55/, '') : ''}
                       onChange={(e) => {
-                        const value = e.target.value;
+                        let value = e.target.value.trim();
+                        
+                        // Auto-normalize phone numbers: if 10-11 digits, add +55
+                        const digitsOnly = value.replace(/\D/g, '');
+                        if (digitsOnly.length === 10 || digitsOnly.length === 11) {
+                          // It's a Brazilian phone without country code
+                          value = `+55${digitsOnly}`;
+                        } else if (digitsOnly.length === 13 && digitsOnly.startsWith('55')) {
+                          // Already has 55, just add +
+                          value = `+${digitsOnly}`;
+                        }
+                        
                         setStoreForm({ ...storeForm, pix_key: value });
                         
                         // Validate in real-time
