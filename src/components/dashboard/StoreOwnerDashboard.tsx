@@ -56,6 +56,7 @@ import { OrderStatusManager } from "./OrderStatusManager";
 import { useOrderStatusNotification } from "@/hooks/useOrderStatusNotification";
 import { useNewOrderNotification } from "@/hooks/useNewOrderNotification";
 import { useWhatsAppDisconnectNotification } from "@/hooks/useWhatsAppDisconnectNotification";
+import { useWhatsAppAutoReconnect } from "@/hooks/useWhatsAppAutoReconnect";
 import { useOrderStatuses } from "@/hooks/useOrderStatuses";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -435,11 +436,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Enable real-time new order notifications with sound (pausar quando modais estão abertos)
   useNewOrderNotification(myStore?.id, { pauseInvalidations: isAnyModalOpen });
   
-  // Enable WhatsApp disconnect notifications
+  // Hook para reconexão automática do WhatsApp
+  const reconnectStatus = useWhatsAppAutoReconnect(myStore?.id, {
+    maxAttempts: 5,
+    initialDelay: 15000,
+    maxDelay: 240000,
+    silentSuccess: true,
+    enabled: true,
+  });
+
+  // Enable WhatsApp disconnect notifications (integrado com auto-reconnect)
   useWhatsAppDisconnectNotification(myStore?.id, {
     enableBrowserNotification: true,
     enableToast: true,
     autoRequestPermission: true,
+    notificationDelay: 30000, // 30 segundos de delay para dar tempo à reconexão automática
+    reconnectStatus,
   });
   
   // Gerenciar aba ativa via URL para persistir ao recarregar
