@@ -3,7 +3,7 @@ import { z } from 'zod';
 export type PixKeyType = 'cpf' | 'cnpj' | 'email' | 'phone' | 'random' | 'invalid' | 'empty';
 
 /**
- * Validates if a string is a valid CPF (11 digits)
+ * Validates if a string is a valid CPF (11 digits) with digit verification
  */
 const isValidCPF = (cpf: string): boolean => {
   const cleaned = cpf.replace(/[^\d]/g, '');
@@ -12,11 +12,29 @@ const isValidCPF = (cpf: string): boolean => {
   // Check for known invalid CPFs (all same digits)
   if (/^(\d)\1{10}$/.test(cleaned)) return false;
   
+  // Validate first verification digit
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cleaned.charAt(i)) * (10 - i);
+  }
+  let digit = 11 - (sum % 11);
+  if (digit >= 10) digit = 0;
+  if (digit !== parseInt(cleaned.charAt(9))) return false;
+  
+  // Validate second verification digit
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cleaned.charAt(i)) * (11 - i);
+  }
+  digit = 11 - (sum % 11);
+  if (digit >= 10) digit = 0;
+  if (digit !== parseInt(cleaned.charAt(10))) return false;
+  
   return true;
 };
 
 /**
- * Validates if a string is a valid CNPJ (14 digits)
+ * Validates if a string is a valid CNPJ (14 digits) with digit verification
  */
 const isValidCNPJ = (cnpj: string): boolean => {
   const cleaned = cnpj.replace(/[^\d]/g, '');
@@ -24,6 +42,35 @@ const isValidCNPJ = (cnpj: string): boolean => {
   
   // Check for known invalid CNPJs (all same digits)
   if (/^(\d)\1{13}$/.test(cleaned)) return false;
+  
+  // Validate first verification digit
+  let size = cleaned.length - 2;
+  let numbers = cleaned.substring(0, size);
+  const digits = cleaned.substring(size);
+  let sum = 0;
+  let pos = size - 7;
+  
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(0))) return false;
+  
+  // Validate second verification digit
+  size = size + 1;
+  numbers = cleaned.substring(0, size);
+  sum = 0;
+  pos = size - 7;
+  
+  for (let i = size; i >= 1; i--) {
+    sum += parseInt(numbers.charAt(size - i)) * pos--;
+    if (pos < 2) pos = 9;
+  }
+  
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(1))) return false;
   
   return true;
 };
