@@ -22,7 +22,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { 
+  ResponsiveDialog,
+  ResponsiveDialogContent, 
+  ResponsiveDialogHeader, 
+  ResponsiveDialogTitle, 
+  ResponsiveDialogDescription 
+} from "@/components/ui/responsive-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DndContext,
@@ -1321,20 +1327,20 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
     </AlertDialog>
 
     {/* Store Addons Dialog */}
-    <Dialog open={isStoreAddonsOpen} onOpenChange={(open) => {
+    <ResponsiveDialog open={isStoreAddonsOpen} onOpenChange={(open) => {
       setIsStoreAddonsOpen(open);
       if (open) {
         // Força atualização dos dados ao abrir o diálogo
         queryClient.invalidateQueries({ queryKey: ['store-addons', storeId] });
       }
     }}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto bg-background z-50">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle className="flex items-center gap-2">
             <Store className="w-5 h-5" />
             Adicionais da Loja
-          </DialogTitle>
-        </DialogHeader>
+          </ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
         <div className="space-y-4">
           {/* Search and Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
@@ -1497,30 +1503,30 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
 
     {/* Import Templates Dialog */}
-    <Dialog open={isImportDialogOpen} onOpenChange={(open) => {
+    <ResponsiveDialog open={isImportDialogOpen} onOpenChange={(open) => {
       setIsImportDialogOpen(open);
       if (!open) {
         setSelectedTemplate(null);
         setSelectedAddonsToImport([]);
       }
     }}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />
             {selectedTemplate ? 'Selecionar Adicionais' : 'Importar Templates de Adicionais'}
-          </DialogTitle>
-          <DialogDescription>
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             {selectedTemplate
               ? 'Marque os adicionais que deseja importar para este produto'
               : 'Selecione um template para visualizar seus adicionais'
             }
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
         {!selectedTemplate ? (
           <div className="space-y-3">
@@ -1682,18 +1688,18 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
 
     {/* Dialog: Importar de Produto */}
-    <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Importar Adicionais de Produto</DialogTitle>
-          <DialogDescription>
+    <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Importar Adicionais de Produto</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             Selecione um produto para importar seus adicionais
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
         <div className="mb-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -1739,18 +1745,18 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </p>
           )}
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Modal separado para criar categoria */}
-      <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
-        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Criar Nova Categoria</DialogTitle>
-            <DialogDescription>
+      <ResponsiveDialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Criar Nova Categoria</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
               Crie uma categoria para organizar seus adicionais
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -1815,8 +1821,8 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
               Criar Categoria
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       <NewAddonDialog
         open={isDialogOpen}
@@ -1834,14 +1840,14 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
       />
 
       {/* Dialog de Editar Categorias */}
-      <Dialog open={isEditCategoriesOpen} onOpenChange={setIsEditCategoriesOpen}>
-        <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Categorias de Adicionais</DialogTitle>
-          </DialogHeader>
+      <ResponsiveDialog open={isEditCategoriesOpen} onOpenChange={setIsEditCategoriesOpen}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Gerenciar Categorias de Adicionais</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
           <AddonCategoriesManager storeId={storeId} />
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </>
   );
 }
