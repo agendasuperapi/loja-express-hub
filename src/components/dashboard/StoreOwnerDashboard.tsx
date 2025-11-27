@@ -34,7 +34,7 @@ import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
 import { WhatsAppConfirmDialog } from "./WhatsAppConfirmDialog";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
@@ -2341,11 +2341,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </motion.div>
 
             {/* Custom Date Range Dialog */}
-            <Dialog open={showCustomDatePicker} onOpenChange={setShowCustomDatePicker}>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Selecionar Período Personalizado</DialogTitle>
-                </DialogHeader>
+            <ResponsiveDialog open={showCustomDatePicker} onOpenChange={setShowCustomDatePicker}>
+              <ResponsiveDialogContent className="sm:max-w-[600px]">
+                <ResponsiveDialogHeader>
+                  <ResponsiveDialogTitle>Selecionar Período Personalizado</ResponsiveDialogTitle>
+                </ResponsiveDialogHeader>
                 <div className="grid gap-6 py-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -2406,7 +2406,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
                     <Button
                       variant="outline"
                       onClick={() => {
@@ -2415,6 +2415,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           setPeriodFilter("all");
                         }
                       }}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
@@ -2426,13 +2427,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         }
                       }}
                       disabled={!customDateRange.from || !customDateRange.to}
+                      className="w-full sm:w-auto"
                     >
                       Aplicar Filtro
                     </Button>
                   </div>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </ResponsiveDialogContent>
+            </ResponsiveDialog>
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -3528,28 +3530,27 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </div>
                   {hasPermission('products', 'create') && (
                 <ResponsiveDialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={() => {
-                      setEditingProduct(null);
-                      setActiveProductTab("info");
-                      setProductForm({
-                        name: '',
-                        description: '',
-                        category: '',
-                        price: 0,
-                        promotional_price: 0,
-                        is_available: true,
-                        image_url: '',
-                        is_pizza: false,
-                        max_flavors: 2,
-                        external_code: '',
-                        is_featured: false,
-                      });
-                    }} size="lg">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Novo Produto
-                    </Button>
-                  </DialogTrigger>
+                  <Button onClick={() => {
+                    setEditingProduct(null);
+                    setActiveProductTab("info");
+                    setProductForm({
+                      name: '',
+                      description: '',
+                      category: '',
+                      price: 0,
+                      promotional_price: 0,
+                      is_available: true,
+                      image_url: '',
+                      is_pizza: false,
+                      max_flavors: 2,
+                      external_code: '',
+                      is_featured: false,
+                    });
+                    setIsProductDialogOpen(true);
+                  }} size="lg">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Produto
+                  </Button>
                 <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
                   <ResponsiveDialogHeader className="flex-shrink-0">
                     <ResponsiveDialogTitle>
@@ -3633,16 +3634,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                     ))}
                                 </SelectContent>
                               </Select>
-                              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                                <DialogTrigger asChild>
-                                  <Button variant="outline" size="icon">
-                                    <Plus className="w-4 h-4" />
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Nova Categoria</DialogTitle>
-                                  </DialogHeader>
+                              <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                                <Button 
+                                  variant="outline" 
+                                  size="icon"
+                                  onClick={() => setIsCategoryDialogOpen(true)}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                                <ResponsiveDialogContent>
+                                  <ResponsiveDialogHeader>
+                                    <ResponsiveDialogTitle>Nova Categoria</ResponsiveDialogTitle>
+                                  </ResponsiveDialogHeader>
                                   <div className="space-y-4">
                                     <div>
                                       <Label>Nome da Categoria</Label>
@@ -3689,8 +3692,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                       </>
                                     )}
                                   </div>
-                                </DialogContent>
-                              </Dialog>
+                                </ResponsiveDialogContent>
+                              </ResponsiveDialog>
                             </div>
                           </div>
                           <div>
@@ -4400,17 +4403,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       </Button>
                     )}
                     {hasPermission('categories', 'create') && (
-                      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button size="lg">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Nova Categoria
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Nova Categoria</DialogTitle>
-                          </DialogHeader>
+                      <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                        <Button 
+                          size="lg"
+                          onClick={() => setIsCategoryDialogOpen(true)}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Nova Categoria
+                        </Button>
+                        <ResponsiveDialogContent>
+                          <ResponsiveDialogHeader>
+                            <ResponsiveDialogTitle>Nova Categoria</ResponsiveDialogTitle>
+                          </ResponsiveDialogHeader>
                           <div className="space-y-4">
                             <div>
                               <Label>Nome da Categoria</Label>
@@ -4433,8 +4437,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               Adicionar Categoria
                             </Button>
                           </div>
-                        </DialogContent>
-                      </Dialog>
+                        </ResponsiveDialogContent>
+                      </ResponsiveDialog>
                     )}
                   </div>
                 </div>
