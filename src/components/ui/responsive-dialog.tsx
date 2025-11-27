@@ -41,8 +41,8 @@ export function ResponsiveDialogContent({ children, className, ...props }: Respo
 
   if (isMobile) {
     return (
-      <DrawerContent className={cn("max-h-[85vh]", className)} {...props}>
-        <div className="overflow-y-auto px-4 pb-4">
+      <DrawerContent className={cn("max-h-[95vh] flex flex-col", className)} {...props}>
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
           {children}
         </div>
       </DrawerContent>

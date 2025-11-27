@@ -3550,14 +3550,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Novo Produto
                     </Button>
                   </DialogTrigger>
-                <ResponsiveDialogContent className="w-full max-w-[95vw] md:max-w-[80vw] lg:max-w-[50vw] max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col bg-background z-50">
+                <ResponsiveDialogContent className="w-full max-w-[95vw] md:max-w-[80vw] lg:max-w-[50vw] max-h-[95vh] md:max-h-[90vh] flex flex-col bg-background z-50">
                   <ResponsiveDialogHeader className="flex-shrink-0">
                     <ResponsiveDialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
                     </ResponsiveDialogTitle>
                   </ResponsiveDialogHeader>
                   
-                  <ScrollArea className="flex-1 -mx-4 md:-mx-6 px-4 md:px-6">
+                  <ScrollArea className="flex-1 px-4 md:px-6">
                     <div className="space-y-4 pb-24 md:pb-4">
                       {/* Mobile: Select dropdown para as abas */}
                       <div className="md:hidden">
