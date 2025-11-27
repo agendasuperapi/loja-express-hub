@@ -3559,19 +3559,39 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   
                   <ScrollArea className="flex-1 -mx-4 md:-mx-6 px-4 md:px-6">
                     <div className="space-y-4 pb-24 md:pb-4">
+                      {/* Mobile: Select dropdown para as abas */}
+                      <div className="md:hidden">
+                        <Select value={activeProductTab} onValueChange={setActiveProductTab}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione uma seção" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="info">Informações</SelectItem>
+                            <SelectItem value="sizes" disabled={!editingProduct}>
+                              Tamanhos {!editingProduct && "(salve primeiro)"}
+                            </SelectItem>
+                            <SelectItem value="addons" disabled={!editingProduct}>
+                              Adicionais {!editingProduct && "(salve primeiro)"}
+                            </SelectItem>
+                            <SelectItem value="flavors" disabled={!editingProduct}>
+                              Múltiplos Sabores {!editingProduct && "(salve primeiro)"}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <Tabs value={activeProductTab} onValueChange={setActiveProductTab} className="w-full">
-                        <TabsList className="flex overflow-x-auto md:grid md:grid-cols-4 w-full gap-1 scrollbar-hide">
-                          <TabsTrigger value="info" className="whitespace-nowrap">Informações</TabsTrigger>
-                          <TabsTrigger value="sizes" disabled={!editingProduct} className="whitespace-nowrap">
-                            Tamanhos {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
+                        {/* Desktop: Tabs visuais */}
+                        <TabsList className="hidden md:grid md:grid-cols-4 w-full gap-1">
+                          <TabsTrigger value="info">Informações</TabsTrigger>
+                          <TabsTrigger value="sizes" disabled={!editingProduct}>
+                            Tamanhos {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
-                          <TabsTrigger value="addons" disabled={!editingProduct} className="whitespace-nowrap">
-                            Adicionais {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
+                          <TabsTrigger value="addons" disabled={!editingProduct}>
+                            Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
-                          <TabsTrigger value="flavors" disabled={!editingProduct} className="whitespace-nowrap">
-                            <span className="hidden md:inline">Múltiplos Sabores</span>
-                            <span className="md:hidden">Sabores</span>
-                            {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
+                          <TabsTrigger value="flavors" disabled={!editingProduct}>
+                            Múltiplos Sabores {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
                         </TabsList>
                         
