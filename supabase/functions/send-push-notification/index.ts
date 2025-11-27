@@ -43,9 +43,10 @@ function base64urlEncode(buffer: ArrayBuffer | Uint8Array): string {
     .replace(/=/g, '');
 }
 
-// Gera JWT para VAPID authentication
+// Gera JWT para VAPID authentication usando chaves em formato raw (web-push style)
 async function generateVAPIDToken(
   privateKey: string,
+  publicKey: string,
   subject: string,
   endpoint: string
 ): Promise<string> {
@@ -59,18 +60,36 @@ async function generateVAPIDToken(
   const payloadB64 = base64urlEncode(new TextEncoder().encode(JSON.stringify(payload)));
   const unsignedToken = `${headerB64}.${payloadB64}`;
 
-  // Importar chave privada VAPID
-  const keyData = base64urlDecode(privateKey);
-  // @ts-ignore: Deno type compatibility
+  // Decodifica chaves VAPID no formato usado pelo web-push
+  // privateKey: escalar de 32 bytes em base64url
+  // publicKey: chave pública uncompressed (65 bytes: 0x04 || X(32) || Y(32)) em base64url
+  const privBytes = base64urlDecode(privateKey);
+  const pubBytes = base64urlDecode(publicKey);
+
+  if (pubBytes.length !== 65 || pubBytes[0] !== 4) {
+    throw new Error('VAPID_PUBLIC_KEY inválida: esperado formato uncompressed (65 bytes iniciando com 0x04)');
+  }
+
+  const x = pubBytes.slice(1, 33);
+  const y = pubBytes.slice(33, 65);
+
+  const jwk: JsonWebKey = {
+    kty: 'EC',
+    crv: 'P-256',
+    d: base64urlEncode(privBytes),
+    x: base64urlEncode(x),
+    y: base64urlEncode(y),
+  };
+
+  // Importa chave privada como JWK para assinar o JWT
   const cryptoKey = await crypto.subtle.importKey(
-    'pkcs8',
-    keyData,
+    'jwk',
+    jwk,
     { name: 'ECDSA', namedCurve: 'P-256' },
     false,
     ['sign']
   );
 
-  // Assinar o token
   const signature = await crypto.subtle.sign(
     { name: 'ECDSA', hash: 'SHA-256' },
     cryptoKey,
@@ -319,6 +338,7 @@ serve(async (req) => {
           // Gera token VAPID
           const vapidToken = await generateVAPIDToken(
             VAPID_PRIVATE_KEY,
+            VAPID_PUBLIC_KEY,
             VAPID_SUBJECT,
             subscriptionData.endpoint
           );
