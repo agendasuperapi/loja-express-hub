@@ -57,6 +57,19 @@ export const ImageUpload = ({
     }
   }, [currentImageUrl]);
 
+  // Timeout como fallback se a imagem não carregar
+  useEffect(() => {
+    if (previewUrl && !imageLoaded && !imageError) {
+      const timeout = setTimeout(() => {
+        if (!imageLoaded) {
+          console.log('Timeout: imagem não carregou em 10 segundos');
+          setImageError(true);
+        }
+      }, 10000);
+      return () => clearTimeout(timeout);
+    }
+  }, [previewUrl, imageLoaded, imageError]);
+
   // Limpar URLs de objetos quando o componente é desmontado
   useEffect(() => {
     return () => {
@@ -314,9 +327,9 @@ export const ImageUpload = ({
   };
 
   const sizeClasses = {
-    sm: 'max-w-[150px]',
-    md: 'max-w-[220px]',
-    lg: 'max-w-[350px]'
+    sm: 'sm:max-w-[150px]',
+    md: 'sm:max-w-[220px]',
+    lg: 'sm:max-w-[350px]'
   };
 
   return (
@@ -331,7 +344,7 @@ export const ImageUpload = ({
         
         {previewUrl ? (
           <div className="relative">
-            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto rounded-lg overflow-hidden border border-border bg-muted/30 relative`}>
+            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto min-h-[120px] rounded-lg overflow-hidden border border-border bg-muted/30 relative`}>
               {!imageLoaded && !imageError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -346,7 +359,7 @@ export const ImageUpload = ({
               <img
                 src={previewUrl}
                 alt="Preview"
-                className={`w-full h-full object-contain sm:object-cover transition-opacity ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                className={`absolute inset-0 w-full h-full object-contain sm:object-cover transition-opacity ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
                 onLoad={() => {
                   setImageLoaded(true);
                   setImageError(false);
