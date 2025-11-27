@@ -170,7 +170,8 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
- * Normalizes phone PIX keys by adding +55 prefix when needed
+ * Normalizes phone PIX keys by removing formatting and +55 prefix
+ * Saves only the digits in the database
  */
 export const normalizePixKeyPhone = (key: string): string => {
   if (!key || key.trim() === '') return key;
@@ -178,19 +179,17 @@ export const normalizePixKeyPhone = (key: string): string => {
   const trimmed = key.trim();
   const digitsOnly = trimmed.replace(/\D/g, '');
   
-  // Telefone brasileiro sem código do país (10-11 dígitos)
+  // Remove +55 prefix if present
+  if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
+    return digitsOnly.substring(2);
+  }
+  
+  // Return only digits for phone numbers (10-11 digits)
   if (digitsOnly.length === 10 || digitsOnly.length === 11) {
-    return `+55${digitsOnly}`;
+    return digitsOnly;
   }
   
-  // Já tem código 55 mas sem o +
-  if (digitsOnly.length === 12 || digitsOnly.length === 13) {
-    if (digitsOnly.startsWith('55')) {
-      return `+${digitsOnly}`;
-    }
-  }
-  
-  return key; // Retorna original se não for telefone
+  return key; // Return original if not a phone
 };
 
 /**
