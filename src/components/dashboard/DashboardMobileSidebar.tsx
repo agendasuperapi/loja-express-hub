@@ -73,16 +73,6 @@ export const DashboardMobileSidebar = ({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden fixed top-4 left-4 z-50"
-          data-mobile-menu-button
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
         <div className="flex flex-col h-full bg-background">
           {/* Logo */}
