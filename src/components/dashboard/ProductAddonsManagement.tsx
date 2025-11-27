@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription } from "@/components/ui/responsive-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1910,13 +1911,13 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
       </AlertDialog>
 
       {/* Dialog de Edição/Criação */}
-      <Dialog open={editFormOpen} onOpenChange={setEditFormOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
-          <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg">
+      <ResponsiveDialog open={editFormOpen} onOpenChange={setEditFormOpen}>
+        <ResponsiveDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>
               {editingTemplate ? 'Editar Template' : 'Novo Template Personalizado'}
-            </DialogTitle>
-          </DialogHeader>
+            </ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
 
           <div className="space-y-4 sm:space-y-6 py-3 sm:py-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -2230,18 +2231,18 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
               {editingTemplate ? 'Salvar Alterações' : 'Criar Template'}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Dialog para Importar de Produto */}
-      <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
-          <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg">Importar Template de Produto</DialogTitle>
-            <CardDescription className="text-xs sm:text-sm">
+      <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+        <ResponsiveDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Importar Template de Produto</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
               Selecione um produto para criar um template baseado em seus add-ons e sabores
-            </CardDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           <div className="space-y-3 sm:space-y-4">
             {loadingProducts ? (
@@ -2294,8 +2295,8 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
               Cancelar
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 };
