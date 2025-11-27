@@ -14,7 +14,7 @@ export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick, pendin
     { id: "home", label: "Início", icon: Home },
     { id: "produtos", label: "Produtos", icon: Package },
     { id: "pedidos", label: "Pedidos", icon: ShoppingBag },
-    { id: "relatorios", label: "Relatórios", icon: TrendingUp },
+    { id: "relatorios", label: "Relatórios", icon: TrendingUp, isMenu: true },
     { id: "menu", label: "Menu", icon: Menu, isMenu: true },
   ];
 
