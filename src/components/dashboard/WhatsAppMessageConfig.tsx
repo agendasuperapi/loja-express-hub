@@ -21,7 +21,7 @@ const DEFAULT_VALUES = {
   pix_copiacola_message_description: "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
   pix_copiacola_message_footer: "Código válido para este pedido específico.",
   pix_copiacola_message_button_text: "📋 COPIAR CÓDIGO PIX",
-  pix_copiacola_button_text: "PIX Copia e Cola"
+  pix_copiacola_button_text: "📋 COPIAR CÓDIGO PIX"
 };
 interface Store {
   id: string;
