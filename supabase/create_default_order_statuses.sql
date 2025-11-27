@@ -73,7 +73,7 @@ BEGIN
       '#10B981',
       5,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\nSeu pedido #{{order_number}} foi entregue! Obrigado pela preferência!\n\n🛍️ Visite nossa Vitrine de ofertas e não perca as promoções do dia.\n\nAcesse: {{store_url}}'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\nSeu pedido #{{order_number}} foi entregue! Obrigado pela preferência!\n\n🛍️ Visite nosso Site e não perca as promoções do dia.\n\nAcesse: {{store_url}}'
     ),
     
     -- Status 7: Cancelado
@@ -171,7 +171,7 @@ BEGIN
           '#10B981',
           5,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\nSeu pedido #{{order_number}} foi entregue! Obrigado pela preferência!\n\n🛍️ Visite nossa Vitrine de ofertas e não perca as promoções do dia.\n\nAcesse: {{store_url}}'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}!\nSeu pedido #{{order_number}} foi entregue! Obrigado pela preferência!\n\n🛍️ Visite nosso Site e não perca as promoções do dia.\n\nAcesse: {{store_url}}'
         ),
         (
           store_record.id,

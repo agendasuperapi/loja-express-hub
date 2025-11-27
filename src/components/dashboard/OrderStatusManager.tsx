@@ -99,7 +99,7 @@ Chegará em breve.
 Olá {{customer_name}}!
 Seu pedido #{{order_number}} foi entregue! Obrigado pela preferência!
 
-🛍️ Visite nossa Vitrine de ofertas e não perca as promoções do dia.
+🛍️ Visite nosso Site e não perca as promoções do dia.
 
 Acesse: {{store_url}}`,
   
@@ -190,7 +190,7 @@ Chegará em breve.
 Olá {{customer_name}}!
 Seu pedido #{{order_number}} foi entregue! Obrigado pela preferência!
 
-🛍️ Visite nossa Vitrine de ofertas e não perca as promoções do dia.
+🛍️ Visite nosso Site e não perca as promoções do dia.
 
 Acesse: {{store_url}}`,
   
