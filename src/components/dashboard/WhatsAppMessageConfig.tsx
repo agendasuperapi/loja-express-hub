@@ -162,7 +162,7 @@ export const WhatsAppMessageConfig = ({
   return <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Mensagens PIX Copia e Cola</CardTitle>
+          <CardTitle>Mensagens Pix</CardTitle>
           <CardDescription>
             Configure as mensagens com botões de copiar PIX que serão enviadas automaticamente
             após confirmação do pedido (apenas para pagamentos via PIX).
