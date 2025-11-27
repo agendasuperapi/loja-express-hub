@@ -1713,20 +1713,21 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3">
             <div>
-              <CardTitle>Templates de Adicionais e sabores</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Templates de Adicionais e sabores</CardTitle>
+              <CardDescription className="text-xs sm:text-sm mt-1">
                 Crie e gerencie seus próprios templates personalizados
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 onClick={() => {
                   loadProducts();
                   setImportFromProductOpen(true);
                 }}
                 variant="outline"
+                className="w-full sm:w-auto text-sm h-9"
               >
                 <Package className="w-4 h-4 mr-2" />
                 Importar de Produto
@@ -1741,7 +1742,9 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                   flavors: [{ name: '', description: '', price: 0 }]
                 });
                 setEditFormOpen(true);
-              }}>
+              }}
+              className="w-full sm:w-auto text-sm h-9"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Template
               </Button>
@@ -1752,55 +1755,56 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
           {/* Templates Personalizados */}
           {!loadingCustom && customTemplates.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Meus Templates</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 px-1">Meus Templates</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {customTemplates.map((template) => (
                   <Card key={template.id} className="hover:border-primary transition-colors">
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="text-3xl">{template.icon}</div>
-                        <div className="flex-1">
-                          <CardTitle className="text-base">{template.name}</CardTitle>
-                          <CardDescription className="text-xs">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="text-2xl sm:text-3xl shrink-0">{template.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-sm sm:text-base truncate">{template.name}</CardTitle>
+                          <CardDescription className="text-[11px] sm:text-xs line-clamp-2">
                             {template.description}
                           </CardDescription>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="text-xs">
+                    <CardContent className="pt-0">
+                      <div className="space-y-2 sm:space-y-3">
+                        <div className="text-[11px] sm:text-xs">
                           <span className="font-medium">Categorias:</span>
-                          <ul className="text-muted-foreground space-y-1 mt-1">
+                          <ul className="text-muted-foreground space-y-0.5 sm:space-y-1 mt-1">
                             {template.categories.map((cat: any, idx: number) => (
-                              <li key={idx}>• {cat.name} ({cat.addons.length})</li>
+                              <li key={idx} className="truncate">• {cat.name} ({cat.addons.length})</li>
                             ))}
                           </ul>
                         </div>
                         {template.flavors && template.flavors.length > 0 && (
-                          <div className="text-xs">
+                          <div className="text-[11px] sm:text-xs">
                             <span className="font-medium">Sabores:</span>
                             <span className="text-muted-foreground ml-1">
                               {template.flavors.length} sabores inclusos
                             </span>
                           </div>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           <Button
                             onClick={() => {
                               setSelectedTemplate(template);
                               setPreviewOpen(true);
                             }}
-                            className="flex-1"
+                            className="flex-1 min-w-[calc(100%-100px)] text-xs h-8 sm:h-9"
                             size="sm"
                           >
                             <Sparkles className="w-3 h-3 mr-1" />
-                            Visualizar
+                            Ver
                           </Button>
                           <Button
                             onClick={() => handleEditTemplate(template)}
                             variant="outline"
                             size="sm"
+                            className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                           >
                             <Pencil className="w-3 h-3" />
                           </Button>
@@ -1808,25 +1812,26 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                             onClick={() => handleDuplicateTemplate(template)}
                             variant="outline"
                             size="sm"
+                            className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                           >
                             <Copy className="w-3 h-3" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0 sm:h-9 sm:w-9">
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent>
+                            <AlertDialogContent className="w-[95vw] sm:w-full max-w-md">
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir Template</AlertDialogTitle>
-                                <AlertDialogDescription>
+                                <AlertDialogTitle className="text-base sm:text-lg">Excluir Template</AlertDialogTitle>
+                                <AlertDialogDescription className="text-xs sm:text-sm">
                                   Tem certeza que deseja excluir este template? Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteCustomTemplate(template.id)}>
+                              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                <AlertDialogCancel className="w-full sm:w-auto text-sm">Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteCustomTemplate(template.id)} className="w-full sm:w-auto text-sm">
                                   Excluir
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -1845,26 +1850,26 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
 
       {/* Dialog de Visualização e Aplicação */}
       <AlertDialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <AlertDialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <AlertDialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto w-[95vw] sm:w-full">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-3">
-              <span className="text-4xl">{selectedTemplate?.icon}</span>
-              {selectedTemplate?.name}
+            <AlertDialogTitle className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg">
+              <span className="text-2xl sm:text-4xl">{selectedTemplate?.icon}</span>
+              <span className="truncate">{selectedTemplate?.name}</span>
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-xs sm:text-sm">
               {selectedTemplate?.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
           
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
             {selectedTemplate?.categories.map((category: any, catIdx: number) => (
-              <div key={catIdx} className="border rounded-lg p-4">
-                <h4 className="font-semibold mb-3">{category.name}</h4>
+              <div key={catIdx} className="border rounded-lg p-3 sm:p-4">
+                <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">{category.name}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {category.addons.map((addon: any, addonIdx: number) => (
-                    <div key={addonIdx} className="flex justify-between items-center text-sm p-2 bg-muted rounded">
-                      <span>{addon.name}</span>
-                      <Badge variant="secondary">R$ {addon.price.toFixed(2)}</Badge>
+                    <div key={addonIdx} className="flex justify-between items-center text-xs sm:text-sm p-2 bg-muted rounded">
+                      <span className="truncate mr-2">{addon.name}</span>
+                      <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">R$ {addon.price.toFixed(2)}</Badge>
                     </div>
                   ))}
                 </div>
@@ -1872,17 +1877,17 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             ))}
 
             {selectedTemplate?.flavors && selectedTemplate.flavors.length > 0 && (
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <h4 className="font-semibold mb-3">Sabores</h4>
+              <div className="border rounded-lg p-3 sm:p-4 bg-muted/30">
+                <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Sabores</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {selectedTemplate.flavors.map((flavor: any, flavorIdx: number) => (
-                    <div key={flavorIdx} className="flex flex-col text-sm p-2 bg-background rounded">
+                    <div key={flavorIdx} className="flex flex-col text-xs sm:text-sm p-2 bg-background rounded">
                       <div className="flex justify-between items-center">
-                        <span className="font-medium">{flavor.name}</span>
-                        <Badge variant="secondary">R$ {flavor.price.toFixed(2)}</Badge>
+                        <span className="font-medium truncate mr-2">{flavor.name}</span>
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">R$ {flavor.price.toFixed(2)}</Badge>
                       </div>
                       {flavor.description && (
-                        <span className="text-xs text-muted-foreground mt-1">{flavor.description}</span>
+                        <span className="text-[11px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">{flavor.description}</span>
                       )}
                     </div>
                   ))}
@@ -1891,11 +1896,12 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             )}
           </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isApplying}>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel disabled={isApplying} className="w-full sm:w-auto text-sm">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => selectedTemplate && handleApplyTemplate(selectedTemplate)}
               disabled={isApplying}
+              className="w-full sm:w-auto text-sm"
             >
               {isApplying ? 'Aplicando...' : 'Aplicar Template'}
             </AlertDialogAction>
@@ -1905,47 +1911,50 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
 
       {/* Dialog de Edição/Criação */}
       <Dialog open={editFormOpen} onOpenChange={setEditFormOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">
               {editingTemplate ? 'Editar Template' : 'Novo Template Personalizado'}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4 sm:space-y-6 py-3 sm:py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label>Nome do Template</Label>
+                <Label className="text-sm">Nome do Template</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ex: Pizzaria Premium"
+                  className="text-sm"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Ícone (Emoji)</Label>
+                <Label className="text-sm">Ícone (Emoji)</Label>
                 <Input
                   value={formData.icon}
                   onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                   placeholder="🍕"
                   maxLength={2}
+                  className="text-sm"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <Label className="text-sm">Descrição</Label>
               <Input
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Descreva seu template..."
+                className="text-sm"
               />
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base">Categorias e Adicionais</Label>
-                <Button onClick={addCategory} size="sm" variant="outline">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <Label className="text-sm sm:text-base">Categorias e Adicionais</Label>
+                <Button onClick={addCategory} size="sm" variant="outline" className="w-full sm:w-auto text-sm h-9">
                   <Plus className="w-4 h-4 mr-1" />
                   Adicionar Categoria
                 </Button>
@@ -1954,20 +1963,20 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
               {formData.categories.map((category, catIdx) => (
                 <Card key={catIdx}>
                   <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <div className="flex-1">
                         <Popover open={openCategoryPopover === catIdx} onOpenChange={(open) => setOpenCategoryPopover(open ? catIdx : null)}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="w-full justify-between font-normal"
+                              className="w-full justify-between font-normal text-sm h-9"
                             >
-                              {category.name || "Nome da categoria"}
+                              <span className="truncate">{category.name || "Nome da categoria"}</span>
                               <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-full p-0" align="start">
+                          <PopoverContent className="w-[90vw] sm:w-full p-0" align="start">
                             <Command>
                               <CommandInput 
                                 placeholder="Buscar ou digitar nova..." 
@@ -2005,27 +2014,29 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                         size="sm"
                         variant="ghost"
                         disabled={formData.categories.length === 1}
+                        className="w-full sm:w-auto h-8 sm:h-9"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 mr-2 sm:mr-0" />
+                        <span className="sm:hidden">Remover Categoria</span>
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {category.addons.map((addon, addonIdx) => (
-                      <div key={addonIdx} className="flex gap-2 items-start">
+                      <div key={addonIdx} className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-start">
                         <div className="flex-1">
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
                                 variant="outline"
                                 role="combobox"
-                                className="w-full justify-between font-normal"
+                                className="w-full justify-between font-normal text-sm h-9"
                               >
-                                {addon.name || "Nome do adicional"}
+                                <span className="truncate">{addon.name || "Nome do adicional"}</span>
                                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-full p-0" align="start">
+                            <PopoverContent className="w-[90vw] sm:w-full p-0" align="start">
                               <Command>
                                 <CommandInput 
                                   placeholder="Buscar ou digitar novo..." 
@@ -2049,8 +2060,8 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                                             }}
                                           >
                                             <div className="flex items-center justify-between w-full">
-                                              <span>{storeAddon.name}</span>
-                                              <Badge variant="secondary" className="ml-2">
+                                              <span className="truncate">{storeAddon.name}</span>
+                                              <Badge variant="secondary" className="ml-2 text-[10px] sm:text-xs shrink-0">
                                                 R$ {storeAddon.price.toFixed(2)}
                                               </Badge>
                                             </div>
@@ -2063,29 +2074,32 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                             </PopoverContent>
                           </Popover>
                         </div>
-                        <Input
-                          type="number"
-                          value={addon.price}
-                          onChange={(e) => updateAddon(catIdx, addonIdx, 'price', parseFloat(e.target.value) || 0)}
-                          placeholder="Preço"
-                          className="w-28"
-                          step="0.01"
-                        />
-                        <Button
-                          onClick={() => removeAddon(catIdx, addonIdx)}
-                          size="sm"
-                          variant="ghost"
-                          disabled={category.addons.length === 1}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            value={addon.price}
+                            onChange={(e) => updateAddon(catIdx, addonIdx, 'price', parseFloat(e.target.value) || 0)}
+                            placeholder="Preço"
+                            className="w-full sm:w-28 text-sm h-9"
+                            step="0.01"
+                          />
+                          <Button
+                            onClick={() => removeAddon(catIdx, addonIdx)}
+                            size="sm"
+                            variant="ghost"
+                            disabled={category.addons.length === 1}
+                            className="h-9 w-9 p-0 shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                     <Button
                       onClick={() => addAddon(catIdx)}
                       size="sm"
                       variant="outline"
-                      className="w-full"
+                      className="w-full text-sm h-9"
                     >
                       <Plus className="w-3 h-3 mr-1" />
                       Adicionar Adicional
@@ -2096,10 +2110,10 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             </div>
 
             {/* Seção de Sabores */}
-            <div className="space-y-4 border-t pt-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base">Sabores</Label>
-                <Button onClick={addFlavor} size="sm" variant="outline">
+            <div className="space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <Label className="text-sm sm:text-base">Sabores</Label>
+                <Button onClick={addFlavor} size="sm" variant="outline" className="w-full sm:w-auto text-sm h-9">
                   <Plus className="w-4 h-4 mr-1" />
                   Adicionar Sabor
                 </Button>
@@ -2107,22 +2121,22 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
 
               {formData.flavors.map((flavor, flavorIdx) => (
                 <Card key={flavorIdx}>
-                  <CardContent className="pt-4">
+                  <CardContent className="pt-3 sm:pt-4">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <div className="flex-1">
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
                                 variant="outline"
                                 role="combobox"
-                                className="w-full justify-between font-normal"
+                                className="w-full justify-between font-normal text-sm h-9"
                               >
-                                {flavor.name || "Nome do sabor"}
+                                <span className="truncate">{flavor.name || "Nome do sabor"}</span>
                                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-full p-0" align="start">
+                            <PopoverContent className="w-[90vw] sm:w-full p-0" align="start">
                               <Command>
                                 <CommandInput 
                                   placeholder="Buscar ou digitar novo..." 
@@ -2148,13 +2162,13 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                                           >
                                             <div className="flex flex-col flex-1">
                                               <div className="flex items-center justify-between">
-                                                <span>{storeFlavor.name}</span>
-                                                <Badge variant="secondary" className="ml-2">
+                                                <span className="truncate">{storeFlavor.name}</span>
+                                                <Badge variant="secondary" className="ml-2 text-[10px] sm:text-xs shrink-0">
                                                   R$ {storeFlavor.price.toFixed(2)}
                                                 </Badge>
                                               </div>
                                               {storeFlavor.description && (
-                                                <span className="text-xs text-muted-foreground">
+                                                <span className="text-[11px] sm:text-xs text-muted-foreground truncate">
                                                   {storeFlavor.description}
                                                 </span>
                                               )}
@@ -2173,17 +2187,20 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                           variant="ghost"
                           size="sm"
                           disabled={formData.flavors.length === 1}
+                          className="w-full sm:w-auto h-8 sm:h-9"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 mr-2 sm:mr-0" />
+                          <span className="sm:hidden">Remover Sabor</span>
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                           <Input
                             value={flavor.description}
                             onChange={(e) => updateFlavor(flavorIdx, 'description', e.target.value)}
                             placeholder="Descrição (opcional)"
+                            className="text-sm h-9"
                           />
                         </div>
                         <div>
@@ -2194,6 +2211,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
                             value={flavor.price}
                             onChange={(e) => updateFlavor(flavorIdx, 'price', parseFloat(e.target.value) || 0)}
                             placeholder="Preço"
+                            className="text-sm h-9"
                           />
                         </div>
                       </div>
@@ -2204,11 +2222,11 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setEditFormOpen(false)}>
+          <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setEditFormOpen(false)} className="w-full sm:w-auto text-sm">
               Cancelar
             </Button>
-            <Button onClick={handleSaveCustomTemplate}>
+            <Button onClick={handleSaveCustomTemplate} className="w-full sm:w-auto text-sm">
               {editingTemplate ? 'Salvar Alterações' : 'Criar Template'}
             </Button>
           </div>
@@ -2217,50 +2235,50 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
 
       {/* Dialog para Importar de Produto */}
       <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle>Importar Template de Produto</DialogTitle>
-            <CardDescription>
+            <DialogTitle className="text-base sm:text-lg">Importar Template de Produto</DialogTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Selecione um produto para criar um template baseado em seus add-ons e sabores
             </CardDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {loadingProducts ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                 Carregando produtos...
               </div>
             ) : products.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                 Nenhum produto encontrado na loja
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-2 sm:gap-3">
                 {products.map((product) => (
                   <Card 
                     key={product.id} 
                     className="cursor-pointer hover:border-primary transition-colors"
                     onClick={() => handleImportFromProduct(product)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         {product.image_url && (
                           <img 
                             src={product.image_url} 
                             alt={product.name}
-                            className="w-12 h-12 object-cover rounded"
+                            className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded shrink-0"
                           />
                         )}
-                        <div className="flex-1">
-                          <h4 className="font-medium">{product.name}</h4>
-                          <p className="text-sm text-muted-foreground">{product.category}</p>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm sm:text-base truncate">{product.name}</h4>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{product.category}</p>
                           {product.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                            <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 line-clamp-1">
                               {product.description}
                             </p>
                           )}
                         </div>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs shrink-0">
                           R$ {product.price?.toFixed(2)}
                         </Badge>
                       </div>
@@ -2272,7 +2290,7 @@ export const TemplatesTab = ({ storeId }: { storeId: string }) => {
           </div>
 
           <div className="flex justify-end">
-            <Button variant="outline" onClick={() => setImportFromProductOpen(false)}>
+            <Button variant="outline" onClick={() => setImportFromProductOpen(false)} className="w-full sm:w-auto text-sm">
               Cancelar
             </Button>
           </div>
