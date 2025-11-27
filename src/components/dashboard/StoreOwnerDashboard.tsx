@@ -35,7 +35,7 @@ import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
 import { WhatsAppConfirmDialog } from "./WhatsAppConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -3595,7 +3595,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[500px]">
+                        <TabsContent value="info" className="space-y-4 mt-4">
                       
                           <ImageUpload
                             bucket="product-images"
@@ -3762,13 +3762,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </div>
                         </TabsContent>
 
-                        <TabsContent value="sizes" className="mt-4 min-h-[500px]">
+                        <TabsContent value="sizes" className="mt-4">
                           {editingProduct && (
                             <ProductSizesManager productId={editingProduct.id} />
                           )}
                         </TabsContent>
 
-                        <TabsContent value="addons" className="mt-4 min-h-[500px]">
+                        <TabsContent value="addons" className="mt-4">
                           {editingProduct && myStore && (
                             <ProductAddonsManager 
                               productId={editingProduct.id}
@@ -3777,7 +3777,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           )}
                         </TabsContent>
 
-                        <TabsContent value="flavors" className="mt-4 min-h-[500px]">
+                        <TabsContent value="flavors" className="mt-4">
                           {editingProduct && (
                             <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
@@ -4631,11 +4631,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 )}
 
                 {/* Dialog de edição de categoria */}
-                <Dialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Editar Categoria</DialogTitle>
-                    </DialogHeader>
+                <ResponsiveDialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+                  <ResponsiveDialogContent>
+                    <ResponsiveDialogHeader>
+                      <ResponsiveDialogTitle>Editar Categoria</ResponsiveDialogTitle>
+                    </ResponsiveDialogHeader>
                     <div className="space-y-4">
                       <div>
                         <Label>Nome da Categoria</Label>
@@ -4661,8 +4661,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         Salvar Alterações
                       </Button>
                     </div>
-                  </DialogContent>
-                </Dialog>
+                  </ResponsiveDialogContent>
+                </ResponsiveDialog>
               </TabsContent>
 
               <TabsContent value="combos">
@@ -5358,17 +5358,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   Horários de Funcionamento
                 </h3>
                 
-                <Dialog open={isHoursDialogOpen} onOpenChange={setIsHoursDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="lg" className="w-full flex items-center gap-2">
-                      <Clock className="h-5 w-5" />
-                      Gerenciar Horários de Funcionamento
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Horários de Funcionamento</DialogTitle>
-                    </DialogHeader>
+                <ResponsiveDialog open={isHoursDialogOpen} onOpenChange={setIsHoursDialogOpen}>
+                  <Button 
+                    variant="outline" 
+                    size="lg" 
+                    className="w-full flex items-center gap-2"
+                    onClick={() => setIsHoursDialogOpen(true)}
+                  >
+                    <Clock className="h-5 w-5" />
+                    Gerenciar Horários de Funcionamento
+                  </Button>
+                  <ResponsiveDialogContent className="max-w-3xl">
+                    <ResponsiveDialogHeader>
+                      <ResponsiveDialogTitle>Horários de Funcionamento</ResponsiveDialogTitle>
+                    </ResponsiveDialogHeader>
                     <OperatingHoursManager 
                       initialHours={(myStore?.operating_hours as any) || {
                         monday: { open: "08:00", close: "18:00", is_closed: false },
@@ -5381,8 +5384,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       }}
                       onSave={handleSaveOperatingHours}
                     />
-                  </DialogContent>
-                </Dialog>
+                  </ResponsiveDialogContent>
+                </ResponsiveDialog>
               </div>
 
               <Separator className="my-6" />
@@ -5815,11 +5818,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       />
 
       {/* View Order Dialog */}
-      <Dialog open={isViewOrderDialogOpen} onOpenChange={setIsViewOrderDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Pedido #{viewingOrder?.order_number}</DialogTitle>
-          </DialogHeader>
+      <ResponsiveDialog open={isViewOrderDialogOpen} onOpenChange={setIsViewOrderDialogOpen}>
+        <ResponsiveDialogContent className="max-w-2xl">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Detalhes do Pedido #{viewingOrder?.order_number}</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
           
           {viewingOrder && (
             <div className="space-y-6">
@@ -6037,11 +6040,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               </div>
 
               {/* Botões de Ação */}
-              <div className="flex gap-2 justify-end">
+              <div className="flex flex-col sm:flex-row gap-2 justify-end">
                 <Button
                   variant="outline"
                   onClick={() => handlePrintOrder(viewingOrder)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <Printer className="w-4 h-4" />
                   Imprimir
@@ -6054,7 +6057,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       setNotesOrder(viewingOrder);
                       setIsNotesDialogOpen(true);
                     }}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
                     <MessageSquare className="w-4 h-4" />
                     Notas
@@ -6068,7 +6071,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       setIsEditOrderDialogOpen(true);
                       setEditDialogInitialTab("items");
                     }}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                   >
                     <Edit2 className="w-4 h-4" />
                     Editar Pedido
@@ -6077,8 +6080,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Receipt Dialog */}
       <ReceiptDialog
@@ -6177,14 +6180,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       </AlertDialog>
 
       {/* Bulk Change Category Dialog */}
-      <Dialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Alterar Categoria em Massa</DialogTitle>
-            <DialogDescription>
+      <ResponsiveDialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Alterar Categoria em Massa</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
               Selecione a nova categoria para os {selectedProducts.length} produto(s) selecionado(s)
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="bulk-category">Nova Categoria</Label>
@@ -6207,22 +6210,23 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               </Select>
             </div>
           </div>
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
             <Button
               variant="outline"
               onClick={() => {
                 setIsBulkActionDialogOpen(false);
                 setBulkCategoryChange('');
               }}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>
-            <Button onClick={handleBulkChangeCategory}>
+            <Button onClick={handleBulkChangeCategory} className="w-full sm:w-auto">
               Alterar Categoria
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* Dialog de confirmação para duplicar produto */}
       <AlertDialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>

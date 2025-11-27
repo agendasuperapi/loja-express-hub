@@ -1,8 +1,9 @@
 import * as React from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
+import { X } from "lucide-react"
 
 interface ResponsiveDialogProps {
   open?: boolean
@@ -41,7 +42,7 @@ export function ResponsiveDialogContent({ children, className, ...props }: Respo
 
   if (isMobile) {
     return (
-      <DrawerContent className={cn("max-h-[95vh] flex flex-col", className)} {...props}>
+      <DrawerContent className={cn("max-h-[95vh] flex flex-col pb-safe", className)} {...props}>
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           {children}
         </div>
@@ -65,7 +66,15 @@ export function ResponsiveDialogHeader({ children, className }: ResponsiveDialog
   const isMobile = useIsMobile()
 
   if (isMobile) {
-    return <DrawerHeader className={cn("px-0 pt-4", className)}>{children}</DrawerHeader>
+    return (
+      <DrawerHeader className={cn("px-0 pt-4 relative", className)}>
+        {children}
+        <DrawerClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Fechar</span>
+        </DrawerClose>
+      </DrawerHeader>
+    )
   }
 
   return <DialogHeader className={className}>{children}</DialogHeader>
@@ -111,7 +120,7 @@ export function ResponsiveDialogFooter({ children, className }: ResponsiveDialog
 
   if (isMobile) {
     return (
-      <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 sticky bottom-0 bg-background pb-4", className)}>
+      <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 sticky bottom-0 bg-background pb-safe px-4", className)}>
         {children}
       </div>
     )
@@ -122,4 +131,19 @@ export function ResponsiveDialogFooter({ children, className }: ResponsiveDialog
       {children}
     </div>
   )
+}
+
+interface ResponsiveDialogCloseProps {
+  children?: React.ReactNode
+  className?: string
+}
+
+export function ResponsiveDialogClose({ children, className }: ResponsiveDialogCloseProps) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return <DrawerClose className={className}>{children}</DrawerClose>
+  }
+
+  return <DialogClose className={className}>{children}</DialogClose>
 }
