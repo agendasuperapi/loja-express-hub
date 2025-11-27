@@ -550,6 +550,8 @@ export type Database = {
           display_order: number
           id: string
           is_active: boolean | null
+          show_for_delivery: boolean | null
+          show_for_pickup: boolean | null
           status_color: string
           status_key: string
           status_label: string
@@ -562,6 +564,8 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          show_for_delivery?: boolean | null
+          show_for_pickup?: boolean | null
           status_color?: string
           status_key: string
           status_label: string
@@ -574,6 +578,8 @@ export type Database = {
           display_order?: number
           id?: string
           is_active?: boolean | null
+          show_for_delivery?: boolean | null
+          show_for_pickup?: boolean | null
           status_color?: string
           status_key?: string
           status_label?: string
