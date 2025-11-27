@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixKeyPhone } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -276,7 +276,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     phone: myStore?.phone || '',
     whatsapp: (myStore as any)?.whatsapp || '',
     menu_label: myStore?.menu_label || 'Cardápio',
-    pix_key: (myStore as any)?.pix_key || '',
+    pix_key: normalizePixKeyPhone((myStore as any)?.pix_key || ''),
     show_pix_key_to_customer: (myStore as any)?.show_pix_key_to_customer ?? true,
     pix_message_enabled: (myStore as any)?.pix_message_enabled ?? false,
     pix_message_title: (myStore as any)?.pix_message_title || '',
@@ -528,7 +528,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         phone: myStore.phone || '',
         whatsapp: (myStore as any)?.whatsapp || '',
         menu_label: myStore.menu_label || 'Cardápio',
-        pix_key: (myStore as any)?.pix_key || '',
+        pix_key: normalizePixKeyPhone((myStore as any)?.pix_key || ''),
         show_pix_key_to_customer: (myStore as any)?.show_pix_key_to_customer ?? true,
         pix_message_enabled: (myStore as any)?.pix_message_enabled ?? false,
         pix_message_title: (myStore as any)?.pix_message_title || '',
@@ -5454,7 +5454,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         name: myStore.name,
                         slug: myStore.slug,
                         category: myStore.category,
-                        pix_key: storeForm.pix_key || null,
+                        pix_key: storeForm.pix_key ? normalizePixKeyPhone(storeForm.pix_key) : null,
                       });
                       
                       toast({

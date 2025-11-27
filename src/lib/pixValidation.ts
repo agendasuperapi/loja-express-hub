@@ -123,6 +123,30 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
+ * Normalizes phone PIX keys by adding +55 prefix when needed
+ */
+export const normalizePixKeyPhone = (key: string): string => {
+  if (!key || key.trim() === '') return key;
+  
+  const trimmed = key.trim();
+  const digitsOnly = trimmed.replace(/\D/g, '');
+  
+  // Telefone brasileiro sem código do país (10-11 dígitos)
+  if (digitsOnly.length === 10 || digitsOnly.length === 11) {
+    return `+55${digitsOnly}`;
+  }
+  
+  // Já tem código 55 mas sem o +
+  if (digitsOnly.length === 12 || digitsOnly.length === 13) {
+    if (digitsOnly.startsWith('55')) {
+      return `+${digitsOnly}`;
+    }
+  }
+  
+  return key; // Retorna original se não for telefone
+};
+
+/**
  * Formats a PIX key for display based on its type
  */
 export const formatPixKey = (key: string): string => {
