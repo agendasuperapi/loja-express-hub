@@ -6,10 +6,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Save } from "lucide-react";
+import { AlertCircle, Save, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+
+// Valores padrão das mensagens
+const DEFAULT_VALUES = {
+  pix_message_title: "💳 Pagamento via PIX",
+  pix_message_description: "Clique no botão abaixo para copiar a chave PIX,\nfavor enviar o comprovante após o pagamento.",
+  pix_message_footer: "Obrigado pela preferência!",
+  pix_message_button_text: "📋 COPIAR CHAVE PIX",
+  pix_copiacola_message_title: "💳 Código PIX Gerado",
+  pix_copiacola_message_description: "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
+  pix_copiacola_message_footer: "Código válido para este pedido específico.",
+  pix_copiacola_message_button_text: "📋 COPIAR CÓDIGO PIX",
+  pix_copiacola_button_text: "PIX Copia e Cola"
+};
 interface Store {
   id: string;
   pix_key?: string;
@@ -43,38 +56,49 @@ export const WhatsAppMessageConfig = ({
   const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
     // PIX Chave Fixa
-    pix_message_title: store.pix_message_title || "💳 Pagamento via PIX",
-    pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX,\nfavor enviar o comprovante após o pagamento.",
-    pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
-    pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
+    pix_message_title: store.pix_message_title || DEFAULT_VALUES.pix_message_title,
+    pix_message_description: store.pix_message_description || DEFAULT_VALUES.pix_message_description,
+    pix_message_footer: store.pix_message_footer || DEFAULT_VALUES.pix_message_footer,
+    pix_message_button_text: store.pix_message_button_text || DEFAULT_VALUES.pix_message_button_text,
     pix_message_enabled: store.pix_message_enabled || false,
     // PIX Copia e Cola Gerado
-    pix_copiacola_message_title: store.pix_copiacola_message_title || "💳 Código PIX Gerado",
-    pix_copiacola_message_description: store.pix_copiacola_message_description || "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
-    pix_copiacola_message_footer: store.pix_copiacola_message_footer || "Código válido para este pedido específico.",
-    pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || "📋 COPIAR CÓDIGO PIX",
+    pix_copiacola_message_title: store.pix_copiacola_message_title || DEFAULT_VALUES.pix_copiacola_message_title,
+    pix_copiacola_message_description: store.pix_copiacola_message_description || DEFAULT_VALUES.pix_copiacola_message_description,
+    pix_copiacola_message_footer: store.pix_copiacola_message_footer || DEFAULT_VALUES.pix_copiacola_message_footer,
+    pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || DEFAULT_VALUES.pix_copiacola_message_button_text,
     pix_copiacola_message_enabled: store.pix_copiacola_message_enabled || false,
     // Botão página de pedidos
-    pix_copiacola_button_text: store.pix_copiacola_button_text || "PIX Copia e Cola"
+    pix_copiacola_button_text: store.pix_copiacola_button_text || DEFAULT_VALUES.pix_copiacola_button_text
   });
   useEffect(() => {
     setFormData({
       // PIX Chave Fixa
-      pix_message_title: store.pix_message_title || "💳 Pagamento via PIX",
-      pix_message_description: store.pix_message_description || "Clique no botão abaixo para copiar a chave PIX,\nfavor enviar o comprovante após o pagamento.",
-      pix_message_footer: store.pix_message_footer || "Obrigado pela preferência!",
-      pix_message_button_text: store.pix_message_button_text || "📋 COPIAR CHAVE PIX",
+      pix_message_title: store.pix_message_title || DEFAULT_VALUES.pix_message_title,
+      pix_message_description: store.pix_message_description || DEFAULT_VALUES.pix_message_description,
+      pix_message_footer: store.pix_message_footer || DEFAULT_VALUES.pix_message_footer,
+      pix_message_button_text: store.pix_message_button_text || DEFAULT_VALUES.pix_message_button_text,
       pix_message_enabled: store.pix_message_enabled || false,
       // PIX Copia e Cola Gerado
-      pix_copiacola_message_title: store.pix_copiacola_message_title || "💳 Código PIX Gerado",
-      pix_copiacola_message_description: store.pix_copiacola_message_description || "1️⃣ Copie o código PIX abaixo.\n2️⃣ Abra o app do seu banco e vá até a opção PIX, como se fosse fazer uma transferência.\n3️⃣ Toque em \"PIX Copia e Cola\", cole o código e confirme o pagamento. 💳✨",
-      pix_copiacola_message_footer: store.pix_copiacola_message_footer || "Código válido para este pedido específico.",
-      pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || "📋 COPIAR CÓDIGO PIX",
+      pix_copiacola_message_title: store.pix_copiacola_message_title || DEFAULT_VALUES.pix_copiacola_message_title,
+      pix_copiacola_message_description: store.pix_copiacola_message_description || DEFAULT_VALUES.pix_copiacola_message_description,
+      pix_copiacola_message_footer: store.pix_copiacola_message_footer || DEFAULT_VALUES.pix_copiacola_message_footer,
+      pix_copiacola_message_button_text: store.pix_copiacola_message_button_text || DEFAULT_VALUES.pix_copiacola_message_button_text,
       pix_copiacola_message_enabled: store.pix_copiacola_message_enabled || false,
       // Botão página de pedidos
-      pix_copiacola_button_text: store.pix_copiacola_button_text || "PIX Copia e Cola"
+      pix_copiacola_button_text: store.pix_copiacola_button_text || DEFAULT_VALUES.pix_copiacola_button_text
     });
   }, [store]);
+
+  const resetField = (field: keyof typeof DEFAULT_VALUES) => {
+    setFormData({
+      ...formData,
+      [field]: DEFAULT_VALUES[field]
+    });
+    toast({
+      title: "Mensagem restaurada",
+      description: "O campo foi restaurado para o valor padrão."
+    });
+  };
   const handleSave = async () => {
     if (!store.pix_key && (formData.pix_message_enabled || formData.pix_copiacola_message_enabled)) {
       toast({
@@ -167,7 +191,19 @@ export const WhatsAppMessageConfig = ({
               <CardContent className="space-y-4">
 
               <div className="space-y-2">
-                <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_copiacola_message_title')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="copiacolaTitle" placeholder="Ex: 💳 Código PIX Gerado" value={formData.pix_copiacola_message_title} onChange={e => setFormData({
                 ...formData,
                 pix_copiacola_message_title: e.target.value
@@ -178,7 +214,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="copiacolaDescription">Descrição</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="copiacolaDescription">Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_copiacola_message_description')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Textarea id="copiacolaDescription" placeholder="Ex: Use o código PIX Copia e Cola gerado automaticamente..." value={formData.pix_copiacola_message_description} onChange={e => setFormData({
                 ...formData,
                 pix_copiacola_message_description: e.target.value
@@ -189,7 +237,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="copiacolaFooter">Rodapé</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="copiacolaFooter">Rodapé</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_copiacola_message_footer')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="copiacolaFooter" placeholder="Ex: Código válido para este pedido específico." value={formData.pix_copiacola_message_footer} onChange={e => setFormData({
                 ...formData,
                 pix_copiacola_message_footer: e.target.value
@@ -200,7 +260,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="copiacolaButtonTextWpp">Texto do Botão (WhatsApp)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="copiacolaButtonTextWpp">Texto do Botão (WhatsApp)</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_copiacola_message_button_text')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="copiacolaButtonTextWpp" placeholder="Ex: 📋 COPIAR CÓDIGO PIX" value={formData.pix_copiacola_message_button_text} onChange={e => setFormData({
                 ...formData,
                 pix_copiacola_message_button_text: e.target.value
@@ -251,7 +323,19 @@ export const WhatsAppMessageConfig = ({
               <CardContent className="space-y-4">
 
               <div className="space-y-2">
-                <Label htmlFor="title">Título da Mensagem</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="title">Título da Mensagem</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_message_title')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="title" placeholder="Ex: 💳 Pagamento via PIX" value={formData.pix_message_title} onChange={e => setFormData({
                 ...formData,
                 pix_message_title: e.target.value
@@ -262,7 +346,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_message_description')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Textarea id="description" placeholder="Ex: Clique no botão abaixo para copiar o código PIX..." value={formData.pix_message_description} onChange={e => setFormData({
                 ...formData,
                 pix_message_description: e.target.value
@@ -273,7 +369,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="footer">Rodapé</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="footer">Rodapé</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_message_footer')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="footer" placeholder="Ex: Obrigado pela preferência!" value={formData.pix_message_footer} onChange={e => setFormData({
                 ...formData,
                 pix_message_footer: e.target.value
@@ -284,7 +392,19 @@ export const WhatsAppMessageConfig = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_message_button_text')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="buttonText" placeholder="Ex: 📋 COPIAR CHAVE PIX" value={formData.pix_message_button_text} onChange={e => setFormData({
                 ...formData,
                 pix_message_button_text: e.target.value
@@ -335,7 +455,19 @@ export const WhatsAppMessageConfig = ({
               <CardContent className="space-y-4">
 
               <div className="space-y-2">
-                <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola"</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola"</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => resetField('pix_copiacola_button_text')}
+                    className="h-8"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Padrão
+                  </Button>
+                </div>
                 <Input id="copiacolaButtonText" placeholder="Ex: PIX Copia e Cola" value={formData.pix_copiacola_button_text} onChange={e => setFormData({
                 ...formData,
                 pix_copiacola_button_text: e.target.value
