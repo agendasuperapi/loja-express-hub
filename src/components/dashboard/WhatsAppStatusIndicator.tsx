@@ -79,7 +79,7 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
   };
 
   const checkConnectionStatus = async () => {
-    if (!hasPermission) {
+    if (!hasPermission || !user) {
       if (prevStatusRef.current !== 'no-permission') {
         setStatus('no-permission');
         prevStatusRef.current = 'no-permission';
@@ -88,6 +88,36 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
     }
 
     try {
+      // Double-check ownership before making API call (prevents stale data issues)
+      const { data: ownershipCheck } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('id', storeId)
+        .eq('owner_id', user.id)
+        .maybeSingle();
+
+      // If not owner, check if employee
+      if (!ownershipCheck) {
+        const { data: employeeCheck } = await supabase
+          .from('store_employees')
+          .select('id, permissions, is_active')
+          .eq('user_id', user.id)
+          .eq('store_id', storeId)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        const hasWhatsAppPermission = employeeCheck && 
+          (employeeCheck as any).permissions?.whatsapp?.view === true;
+
+        if (!hasWhatsAppPermission) {
+          console.warn('[WhatsApp Status] User does not have access to this store');
+          if (prevStatusRef.current !== 'no-permission') {
+            setStatus('no-permission');
+            prevStatusRef.current = 'no-permission';
+          }
+          return;
+        }
+      }
       // Buscar instância da loja
       const { data: instanceData } = await supabase
         .from('store_instances' as any)
