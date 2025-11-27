@@ -5555,13 +5555,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         category: myStore.category,
                         pix_key: pixKeyToSave || null,
                         pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
+                        pix_message_enabled: pixKeyToSave ? false : myStore.pix_message_enabled,
                       });
                       
                       // Update local state
                       if (pixKeyToSave) {
                         setStoreForm({ 
                           ...storeForm, 
-                          pix_copiacola_message_enabled: true 
+                          pix_copiacola_message_enabled: true,
+                          pix_message_enabled: false
                         });
                       }
                       
