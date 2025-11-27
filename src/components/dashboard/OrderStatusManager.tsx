@@ -107,7 +107,11 @@ Acesse: {{store_url}}`,
 
 Olá {{customer_name}}
 Pedido #{{order_number}} foi cancelado. 
-Entre em contato para mais informações.`,
+Entre em contato para mais informações.
+
+🛍️ Visite nosso Site e faça um novo pedido.
+
+Acesse: {{store_url}}`,
 
   // English (aliases for backwards compatibility)
   pending: `*PEDIDO {{store_name}}.*
@@ -198,7 +202,11 @@ Acesse: {{store_url}}`,
 
 Olá {{customer_name}}
 Pedido #{{order_number}} foi cancelado. 
-Entre em contato para mais informações.`
+Entre em contato para mais informações.
+
+🛍️ Visite nosso Site e faça um novo pedido.
+
+Acesse: {{store_url}}`
 };
 
 interface OrderStatus {

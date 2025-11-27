@@ -84,7 +84,7 @@ BEGIN
       '#EF4444',
       6,
       true,
-      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nPedido #{{order_number}} foi cancelado. \nEntre em contato para mais informações.'
+      E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nPedido #{{order_number}} foi cancelado. \nEntre em contato para mais informações.\n\n🛍️ Visite nosso Site e faça um novo pedido.\n\nAcesse: {{store_url}}'
     );
   
   RETURN NEW;
@@ -180,7 +180,7 @@ BEGIN
           '#EF4444',
           6,
           true,
-          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nPedido #{{order_number}} foi cancelado. \nEntre em contato para mais informações.'
+          E'*PEDIDO {{store_name}}.*\n\nOlá {{customer_name}}\nPedido #{{order_number}} foi cancelado. \nEntre em contato para mais informações.\n\n🛍️ Visite nosso Site e faça um novo pedido.\n\nAcesse: {{store_url}}'
         );
       
       RAISE NOTICE 'Created default statuses for store %', store_record.id;
