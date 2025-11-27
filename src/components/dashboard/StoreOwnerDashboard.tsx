@@ -2261,6 +2261,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               <div>
                 <h2 className="text-xl md:text-2xl font-bold gradient-text">Estatísticas da Loja</h2>
                 <p className="text-sm md:text-base text-muted-foreground">Acompanhe o desempenho do seu negócio</p>
+                <span className="text-xs text-muted-foreground">v 1.7</span>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Select value={periodFilter} onValueChange={(value) => {
@@ -2818,10 +2819,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <h2 className="text-2xl font-bold gradient-text">Pedidos</h2>
                   <p className="text-muted-foreground">Gerencie os pedidos da sua loja</p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <WhatsAppStatusIndicator storeId={myStore?.id || ''} />
-                  <span className="text-xs text-muted-foreground">v 1.7</span>
-                </div>
+                <WhatsAppStatusIndicator storeId={myStore?.id || ''} />
               </div>
 
               {/* Filtros de Data */}
