@@ -2126,17 +2126,6 @@ export const StoreOwnerDashboard = ({
                           <span className="text-xs text-muted-foreground">v 1.8</span>
                         </div>
                       </div>
-                      <motion.p className="text-muted-foreground text-lg" initial={{
-                        opacity: 0,
-                        x: -20
-                      }} animate={{
-                        opacity: 1,
-                        x: 0
-                      }} transition={{
-                        delay: 0.4
-                      }}>
-                        {myStore?.category}
-                      </motion.p>
                     </div>
                     <motion.div initial={{
                       opacity: 0,
