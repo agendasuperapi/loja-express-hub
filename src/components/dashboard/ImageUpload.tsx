@@ -329,9 +329,17 @@ export const ImageUpload = ({
           <div className="relative">
             <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto rounded-lg overflow-hidden border border-border bg-muted/30`}>
               <img
-                src={previewUrl}
+                src={previewUrl || currentImageUrl || ''}
                 alt="Preview"
                 className="w-full h-full object-contain sm:object-cover"
+                onError={(e) => {
+                  // Se a URL com timestamp falhar, tenta carregar a URL original sem o parâmetro
+                  const currentSrc = e.currentTarget.src;
+                  if (currentSrc.includes('?t=')) {
+                    const cleanSrc = currentSrc.split('?t=')[0];
+                    e.currentTarget.src = cleanSrc;
+                  }
+                }}
               />
             </div>
             <Button
