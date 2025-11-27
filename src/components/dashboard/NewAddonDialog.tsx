@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,18 +134,18 @@ export const NewAddonDialog = ({
   const activeCategories = categories?.filter((c) => c.is_active) || [];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
             {editData ? "Editar Adicional" : "Novo Adicional"}
-          </DialogTitle>
-          <DialogDescription>
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             {editData
               ? "Atualize as informações do adicional"
               : "Adicione um novo adicional ao seu cardápio"}
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
         <div className="space-y-4 py-4">
           {/* Nome do Adicional */}
@@ -271,7 +271,7 @@ export const NewAddonDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <ResponsiveDialogFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -284,8 +284,8 @@ export const NewAddonDialog = ({
             <Check className="w-4 h-4 mr-2" />
             {isLoading ? "Salvando..." : editData ? "Atualizar" : "Adicionar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
 
       <NewAddonCategoryDialog
         open={showCategoryDialog}
@@ -293,6 +293,6 @@ export const NewAddonDialog = ({
         onSubmit={handleCreateCategory}
         isLoading={isCreatingCategory}
       />
-    </Dialog>
+    </ResponsiveDialog>
   );
 };
