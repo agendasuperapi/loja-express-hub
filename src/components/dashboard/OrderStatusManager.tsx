@@ -788,7 +788,11 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                   index={index}
                   canEdit={canEdit}
                   onEdit={(status) => {
-                    setEditingStatus(status);
+                    setEditingStatus({
+                      ...status,
+                      show_for_delivery: status.show_for_delivery ?? true,
+                      show_for_pickup: status.show_for_pickup ?? true,
+                    });
                     setIsDialogOpen(true);
                   }}
                   onDelete={handleDeleteStatus}
