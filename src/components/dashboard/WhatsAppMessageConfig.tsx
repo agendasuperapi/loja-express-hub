@@ -399,7 +399,7 @@ export const WhatsAppMessageConfig = ({
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola"</Label>
+                  <Label htmlFor="copiacolaButtonText">Texto do Botão (Pagina de Pedidos)</Label>
                   <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_button_text')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
