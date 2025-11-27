@@ -50,6 +50,11 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
   const { validateCoupon } = useCoupons(order?.store_id);
   const queryClient = useQueryClient();
   
+  // Estados para o modal de observação
+  const [observationModalOpen, setObservationModalOpen] = useState(false);
+  const [editingObservationItem, setEditingObservationItem] = useState<OrderItem | null>(null);
+  const [tempObservation, setTempObservation] = useState('');
+  
   // Garante que initialTab não seja "notes" ou "receipt" (agora são diálogos separados)
   const safeInitialTab = initialTab === "notes" || initialTab === "receipt" ? "items" : initialTab;
   
@@ -462,6 +467,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
   if (!order) return null;
 
   return (
+    <>
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
       <ResponsiveDialogContent className={isMobile ? "p-0" : "max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"}>
         <ResponsiveDialogHeader className="flex-shrink-0">
@@ -621,12 +627,17 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
                   </div>
                   <div>
                     <Label>Observação</Label>
-                    <Textarea
-                      value={item.observation || ''}
-                      onChange={(e) => updateLocalOrderItem(item.id, { observation: e.target.value })}
-                      placeholder="Observação..."
-                      rows={2}
-                    />
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start h-auto min-h-[60px] text-left"
+                      onClick={() => {
+                        setEditingObservationItem(item);
+                        setTempObservation(item.observation || '');
+                        setObservationModalOpen(true);
+                      }}
+                    >
+                      {item.observation || 'Clique para adicionar observação...'}
+                    </Button>
                   </div>
                     </>
                   )}
@@ -920,5 +931,54 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
+
+    {/* Modal de Observação */}
+    <ResponsiveDialog open={observationModalOpen} onOpenChange={setObservationModalOpen}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Observação do Produto</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Produto: {editingObservationItem?.product_name}</Label>
+          </div>
+          <div>
+            <Label>Observação</Label>
+            <Textarea
+              value={tempObservation}
+              onChange={(e) => setTempObservation(e.target.value)}
+              placeholder="Digite a observação do produto..."
+              rows={5}
+              className="resize-none"
+            />
+          </div>
+        </div>
+        <ResponsiveDialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setObservationModalOpen(false);
+              setEditingObservationItem(null);
+              setTempObservation('');
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              if (editingObservationItem) {
+                updateLocalOrderItem(editingObservationItem.id, { observation: tempObservation });
+              }
+              setObservationModalOpen(false);
+              setEditingObservationItem(null);
+              setTempObservation('');
+            }}
+          >
+            Salvar
+          </Button>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
+    </>
   );
 };
