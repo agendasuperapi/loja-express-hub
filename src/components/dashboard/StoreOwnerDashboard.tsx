@@ -5465,9 +5465,34 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         }
                         
                         setStoreForm({ ...storeForm, pix_key: value });
+                        
+                        // Validate in real-time
+                        const validation = validatePixKey(value);
+                        setPixValidation(validation);
                       }}
+                      className={cn(
+                        "pr-10",
+                        storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive"
+                      )}
                     />
+                    {storeForm.pix_key && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {pixValidation.isValid ? (
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-destructive" />
+                        )}
+                      </div>
+                    )}
                   </div>
+                  {storeForm.pix_key && pixValidation.message && (
+                    <p className={cn(
+                      "text-xs mt-1",
+                      pixValidation.isValid ? "text-green-600" : "text-destructive"
+                    )}>
+                      {pixValidation.message}
+                    </p>
+                  )}
                   {!storeForm.pix_key && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Chave PIX para recebimento de pagamentos dos clientes
