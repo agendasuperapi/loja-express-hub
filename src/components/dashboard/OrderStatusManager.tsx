@@ -790,10 +790,12 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                   onEdit={(status) => {
                     // Para status "ready"/"pronto", definir padrão apenas retirada
                     const isReadyStatus = status.status_key === 'ready' || status.status_key === 'pronto';
+                    // Para status "out_for_delivery"/"saiu_para_entrega"/"in_delivery", definir padrão apenas entrega
+                    const isDeliveryStatus = status.status_key === 'out_for_delivery' || status.status_key === 'saiu_para_entrega' || status.status_key === 'in_delivery';
                     setEditingStatus({
                       ...status,
                       show_for_delivery: status.show_for_delivery ?? (isReadyStatus ? false : true),
-                      show_for_pickup: status.show_for_pickup ?? true,
+                      show_for_pickup: status.show_for_pickup ?? (isDeliveryStatus ? false : true),
                     });
                     setIsDialogOpen(true);
                   }}
