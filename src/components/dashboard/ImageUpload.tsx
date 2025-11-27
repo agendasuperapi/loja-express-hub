@@ -295,11 +295,11 @@ export const ImageUpload = ({
       
       {previewUrl ? (
         <div className="relative">
-          <div className={`${aspectRatio} ${sizeClasses[size]} rounded-lg overflow-hidden border border-border`}>
+          <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto rounded-lg overflow-hidden border border-border bg-muted/30`}>
             <img
               src={previewUrl}
               alt="Preview"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain sm:object-cover"
             />
           </div>
           <Button
