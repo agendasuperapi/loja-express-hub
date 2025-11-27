@@ -3595,7 +3595,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4">
+                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[500px]">
                       
                           <ImageUpload
                             bucket="product-images"
@@ -3762,13 +3762,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </div>
                         </TabsContent>
 
-                        <TabsContent value="sizes" className="mt-4">
+                        <TabsContent value="sizes" className="mt-4 min-h-[500px]">
                           {editingProduct && (
                             <ProductSizesManager productId={editingProduct.id} />
                           )}
                         </TabsContent>
 
-                        <TabsContent value="addons" className="mt-4">
+                        <TabsContent value="addons" className="mt-4 min-h-[500px]">
                           {editingProduct && myStore && (
                             <ProductAddonsManager 
                               productId={editingProduct.id}
@@ -3777,7 +3777,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           )}
                         </TabsContent>
 
-                        <TabsContent value="flavors" className="mt-4">
+                        <TabsContent value="flavors" className="mt-4 min-h-[500px]">
                           {editingProduct && (
                             <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
