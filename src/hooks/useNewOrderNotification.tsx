@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from './useAuth';
 
 // Web Audio API para gerar bipe de notificação
 const playNotificationSound = () => {
@@ -71,6 +72,7 @@ export const useNewOrderNotification = (
   options?: { pauseInvalidations?: boolean }
 ) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const invalidateTimeoutRef = useRef<NodeJS.Timeout>();
   const lastProcessedEventRef = useRef<string>('');
@@ -182,7 +184,26 @@ export const useNewOrderNotification = (
             duration: 10000,
           });
 
-          // Enviar notificação do navegador
+          // Tenta enviar push notification via edge function
+          if (user && storeId) {
+            try {
+              await supabase.functions.invoke('send-push-notification', {
+                body: {
+                  storeId,
+                  title: '🔔 Novo Pedido!',
+                  body: `Pedido #${order.order_number} de ${order.customer_name}`,
+                  orderId: order.id,
+                  url: `/dashboard/${storeId}/orders`,
+                  tag: `order-${order.id}`
+                }
+              });
+              console.log('[OrderNotification] Push notification enviada');
+            } catch (error) {
+              console.error('[OrderNotification] Erro ao enviar push:', error);
+            }
+          }
+
+          // Enviar notificação do navegador (fallback)
           const browserNotificationEnabled = localStorage.getItem('browser-notification-enabled');
           const shouldShowBrowserNotification = browserNotificationEnabled !== null 
             ? JSON.parse(browserNotificationEnabled) 
