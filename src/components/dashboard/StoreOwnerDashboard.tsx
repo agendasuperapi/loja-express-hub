@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey, normalizePixKeyPhone, formatPixKey } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixKeyPhone, formatPixKey, detectPixKeyType } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -276,7 +276,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     phone: myStore?.phone || '',
     whatsapp: (myStore as any)?.whatsapp || '',
     menu_label: myStore?.menu_label || 'Cardápio',
-    pix_key: normalizePixKeyPhone((myStore as any)?.pix_key || ''),
+    pix_key: (myStore as any)?.pix_key || '',
     show_pix_key_to_customer: (myStore as any)?.show_pix_key_to_customer ?? true,
     pix_message_enabled: (myStore as any)?.pix_message_enabled ?? false,
     pix_message_title: (myStore as any)?.pix_message_title || '',
@@ -528,7 +528,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         phone: myStore.phone || '',
         whatsapp: (myStore as any)?.whatsapp || '',
         menu_label: myStore.menu_label || 'Cardápio',
-        pix_key: normalizePixKeyPhone((myStore as any)?.pix_key || ''),
+        pix_key: (myStore as any)?.pix_key || '',
         show_pix_key_to_customer: (myStore as any)?.show_pix_key_to_customer ?? true,
         pix_message_enabled: (myStore as any)?.pix_message_enabled ?? false,
         pix_message_title: (myStore as any)?.pix_message_title || '',
@@ -5493,12 +5493,24 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     }
                     
                     try {
+                      // Only add +55 for phone type PIX keys
+                      let pixKeyToSave = storeForm.pix_key;
+                      if (pixKeyToSave) {
+                        const pixType = detectPixKeyType(pixKeyToSave);
+                        if (pixType === 'phone') {
+                          pixKeyToSave = normalizePixKeyPhone(pixKeyToSave);
+                        } else {
+                          // For CPF, CNPJ, email, random - just remove formatting
+                          pixKeyToSave = pixKeyToSave.replace(/[^\w@.-]/g, '');
+                        }
+                      }
+                      
                       await updateStore({
                         id: myStore.id,
                         name: myStore.name,
                         slug: myStore.slug,
                         category: myStore.category,
-                        pix_key: storeForm.pix_key ? normalizePixKeyPhone(storeForm.pix_key) : null,
+                        pix_key: pixKeyToSave || null,
                       });
                       
                       toast({
