@@ -5409,8 +5409,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           } else if (digitsOnly.length <= 9) {
                             value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
                           } else if (digitsOnly.length === 10) {
-                            // Formato de telefone: (##) ####-####
-                            value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 6)}-${digitsOnly.slice(6, 10)}`;
+                            // Verifica se é celular (8 dígitos começando com 6, 7, 8 ou 9)
+                            const firstDigitAfterDDD = digitsOnly.charAt(2);
+                            if (['6', '7', '8', '9'].includes(firstDigitAfterDDD)) {
+                              // É celular com 8 dígitos, adiciona o 9 após o DDD
+                              const withNine = digitsOnly.slice(0, 2) + '9' + digitsOnly.slice(2);
+                              value = `(${withNine.slice(0, 2)}) ${withNine.slice(2, 7)}-${withNine.slice(7, 11)}`;
+                            } else {
+                              // É telefone fixo: (##) ####-####
+                              value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 6)}-${digitsOnly.slice(6, 10)}`;
+                            }
                           } else if (digitsOnly.length === 11) {
                             // Pode ser CPF ou telefone celular
                             // Verifica se começa com DDD válido (10-99) para ser telefone

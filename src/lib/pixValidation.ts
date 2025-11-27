@@ -186,6 +186,15 @@ export const normalizePixKeyPhone = (key: string): string => {
   
   // Add +55 prefix for phone numbers (10-11 digits)
   if (digitsOnly.length === 10 || digitsOnly.length === 11) {
+    // If it's 10 digits and starts with 6, 7, 8, or 9 after DDD, add 9
+    if (digitsOnly.length === 10) {
+      const firstDigitAfterDDD = digitsOnly.charAt(2);
+      if (['6', '7', '8', '9'].includes(firstDigitAfterDDD)) {
+        // Add 9 after DDD
+        const normalized = digitsOnly.slice(0, 2) + '9' + digitsOnly.slice(2);
+        return '+55' + normalized;
+      }
+    }
     return '+55' + digitsOnly;
   }
   
