@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { useCoupons } from "@/hooks/useCoupons";
 import { useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OrderItem {
   id: string;
@@ -456,33 +457,37 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
     }
   };
 
+  const isMobile = useIsMobile();
+
   if (!order) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Editar Pedido #{order.order_number}</DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className={isMobile ? "p-0" : "max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"}>
+        <ResponsiveDialogHeader className="flex-shrink-0">
+          <ResponsiveDialogTitle>Editar Pedido #{order.order_number}</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
         <Tabs defaultValue={safeInitialTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4 flex-shrink-0">
-            <TabsTrigger value="items">
-              <Package className="w-4 h-4 mr-2" />
-              Itens
+          <TabsList className={isMobile ? "grid w-full grid-cols-2 text-xs" : "grid w-full grid-cols-4 flex-shrink-0"}>
+            <TabsTrigger value="items" className={isMobile ? "px-2" : ""}>
+              <Package className="w-4 h-4 mr-1" />
+              {isMobile ? "Itens" : "Itens"}
             </TabsTrigger>
-            <TabsTrigger value="payment">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Pagamento
+            <TabsTrigger value="payment" className={isMobile ? "px-2" : ""}>
+              <CreditCard className="w-4 h-4 mr-1" />
+              {isMobile ? "Pag." : "Pagamento"}
             </TabsTrigger>
-            <TabsTrigger value="delivery">
-              <MapPin className="w-4 h-4 mr-2" />
-              Entrega
+            <TabsTrigger value="delivery" className={isMobile ? "px-2" : ""}>
+              <MapPin className="w-4 h-4 mr-1" />
+              {isMobile ? "Entrega" : "Entrega"}
             </TabsTrigger>
-            <TabsTrigger value="history">
-              <History className="w-4 h-4 mr-2" />
-              Histórico
-            </TabsTrigger>
+            {!isMobile && (
+              <TabsTrigger value="history">
+                <History className="w-4 h-4 mr-2" />
+                Histórico
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <ScrollArea className="flex-1 mt-4">
@@ -905,15 +910,15 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
           </ScrollArea>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
+        <ResponsiveDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Salvando...' : 'Salvar Alterações'}
+          <Button onClick={handleSubmit} disabled={loading} className="flex-1 sm:flex-initial">
+            {loading ? 'Salvando...' : 'Salvar'}
           </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

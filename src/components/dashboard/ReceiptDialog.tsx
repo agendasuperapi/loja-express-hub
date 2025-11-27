@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,7 @@ import { ImageUpload } from "./ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReceiptDialogProps {
   open: boolean;
@@ -66,18 +67,20 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
     }
   };
 
+  const isMobile = useIsMobile();
+
   if (!order) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Comprovante de Pagamento - Pedido #{order.order_number}</DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className={isMobile ? "p-0" : "max-w-2xl"}>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Comprovante de Pagamento - #{order.order_number}</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className={isMobile ? "space-y-4" : "space-y-6 py-4"}>
           <div>
-            <Label>Comprovante de Pagamento</Label>
+            <Label className="text-sm sm:text-base">Comprovante de Pagamento</Label>
             <ImageUpload
               bucket="product-images"
               folder={`orders/${order.id}/receipts`}
@@ -95,8 +98,8 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label>Pagamento Recebido</Label>
-              <p className="text-sm text-muted-foreground">
+              <Label className="text-sm sm:text-base">Pagamento Recebido</Label>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Marque quando o pagamento for confirmado
               </p>
             </div>
@@ -109,19 +112,19 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
           <Separator />
 
           <div>
-            <Label htmlFor="payment-notes">Observações de Pagamento</Label>
+            <Label htmlFor="payment-notes" className="text-sm sm:text-base">Observações de Pagamento</Label>
             <Textarea
               id="payment-notes"
               value={paymentNotes}
               onChange={(e) => setPaymentNotes(e.target.value)}
               placeholder="Adicione observações sobre o pagamento..."
               className="mt-2"
-              rows={4}
+              rows={isMobile ? 3 : 4}
             />
           </div>
         </div>
 
-        <DialogFooter>
+        <ResponsiveDialogFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -129,12 +132,12 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
           >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button onClick={handleSubmit} disabled={loading} className="flex-1 sm:flex-initial">
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };
