@@ -93,28 +93,46 @@ import { SortableCategoryCard } from "./SortableCategoryCard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollableTable } from "@/components/ui/scrollable-table";
 import { Checkbox } from "@/components/ui/checkbox";
-
 interface StoreOwnerDashboardProps {
   onSignOut?: () => void;
 }
-
-export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => {
+export const StoreOwnerDashboard = ({
+  onSignOut
+}: StoreOwnerDashboardProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileOrTablet();
   const isMobileDevice = useIsMobile();
-  const { isStoreOwner } = useUserRole();
+  const {
+    isStoreOwner
+  } = useUserRole();
   const employeeAccess = useEmployeeAccess();
-  const { myStore, isLoading, updateStore } = useStoreManagement();
-  const { products, createProduct, updateProduct, toggleProductAvailability, toggleProductFeatured, reorderProducts, deleteProduct } = useProductManagement(myStore?.id);
-  const { orders, updateOrderStatus, updateOrder, isUpdating } = useStoreOrders(myStore?.id);
-  
+  const {
+    myStore,
+    isLoading,
+    updateStore
+  } = useStoreManagement();
+  const {
+    products,
+    createProduct,
+    updateProduct,
+    toggleProductAvailability,
+    toggleProductFeatured,
+    reorderProducts,
+    deleteProduct
+  } = useProductManagement(myStore?.id);
+  const {
+    orders,
+    updateOrderStatus,
+    updateOrder,
+    isUpdating
+  } = useStoreOrders(myStore?.id);
+
   // Log de render
   const renderCountRef = useRef(0);
   const prevMyStoreRef = useRef<typeof myStore>(null);
   renderCountRef.current++;
-
   console.log('[StoreOwnerDashboard] 🔄 Render #' + renderCountRef.current, {
     myStoreId: myStore?.id,
     myStoreUpdatedAt: myStore?.updated_at,
@@ -123,16 +141,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     isLoading,
     timestamp: Date.now()
   });
-  
 
   // Função helper para verificar permissões
   const hasPermission = (module: string, action: string): boolean => {
     // Se não é funcionário (é dono), tem todas as permissões
     if (!employeeAccess.isEmployee || !employeeAccess.permissions) return true;
-    
     const modulePermissions = (employeeAccess.permissions as any)[module];
     if (!modulePermissions) return false;
-    
     return modulePermissions[action] === true;
   };
 
@@ -145,13 +160,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const canViewDeliveredOrders = hasPermission('orders', 'view_delivered_orders');
   const canViewCancelledOrders = hasPermission('orders', 'view_cancelled_orders');
 
-
   // Mapeamento dinâmico entre status do banco (enum) e status_key customizado
   const getStatusKeyFromEnum = (enumStatus: string): string => {
     if (!customStatuses || customStatuses.length === 0) {
       return enumStatus;
     }
-    
+
     // Mapa de fallback de enums comuns para status_key
     const enumToKeyMap: Record<string, string[]> = {
       'pending': ['pendente', 'pending', 'aguardando', 'novo'],
@@ -162,21 +176,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       'delivered': ['entregue', 'delivered', 'concluido', 'concluído'],
       'cancelled': ['cancelado', 'cancelled', 'cancelada']
     };
-    
+
     // Procura o status customizado que corresponde ao enum
     const matchingStatus = customStatuses.find(s => {
       const possibleKeys = enumToKeyMap[enumStatus] || [enumStatus];
       return possibleKeys.includes(s.status_key.toLowerCase());
     });
-    
     return matchingStatus?.status_key || enumStatus;
   };
-  
   const getEnumFromStatusKey = (statusKey: string): string => {
     if (!customStatuses || customStatuses.length === 0) {
       return statusKey;
     }
-    
+
     // Mapa de fallback de status_key para enums
     const keyToEnumMap: Record<string, string> = {
       'pendente': 'pending',
@@ -206,7 +218,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       'cancelled': 'cancelled',
       'cancelada': 'cancelled'
     };
-    
     return keyToEnumMap[statusKey.toLowerCase()] || statusKey;
   };
 
@@ -217,10 +228,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Helpers para mudança de status conforme permissões
   const canChangeTo = (statusKey: string) => {
     if (hasPermission('orders', 'change_any_status')) return true;
-    
+
     // Converter status customizado para enum primeiro
     const enumStatus = getEnumFromStatusKey(statusKey);
-    
     const map: Record<string, string> = {
       'pending': 'change_status_pending',
       'confirmed': 'change_status_confirmed',
@@ -229,18 +239,25 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       'in_delivery': 'change_status_out_for_delivery',
       'out_for_delivery': 'change_status_out_for_delivery',
       'delivered': 'change_status_delivered',
-      'cancelled': 'change_status_cancelled',
+      'cancelled': 'change_status_cancelled'
     };
-    
     const perm = map[enumStatus];
     return perm ? hasPermission('orders', perm) : true; // Se não encontrar, permite (owner)
   };
+  const {
+    categories,
+    loading: loadingCategories,
+    addCategory,
+    updateCategory,
+    toggleCategoryStatus,
+    deleteCategory,
+    reorderCategories
+  } = useCategories(myStore?.id);
 
-  const { categories, loading: loadingCategories, addCategory, updateCategory, toggleCategoryStatus, deleteCategory, reorderCategories } = useCategories(myStore?.id);
-  
   // Load custom order statuses
-  const { statuses: customStatuses } = useOrderStatuses(myStore?.id);
-
+  const {
+    statuses: customStatuses
+  } = useOrderStatuses(myStore?.id);
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -252,13 +269,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     is_pizza: false,
     max_flavors: 2,
     external_code: '',
-    is_featured: false,
+    is_featured: false
   });
-
   const [activeProductTab, setActiveProductTab] = useState("info");
-
   const [pixKeyType, setPixKeyType] = useState<'cpf' | 'cnpj' | 'email' | 'phone' | 'random'>('cpf');
-
   const [storeForm, setStoreForm] = useState<StoreFormData>({
     name: myStore?.name || '',
     slug: myStore?.slug || '',
@@ -306,78 +320,74 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
     show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
     show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
-    show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true,
+    show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true
   });
-
   const [isLoadingCep, setIsLoadingCep] = useState(false);
-
   const fetchAddressByCep = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, "");
-    
     if (cleanCep.length !== 8) return;
-
     setIsLoadingCep(true);
-
     try {
       const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
       const data = await response.json();
-
       if (data.erro) {
         toast({
           title: "CEP não encontrado",
           description: "Não foi possível encontrar o endereço para este CEP.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       setStoreForm(prev => ({
         ...prev,
         store_street: data.logradouro || "",
         store_neighborhood: data.bairro || "",
-        store_city: data.localidade || "",
+        store_city: data.localidade || ""
       }));
-      
       toast({
         title: "Endereço preenchido",
-        description: "Os dados do endereço foram preenchidos automaticamente.",
+        description: "Os dados do endereço foram preenchidos automaticamente."
       });
     } catch (error) {
       toast({
         title: "Erro ao buscar CEP",
         description: "Ocorreu um erro ao buscar o endereço. Tente novamente.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoadingCep(false);
     }
   };
-
   const handleCepChange = (value: string) => {
     // Remove tudo que não é número
     const cleanCep = value.replace(/\D/g, "");
-    
+
     // Aplica a máscara 00000-000
     let maskedCep = cleanCep;
     if (cleanCep.length > 5) {
       maskedCep = cleanCep.slice(0, 5) + "-" + cleanCep.slice(5, 8);
     }
-    
+
     // Atualiza o formulário com o valor formatado
-    setStoreForm(prev => ({ ...prev, store_cep: maskedCep }));
-    
+    setStoreForm(prev => ({
+      ...prev,
+      store_cep: maskedCep
+    }));
+
     // Busca o endereço quando tiver 8 dígitos
     if (cleanCep.length === 8) {
       fetchAddressByCep(cleanCep);
     }
   };
-
-  const [pixValidation, setPixValidation] = useState<{ isValid: boolean; type: string; message: string }>({
+  const [pixValidation, setPixValidation] = useState<{
+    isValid: boolean;
+    type: string;
+    message: string;
+  }>({
     isValid: true,
     type: 'empty',
     message: ''
   });
-
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
@@ -402,7 +412,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     isChecking: boolean;
     isAvailable: boolean | null;
     message: string;
-  }>({ isChecking: false, isAvailable: null, message: '' });
+  }>({
+    isChecking: false,
+    isAvailable: null,
+    message: ''
+  });
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<'all' | 'received' | 'pending'>('all');
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'delivery' | 'pickup'>('all');
@@ -418,9 +432,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
   const [bulkCategoryChange, setBulkCategoryChange] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code' | null; direction: 'asc' | 'desc' }>({
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code' | null;
+    direction: 'asc' | 'desc';
+  }>({
     key: null,
-    direction: 'asc',
+    direction: 'asc'
   });
   const [isReorderCategoriesMode, setIsReorderCategoriesMode] = useState(false);
   const [categoryViewMode, setCategoryViewMode] = useState<'grid' | 'table'>('grid');
@@ -431,29 +448,29 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const ordersPerPage = 10;
   const [currentHomeOrderPage, setCurrentHomeOrderPage] = useState(1);
   const homeOrdersPerPage = 10;
-  
+
   // Rastrear se algum modal está aberto para pausar invalidações
   const isAnyModalOpen = useMemo(() => {
-    return isProductDialogOpen || 
-           isCategoryDialogOpen || 
-           isEditCategoryDialogOpen || 
-           isHoursDialogOpen ||
-           isDuplicateDialogOpen;
+    return isProductDialogOpen || isCategoryDialogOpen || isEditCategoryDialogOpen || isHoursDialogOpen || isDuplicateDialogOpen;
   }, [isProductDialogOpen, isCategoryDialogOpen, isEditCategoryDialogOpen, isHoursDialogOpen, isDuplicateDialogOpen]);
 
   // Enable automatic WhatsApp notifications (pausar quando modais estão abertos)
-  useOrderStatusNotification(myStore?.id, { pauseInvalidations: isAnyModalOpen });
-  
+  useOrderStatusNotification(myStore?.id, {
+    pauseInvalidations: isAnyModalOpen
+  });
+
   // Enable real-time new order notifications with sound (pausar quando modais estão abertos)
-  useNewOrderNotification(myStore?.id, { pauseInvalidations: isAnyModalOpen });
-  
+  useNewOrderNotification(myStore?.id, {
+    pauseInvalidations: isAnyModalOpen
+  });
+
   // Hook para reconexão automática do WhatsApp
   const reconnectStatus = useWhatsAppAutoReconnect(myStore?.id, {
     maxAttempts: 5,
     initialDelay: 15000,
     maxDelay: 240000,
     silentSuccess: true,
-    enabled: true,
+    enabled: true
   });
 
   // Enable WhatsApp disconnect notifications (integrado com auto-reconnect)
@@ -461,43 +478,46 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     enableBrowserNotification: true,
     enableToast: true,
     autoRequestPermission: true,
-    notificationDelay: 30000, // 30 segundos de delay para dar tempo à reconexão automática
-    reconnectStatus,
+    notificationDelay: 30000,
+    // 30 segundos de delay para dar tempo à reconexão automática
+    reconnectStatus
   });
-  
+
   // Gerenciar aba ativa via URL para persistir ao recarregar
   const tabFromUrl = searchParams.get('tab') || 'home';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
-  
+
   // Sincronizar estado quando a URL mudar (ex: ao recarregar a página)
   useEffect(() => {
     if (tabFromUrl && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl]);
-  
+
   // Atualizar URL quando a aba mudar pelo usuário
   useEffect(() => {
     const currentTab = searchParams.get('tab');
     if (activeTab !== currentTab) {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('tab', activeTab);
-      setSearchParams(newSearchParams, { replace: true });
+      setSearchParams(newSearchParams, {
+        replace: true
+      });
     }
   }, [activeTab, searchParams, setSearchParams]);
 
   // Buscar contagem de pedidos pendentes em tempo real
   useEffect(() => {
     if (!myStore?.id) return;
-
     const fetchPendingOrdersCount = async () => {
-      const { count, error } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('store_id', myStore.id)
-        .in('status', ['pending', 'confirmed']);
-
+      const {
+        count,
+        error
+      } = await supabase.from('orders').select('*', {
+        count: 'exact',
+        head: true
+      }).eq('store_id', myStore.id).in('status', ['pending', 'confirmed']);
       if (!error && count !== null) {
         setPendingOrdersCount(count);
       }
@@ -507,23 +527,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     fetchPendingOrdersCount();
 
     // Configurar real-time subscription
-    const channel = supabase
-      .channel('pending-orders-count')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'orders',
-          filter: `store_id=eq.${myStore.id}`
-        },
-        () => {
-          // Quando houver qualquer mudança nos pedidos, recarregar contagem
-          fetchPendingOrdersCount();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel('pending-orders-count').on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'orders',
+      filter: `store_id=eq.${myStore.id}`
+    }, () => {
+      // Quando houver qualquer mudança nos pedidos, recarregar contagem
+      fetchPendingOrdersCount();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -554,16 +566,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         willUpdate: !(prevMyStoreRef.current?.id === myStore.id && prevMyStoreRef.current?.updated_at === myStore.updated_at),
         timestamp: Date.now()
       });
-      
+
       // Comparar IDs e timestamps para evitar updates desnecessários
-      const isSameStore = prevMyStoreRef.current?.id === myStore.id && 
-                          prevMyStoreRef.current?.updated_at === myStore.updated_at;
-      
+      const isSameStore = prevMyStoreRef.current?.id === myStore.id && prevMyStoreRef.current?.updated_at === myStore.updated_at;
       if (isSameStore) {
         console.log('[StoreOwnerDashboard] ⏭️ Store não mudou, pulando sincronização');
         return;
       }
-
       console.log('[StoreOwnerDashboard] 🏪 Carregando dados da loja no formulário:', {
         store_id: myStore.id,
         store_name: myStore.name,
@@ -573,10 +582,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           store_street: (myStore as any)?.store_street,
           store_street_number: (myStore as any)?.store_street_number,
           store_neighborhood: (myStore as any)?.store_neighborhood,
-          store_complement: (myStore as any)?.store_complement,
+          store_complement: (myStore as any)?.store_complement
         }
       });
-      
       const newFormData: StoreFormData = {
         name: myStore.name || '',
         slug: myStore.slug || '',
@@ -624,9 +632,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         product_layout_template_mobile: (myStore as any)?.product_layout_template_mobile || 'template-2',
         show_address_on_store_page: (myStore as any)?.show_address_on_store_page ?? true,
         show_phone_on_store_page: (myStore as any)?.show_phone_on_store_page ?? true,
-        show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true,
+        show_whatsapp_on_store_page: (myStore as any)?.show_whatsapp_on_store_page ?? true
       };
-      
       console.log('📝 [StoreOwnerDashboard] Formulário atualizado:', {
         address_fields: {
           store_cep: newFormData.store_cep,
@@ -634,10 +641,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           store_street: newFormData.store_street,
           store_street_number: newFormData.store_street_number,
           store_neighborhood: newFormData.store_neighborhood,
-          store_complement: newFormData.store_complement,
+          store_complement: newFormData.store_complement
         }
       });
-      
       setStoreForm(newFormData);
       prevMyStoreRef.current = myStore;
 
@@ -645,7 +651,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       if ((myStore as any)?.pix_key) {
         const validation = validatePixKey((myStore as any).pix_key);
         setPixValidation(validation);
-        
+
         // Detect and set PIX key type
         const detectedType = detectPixKeyType((myStore as any).pix_key);
         const validTypes: Array<'cpf' | 'cnpj' | 'email' | 'phone' | 'random'> = ['cpf', 'cnpj', 'email', 'phone', 'random'];
@@ -659,45 +665,35 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Memoize filtered products for bulk operations
   const filteredProducts = useMemo(() => {
     const displayProducts = isReorderMode ? localProducts : products;
-    let filtered = displayProducts
-      ?.filter(product => categoryFilter === 'all' || product.category === categoryFilter)
-      .filter(product => {
-        if (productStatusFilter === 'active') return product.is_available;
-        if (productStatusFilter === 'inactive') return !product.is_available;
-        return true;
-      })
-      .filter(product => {
-        if (!productSearchTerm) return true;
-        const searchLower = productSearchTerm.toLowerCase();
-        return product.name.toLowerCase().includes(searchLower) ||
-               product.description?.toLowerCase().includes(searchLower) ||
-               product.external_code?.toLowerCase().includes(searchLower);
-      }) || [];
+    let filtered = displayProducts?.filter(product => categoryFilter === 'all' || product.category === categoryFilter).filter(product => {
+      if (productStatusFilter === 'active') return product.is_available;
+      if (productStatusFilter === 'inactive') return !product.is_available;
+      return true;
+    }).filter(product => {
+      if (!productSearchTerm) return true;
+      const searchLower = productSearchTerm.toLowerCase();
+      return product.name.toLowerCase().includes(searchLower) || product.description?.toLowerCase().includes(searchLower) || product.external_code?.toLowerCase().includes(searchLower);
+    }) || [];
 
     // Apply sorting
     if (sortConfig.key && productViewMode === 'table') {
       filtered = [...filtered].sort((a, b) => {
         const aValue = a[sortConfig.key!];
         const bValue = b[sortConfig.key!];
-        
         if (aValue === null || aValue === undefined) return 1;
         if (bValue === null || bValue === undefined) return -1;
-        
         if (sortConfig.key === 'price' || sortConfig.key === 'promotional_price') {
           const numA = Number(aValue) || 0;
           const numB = Number(bValue) || 0;
           return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
         }
-        
         const strA = String(aValue).toLowerCase();
         const strB = String(bValue).toLowerCase();
-        
         if (strA < strB) return sortConfig.direction === 'asc' ? -1 : 1;
         if (strA > strB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
     }
-
     return filtered;
   }, [isReorderMode, localProducts, products, categoryFilter, productStatusFilter, productSearchTerm, sortConfig, productViewMode]);
 
@@ -709,7 +705,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Clear sort when changing view mode
   useEffect(() => {
     if (productViewMode === 'grid') {
-      setSortConfig({ key: null, direction: 'asc' });
+      setSortConfig({
+        key: null,
+        direction: 'asc'
+      });
     }
   }, [productViewMode]);
 
@@ -717,64 +716,64 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const handleSort = (key: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code') => {
     setSortConfig(prevConfig => ({
       key,
-      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc',
-    } as const));
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+    }) as const);
   };
 
   // Sort indicator component
-  const SortIndicator = ({ column }: { column: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code' }) => {
+  const SortIndicator = ({
+    column
+  }: {
+    column: 'name' | 'category' | 'price' | 'promotional_price' | 'external_code';
+  }) => {
     const isActive = sortConfig.key === column;
-    
     if (!isActive) {
       return <ArrowUp className="w-3 h-3 text-muted-foreground/30" />;
     }
-    return sortConfig.direction === 'asc' 
-      ? <ArrowUp className="w-3 h-3 text-primary" />
-      : <ArrowDown className="w-3 h-3 text-primary" />;
+    return sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />;
   };
 
   // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates
+  }));
 
   // Handle drag end for product reordering by category
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
+    const {
+      active,
+      over
+    } = event;
     if (over && active.id !== over.id) {
-      setLocalProducts((items) => {
-        const activeProduct = items.find((item) => item.id === active.id);
-        const overProduct = items.find((item) => item.id === over.id);
-        
+      setLocalProducts(items => {
+        const activeProduct = items.find(item => item.id === active.id);
+        const overProduct = items.find(item => item.id === over.id);
+
         // Only allow reordering within the same category
         if (!activeProduct || !overProduct || activeProduct.category !== overProduct.category) {
           return items;
         }
-        
+
         // Get all products from the same category
         const categoryProducts = items.filter(p => p.category === activeProduct.category);
         const otherProducts = items.filter(p => p.category !== activeProduct.category);
-        
+
         // Find indices within the category
-        const oldIndex = categoryProducts.findIndex((item) => item.id === active.id);
-        const newIndex = categoryProducts.findIndex((item) => item.id === over.id);
-        
+        const oldIndex = categoryProducts.findIndex(item => item.id === active.id);
+        const newIndex = categoryProducts.findIndex(item => item.id === over.id);
+
         // Reorder within category
         const reorderedCategoryProducts = arrayMove(categoryProducts, oldIndex, newIndex);
-        
+
         // Update display_order for reordered category products
         const updates = reorderedCategoryProducts.map((product, index) => ({
           id: product.id,
-          display_order: index + 1,
+          display_order: index + 1
         }));
-        
+
         // Save to backend
         reorderProducts(updates);
-        
+
         // Merge back with other products, maintaining category grouping
         const newOrder = [...otherProducts, ...reorderedCategoryProducts].sort((a, b) => {
           // First sort by category
@@ -783,7 +782,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           // Then by display_order within category
           return (a.display_order || 0) - (b.display_order || 0);
         });
-        
         return newOrder;
       });
     }
@@ -791,36 +789,38 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
   // Handle drag end for category reordering
   const handleDragEndCategories = (event: DragEndEvent) => {
-    const { active, over } = event;
-
+    const {
+      active,
+      over
+    } = event;
     if (over && active.id !== over.id) {
-      setLocalCategories((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        
+      setLocalCategories(items => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over.id);
         const reorderedCategories = arrayMove(items, oldIndex, newIndex);
-        
+
         // Save to backend
         reorderCategories(reorderedCategories);
-        
         return reorderedCategories;
       });
     }
   };
-  
-  const { 
-    periodFilter: reportsPeriodFilter, 
+  const {
+    periodFilter: reportsPeriodFilter,
     setPeriodFilter: setReportsPeriodFilter,
     customDateRange: reportsCustomDateRange,
     setCustomDateRange: setReportsCustomDateRange,
-    dateRange: reportsDateRange 
+    dateRange: reportsDateRange
   } = useDateRangeFilter();
   const [periodFilter, setPeriodFilter] = useState<string>("all");
   const [statsStatusFilter, setStatsStatusFilter] = useState<string>("all");
   const [statsPaymentFilter, setStatsPaymentFilter] = useState<'all' | 'received' | 'pending'>('all');
-  const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [customDateRange, setCustomDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
     from: undefined,
-    to: undefined,
+    to: undefined
   });
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
@@ -846,11 +846,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     // Se os customStatuses foram carregados e o filtro ainda está em 'all'
     if (customStatuses.length > 0 && orderStatusFilter === 'all') {
       // Procurar por status "pending" ou variações
-      const pendingStatus = customStatuses.find(s => 
-        s.status_key.toLowerCase() === 'pending' || 
-        s.status_key.toLowerCase() === 'pendente'
-      );
-      
+      const pendingStatus = customStatuses.find(s => s.status_key.toLowerCase() === 'pending' || s.status_key.toLowerCase() === 'pendente');
       if (pendingStatus) {
         console.log('[Filtro Padrão] Definindo para pending');
         setOrderStatusFilter(pendingStatus.status_key);
@@ -860,7 +856,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         setOrderStatusFilter(customStatuses[0].status_key);
       }
     }
-    
+
     // Lógica para funcionários com permissões restritas
     if (employeeAccess.isEmployee && employeeAccess.permissions) {
       console.log('[Ajustando Filtro]', {
@@ -868,7 +864,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         canViewAllOrders,
         canViewPendingOrders
       });
-      
       if (orderStatusFilter === 'all' && !canViewAllOrders) {
         // Se não pode ver "todos", definir para o primeiro status permitido
         if (canViewPendingOrders) {
@@ -903,7 +898,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // o que sobrescrevia os campos de endereço personalizados. Agora toda a
   // sincronização acontece apenas no useEffect acima.
 
-
   // Reset current page when filters change
   useEffect(() => {
     setCurrentOrderPage(1);
@@ -916,75 +910,97 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
   // Sanitize slug in real-time
   const sanitizeSlug = (value: string) => {
-    return value
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-z0-9-]/g, '') // Only letters, numbers, hyphens
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+    return value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+    .replace(/[^a-z0-9-]/g, '') // Only letters, numbers, hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
   };
 
   // Check slug availability
   useEffect(() => {
     if (!storeForm.slug || storeForm.slug === myStore?.slug) {
-      setSlugAvailability({ isChecking: false, isAvailable: null, message: '' });
+      setSlugAvailability({
+        isChecking: false,
+        isAvailable: null,
+        message: ''
+      });
       return;
     }
-
     const timer = setTimeout(async () => {
-      setSlugAvailability({ isChecking: true, isAvailable: null, message: '' });
-
-      const { data, error } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('slug', storeForm.slug)
-        .maybeSingle();
-
+      setSlugAvailability({
+        isChecking: true,
+        isAvailable: null,
+        message: ''
+      });
+      const {
+        data,
+        error
+      } = await supabase.from('stores').select('id').eq('slug', storeForm.slug).maybeSingle();
       if (error) {
         console.error('Error checking slug:', error);
-        setSlugAvailability({ isChecking: false, isAvailable: null, message: 'Erro ao verificar disponibilidade' });
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: null,
+          message: 'Erro ao verificar disponibilidade'
+        });
         return;
       }
-
       if (data) {
-        setSlugAvailability({ isChecking: false, isAvailable: false, message: 'Esta URL já está em uso' });
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: false,
+          message: 'Esta URL já está em uso'
+        });
       } else {
-        setSlugAvailability({ isChecking: false, isAvailable: true, message: 'URL disponível' });
+        setSlugAvailability({
+          isChecking: false,
+          isAvailable: true,
+          message: 'URL disponível'
+        });
       }
     }, 500);
-
     return () => clearTimeout(timer);
   }, [storeForm.slug, myStore?.slug]);
-
-  const statusConfig: Record<string, { label: string; color: string }> = {
-    pending_approval: { label: 'Aguardando Aprovação', color: 'bg-yellow-500' },
-    active: { label: 'Ativa', color: 'bg-green-500' },
-    inactive: { label: 'Inativa', color: 'bg-gray-500' },
+  const statusConfig: Record<string, {
+    label: string;
+    color: string;
+  }> = {
+    pending_approval: {
+      label: 'Aguardando Aprovação',
+      color: 'bg-yellow-500'
+    },
+    active: {
+      label: 'Ativa',
+      color: 'bg-green-500'
+    },
+    inactive: {
+      label: 'Inativa',
+      color: 'bg-gray-500'
+    }
   };
-
   const storeStatus = statusConfig[myStore?.status || 'pending_approval'] || statusConfig.pending_approval;
-
   const storeIsOpen = myStore ? isStoreOpen(myStore.operating_hours) : false;
   const storeStatusText = myStore ? getStoreStatusText(myStore.operating_hours) : '';
 
   // Filter orders based on period and status
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
-    
     const now = new Date();
     let startDate: Date;
     let endDate: Date = now;
-
     switch (periodFilter) {
       case "today":
         startDate = startOfDay(now);
         endDate = endOfDay(now);
         break;
       case "week":
-        startDate = startOfWeek(now, { locale: ptBR });
-        endDate = endOfWeek(now, { locale: ptBR });
+        startDate = startOfWeek(now, {
+          locale: ptBR
+        });
+        endDate = endOfWeek(now, {
+          locale: ptBR
+        });
         break;
       case "month":
         startDate = startOfMonth(now);
@@ -1005,24 +1021,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         }
         break;
       default:
-    return orders.filter(order => {
-      const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
-      const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
-      const matchesPayment = statsPaymentFilter === 'all' || 
-        (statsPaymentFilter === 'received' && order.payment_received === true) ||
-        (statsPaymentFilter === 'pending' && order.payment_received !== true);
-      return matchesStatus && matchesPayment;
-    });
+        return orders.filter(order => {
+          const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
+          const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
+          const matchesPayment = statsPaymentFilter === 'all' || statsPaymentFilter === 'received' && order.payment_received === true || statsPaymentFilter === 'pending' && order.payment_received !== true;
+          return matchesStatus && matchesPayment;
+        });
     }
-
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
-      const matchesDate = isWithinInterval(orderDate, { start: startDate, end: endDate });
+      const matchesDate = isWithinInterval(orderDate, {
+        start: startDate,
+        end: endDate
+      });
       const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
       const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
-      const matchesPayment = statsPaymentFilter === 'all' || 
-        (statsPaymentFilter === 'received' && order.payment_received === true) ||
-        (statsPaymentFilter === 'pending' && order.payment_received !== true);
+      const matchesPayment = statsPaymentFilter === 'all' || statsPaymentFilter === 'received' && order.payment_received === true || statsPaymentFilter === 'pending' && order.payment_received !== true;
       return matchesDate && matchesStatus && matchesPayment;
     });
   }, [orders, periodFilter, customDateRange, statsStatusFilter, statsPaymentFilter]);
@@ -1030,13 +1044,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Calculate previous period for comparison
   const previousPeriodOrders = useMemo(() => {
     if (!orders || periodFilter === "all") return [];
-    
     const now = new Date();
     let currentStartDate: Date;
     let currentEndDate: Date = now;
     let previousStartDate: Date;
     let previousEndDate: Date;
-
     switch (periodFilter) {
       case "today":
         currentStartDate = startOfDay(now);
@@ -1045,10 +1057,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         previousEndDate = endOfDay(subDays(now, 1));
         break;
       case "week":
-        currentStartDate = startOfWeek(now, { locale: ptBR });
-        currentEndDate = endOfWeek(now, { locale: ptBR });
-        previousStartDate = startOfWeek(subDays(currentStartDate, 7), { locale: ptBR });
-        previousEndDate = endOfWeek(subDays(currentStartDate, 7), { locale: ptBR });
+        currentStartDate = startOfWeek(now, {
+          locale: ptBR
+        });
+        currentEndDate = endOfWeek(now, {
+          locale: ptBR
+        });
+        previousStartDate = startOfWeek(subDays(currentStartDate, 7), {
+          locale: ptBR
+        });
+        previousEndDate = endOfWeek(subDays(currentStartDate, 7), {
+          locale: ptBR
+        });
         break;
       case "month":
         currentStartDate = startOfMonth(now);
@@ -1083,15 +1103,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       default:
         return [];
     }
-
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
-      const matchesDate = isWithinInterval(orderDate, { start: previousStartDate, end: previousEndDate });
+      const matchesDate = isWithinInterval(orderDate, {
+        start: previousStartDate,
+        end: previousEndDate
+      });
       const normalizedFilterStatus = getEnumFromStatusKey(statsStatusFilter);
       const matchesStatus = statsStatusFilter === "all" || order.status === normalizedFilterStatus;
-      const matchesPayment = statsPaymentFilter === 'all' || 
-        (statsPaymentFilter === 'received' && order.payment_received === true) ||
-        (statsPaymentFilter === 'pending' && order.payment_received !== true);
+      const matchesPayment = statsPaymentFilter === 'all' || statsPaymentFilter === 'received' && order.payment_received === true || statsPaymentFilter === 'pending' && order.payment_received !== true;
       return matchesDate && matchesStatus && matchesPayment;
     });
   }, [orders, periodFilter, customDateRange, statsStatusFilter, statsPaymentFilter]);
@@ -1102,7 +1122,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   const completedOrders = filteredOrders?.filter(o => o.status === 'delivered').length || 0;
   const pendingOrders = filteredOrders?.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status)).length || 0;
-  
+
   // Calculate payment metrics
   const receivedPaymentsCount = filteredOrders?.filter(o => o.payment_received === true).length || 0;
   const pendingPaymentsCount = filteredOrders?.filter(o => o.payment_received !== true).length || 0;
@@ -1116,10 +1136,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const previousCompletedOrders = previousPeriodOrders?.filter(o => o.status === 'delivered').length || 0;
 
   // Calculate percentage changes
-  const ordersChange = previousTotalOrders > 0 ? ((totalOrders - previousTotalOrders) / previousTotalOrders) * 100 : 0;
-  const revenueChange = previousTotalRevenue > 0 ? ((totalRevenue - previousTotalRevenue) / previousTotalRevenue) * 100 : 0;
-  const averageOrderValueChange = previousAverageOrderValue > 0 ? ((averageOrderValue - previousAverageOrderValue) / previousAverageOrderValue) * 100 : 0;
-  const completedOrdersChange = previousCompletedOrders > 0 ? ((completedOrders - previousCompletedOrders) / previousCompletedOrders) * 100 : 0;
+  const ordersChange = previousTotalOrders > 0 ? (totalOrders - previousTotalOrders) / previousTotalOrders * 100 : 0;
+  const revenueChange = previousTotalRevenue > 0 ? (totalRevenue - previousTotalRevenue) / previousTotalRevenue * 100 : 0;
+  const averageOrderValueChange = previousAverageOrderValue > 0 ? (averageOrderValue - previousAverageOrderValue) / previousAverageOrderValue * 100 : 0;
+  const completedOrdersChange = previousCompletedOrders > 0 ? (completedOrders - previousCompletedOrders) / previousCompletedOrders * 100 : 0;
 
   // Orders by status
   const ordersByStatus = useMemo(() => {
@@ -1127,24 +1147,34 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     filteredOrders?.forEach(order => {
       statusCount[order.status] = (statusCount[order.status] || 0) + 1;
     });
-    return Object.entries(statusCount).map(([name, value]) => ({ name, value }));
+    return Object.entries(statusCount).map(([name, value]) => ({
+      name,
+      value
+    }));
   }, [filteredOrders]);
 
   // Orders over time
   const ordersOverTime = useMemo(() => {
     if (!filteredOrders || filteredOrders.length === 0) return [];
-
-    const ordersByDate: Record<string, { date: string; pedidos: number; valor: number }> = {};
-    
+    const ordersByDate: Record<string, {
+      date: string;
+      pedidos: number;
+      valor: number;
+    }> = {};
     filteredOrders.forEach(order => {
-      const date = format(new Date(order.created_at), "dd/MM", { locale: ptBR });
+      const date = format(new Date(order.created_at), "dd/MM", {
+        locale: ptBR
+      });
       if (!ordersByDate[date]) {
-        ordersByDate[date] = { date, pedidos: 0, valor: 0 };
+        ordersByDate[date] = {
+          date,
+          pedidos: 0,
+          valor: 0
+        };
       }
       ordersByDate[date].pedidos += 1;
       ordersByDate[date].valor += Number(order.total);
     });
-
     return Object.values(ordersByDate).sort((a, b) => {
       const [dayA, monthA] = a.date.split('/').map(Number);
       const [dayB, monthB] = b.date.split('/').map(Number);
@@ -1158,37 +1188,39 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     filteredOrders?.forEach(order => {
       methodCount[order.payment_method] = (methodCount[order.payment_method] || 0) + 1;
     });
-    return Object.entries(methodCount).map(([name, value]) => ({ 
-      name: name === 'pix' ? 'PIX' : name === 'dinheiro' ? 'Dinheiro' : 'Cartão', 
-      value 
+    return Object.entries(methodCount).map(([name, value]) => ({
+      name: name === 'pix' ? 'PIX' : name === 'dinheiro' ? 'Dinheiro' : 'Cartão',
+      value
     }));
   }, [filteredOrders]);
 
   // Top products
   const topProducts = useMemo(() => {
-    const productCount: Record<string, { name: string; quantity: number; revenue: number }> = {};
-    
+    const productCount: Record<string, {
+      name: string;
+      quantity: number;
+      revenue: number;
+    }> = {};
     filteredOrders?.forEach(order => {
       order.order_items?.forEach((item: any) => {
         if (!productCount[item.product_name]) {
-          productCount[item.product_name] = { name: item.product_name, quantity: 0, revenue: 0 };
+          productCount[item.product_name] = {
+            name: item.product_name,
+            quantity: 0,
+            revenue: 0
+          };
         }
         productCount[item.product_name].quantity += item.quantity;
         productCount[item.product_name].revenue += Number(item.subtotal);
       });
     });
-
-    return Object.values(productCount)
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
+    return Object.values(productCount).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
   }, [filteredOrders]);
-
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
   // Filtrar pedidos para a tab de pedidos
   const filteredOrdersForTab = useMemo(() => {
     if (!orders) return [];
-    
     return orders.filter(order => {
       // Validação de permissões de visualização
       if (employeeAccess.isEmployee) {
@@ -1196,32 +1228,24 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         if (!canViewAllOrders) {
           // Verificar permissão específica para o status do pedido
           const orderStatus = order.status;
-          const hasSpecificPermission = 
-            (orderStatus === 'pending' && canViewPendingOrders) ||
-            (orderStatus === 'confirmed' && canViewConfirmedOrders) ||
-            (orderStatus === 'preparing' && canViewPreparingOrders) ||
-            (orderStatus === 'in_delivery' && canViewOutForDeliveryOrders) ||
-            (orderStatus === 'delivered' && canViewDeliveredOrders) ||
-            (orderStatus === 'cancelled' && canViewCancelledOrders);
-          
+          const hasSpecificPermission = orderStatus === 'pending' && canViewPendingOrders || orderStatus === 'confirmed' && canViewConfirmedOrders || orderStatus === 'preparing' && canViewPreparingOrders || orderStatus === 'in_delivery' && canViewOutForDeliveryOrders || orderStatus === 'delivered' && canViewDeliveredOrders || orderStatus === 'cancelled' && canViewCancelledOrders;
           if (!hasSpecificPermission) {
             // Não tem permissão para ver este pedido
             return false;
           }
         }
       }
-      
+
       // Filtro de pesquisa por nome do cliente ou número do pedido
       if (orderSearchTerm.trim() !== '') {
         const searchLower = orderSearchTerm.toLowerCase().trim();
         const matchesCustomerName = order.customer_name?.toLowerCase().includes(searchLower);
         const matchesOrderNumber = order.order_number?.toLowerCase().includes(searchLower);
-        
         if (!matchesCustomerName && !matchesOrderNumber) {
           return false;
         }
       }
-      
+
       // Filtro de status - normalizar ambos os lados da comparação
       if (orderStatusFilter !== 'all') {
         const normalizedFilterStatus = getEnumFromStatusKey(orderStatusFilter);
@@ -1251,12 +1275,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         const orderDate = new Date(order.created_at);
         const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
         const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
-        
         const daySchedule = myStore.operating_hours?.[dayOfWeek];
         if (daySchedule) {
           const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
           const isScheduled = !wasOpen && myStore.allow_orders_when_closed;
-          
           if (scheduledFilter === 'scheduled' && !isScheduled) {
             return false;
           }
@@ -1265,27 +1287,26 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           }
         }
       }
-      
+
       // Filtro de data
       if (dateFilter === 'all') {
         return true; // Mostrar todos os pedidos
       }
-      
       const orderDate = new Date(order.created_at);
-      
       if (dateFilter === 'daily') {
         return isToday(orderDate);
       } else if (dateFilter === 'weekly') {
-        return isThisWeek(orderDate, { locale: ptBR });
+        return isThisWeek(orderDate, {
+          locale: ptBR
+        });
       } else if (dateFilter === 'monthly') {
         return isThisMonth(orderDate);
       } else if (dateFilter === 'custom' && customDateRange.from && customDateRange.to) {
         return isWithinInterval(orderDate, {
           start: startOfDay(customDateRange.from),
-          end: endOfDay(customDateRange.to),
+          end: endOfDay(customDateRange.to)
         });
       }
-      
       return true;
     }).sort((a, b) => {
       // Ordenação por data
@@ -1301,7 +1322,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     const startIndex = (currentOrderPage - 1) * ordersPerPage;
     const endIndex = startIndex + ordersPerPage;
     const paginatedOrders = filteredOrdersForTab.slice(startIndex, endIndex);
-    
     return {
       orders: paginatedOrders,
       totalPages,
@@ -1314,25 +1334,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   // Filter categories based on status
   const filteredCategories = useMemo(() => {
     if (!categories) return [];
-    
     if (categoryStatusFilter === 'all') return categories;
     if (categoryStatusFilter === 'active') return categories.filter(c => c.is_active);
     if (categoryStatusFilter === 'inactive') return categories.filter(c => !c.is_active);
-    
     return categories;
   }, [categories, categoryStatusFilter]);
-
   const filterOrdersByDate = (orders: any[] | undefined) => {
     if (!orders) return [];
-    
     return orders.filter(order => {
       const orderDate = new Date(order.created_at);
-      
       switch (dateFilter) {
         case 'daily':
           return isToday(orderDate);
         case 'weekly':
-          return isThisWeek(orderDate, { weekStartsOn: 0 });
+          return isThisWeek(orderDate, {
+            weekStartsOn: 0
+          });
         case 'monthly':
           return isThisMonth(orderDate);
         case 'custom':
@@ -1346,11 +1363,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       }
     });
   };
-
   const filteredOrdersByDate = filterOrdersByDate(orders);
-
   const storeUrl = myStore ? `https://ofertas.app/${myStore.slug}` : '';
-
   const handleCopyUrl = async () => {
     if (storeUrl) {
       await navigator.clipboard.writeText(storeUrl);
@@ -1358,43 +1372,38 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       setTimeout(() => setCopiedUrl(false), 2000);
     }
   };
-
   const handleCreateProduct = async () => {
     if (!myStore) return;
-    
     if (!productForm.category.trim()) {
       toast({
         title: 'Categoria obrigatória',
         description: 'Por favor, selecione uma categoria para o produto.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     if (!productForm.price || productForm.price <= 0) {
       toast({
         title: 'Preço inválido',
         description: 'O preço do produto deve ser maior que zero.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     if (productForm.promotional_price) {
       if (productForm.promotional_price > productForm.price) {
         toast({
           title: 'Preço promocional inválido',
           description: 'O preço promocional não pode ser maior que o preço normal.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
-      
       if (productForm.promotional_price <= 0) {
         toast({
           title: 'Preço promocional inválido',
           description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
@@ -1403,19 +1412,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     // Validar código externo único dentro da loja
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
-        const { data, error } = await (supabase
-          .from('products')
-          .select('id') as any)
-          .eq('store_id', myStore.id)
-          .eq('external_code', productForm.external_code.trim())
-          .limit(1)
-          .single();
-
+        const {
+          data,
+          error
+        } = await (supabase.from('products').select('id') as any).eq('store_id', myStore.id).eq('external_code', productForm.external_code.trim()).limit(1).single();
         if (data && !error) {
           toast({
             title: 'Código externo já existe',
             description: 'Este código já está cadastrado nesta loja',
-            variant: 'destructive',
+            variant: 'destructive'
           });
           return;
         }
@@ -1423,29 +1428,26 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         // Código externo não encontrado, ok para criar
       }
     }
-    
     createProduct({
       ...productForm,
       store_id: myStore.id,
       promotional_price: productForm.promotional_price && productForm.promotional_price > 0 ? productForm.promotional_price : null,
       image_url: productForm.image_url || undefined,
-      external_code: productForm.external_code?.trim() || undefined,
+      external_code: productForm.external_code?.trim() || undefined
     }, {
-      onSuccess: async (newProduct) => {
+      onSuccess: async newProduct => {
         // If duplicating, copy addons and flavors
         if (isDuplicating && duplicatingFromProductId) {
           try {
             // Fetch addons from original product
-            const { data: addons } = await supabase
-              .from('product_addons')
-              .select('*')
-              .eq('product_id', duplicatingFromProductId);
+            const {
+              data: addons
+            } = await supabase.from('product_addons').select('*').eq('product_id', duplicatingFromProductId);
 
             // Fetch flavors from original product
-            const { data: flavors } = await supabase
-              .from('product_flavors')
-              .select('*')
-              .eq('product_id', duplicatingFromProductId);
+            const {
+              data: flavors
+            } = await supabase.from('product_flavors').select('*').eq('product_id', duplicatingFromProductId);
 
             // Copy addons
             if (addons && addons.length > 0) {
@@ -1456,9 +1458,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 category_id: addon.category_id,
                 is_available: addon.is_available,
                 allow_quantity: addon.allow_quantity,
-                display_order: addon.display_order,
+                display_order: addon.display_order
               }));
-
               await supabase.from('product_addons').insert(addonsToInsert);
             }
 
@@ -1470,26 +1471,23 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 description: flavor.description,
                 price: flavor.price,
                 is_available: flavor.is_available,
-                display_order: flavor.display_order,
+                display_order: flavor.display_order
               }));
-
               await supabase.from('product_flavors').insert(flavorsToInsert);
             }
-
             toast({
               title: 'Produto duplicado com sucesso!',
-              description: `${addons?.length || 0} complementos e ${flavors?.length || 0} sabores foram copiados.`,
+              description: `${addons?.length || 0} complementos e ${flavors?.length || 0} sabores foram copiados.`
             });
           } catch (error) {
             console.error('Error copying addons/flavors:', error);
             toast({
               title: 'Produto criado',
               description: 'Produto criado, mas houve erro ao copiar complementos/sabores.',
-              variant: 'destructive',
+              variant: 'destructive'
             });
           }
         }
-
         setIsProductDialogOpen(false);
         setActiveProductTab("info");
         setIsDuplicating(false);
@@ -1505,12 +1503,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           is_pizza: false,
           max_flavors: 2,
           external_code: '',
-          is_featured: false,
+          is_featured: false
         });
-      },
+      }
     });
   };
-
   const handleEditProduct = (product: any) => {
     setEditingProduct(product);
     setActiveProductTab("info");
@@ -1525,23 +1522,21 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       is_pizza: product.is_pizza || false,
       max_flavors: product.max_flavors || 2,
       external_code: product.external_code || '',
-      is_featured: product.is_featured || false,
+      is_featured: product.is_featured || false
     });
     setIsProductDialogOpen(true);
   };
-
   const openDuplicateDialog = (product: any) => {
     setProductToDuplicate(product);
     setIsDuplicateDialogOpen(true);
   };
-
   const handleDuplicateProduct = (product: any) => {
     // Set flags for duplication
     setIsDuplicating(true);
     setDuplicatingFromProductId(product.id);
     setEditingProduct(null);
     setActiveProductTab("info");
-    
+
     // Fill form with copied data
     setProductForm({
       name: `${product.name} (Cópia)`,
@@ -1553,19 +1548,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       image_url: product.image_url || '',
       is_pizza: product.is_pizza || false,
       max_flavors: product.max_flavors || 2,
-      external_code: '', // Leave empty to avoid unique constraint violation
-      is_featured: false,
+      external_code: '',
+      // Leave empty to avoid unique constraint violation
+      is_featured: false
     });
-    
+
     // Open the product dialog
     setIsProductDialogOpen(true);
-    
     toast({
       title: 'Produto copiado',
-      description: 'Edite os dados e clique em salvar. Os complementos e sabores também serão copiados.',
+      description: 'Edite os dados e clique em salvar. Os complementos e sabores também serão copiados.'
     });
   };
-
   const confirmDuplicate = () => {
     if (productToDuplicate) {
       handleDuplicateProduct(productToDuplicate);
@@ -1573,43 +1567,38 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       setProductToDuplicate(null);
     }
   };
-
   const handleUpdateProduct = async () => {
     if (!editingProduct) return;
-
     if (!productForm.category.trim()) {
       toast({
         title: 'Categoria obrigatória',
         description: 'Por favor, selecione uma categoria para o produto.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     if (!productForm.price || productForm.price <= 0) {
       toast({
         title: 'Preço inválido',
         description: 'O preço do produto deve ser maior que zero.',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     if (productForm.promotional_price) {
       if (productForm.promotional_price > productForm.price) {
         toast({
           title: 'Preço promocional inválido',
           description: 'O preço promocional não pode ser maior que o preço normal.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
-      
       if (productForm.promotional_price <= 0) {
         toast({
           title: 'Preço promocional inválido',
           description: 'O preço promocional deve ser maior que zero ou deixe vazio.',
-          variant: 'destructive',
+          variant: 'destructive'
         });
         return;
       }
@@ -1618,20 +1607,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     // Validar código externo único dentro da loja
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
-        const { data, error } = await (supabase
-          .from('products')
-          .select('id') as any)
-          .eq('store_id', myStore!.id)
-          .eq('external_code', productForm.external_code.trim())
-          .neq('id', editingProduct.id)
-          .limit(1)
-          .single();
-
+        const {
+          data,
+          error
+        } = await (supabase.from('products').select('id') as any).eq('store_id', myStore!.id).eq('external_code', productForm.external_code.trim()).neq('id', editingProduct.id).limit(1).single();
         if (data && !error) {
           toast({
             title: 'Código externo já existe',
             description: 'Este código já está cadastrado nesta loja',
-            variant: 'destructive',
+            variant: 'destructive'
           });
           return;
         }
@@ -1639,13 +1623,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         // Código externo não encontrado, ok para atualizar
       }
     }
-
     updateProduct({
       ...productForm,
       id: editingProduct.id,
       promotional_price: productForm.promotional_price && productForm.promotional_price > 0 ? productForm.promotional_price : null,
       image_url: productForm.image_url || undefined,
-      external_code: productForm.external_code?.trim() || undefined,
+      external_code: productForm.external_code?.trim() || undefined
     }, {
       onSuccess: () => {
         setIsProductDialogOpen(false);
@@ -1662,9 +1645,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           is_pizza: false,
           max_flavors: 2,
           external_code: '',
-          is_featured: false,
+          is_featured: false
         });
-      },
+      }
     });
   };
 
@@ -1676,60 +1659,49 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       setSelectedProducts(filteredProducts.map(p => p.id));
     }
   };
-
   const handleToggleSelectProduct = (productId: string) => {
-    setSelectedProducts(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
+    setSelectedProducts(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
   };
-
   const handleBulkToggleAvailability = async (isAvailable: boolean) => {
     try {
-      await Promise.all(
-        selectedProducts.map(productId => 
-          toggleProductAvailability({ id: productId, is_available: isAvailable })
-        )
-      );
+      await Promise.all(selectedProducts.map(productId => toggleProductAvailability({
+        id: productId,
+        is_available: isAvailable
+      })));
       toast({
         title: 'Sucesso!',
-        description: `${selectedProducts.length} produto(s) ${isAvailable ? 'ativados' : 'desativados'}!`,
+        description: `${selectedProducts.length} produto(s) ${isAvailable ? 'ativados' : 'desativados'}!`
       });
       setSelectedProducts([]);
     } catch (error) {
       toast({
         title: 'Erro',
         description: 'Erro ao atualizar produtos',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
-
   const handleBulkChangeCategory = async () => {
     if (!bulkCategoryChange) {
       toast({
         title: 'Categoria não selecionada',
         description: 'Por favor, selecione uma categoria',
-        variant: 'destructive',
+        variant: 'destructive'
       });
       return;
     }
-
     try {
-      await Promise.all(
-        selectedProducts.map(productId => {
-          const product = products?.find(p => p.id === productId);
-          if (!product) return Promise.resolve();
-          return updateProduct({
-            ...product,
-            category: bulkCategoryChange,
-          });
-        })
-      );
+      await Promise.all(selectedProducts.map(productId => {
+        const product = products?.find(p => p.id === productId);
+        if (!product) return Promise.resolve();
+        return updateProduct({
+          ...product,
+          category: bulkCategoryChange
+        });
+      }));
       toast({
         title: 'Sucesso!',
-        description: `${selectedProducts.length} produto(s) movidos para "${bulkCategoryChange}"!`,
+        description: `${selectedProducts.length} produto(s) movidos para "${bulkCategoryChange}"!`
       });
       setSelectedProducts([]);
       setBulkCategoryChange('');
@@ -1738,14 +1710,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       toast({
         title: 'Erro',
         description: 'Erro ao alterar categoria dos produtos',
-        variant: 'destructive',
+        variant: 'destructive'
       });
     }
   };
-
   const handleUpdateStore = async () => {
     if (!myStore) return;
-    
     console.log('🔄 [handleUpdateStore] Iniciando atualização da loja');
     console.log('📝 [handleUpdateStore] Dados do formulário:', {
       address_data: {
@@ -1754,16 +1724,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         store_street: storeForm.store_street,
         store_street_number: storeForm.store_street_number,
         store_neighborhood: storeForm.store_neighborhood,
-        store_complement: storeForm.store_complement,
+        store_complement: storeForm.store_complement
       }
     });
-    
+
     // Validação: impedir salvar se slug estiver em uso
     if (storeForm.slug !== myStore.slug && slugAvailability.isAvailable === false) {
       toast({
         title: "URL já está em uso",
         description: "Por favor, escolha outra URL para sua loja.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -1773,7 +1743,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       toast({
         title: "URL é obrigatória",
         description: "Por favor, preencha a URL da loja.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -1782,7 +1752,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     if (slugAvailability.isChecking) {
       toast({
         title: "Aguarde",
-        description: "Verificando disponibilidade da URL...",
+        description: "Verificando disponibilidade da URL..."
       });
       return;
     }
@@ -1794,34 +1764,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         toast({
           title: "Chave PIX inválida",
           description: "Por favor, verifique o formato da chave PIX. Use CPF, CNPJ, E-mail, Telefone ou Chave Aleatória.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
     }
-
     const oldSlug = myStore.slug;
     const newSlug = storeForm.slug;
     const isSlugChanging = oldSlug !== newSlug;
 
     // Se o slug está mudando, mostrar alerta de confirmação
     if (isSlugChanging) {
-      const confirmed = window.confirm(
-        `⚠️ ATENÇÃO: Você está mudando a URL da sua loja!\n\n` +
-        `URL antiga: ofertas.app/${oldSlug}\n` +
-        `URL nova: ofertas.app/${newSlug}\n\n` +
-        `IMPORTANTE:\n` +
-        `• Links antigos compartilhados não funcionarão mais\n` +
-        `• WhatsApp NÃO será afetado (usa ID da loja, não a URL)\n` +
-        `• Produtos e pedidos continuam normalmente\n\n` +
-        `Deseja realmente continuar?`
-      );
-
+      const confirmed = window.confirm(`⚠️ ATENÇÃO: Você está mudando a URL da sua loja!\n\n` + `URL antiga: ofertas.app/${oldSlug}\n` + `URL nova: ofertas.app/${newSlug}\n\n` + `IMPORTANTE:\n` + `• Links antigos compartilhados não funcionarão mais\n` + `• WhatsApp NÃO será afetado (usa ID da loja, não a URL)\n` + `• Produtos e pedidos continuam normalmente\n\n` + `Deseja realmente continuar?`);
       if (!confirmed) {
         return;
       }
     }
-
     try {
       await updateStore({
         id: myStore.id,
@@ -1853,13 +1811,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         menu_label: storeForm.menu_label,
         show_pix_key_to_customer: storeForm.show_pix_key_to_customer,
         pix_key: storeForm.pix_key,
-        allow_orders_when_closed: storeForm.allow_orders_when_closed,
+        allow_orders_when_closed: storeForm.allow_orders_when_closed
       } as any);
 
       // Se o slug foi alterado, limpar caches e localStorage
       if (isSlugChanging) {
         console.log(`🔄 Slug alterado de "${oldSlug}" para "${newSlug}"`);
-        
+
         // Limpar localStorage que possa ter o slug antigo
         const lastVisited = localStorage.getItem('lastVisitedStore');
         if (lastVisited) {
@@ -1875,83 +1833,82 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         }
 
         // Invalidar todas as queries relacionadas à loja
-        queryClient.invalidateQueries({ queryKey: ['store', oldSlug] });
-        queryClient.invalidateQueries({ queryKey: ['store', newSlug] });
-        queryClient.invalidateQueries({ queryKey: ['stores'] });
-        queryClient.invalidateQueries({ queryKey: ['my-store'] });
-        
+        queryClient.invalidateQueries({
+          queryKey: ['store', oldSlug]
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['store', newSlug]
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['stores']
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['my-store']
+        });
         console.log('✅ WhatsApp mantido - usa store_id, não slug');
-        
         toast({
           title: "✅ URL atualizada com sucesso!",
-          description: `Nova URL: ofertas.app/${newSlug}\n\n✓ WhatsApp mantido (usa ID da loja)`,
+          description: `Nova URL: ofertas.app/${newSlug}\n\n✓ WhatsApp mantido (usa ID da loja)`
         });
       }
     } catch (error) {
       console.error('Erro ao atualizar loja:', error);
     }
   };
-
   const handleSaveOperatingHours = async (hours: any) => {
     if (!myStore?.id) return;
-    
     await updateStore({
       id: myStore.id,
       name: myStore.name,
       slug: myStore.slug,
       category: myStore.category,
-      operating_hours: hours as any,
+      operating_hours: hours as any
     });
-    
     setIsHoursDialogOpen(false);
   };
-
   const handleUpdateDeliveryOption = async (field: string, value: boolean) => {
     if (!myStore?.id) return;
-    
     try {
       await updateStore({
         id: myStore.id,
         name: myStore.name,
         slug: myStore.slug,
         category: myStore.category,
-        [field]: value,
+        [field]: value
       });
-      
-      setStoreForm({ ...storeForm, [field]: value });
-      
+      setStoreForm({
+        ...storeForm,
+        [field]: value
+      });
       toast({
         title: "Configuração atualizada",
-        description: "A alteração foi salva com sucesso.",
+        description: "A alteração foi salva com sucesso."
       });
     } catch (error) {
       console.error('Erro ao atualizar configuração:', error);
       toast({
         title: "Erro ao atualizar",
         description: "Não foi possível salvar a alteração.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/20">
+    return <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/20 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/20">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
           <p className="text-lg font-medium text-foreground">Carregando dashboard...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!myStore) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl mx-auto text-center"
-      >
+    return <motion.div initial={{
+      opacity: 0,
+      y: 20
+    }} animate={{
+      opacity: 1,
+      y: 0
+    }} className="max-w-2xl mx-auto text-center">
         <Card>
           <CardContent className="py-12">
             <Store className="w-16 h-16 mx-auto mb-4 text-primary" />
@@ -1959,18 +1916,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             <p className="text-muted-foreground mb-6">
               Crie sua loja agora e comece a vender na plataforma
             </p>
-            <Button 
-              onClick={() => navigate('/become-partner')}
-              className="bg-gradient-primary"
-              size="lg"
-            >
+            <Button onClick={() => navigate('/become-partner')} className="bg-gradient-primary" size="lg">
               <Plus className="w-5 h-5 mr-2" />
               Criar Minha Loja
             </Button>
           </CardContent>
         </Card>
-      </motion.div>
-    );
+      </motion.div>;
   }
 
   // Função para imprimir pedido
@@ -1984,20 +1936,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       div.textContent = text;
       return div.innerHTML;
     };
-
     const orderItems = order.order_items || [];
     console.log('[Print] Order items:', orderItems);
     const itemsHtml = orderItems.map((item: any) => {
       console.log('[Print] Item structure:', item);
       console.log('[Print] Item products:', item.products);
-      
-      const addons = item.order_item_addons?.map((addon: any) => 
-        `<div style="margin-left: 20px; font-size: 12px;">+ ${escapeHtml(addon.addon_name)} - R$ ${addon.addon_price.toFixed(2)}</div>`
-      ).join('') || '';
-      
-      const flavors = item.order_item_flavors?.map((flavor: any) => 
-        `<div style="margin-left: 20px; font-size: 12px;">• ${escapeHtml(flavor.flavor_name)}</div>`
-      ).join('') || '';
+      const addons = item.order_item_addons?.map((addon: any) => `<div style="margin-left: 20px; font-size: 12px;">+ ${escapeHtml(addon.addon_name)} - R$ ${addon.addon_price.toFixed(2)}</div>`).join('') || '';
+      const flavors = item.order_item_flavors?.map((flavor: any) => `<div style="margin-left: 20px; font-size: 12px;">• ${escapeHtml(flavor.flavor_name)}</div>`).join('') || '';
 
       // Tenta pegar o external_code de diferentes formas
       let externalCode = '';
@@ -2006,9 +1951,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       } else if (Array.isArray(item.products) && item.products[0]?.external_code) {
         externalCode = ` (Cód: ${escapeHtml(item.products[0].external_code)})`;
       }
-      
       console.log('[Print] External code for', item.product_name, ':', externalCode);
-
       return `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity}x ${escapeHtml(item.product_name)}${externalCode}</td>
@@ -2018,7 +1961,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         ${flavors ? `<tr><td colspan="2" style="padding: 4px 8px;">${flavors}</td></tr>` : ''}
       `;
     }).join('');
-
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -2041,7 +1983,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           <div class="header">
             <h1>${myStore?.name}</h1>
             <p>Pedido #${order.order_number}</p>
-            <p>${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            <p>${format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", {
+      locale: ptBR
+    })}</p>
           </div>
           
           <div class="info">
@@ -2103,34 +2047,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     `);
     printWindow.document.close();
   };
-
-  return (
-    <div className="flex h-full bg-background w-full overflow-hidden justify-center">
+  return <div className="flex h-full bg-background w-full overflow-hidden justify-center">
       <div className="flex w-full max-w-[1800px]">
         {/* Mobile Sidebar (Drawer) */}
-        <DashboardMobileSidebar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          storeLogo={myStore?.logo_url}
-          storeName={myStore?.name}
-          isEmployee={employeeAccess.isEmployee}
-          employeePermissions={employeeAccess.permissions}
-          onSignOut={onSignOut}
-          isOpen={isMobileSidebarOpen}
-          onOpenChange={setIsMobileSidebarOpen}
-          openRelatoriosMenu={openRelatoriosMenu}
-        />
+        <DashboardMobileSidebar activeTab={activeTab} onTabChange={setActiveTab} storeLogo={myStore?.logo_url} storeName={myStore?.name} isEmployee={employeeAccess.isEmployee} employeePermissions={employeeAccess.permissions} onSignOut={onSignOut} isOpen={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen} openRelatoriosMenu={openRelatoriosMenu} />
         
         {/* Desktop Sidebar */}
-        <DashboardSidebar 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab}
-          storeLogo={myStore?.logo_url}
-          storeName={myStore?.name}
-          isEmployee={employeeAccess.isEmployee}
-          employeePermissions={employeeAccess.permissions}
-          onSignOut={onSignOut}
-        />
+        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} storeLogo={myStore?.logo_url} storeName={myStore?.name} isEmployee={employeeAccess.isEmployee} employeePermissions={employeeAccess.permissions} onSignOut={onSignOut} />
       
       
       <div className={cn("flex-1 overflow-y-auto overflow-x-hidden", isMobile && "pb-20")}>
@@ -2139,11 +2062,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 w-full", activeTab !== 'home' && 'hidden')}>
 
             {/* Store Header */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div initial={{
+              opacity: 0,
+              scale: 0.95
+            }} animate={{
+              opacity: 1,
+              scale: 1
+            }} transition={{
+              delay: 0.2
+            }}>
               <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/30 via-purple-100/20 to-pink-100/10 dark:from-blue-900/20 dark:via-purple-900/10 dark:to-pink-900/5 rounded-full -mr-32 -mt-32 blur-3xl" />
                 <CardContent className="p-6 relative z-10">
@@ -2152,86 +2079,78 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
                         {/* Logo em Mobile / Nome em Desktop */}
                         <div className="flex items-center gap-3">
-                          {myStore?.logo_url && (
-                            <motion.img
-                              src={myStore.logo_url}
-                              alt={myStore.name}
-                              className="h-10 w-10 object-contain rounded-lg md:hidden"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: 0.3 }}
-                            />
-                          )}
+                          {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-10 w-10 object-contain rounded-lg md:hidden" initial={{
+                            opacity: 0,
+                            scale: 0.8
+                          }} animate={{
+                            opacity: 1,
+                            scale: 1
+                          }} transition={{
+                            delay: 0.3
+                          }} />}
                           
-                          <motion.h2 
-                            className="text-3xl font-bold gradient-text hidden md:block"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                          >
+                          <motion.h2 className="text-3xl font-bold gradient-text hidden md:block" initial={{
+                            opacity: 0,
+                            x: -20
+                          }} animate={{
+                            opacity: 1,
+                            x: 0
+                          }} transition={{
+                            delay: 0.3
+                          }}>
                             {myStore?.name}
                           </motion.h2>
                         </div>
                         
                         {/* Badges de Papel */}
                         <div className="flex items-center gap-2 flex-wrap">
-                          {employeeAccess.isEmployee && (
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                          {employeeAccess.isEmployee && <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
                               <User className="w-3 h-3 mr-1" />
                               Funcionário
-                            </Badge>
-                          )}
+                            </Badge>}
                           
-                          {isStoreOwner && !employeeAccess.isEmployee && (
-                            <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                          {isStoreOwner && !employeeAccess.isEmployee && <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
                               <Store className="w-3 h-3 mr-1" />
                               Proprietário
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
                         
                         {/* Status da Loja e WhatsApp */}
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge 
-                            className={`${
-                              storeIsOpen 
-                                ? 'bg-green-500 hover:bg-green-600' 
-                                : 'bg-red-500 hover:bg-red-600'
-                            } text-white px-3 py-1`}
-                          >
+                          <Badge className={`${storeIsOpen ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white px-3 py-1`}>
                             <Clock className="w-3 h-3 mr-1" />
                             {storeStatusText}
                           </Badge>
                           {myStore?.id && <WhatsAppStatusIndicator storeId={myStore.id} />}
-                          <span className="text-xs text-muted-foreground">v 1.7</span>
+                          <span className="text-xs text-muted-foreground">v 1.8</span>
                         </div>
                       </div>
-                      <motion.p
-                        className="text-muted-foreground text-lg"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.4 }}
-                      >
+                      <motion.p className="text-muted-foreground text-lg" initial={{
+                        opacity: 0,
+                        x: -20
+                      }} animate={{
+                        opacity: 1,
+                        x: 0
+                      }} transition={{
+                        delay: 0.4
+                      }}>
                         {myStore?.category}
                       </motion.p>
                     </div>
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.5, type: "spring" }}
-                      className="flex flex-col items-end gap-2"
-                    >
-                      {onSignOut && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-destructive/40 text-destructive hover:bg-destructive/10"
-                          onClick={onSignOut}
-                        >
+                    <motion.div initial={{
+                      opacity: 0,
+                      scale: 0
+                    }} animate={{
+                      opacity: 1,
+                      scale: 1
+                    }} transition={{
+                      delay: 0.5,
+                      type: "spring"
+                    }} className="flex flex-col items-end gap-2">
+                      {onSignOut && <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={onSignOut}>
                           <LogOut className="w-3.5 h-3.5 mr-1.5" />
                           Sair
-                        </Button>
-                      )}
+                        </Button>}
                       <Badge className={`${storeStatus.color} text-white text-sm px-4 py-1.5`}>
                         {storeStatus.label}
                       </Badge>
@@ -2242,11 +2161,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </motion.div>
 
             {/* Store URL Card */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+            <motion.div initial={{
+              opacity: 0,
+              y: -20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              delay: 0.3
+            }}>
               <Card className="border-border/50 shadow-sm">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -2256,30 +2179,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <Input
-                      value={`https://ofertas.app/${myStore?.slug || ''}`}
-                      readOnly
-                      className="flex-1 bg-muted/50"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(`https://ofertas.app/${myStore?.slug || ''}`);
-                          toast({
-                            title: "URL copiada!",
-                            description: "A URL da sua loja foi copiada para a área de transferência.",
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Erro ao copiar",
-                            description: "Não foi possível copiar a URL.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    >
+                    <Input value={`https://ofertas.app/${myStore?.slug || ''}`} readOnly className="flex-1 bg-muted/50" />
+                    <Button variant="outline" size="icon" onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(`https://ofertas.app/${myStore?.slug || ''}`);
+                        toast({
+                          title: "URL copiada!",
+                          description: "A URL da sua loja foi copiada para a área de transferência."
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Erro ao copiar",
+                          description: "Não foi possível copiar a URL.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}>
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -2288,17 +2203,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </motion.div>
 
             {/* Period Filter */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
+            <motion.div initial={{
+              opacity: 0,
+              y: -20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl md:text-2xl font-bold gradient-text">Estatísticas da Loja</h2>
                 <p className="text-sm md:text-base text-muted-foreground">Acompanhe o desempenho do seu negócio</p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Select value={periodFilter} onValueChange={(value) => {
+                <Select value={periodFilter} onValueChange={value => {
                   if (value === "custom") {
                     setShowCustomDatePicker(true);
                   } else {
@@ -2326,16 +2243,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Status</SelectItem>
-                    {customStatuses.length > 0 ? (
-                      customStatuses
-                        .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '')
-                        .map((status) => (
-                          <SelectItem key={status.id} value={status.status_key}>
+                    {customStatuses.length > 0 ? customStatuses.filter(status => status.is_active && status.status_key && status.status_key.trim() !== '').map(status => <SelectItem key={status.id} value={status.status_key}>
                             {status.status_label}
-                          </SelectItem>
-                        ))
-                    ) : (
-                      <>
+                          </SelectItem>) : <>
                         <SelectItem value="pending">Pendente</SelectItem>
                         <SelectItem value="confirmed">Confirmado</SelectItem>
                         <SelectItem value="preparing">Preparando</SelectItem>
@@ -2343,8 +2253,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <SelectItem value="out_for_delivery">Saiu para Entrega</SelectItem>
                         <SelectItem value="delivered">Entregue</SelectItem>
                         <SelectItem value="cancelled">Cancelado</SelectItem>
-                      </>
-                    )}
+                      </>}
                   </SelectContent>
                 </Select>
 
@@ -2359,17 +2268,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </SelectContent>
                 </Select>
 
-                {periodFilter === "custom" && customDateRange.from && customDateRange.to && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCustomDatePicker(true)}
-                    className="gap-2"
-                  >
+                {periodFilter === "custom" && customDateRange.from && customDateRange.to && <Button variant="outline" size="sm" onClick={() => setShowCustomDatePicker(true)} className="gap-2">
                     <CalendarIcon className="h-4 w-4" />
                     {format(customDateRange.from, "dd/MM/yy")} - {format(customDateRange.to, "dd/MM/yy")}
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </motion.div>
 
@@ -2385,26 +2287,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <label className="text-sm font-medium">Data Inicial</label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !customDateRange.from && "text-muted-foreground"
-                            )}
-                          >
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !customDateRange.from && "text-muted-foreground")}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customDateRange.from ? format(customDateRange.from, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                            {customDateRange.from ? format(customDateRange.from, "dd/MM/yyyy", {
+                              locale: ptBR
+                            }) : "Selecione a data"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={customDateRange.from}
-                            onSelect={(date) => setCustomDateRange(prev => ({ ...prev, from: date }))}
-                            initialFocus
-                            locale={ptBR}
-                            className="pointer-events-auto"
-                          />
+                          <Calendar mode="single" selected={customDateRange.from} onSelect={date => setCustomDateRange(prev => ({
+                            ...prev,
+                            from: date
+                          }))} initialFocus locale={ptBR} className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     </div>
@@ -2413,55 +2307,38 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <label className="text-sm font-medium">Data Final</label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !customDateRange.to && "text-muted-foreground"
-                            )}
-                          >
+                          <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !customDateRange.to && "text-muted-foreground")}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {customDateRange.to ? format(customDateRange.to, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                            {customDateRange.to ? format(customDateRange.to, "dd/MM/yyyy", {
+                              locale: ptBR
+                            }) : "Selecione a data"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={customDateRange.to}
-                            onSelect={(date) => setCustomDateRange(prev => ({ ...prev, to: date }))}
-                            initialFocus
-                            locale={ptBR}
-                            disabled={(date) => customDateRange.from ? date < customDateRange.from : false}
-                            className="pointer-events-auto"
-                          />
+                          <Calendar mode="single" selected={customDateRange.to} onSelect={date => setCustomDateRange(prev => ({
+                            ...prev,
+                            to: date
+                          }))} initialFocus locale={ptBR} disabled={date => customDateRange.from ? date < customDateRange.from : false} className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                     </div>
                   </div>
 
                   <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowCustomDatePicker(false);
-                        if (!customDateRange.from || !customDateRange.to) {
-                          setPeriodFilter("all");
-                        }
-                      }}
-                      className="w-full sm:w-auto"
-                    >
+                    <Button variant="outline" onClick={() => {
+                      setShowCustomDatePicker(false);
+                      if (!customDateRange.from || !customDateRange.to) {
+                        setPeriodFilter("all");
+                      }
+                    }} className="w-full sm:w-auto">
                       Cancelar
                     </Button>
-                    <Button
-                      onClick={() => {
-                        if (customDateRange.from && customDateRange.to) {
-                          setPeriodFilter("custom");
-                          setShowCustomDatePicker(false);
-                        }
-                      }}
-                      disabled={!customDateRange.from || !customDateRange.to}
-                      className="w-full sm:w-auto"
-                    >
+                    <Button onClick={() => {
+                      if (customDateRange.from && customDateRange.to) {
+                        setPeriodFilter("custom");
+                        setShowCustomDatePicker(false);
+                      }
+                    }} disabled={!customDateRange.from || !customDateRange.to} className="w-full sm:w-auto">
                       Aplicar Filtro
                     </Button>
                   </div>
@@ -2471,11 +2348,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
+              <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} animate={{
+                opacity: 1,
+                y: 0
+              }} transition={{
+                delay: 0.1
+              }}>
                 <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-purple-100/30 dark:from-blue-900/20 dark:to-purple-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -2485,15 +2366,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <CardContent className="relative z-10">
                     <div className="flex items-end justify-between">
                       <div className="text-xl sm:text-3xl font-bold gradient-text">{totalOrders}</div>
-                      {periodFilter !== "all" && previousTotalOrders > 0 && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                          ordersChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30"
-                        )}>
+                      {periodFilter !== "all" && previousTotalOrders > 0 && <div className={cn("flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md", ordersChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30")}>
                           {ordersChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                           {Math.abs(ordersChange).toFixed(1)}%
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {pendingOrders} pendentes
@@ -2502,11 +2378,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </Card>
               </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+              <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} animate={{
+                opacity: 1,
+                y: 0
+              }} transition={{
+                delay: 0.2
+              }}>
                 <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-100/50 to-emerald-100/30 dark:from-green-900/20 dark:to-emerald-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -2518,15 +2398,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <div className="text-xl sm:text-3xl font-bold text-green-500">
                         R$ {totalRevenue.toFixed(2)}
                       </div>
-                      {periodFilter !== "all" && previousTotalRevenue > 0 && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                          revenueChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30"
-                        )}>
+                      {periodFilter !== "all" && previousTotalRevenue > 0 && <div className={cn("flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md", revenueChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30")}>
                           {revenueChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                           {Math.abs(revenueChange).toFixed(1)}%
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       No período selecionado
@@ -2535,11 +2410,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </Card>
               </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
+              <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} animate={{
+                opacity: 1,
+                y: 0
+              }} transition={{
+                delay: 0.3
+              }}>
                 <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100/50 to-pink-100/30 dark:from-purple-900/20 dark:to-pink-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -2551,15 +2430,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <div className="text-xl sm:text-3xl font-bold text-purple-500">
                         R$ {averageOrderValue.toFixed(2)}
                       </div>
-                      {periodFilter !== "all" && previousAverageOrderValue > 0 && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                          averageOrderValueChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30"
-                        )}>
+                      {periodFilter !== "all" && previousAverageOrderValue > 0 && <div className={cn("flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md", averageOrderValueChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30")}>
                           {averageOrderValueChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                           {Math.abs(averageOrderValueChange).toFixed(1)}%
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       Valor médio por pedido
@@ -2568,11 +2442,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </Card>
               </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
+              <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} animate={{
+                opacity: 1,
+                y: 0
+              }} transition={{
+                delay: 0.4
+              }}>
                 <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-cyan-100/30 dark:from-blue-900/20 dark:to-cyan-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -2582,18 +2460,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <CardContent className="relative z-10">
                     <div className="flex items-end justify-between">
                       <div className="text-3xl font-bold text-blue-500">{completedOrders}</div>
-                      {periodFilter !== "all" && previousCompletedOrders > 0 && (
-                        <div className={cn(
-                          "flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md",
-                          completedOrdersChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30"
-                        )}>
+                      {periodFilter !== "all" && previousCompletedOrders > 0 && <div className={cn("flex items-center gap-1 text-sm font-semibold px-2 py-1 rounded-md", completedOrdersChange >= 0 ? "text-green-600 bg-green-100 dark:bg-green-900/30" : "text-red-600 bg-red-100 dark:bg-red-900/30")}>
                           {completedOrdersChange >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                           {Math.abs(completedOrdersChange).toFixed(1)}%
-                        </div>
-                      )}
+                        </div>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Taxa: {totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : 0}%
+                      Taxa: {totalOrders > 0 ? (completedOrders / totalOrders * 100).toFixed(1) : 0}%
                     </p>
                   </CardContent>
                 </Card>
@@ -2602,11 +2475,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
             {/* Payment Status Card */}
             <div className="grid gap-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
+              <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} animate={{
+                opacity: 1,
+                y: 0
+              }} transition={{
+                delay: 0.5
+              }}>
                 <Card className="hover-scale overflow-hidden relative border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-100/50 to-yellow-100/30 dark:from-amber-900/20 dark:to-yellow-900/10 rounded-full -mr-16 -mt-16" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
@@ -2646,15 +2523,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </div>
 
             {/* Charts Section */}
-            {totalOrders > 0 && (
-              <>
+            {totalOrders > 0 && <>
                 <div className="grid gap-6 md:grid-cols-2">
                   {/* Orders Over Time */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                  >
+                  <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  delay: 0.5
+                }}>
                     <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                       <CardHeader className="bg-gradient-to-r from-blue-100/30 to-transparent dark:from-blue-900/20">
                         <CardTitle className="flex items-center gap-2">
@@ -2666,31 +2546,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={ordersOverTime}>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis 
-                              dataKey="date" 
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                            />
-                            <YAxis 
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                            />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: 'hsl(var(--card))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: '8px',
-                              }}
-                              labelStyle={{ color: 'hsl(var(--foreground))' }}
-                            />
-                            <Line 
-                              type="monotone" 
-                              dataKey="pedidos" 
-                              stroke="hsl(var(--primary))" 
-                              strokeWidth={3}
-                              dot={{ fill: 'hsl(var(--primary))', r: 4 }}
-                              name="Pedidos"
-                            />
+                            <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }} labelStyle={{
+                            color: 'hsl(var(--foreground))'
+                          }} />
+                            <Line type="monotone" dataKey="pedidos" stroke="hsl(var(--primary))" strokeWidth={3} dot={{
+                            fill: 'hsl(var(--primary))',
+                            r: 4
+                          }} name="Pedidos" />
                           </LineChart>
                         </ResponsiveContainer>
                       </CardContent>
@@ -2698,11 +2566,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </motion.div>
 
                   {/* Revenue Over Time */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
+                  <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  delay: 0.6
+                }}>
                     <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                       <CardHeader className="bg-gradient-to-r from-green-100/30 to-transparent dark:from-green-900/20">
                         <CardTitle className="flex items-center gap-2">
@@ -2714,30 +2586,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <ResponsiveContainer width="100%" height={300}>
                           <BarChart data={ordersOverTime}>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis 
-                              dataKey="date" 
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                            />
-                            <YAxis 
-                              stroke="hsl(var(--muted-foreground))"
-                              fontSize={12}
-                            />
-                            <Tooltip
-                              contentStyle={{
-                                backgroundColor: 'hsl(var(--card))',
-                                border: '1px solid hsl(var(--border))',
-                                borderRadius: '8px',
-                              }}
-                              labelStyle={{ color: 'hsl(var(--foreground))' }}
-                              formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Receita']}
-                            />
-                            <Bar 
-                              dataKey="valor" 
-                              fill="hsl(142 76% 36%)"
-                              radius={[8, 8, 0, 0]}
-                              name="Receita"
-                            />
+                            <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                            <Tooltip contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }} labelStyle={{
+                            color: 'hsl(var(--foreground))'
+                          }} formatter={(value: number) => [`R$ ${value.toFixed(2)}`, 'Receita']} />
+                            <Bar dataKey="valor" fill="hsl(142 76% 36%)" radius={[8, 8, 0, 0]} name="Receita" />
                           </BarChart>
                         </ResponsiveContainer>
                       </CardContent>
@@ -2745,12 +2603,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </motion.div>
 
                   {/* Payment Methods */}
-                  {paymentMethodsData.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.7 }}
-                    >
+                  {paymentMethodsData.length > 0 && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  delay: 0.7
+                }}>
                       <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                         <CardHeader className="bg-gradient-to-r from-blue-100/30 to-transparent dark:from-blue-900/20">
                           <CardTitle className="flex items-center gap-2">
@@ -2761,41 +2622,33 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <CardContent className="pt-6">
                           <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
-                              <Pie
-                                data={paymentMethodsData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                outerRadius={100}
-                                fill="hsl(var(--primary))"
-                                dataKey="value"
-                              >
-                                {paymentMethodsData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
+                              <Pie data={paymentMethodsData} cx="50%" cy="50%" labelLine={false} label={({
+                            name,
+                            percent
+                          }) => `${name} (${(percent * 100).toFixed(0)}%)`} outerRadius={100} fill="hsl(var(--primary))" dataKey="value">
+                                {paymentMethodsData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                               </Pie>
-                              <Tooltip
-                                contentStyle={{
-                                  backgroundColor: 'hsl(var(--card))',
-                                  border: '1px solid hsl(var(--border))',
-                                  borderRadius: '8px',
-                                }}
-                              />
+                              <Tooltip contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }} />
                             </PieChart>
                           </ResponsiveContainer>
                         </CardContent>
                       </Card>
-                    </motion.div>
-                  )}
+                    </motion.div>}
 
                   {/* Top Products */}
-                  {topProducts.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 }}
-                    >
+                  {topProducts.length > 0 && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  delay: 0.8
+                }}>
                       <Card className="shadow-lg border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
                         <CardHeader className="bg-gradient-to-r from-purple-100/30 to-transparent dark:from-purple-900/20">
                           <CardTitle className="flex items-center gap-2">
@@ -2805,8 +2658,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         </CardHeader>
                         <CardContent className="pt-6">
                           <div className="space-y-4">
-                            {topProducts.map((product, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                            {topProducts.map((product, index) => <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                                 <div className="flex items-center gap-3">
                                   <Badge className="bg-primary text-primary-foreground">{index + 1}</Badge>
                                   <div>
@@ -2817,29 +2669,26 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                 <div className="text-right">
                                   <p className="font-bold text-green-500">R$ {product.revenue.toFixed(2)}</p>
                                 </div>
-                              </div>
-                            ))}
+                              </div>)}
                           </div>
                         </CardContent>
                       </Card>
-                    </motion.div>
-                  )}
+                    </motion.div>}
                 </div>
-              </>
-            )}
-            {totalOrders === 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-12"
-              >
+              </>}
+            {totalOrders === 0 && <motion.div initial={{
+              opacity: 0,
+              y: 20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} className="text-center py-12">
                 <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">Nenhum pedido encontrado</h3>
                 <p className="text-muted-foreground">
                   Não há pedidos no período selecionado
                 </p>
-              </motion.div>
-            )}
+              </motion.div>}
         </div>
         
         {/* Metricas Tab */}
@@ -2862,10 +2711,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               <div className="space-y-3 mb-4">
                 <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                   <Label className="text-sm font-medium">Filtrar por período:</Label>
-                  <Select
-                    value={dateFilter}
-                    onValueChange={(value: 'all' | 'daily' | 'weekly' | 'monthly' | 'custom') => setDateFilter(value)}
-                  >
+                  <Select value={dateFilter} onValueChange={(value: 'all' | 'daily' | 'weekly' | 'monthly' | 'custom') => setDateFilter(value)}>
                     <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Selecione o período" />
                     </SelectTrigger>
@@ -2878,10 +2724,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
                   
-                  <Select
-                    value={paymentStatusFilter}
-                    onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentStatusFilter(value)}
-                  >
+                  <Select value={paymentStatusFilter} onValueChange={(value: 'all' | 'received' | 'pending') => setPaymentStatusFilter(value)}>
                     <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Status Pgto" />
                     </SelectTrigger>
@@ -2892,10 +2735,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
 
-                  <Select
-                    value={deliveryTypeFilter}
-                    onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}
-                  >
+                  <Select value={deliveryTypeFilter} onValueChange={(value: 'all' | 'delivery' | 'pickup') => setDeliveryTypeFilter(value)}>
                     <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Tipo Entrega" />
                     </SelectTrigger>
@@ -2906,10 +2746,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
 
-                  <Select 
-                    value={scheduledFilter} 
-                    onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}
-                  >
+                  <Select value={scheduledFilter} onValueChange={(value: 'all' | 'scheduled' | 'normal') => setScheduledFilter(value)}>
                     <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Tipo de Pedido" />
                     </SelectTrigger>
@@ -2925,10 +2762,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
 
-                  <Select 
-                    value={orderSortBy} 
-                    onValueChange={(value: 'newest' | 'oldest') => setOrderSortBy(value)}
-                  >
+                  <Select value={orderSortBy} onValueChange={(value: 'newest' | 'oldest') => setOrderSortBy(value)}>
                     <SelectTrigger className="w-full sm:w-[200px] bg-background z-50">
                       <SelectValue placeholder="Ordenar por" />
                     </SelectTrigger>
@@ -2938,182 +2772,111 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </SelectContent>
                   </Select>
                   
-                  {dateFilter === 'custom' && (
-                    <Popover>
+                  {dateFilter === 'custom' && <Popover>
                       <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-2"
-                        >
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
                           <CalendarIcon className="w-4 h-4" />
-                          {customDateRange.from && customDateRange.to
-                            ? `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(customDateRange.to, "dd/MM/yyyy")}`
-                            : 'Selecionar datas'}
+                          {customDateRange.from && customDateRange.to ? `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(customDateRange.to, "dd/MM/yyyy")}` : 'Selecionar datas'}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
                         <div className="p-4 space-y-2">
                           <Label>Selecione o período</Label>
-                          <Calendar
-                            mode="range"
-                            selected={{
-                              from: customDateRange.from,
-                              to: customDateRange.to,
-                            }}
-                            onSelect={(range) => {
-                              setCustomDateRange({
-                                from: range?.from,
-                                to: range?.to,
-                              });
-                            }}
-                            numberOfMonths={2}
-                            locale={ptBR}
-                            className="pointer-events-auto"
-                          />
+                          <Calendar mode="range" selected={{
+                          from: customDateRange.from,
+                          to: customDateRange.to
+                        }} onSelect={range => {
+                          setCustomDateRange({
+                            from: range?.from,
+                            to: range?.to
+                          });
+                        }} numberOfMonths={2} locale={ptBR} className="pointer-events-auto" />
                         </div>
                       </PopoverContent>
-                    </Popover>
-                  )}
+                    </Popover>}
                   
-                  {dateFilter !== 'all' && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setDateFilter('all');
-                        setCustomDateRange({ from: undefined, to: undefined });
-                      }}
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
+                  {dateFilter !== 'all' && <Button variant="ghost" onClick={() => {
+                    setDateFilter('all');
+                    setCustomDateRange({
+                      from: undefined,
+                      to: undefined
+                    });
+                  }} size="sm" className="flex items-center gap-2">
                       <X className="w-4 h-4" />
                       Limpar
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
               </div>
 
               {/* Botões de Status */}
               <div className="flex flex-wrap gap-2">
-                {canViewAllOrders && (
-                  <Button
-                    variant={orderStatusFilter === 'all' ? 'default' : 'outline'}
-                    onClick={() => setOrderStatusFilter('all')}
-                    className="flex items-center gap-2 text-xs sm:text-sm"
-                    size="sm"
-                  >
+                {canViewAllOrders && <Button variant={orderStatusFilter === 'all' ? 'default' : 'outline'} onClick={() => setOrderStatusFilter('all')} className="flex items-center gap-2 text-xs sm:text-sm" size="sm">
                     <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden xs:inline">Todos</span>
                     <Badge variant="secondary" className="ml-1">
                       {orders?.length || 0}
                     </Badge>
-                  </Button>
-                )}
+                  </Button>}
                 
-                {customStatuses.filter(status => status.is_active).map((status) => {
+                {customStatuses.filter(status => status.is_active).map(status => {
                   // Normalizar tanto o status do banco quanto o status_key para comparação
                   const normalizedStatusKey = getEnumFromStatusKey(status.status_key);
                   const statusCount = orders?.filter(o => o.status === normalizedStatusKey).length || 0;
                   const isActive = orderStatusFilter === status.status_key;
-                  
+
                   // Verificar se tem permissão para visualizar este status
-                  const canViewThisStatus = canViewAllOrders || 
-                    (status.status_key === 'pending' && canViewPendingOrders) ||
-                    (status.status_key === 'confirmed' && canViewConfirmedOrders) ||
-                    (status.status_key === 'preparing' && canViewPreparingOrders) ||
-                    (status.status_key === 'out_for_delivery' && canViewOutForDeliveryOrders) ||
-                    (status.status_key === 'in_delivery' && canViewOutForDeliveryOrders) || // compatibilidade
-                    (status.status_key === 'delivered' && canViewDeliveredOrders) ||
-                    (status.status_key === 'cancelled' && canViewCancelledOrders);
-                  
+                  const canViewThisStatus = canViewAllOrders || status.status_key === 'pending' && canViewPendingOrders || status.status_key === 'confirmed' && canViewConfirmedOrders || status.status_key === 'preparing' && canViewPreparingOrders || status.status_key === 'out_for_delivery' && canViewOutForDeliveryOrders || status.status_key === 'in_delivery' && canViewOutForDeliveryOrders ||
+                  // compatibilidade
+                  status.status_key === 'delivered' && canViewDeliveredOrders || status.status_key === 'cancelled' && canViewCancelledOrders;
                   console.log(`[Botão ${status.status_key}]`, {
                     canViewAllOrders,
                     canViewThisStatus,
                     statusKey: status.status_key
                   });
-                  
                   if (!canViewThisStatus) return null;
-                  
-                  return (
-                    <Button
-                      key={status.id}
-                      variant={isActive ? 'default' : 'outline'}
-                      onClick={() => setOrderStatusFilter(status.status_key)}
-                      className={cn(
-                        "flex items-center gap-1 sm:gap-2 transition-all text-xs sm:text-sm px-2 sm:px-4",
-                        isActive && "shadow-md"
-                      )}
-                      size="sm"
-                      style={{
-                        backgroundColor: isActive ? status.status_color : undefined,
-                        borderColor: status.status_color,
-                        color: isActive ? '#ffffff' : undefined,
-                      }}
-                    >
-                      <Badge
-                        className="w-2 h-2 sm:w-3 sm:h-3 p-0 rounded-full"
-                        style={{ backgroundColor: status.status_color }}
-                      />
+                  return <Button key={status.id} variant={isActive ? 'default' : 'outline'} onClick={() => setOrderStatusFilter(status.status_key)} className={cn("flex items-center gap-1 sm:gap-2 transition-all text-xs sm:text-sm px-2 sm:px-4", isActive && "shadow-md")} size="sm" style={{
+                    backgroundColor: isActive ? status.status_color : undefined,
+                    borderColor: status.status_color,
+                    color: isActive ? '#ffffff' : undefined
+                  }}>
+                      <Badge className="w-2 h-2 sm:w-3 sm:h-3 p-0 rounded-full" style={{
+                      backgroundColor: status.status_color
+                    }} />
                       <span className="truncate">{status.status_label}</span>
-                      <Badge 
-                        variant="secondary" 
-                        className="ml-1"
-                        style={{
-                          backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)',
-                          color: isActive ? '#ffffff' : 'inherit',
-                        }}
-                      >
+                      <Badge variant="secondary" className="ml-1" style={{
+                      backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.05)',
+                      color: isActive ? '#ffffff' : 'inherit'
+                    }}>
                         {statusCount}
                       </Badge>
-                    </Button>
-                  );
+                    </Button>;
                 })}
               </div>
               
-              {customStatuses.length === 0 && (
-                <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+              {customStatuses.length === 0 && <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
                   <p className="text-sm text-muted-foreground">
                     Nenhuma etapa de pedido ativa. Configure as etapas em{' '}
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto text-primary"
-                      onClick={() => setActiveTab('result')}
-                    >
+                    <Button variant="link" className="p-0 h-auto text-primary" onClick={() => setActiveTab('result')}>
                       Configurações → Status dos Pedidos
                     </Button>
                   </p>
-                </div>
-              )}
+                </div>}
 
               {/* Campo de Pesquisa */}
               <div className="mt-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Pesquisar por nome do cliente ou número do pedido..."
-                    value={orderSearchTerm}
-                    onChange={(e) => setOrderSearchTerm(e.target.value)}
-                    className="pl-10 pr-10"
-                  />
-                  {orderSearchTerm && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setOrderSearchTerm('')}
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
-                    >
+                  <Input placeholder="Pesquisar por nome do cliente ou número do pedido..." value={orderSearchTerm} onChange={e => setOrderSearchTerm(e.target.value)} className="pl-10 pr-10" />
+                  {orderSearchTerm && <Button variant="ghost" size="sm" onClick={() => setOrderSearchTerm('')} className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0">
                       <X className="w-4 h-4" />
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
               </div>
             </div>
 
             {/* Lista de Pedidos */}
-            {paginatedOrdersData.totalOrders > 0 ? (
-              <div className="space-y-4 md:space-y-6">
-                {paginatedOrdersData.orders.map((order, index) => (
-                  <div key={order.id}>
+            {paginatedOrdersData.totalOrders > 0 ? <div className="space-y-4 md:space-y-6">
+                {paginatedOrdersData.orders.map((order, index) => <div key={order.id}>
                     <Card className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
@@ -3121,38 +2884,34 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="font-semibold text-base md:text-lg">Pedido #{order.order_number}</h3>
                               {(() => {
-                                // Verifica se o pedido foi feito fora do horário de funcionamento
-                                if (myStore?.operating_hours) {
-                                  const orderDate = new Date(order.created_at);
-                                  const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
-                                  const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
-                                  
-                                  const daySchedule = myStore.operating_hours?.[dayOfWeek];
-                                  if (daySchedule) {
-                                    const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
-                                    const isScheduled = !wasOpen && myStore.allow_orders_when_closed;
-                                    
-                                    if (isScheduled) {
-                                      return (
-                                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300 flex items-center gap-1">
+                            // Verifica se o pedido foi feito fora do horário de funcionamento
+                            if (myStore?.operating_hours) {
+                              const orderDate = new Date(order.created_at);
+                              const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][orderDate.getDay()];
+                              const orderTime = `${String(orderDate.getHours()).padStart(2, '0')}:${String(orderDate.getMinutes()).padStart(2, '0')}`;
+                              const daySchedule = myStore.operating_hours?.[dayOfWeek];
+                              if (daySchedule) {
+                                const wasOpen = !daySchedule.is_closed && orderTime >= daySchedule.open && orderTime <= daySchedule.close;
+                                const isScheduled = !wasOpen && myStore.allow_orders_when_closed;
+                                if (isScheduled) {
+                                  return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300 flex items-center gap-1">
                                           <Clock className="h-3 w-3" />
                                           Agendado
-                                        </Badge>
-                                      );
-                                    }
-                                  }
+                                        </Badge>;
                                 }
-                                return null;
-                              })()}
+                              }
+                            }
+                            return null;
+                          })()}
                             </div>
                             <p className="text-xs md:text-sm text-muted-foreground">
-                              {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", {
+                            locale: ptBR
+                          })}
                             </p>
                           </div>
                           <Badge variant="outline" className="capitalize text-xs self-start">
-                            {customStatuses.find(s => getEnumFromStatusKey(s.status_key) === order.status)?.status_label || 
-                             customStatuses.find(s => s.status_key === normalizeStatusKey(order.status))?.status_label ||
-                             order.status}
+                            {customStatuses.find(s => getEnumFromStatusKey(s.status_key) === order.status)?.status_label || customStatuses.find(s => s.status_key === normalizeStatusKey(order.status))?.status_label || order.status}
                           </Badge>
                         </div>
 
@@ -3179,38 +2938,27 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Status Pgto:</span>
-                            <Badge 
-                              className={
-                                (order as any).payment_received 
-                                  ? "bg-green-600 text-white hover:bg-green-700" 
-                                  : "bg-yellow-600 text-white hover:bg-yellow-700"
-                              }
-                            >
+                            <Badge className={(order as any).payment_received ? "bg-green-600 text-white hover:bg-green-700" : "bg-yellow-600 text-white hover:bg-yellow-700"}>
                               {(order as any).payment_received ? "Pagamento recebido" : "Pagamento pendente"}
                             </Badge>
                           </div>
-                          {(order as any).coupon_code && (
-                            <div className="flex justify-between">
+                          {(order as any).coupon_code && <div className="flex justify-between">
                               <span className="text-muted-foreground">Cupom:</span>
                               <Badge variant="outline" className="gap-1">
                                 <Tag className="h-3 w-3" />
                                 {(order as any).coupon_code}
-                                {(order as any).coupon_discount > 0 && (
-                                  <span className="text-green-600 ml-1">
+                                {(order as any).coupon_discount > 0 && <span className="text-green-600 ml-1">
                                     (-R$ {(order as any).coupon_discount.toFixed(2)})
-                                  </span>
-                                )}
+                                  </span>}
                               </Badge>
-                            </div>
-                          )}
+                            </div>}
                           <div className="flex justify-between text-lg font-bold">
                             <span>Total:</span>
                             <span className="text-primary">R$ {order.total.toFixed(2)}</span>
                           </div>
                         </div>
 
-                        {order.delivery_type === 'delivery' && (
-                          <>
+                        {order.delivery_type === 'delivery' && <>
                             <Separator className="my-4" />
                             <div className="space-y-1 text-sm">
                               <p className="font-medium">Endereço de Entrega:</p>
@@ -3223,159 +2971,109 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                 {(order as any).delivery_city && ` - ${(order as any).delivery_city}`}
                               </p>
                             </div>
-                          </>
-                        )}
+                          </>}
 
-                        {order.notes && (
-                          <>
+                        {order.notes && <>
                             <Separator className="my-4" />
                             <div className="text-sm">
                               <p className="font-medium mb-1">Observações:</p>
                               <p className="text-muted-foreground">{order.notes}</p>
                             </div>
-                          </>
-                        )}
+                          </>}
 
                         <Separator className="my-4" />
 
                         <div className="flex flex-col sm:flex-row gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setReceiptOrder(order);
-                              setIsReceiptDialogOpen(true);
-                            }}
-                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => {
+                        setReceiptOrder(order);
+                        setIsReceiptDialogOpen(true);
+                      }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                             <Receipt className={`w-4 h-4 sm:w-5 sm:h-5 ${(order as any).payment_received ? 'text-green-600' : 'text-red-600'}`} />
                             Pagamento
                           </Button>
                           
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setViewingOrder(order);
-                              setIsViewOrderDialogOpen(true);
-                            }}
-                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => {
+                        setViewingOrder(order);
+                        setIsViewOrderDialogOpen(true);
+                      }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                             <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                             Visualizar
                           </Button>
                           
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePrintOrder(order)}
-                            className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handlePrintOrder(order)} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                             <Printer className="w-3 h-3 sm:w-4 sm:h-4" />
                             Imprimir
                           </Button>
                           
-                          {hasPermission('orders', 'edit_order_details') && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setNotesOrder(order);
-                                setIsNotesDialogOpen(true);
-                              }}
-                              className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                            >
+                          {hasPermission('orders', 'edit_order_details') && <Button variant="outline" size="sm" onClick={() => {
+                        setNotesOrder(order);
+                        setIsNotesDialogOpen(true);
+                      }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                               <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
                               Notas
-                            </Button>
-                          )}
+                            </Button>}
 
-                          {hasPermission('orders', 'edit_order_details') && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditingOrder(order);
-                                setIsEditOrderDialogOpen(true);
-                                setEditDialogInitialTab("items");
-                              }}
-                              className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                            >
+                          {hasPermission('orders', 'edit_order_details') && <Button variant="outline" size="sm" onClick={() => {
+                        setEditingOrder(order);
+                        setIsEditOrderDialogOpen(true);
+                        setEditDialogInitialTab("items");
+                      }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                               <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                               Editar Pedido
-                            </Button>
-                          )}
-                          <Select
-                            value={getStatusKeyFromEnum(order.status)}
-                            disabled={isUpdating}
-                            onValueChange={(newStatus) => {
-                              // Verificar permissão antes de permitir mudança
-                              if (!canChangeTo(newStatus)) {
-                                toast({
-                                  title: "Sem permissão",
-                                  description: "Você não tem permissão para alterar para este status.",
-                                  variant: "destructive"
-                                });
-                                return;
-                              }
-                              
-                              // Abrir diálogo de confirmação de WhatsApp
-                              setPendingStatusChange({
-                                orderId: order.id,
-                                orderNumber: order.order_number,
-                                customerName: order.customer_name,
-                                customerPhone: order.customer_phone,
-                                newStatus: newStatus,
-                              });
-                              setIsWhatsAppConfirmOpen(true);
-                            }}
-                          >
+                            </Button>}
+                          <Select value={getStatusKeyFromEnum(order.status)} disabled={isUpdating} onValueChange={newStatus => {
+                        // Verificar permissão antes de permitir mudança
+                        if (!canChangeTo(newStatus)) {
+                          toast({
+                            title: "Sem permissão",
+                            description: "Você não tem permissão para alterar para este status.",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+
+                        // Abrir diálogo de confirmação de WhatsApp
+                        setPendingStatusChange({
+                          orderId: order.id,
+                          orderNumber: order.order_number,
+                          customerName: order.customer_name,
+                          customerPhone: order.customer_phone,
+                          newStatus: newStatus
+                        });
+                        setIsWhatsAppConfirmOpen(true);
+                      }}>
                             <SelectTrigger className="flex-1">
-                              {isUpdating ? (
-                                <div className="flex items-center gap-2">
+                              {isUpdating ? <div className="flex items-center gap-2">
                                   <Loader2 className="w-6 h-6 animate-spin text-orange-600" />
                                   <span>Atualizando...</span>
-                                </div>
-                              ) : (
-                                <SelectValue placeholder="Alterar status" />
-                              )}
+                                </div> : <SelectValue placeholder="Alterar status" />}
                             </SelectTrigger>
                             <SelectContent>
-                              {customStatuses.length > 0 ? (
-                                customStatuses
-                                  .filter(status => {
-                                    // Verificar se está ativo e tem status_key válido
-                                    if (!status.is_active || !status.status_key || status.status_key.trim() === '') {
-                                      return false;
-                                    }
-                                    
-                                    // Filtrar baseado no tipo de entrega do pedido
-                                    if (order.delivery_type === 'delivery') {
-                                      return status.show_for_delivery !== false;
-                                    } else if (order.delivery_type === 'pickup') {
-                                      return status.show_for_pickup !== false;
-                                    }
-                                    
-                                    // Se não tiver tipo definido, mostrar todos
-                                    return true;
-                                  })
-                                  .sort((a, b) => a.display_order - b.display_order)
-                                  .filter(status => canChangeTo(status.status_key))
-                                  .map((status) => (
-                                    <SelectItem key={status.status_key} value={status.status_key}>
+                              {customStatuses.length > 0 ? customStatuses.filter(status => {
+                            // Verificar se está ativo e tem status_key válido
+                            if (!status.is_active || !status.status_key || status.status_key.trim() === '') {
+                              return false;
+                            }
+
+                            // Filtrar baseado no tipo de entrega do pedido
+                            if (order.delivery_type === 'delivery') {
+                              return status.show_for_delivery !== false;
+                            } else if (order.delivery_type === 'pickup') {
+                              return status.show_for_pickup !== false;
+                            }
+
+                            // Se não tiver tipo definido, mostrar todos
+                            return true;
+                          }).sort((a, b) => a.display_order - b.display_order).filter(status => canChangeTo(status.status_key)).map(status => <SelectItem key={status.status_key} value={status.status_key}>
                                       {status.status_label}
-                                    </SelectItem>
-                                  ))
-                              ) : (
-                                <>
+                                    </SelectItem>) : <>
                                   {canChangeTo('pending') && <SelectItem value="pending">Pendente</SelectItem>}
                                   {canChangeTo('confirmed') && <SelectItem value="confirmed">Confirmado</SelectItem>}
                                   {canChangeTo('preparing') && <SelectItem value="preparing">Preparando</SelectItem>}
                                   {canChangeTo('ready') && <SelectItem value="ready">Pronto</SelectItem>}
                                   {canChangeTo('delivered') && <SelectItem value="delivered">Entregue</SelectItem>}
                                   {canChangeTo('cancelled') && <SelectItem value="cancelled">Cancelado</SelectItem>}
-                                </>
-                              )}
+                                </>}
                             </SelectContent>
                           </Select>
                         </div>
@@ -3383,140 +3081,96 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     </Card>
                     
                     {/* Separador grosso entre pedidos */}
-                    {index < paginatedOrdersData.orders.length - 1 && (
-                      <div className="relative py-4">
+                    {index < paginatedOrdersData.orders.length - 1 && <div className="relative py-4">
                         <Separator className="h-[3px] bg-orange-500" />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      </div>}
+                  </div>)}
 
                 {/* Informação de pedidos e Paginação */}
                 <div className="mt-8 space-y-4">
                   {/* Sempre mostrar contador de pedidos */}
                   <div className="text-center text-sm text-muted-foreground font-medium">
-                    {paginatedOrdersData.totalPages > 1 ? (
-                      <>Mostrando {paginatedOrdersData.startIndex + 1} a {Math.min(paginatedOrdersData.endIndex, paginatedOrdersData.totalOrders)} de {paginatedOrdersData.totalOrders} pedidos</>
-                    ) : (
-                      <>Total: {paginatedOrdersData.totalOrders} {paginatedOrdersData.totalOrders === 1 ? 'pedido' : 'pedidos'}</>
-                    )}
+                    {paginatedOrdersData.totalPages > 1 ? <>Mostrando {paginatedOrdersData.startIndex + 1} a {Math.min(paginatedOrdersData.endIndex, paginatedOrdersData.totalOrders)} de {paginatedOrdersData.totalOrders} pedidos</> : <>Total: {paginatedOrdersData.totalOrders} {paginatedOrdersData.totalOrders === 1 ? 'pedido' : 'pedidos'}</>}
                   </div>
 
                   {/* Paginação - aparece quando tem mais de 1 página */}
-                  {paginatedOrdersData.totalPages > 1 && (
-                    <Pagination>
+                  {paginatedOrdersData.totalPages > 1 && <Pagination>
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentOrderPage(prev => Math.max(prev - 1, 1))}
-                            className={cn(
-                              "cursor-pointer",
-                              currentOrderPage === 1 && "pointer-events-none opacity-50"
-                            )}
-                          />
+                          <PaginationPrevious onClick={() => setCurrentOrderPage(prev => Math.max(prev - 1, 1))} className={cn("cursor-pointer", currentOrderPage === 1 && "pointer-events-none opacity-50")} />
                         </PaginationItem>
                         
-                        {Array.from({ length: paginatedOrdersData.totalPages }, (_, i) => i + 1).map((page) => {
-                          const showPage = page === 1 || 
-                                         page === paginatedOrdersData.totalPages || 
-                                         (page >= currentOrderPage - 1 && page <= currentOrderPage + 1);
-                          const showEllipsis = page === currentOrderPage - 2 || page === currentOrderPage + 2;
-                          
-                          if (showPage) {
-                            return (
-                              <PaginationItem key={page}>
-                                <PaginationLink
-                                  onClick={() => setCurrentOrderPage(page)}
-                                  isActive={currentOrderPage === page}
-                                  className="cursor-pointer"
-                                >
+                        {Array.from({
+                      length: paginatedOrdersData.totalPages
+                    }, (_, i) => i + 1).map(page => {
+                      const showPage = page === 1 || page === paginatedOrdersData.totalPages || page >= currentOrderPage - 1 && page <= currentOrderPage + 1;
+                      const showEllipsis = page === currentOrderPage - 2 || page === currentOrderPage + 2;
+                      if (showPage) {
+                        return <PaginationItem key={page}>
+                                <PaginationLink onClick={() => setCurrentOrderPage(page)} isActive={currentOrderPage === page} className="cursor-pointer">
                                   {page}
                                 </PaginationLink>
-                              </PaginationItem>
-                            );
-                          } else if (showEllipsis) {
-                            return (
-                              <PaginationItem key={`ellipsis-${page}`}>
+                              </PaginationItem>;
+                      } else if (showEllipsis) {
+                        return <PaginationItem key={`ellipsis-${page}`}>
                                 <PaginationEllipsis />
-                              </PaginationItem>
-                            );
-                          }
-                          return null;
-                        })}
+                              </PaginationItem>;
+                      }
+                      return null;
+                    })}
 
                         <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentOrderPage(prev => Math.min(prev + 1, paginatedOrdersData.totalPages))}
-                            className={cn(
-                              "cursor-pointer",
-                              currentOrderPage === paginatedOrdersData.totalPages && "pointer-events-none opacity-50"
-                            )}
-                          />
+                          <PaginationNext onClick={() => setCurrentOrderPage(prev => Math.min(prev + 1, paginatedOrdersData.totalPages))} className={cn("cursor-pointer", currentOrderPage === paginatedOrdersData.totalPages && "pointer-events-none opacity-50")} />
                         </PaginationItem>
                       </PaginationContent>
-                    </Pagination>
-                  )}
+                    </Pagination>}
                 </div>
-              </div>
-            ) : (
-              <Card className="border-dashed">
+              </div> : <Card className="border-dashed">
                 <CardContent className="py-12 text-center">
                   <ShoppingBag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Nenhum pedido encontrado</h3>
                   <p className="text-muted-foreground">
-                    {orders && orders.length > 0 
-                      ? "Nenhum pedido corresponde aos filtros selecionados"
-                      : "Quando você receber pedidos, eles aparecerão aqui"
-                    }
+                    {orders && orders.length > 0 ? "Nenhum pedido corresponde aos filtros selecionados" : "Quando você receber pedidos, eles aparecerão aqui"}
                   </p>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
         </div>
         
         {/* Cupons Tab */}
-        {myStore?.id && (
-          <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'cupons' && 'hidden')}>
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'cupons' && 'hidden')}>
             <CouponsManager storeId={myStore.id} />
-          </div>
-        )}
+          </div>}
 
         {/* Funcionarios Tab */}
-        {myStore?.id && (
-          <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'funcionarios' && 'hidden')}>
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'funcionarios' && 'hidden')}>
             <EmployeesManager storeId={myStore.id} />
-          </div>
-        )}
+          </div>}
 
         {/* WhatsApp Tab */}
-        {myStore?.id && (
-          <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'whatsapp' && 'hidden')}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <WhatsAppIntegration 
-                storeId={myStore.id} 
-                store={myStore}
-                isActive={activeTab === 'whatsapp'}
-                onStoreUpdate={async (data) => {
-                  await updateStore({
-                    id: myStore.id,
-                    name: myStore.name,
-                    slug: myStore.slug,
-                    category: myStore.category,
-                    ...data,
-                  });
-                }}
-              />
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'whatsapp' && 'hidden')}>
+            <motion.div initial={{
+              opacity: 0,
+              y: 20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              duration: 0.5
+            }}>
+              <WhatsAppIntegration storeId={myStore.id} store={myStore} isActive={activeTab === 'whatsapp'} onStoreUpdate={async data => {
+                await updateStore({
+                  id: myStore.id,
+                  name: myStore.name,
+                  slug: myStore.slug,
+                  category: myStore.category,
+                  ...data
+                });
+              }} />
             </motion.div>
-          </div>
-        )}
+          </div>}
 
         {/* Produtos Tab */}
-        {myStore?.id && (
-          <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'produtos' && 'hidden')}>
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'produtos' && 'hidden')}>
             <div className="mb-6">
               <Select value={productSectionTab} onValueChange={setProductSectionTab}>
                 <SelectTrigger className="w-full max-w-md">
@@ -3558,45 +3212,36 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <div>
                     <h2 className="text-2xl font-bold gradient-text flex items-center gap-2">
                       Meus Produtos
-                      {products && (
-                        <Badge variant="secondary" className="text-sm">
+                      {products && <Badge variant="secondary" className="text-sm">
                           {products.filter(p => {
-                            const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
-                            const matchesStatus = productStatusFilter === 'all' 
-                              ? true 
-                              : productStatusFilter === 'active' 
-                                ? p.is_available 
-                                : !p.is_available;
-                            const matchesSearch = !productSearchTerm || 
-                              p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                              p.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
-                            return matchesCategory && matchesStatus && matchesSearch;
-                          }).length}
-                        </Badge>
-                      )}
+                          const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+                          const matchesStatus = productStatusFilter === 'all' ? true : productStatusFilter === 'active' ? p.is_available : !p.is_available;
+                          const matchesSearch = !productSearchTerm || p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                          return matchesCategory && matchesStatus && matchesSearch;
+                        }).length}
+                        </Badge>}
                     </h2>
                     <p className="text-muted-foreground">Gerencie o cardápio da sua loja</p>
                   </div>
-                  {hasPermission('products', 'create') && (
-                <ResponsiveDialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                  {hasPermission('products', 'create') && <ResponsiveDialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                   <Button onClick={() => {
-                    setEditingProduct(null);
-                    setActiveProductTab("info");
-                    setProductForm({
-                      name: '',
-                      description: '',
-                      category: '',
-                      price: 0,
-                      promotional_price: 0,
-                      is_available: true,
-                      image_url: '',
-                      is_pizza: false,
-                      max_flavors: 2,
-                      external_code: '',
-                      is_featured: false,
-                    });
-                    setIsProductDialogOpen(true);
-                  }} size="lg">
+                      setEditingProduct(null);
+                      setActiveProductTab("info");
+                      setProductForm({
+                        name: '',
+                        description: '',
+                        category: '',
+                        price: 0,
+                        promotional_price: 0,
+                        is_available: true,
+                        image_url: '',
+                        is_pizza: false,
+                        max_flavors: 2,
+                        external_code: '',
+                        is_featured: false
+                      });
+                      setIsProductDialogOpen(true);
+                    }} size="lg">
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Produto
                   </Button>
@@ -3647,48 +3292,35 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         
                         <TabsContent value="info" className="space-y-4 mt-4">
                       
-                          <ImageUpload
-                            bucket="product-images"
-                            folder="temp"
-                            productId={editingProduct?.id}
-                            currentImageUrl={productForm.image_url}
-                            onUploadComplete={(url) => setProductForm({ ...productForm, image_url: url })}
-                            label="Imagem do Produto"
-                            aspectRatio="aspect-video"
-                          />
+                          <ImageUpload bucket="product-images" folder="temp" productId={editingProduct?.id} currentImageUrl={productForm.image_url} onUploadComplete={url => setProductForm({
+                                ...productForm,
+                                image_url: url
+                              })} label="Imagem do Produto" aspectRatio="aspect-video" />
                           <div>
                             <Label>Nome *</Label>
-                            <Input
-                              value={productForm.name}
-                              onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                            />
+                            <Input value={productForm.name} onChange={e => setProductForm({
+                                  ...productForm,
+                                  name: e.target.value
+                                })} />
                           </div>
                           <div>
                             <Label>Categoria *</Label>
                             <div className="flex gap-2">
-                              <Select 
-                                value={productForm.category} 
-                                onValueChange={(value) => setProductForm({ ...productForm, category: value })}
-                              >
+                              <Select value={productForm.category} onValueChange={value => setProductForm({
+                                    ...productForm,
+                                    category: value
+                                  })}>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Selecione uma categoria" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {categories
-                                    .filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
-                                    .map((cat) => (
-                                      <SelectItem key={cat.id} value={cat.name}>
+                                  {categories.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '').map(cat => <SelectItem key={cat.id} value={cat.name}>
                                         {cat.name}
-                                      </SelectItem>
-                                    ))}
+                                      </SelectItem>)}
                                 </SelectContent>
                               </Select>
                               <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                                <Button 
-                                  variant="outline" 
-                                  size="icon"
-                                  onClick={() => setIsCategoryDialogOpen(true)}
-                                >
+                                <Button variant="outline" size="icon" onClick={() => setIsCategoryDialogOpen(true)}>
                                   <Plus className="w-4 h-4" />
                                 </Button>
                                 <ResponsiveDialogContent>
@@ -3698,48 +3330,32 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                   <div className="space-y-4">
                                     <div>
                                       <Label>Nome da Categoria</Label>
-                                      <Input
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        placeholder="Ex: Hambúrgueres, Bebidas..."
-                                      />
+                                      <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas..." />
                                     </div>
-                                    <Button
-                                      onClick={async () => {
-                                        if (newCategoryName.trim()) {
-                                          await addCategory(newCategoryName.trim());
-                                          setNewCategoryName('');
-                                          setIsCategoryDialogOpen(false);
-                                        }
-                                      }}
-                                      className="w-full"
-                                    >
+                                    <Button onClick={async () => {
+                                          if (newCategoryName.trim()) {
+                                            await addCategory(newCategoryName.trim());
+                                            setNewCategoryName('');
+                                            setIsCategoryDialogOpen(false);
+                                          }
+                                        }} className="w-full">
                                       Adicionar Categoria
                                     </Button>
                                     
-                                    {categories.length > 0 && (
-                                      <>
+                                    {categories.length > 0 && <>
                                         <Separator />
                                         <div>
                                           <Label className="text-sm font-semibold mb-2 block">Categorias Cadastradas</Label>
                                           <div className="space-y-2 max-h-48 overflow-y-auto">
-                                            {categories.map((cat) => (
-                                              <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                            {categories.map(cat => <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
                                                 <span className="text-sm">{cat.name}</span>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="icon"
-                                                  className="h-6 w-6"
-                                                  onClick={() => deleteCategory(cat.id)}
-                                                >
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteCategory(cat.id)}>
                                                   <X className="w-3 h-3" />
                                                 </Button>
-                                              </div>
-                                            ))}
+                                              </div>)}
                                           </div>
                                         </div>
-                                      </>
-                                    )}
+                                      </>}
                                   </div>
                                 </ResponsiveDialogContent>
                               </ResponsiveDialog>
@@ -3747,82 +3363,59 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </div>
                           <div>
                             <Label>Código Externo</Label>
-                            <Input
-                              value={productForm.external_code}
-                              onChange={(e) => setProductForm({ ...productForm, external_code: e.target.value.trim() })}
-                              placeholder="Código único do produto (opcional)"
-                            />
+                            <Input value={productForm.external_code} onChange={e => setProductForm({
+                                  ...productForm,
+                                  external_code: e.target.value.trim()
+                                })} placeholder="Código único do produto (opcional)" />
                             <p className="text-xs text-muted-foreground mt-1">
                               Código personalizado para controle interno da sua loja.
                             </p>
                           </div>
                           <div>
                             <Label>Descrição</Label>
-                            {isMobileDevice ? (
-                              <div 
-                                className="min-h-[80px] p-3 border rounded-md bg-background cursor-pointer hover:bg-muted/50 transition-colors"
-                                onClick={() => {
+                            {isMobileDevice ? <div className="min-h-[80px] p-3 border rounded-md bg-background cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
                                   setTempDescription(productForm.description);
                                   setIsDescriptionDialogOpen(true);
-                                }}
-                              >
-                                {productForm.description || (
-                                  <span className="text-muted-foreground text-sm">
+                                }}>
+                                {productForm.description || <span className="text-muted-foreground text-sm">
                                     Toque para adicionar descrição
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <Textarea
-                                value={productForm.description}
-                                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                                rows={3}
-                              />
-                            )}
+                                  </span>}
+                              </div> : <Textarea value={productForm.description} onChange={e => setProductForm({
+                                  ...productForm,
+                                  description: e.target.value
+                                })} rows={3} />}
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label>Preço *</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0.01"
-                                value={productForm.price}
-                                onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
-                                placeholder="Ex: 10.00"
-                              />
+                              <Input type="number" step="0.01" min="0.01" value={productForm.price} onChange={e => setProductForm({
+                                    ...productForm,
+                                    price: parseFloat(e.target.value)
+                                  })} placeholder="Ex: 10.00" />
                             </div>
                             <div>
                               <Label>Preço Promocional</Label>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0.01"
-                                value={productForm.promotional_price}
-                                onChange={(e) => setProductForm({ ...productForm, promotional_price: parseFloat(e.target.value) })}
-                                placeholder="Ex: 8.00"
-                              />
+                              <Input type="number" step="0.01" min="0.01" value={productForm.promotional_price} onChange={e => setProductForm({
+                                    ...productForm,
+                                    promotional_price: parseFloat(e.target.value)
+                                  })} placeholder="Ex: 8.00" />
                             </div>
                           </div>
                           <Separator />
                           
                           <div className="flex items-center gap-2">
-                            <Switch
-                              checked={productForm.is_available}
-                              onCheckedChange={(checked) => setProductForm({ ...productForm, is_available: checked })}
-                            />
+                            <Switch checked={productForm.is_available} onCheckedChange={checked => setProductForm({
+                                  ...productForm,
+                                  is_available: checked
+                                })} />
                             <Label>Disponível</Label>
                           </div>
                           
                           <div className="flex items-center gap-2">
-                            <Switch
-                              id="is_featured"
-                              checked={productForm.is_featured || false}
-                              onCheckedChange={(checked) => 
-                                setProductForm({ ...productForm, is_featured: checked })
-                              }
-                              className="data-[state=checked]:bg-yellow-500"
-                            />
+                            <Switch id="is_featured" checked={productForm.is_featured || false} onCheckedChange={checked => setProductForm({
+                                  ...productForm,
+                                  is_featured: checked
+                                })} className="data-[state=checked]:bg-yellow-500" />
                             <Label htmlFor="is_featured" className="flex items-center gap-2 cursor-pointer">
                               <Star className={productForm.is_featured ? "h-4 w-4 fill-yellow-500 text-yellow-500" : "h-4 w-4 text-gray-400"} />
                               Produto em Destaque
@@ -3831,23 +3424,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         </TabsContent>
 
                         <TabsContent value="sizes" className="mt-4">
-                          {editingProduct && (
-                            <ProductSizesManager productId={editingProduct.id} />
-                          )}
+                          {editingProduct && <ProductSizesManager productId={editingProduct.id} />}
                         </TabsContent>
 
                         <TabsContent value="addons" className="mt-4">
-                          {editingProduct && myStore && (
-                            <ProductAddonsManager 
-                              productId={editingProduct.id}
-                              storeId={myStore.id}
-                            />
-                          )}
+                          {editingProduct && myStore && <ProductAddonsManager productId={editingProduct.id} storeId={myStore.id} />}
                         </TabsContent>
 
                         <TabsContent value="flavors" className="mt-4">
-                          {editingProduct && (
-                            <>
+                          {editingProduct && <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
                                 <div className="flex items-center justify-between">
                                   <div className="space-y-1">
@@ -3859,50 +3444,38 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                       Ative para permitir que clientes escolham mais de um sabor
                                     </p>
                                   </div>
-                                  <Switch
-                                    checked={productForm.is_pizza}
-                                    onCheckedChange={(checked) => setProductForm({ ...productForm, is_pizza: checked })}
-                                  />
+                                  <Switch checked={productForm.is_pizza} onCheckedChange={checked => setProductForm({
+                                      ...productForm,
+                                      is_pizza: checked
+                                    })} />
                                 </div>
 
-                                {productForm.is_pizza && (
-                                  <div>
+                                {productForm.is_pizza && <div>
                                     <Label>Número máximo de sabores</Label>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      max="4"
-                                      value={productForm.max_flavors}
-                                      onChange={(e) => setProductForm({ ...productForm, max_flavors: parseInt(e.target.value) || 2 })}
-                                    />
+                                    <Input type="number" min="1" max="4" value={productForm.max_flavors} onChange={e => setProductForm({
+                                      ...productForm,
+                                      max_flavors: parseInt(e.target.value) || 2
+                                    })} />
                                     <p className="text-xs text-muted-foreground mt-1">
                                       Define quantos sabores o cliente pode escolher (ex: 2 para meio a meio)
                                     </p>
-                                  </div>
-                                )}
+                                  </div>}
                               </div>
                                
                               <ProductFlavorsManager productId={editingProduct.id} storeId={editingProduct.store_id} />
-                            </>
-                          )}
+                            </>}
                         </TabsContent>
                       </Tabs>
                     </div>
                   </ScrollArea>
                   
-                  {activeProductTab !== "addons" && (
-                    <div className="flex-shrink-0 pt-4 px-4 md:px-6 border-t sticky bottom-0 bg-background pb-safe z-10">
-                      <Button
-                        onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
-                        className="w-full"
-                      >
+                  {activeProductTab !== "addons" && <div className="flex-shrink-0 pt-4 px-4 md:px-6 border-t sticky bottom-0 bg-background pb-safe z-10">
+                      <Button onClick={editingProduct ? handleUpdateProduct : handleCreateProduct} className="w-full">
                         {editingProduct ? 'Salvar Alterações' : 'Criar Produto'}
                       </Button>
-                    </div>
-                  )}
+                    </div>}
                 </ResponsiveDialogContent>
-                </ResponsiveDialog>
-                  )}
+                </ResponsiveDialog>}
                 </div>
 
                 {/* Filters */}
@@ -3910,22 +3483,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   {/* Search Input */}
                   <div className="relative flex-1 min-w-[250px] max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar por nome do produto..."
-                      value={productSearchTerm}
-                      onChange={(e) => setProductSearchTerm(e.target.value)}
-                      className="pl-10 pr-10"
-                    />
-                    {productSearchTerm && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                        onClick={() => setProductSearchTerm('')}
-                      >
+                    <Input placeholder="Buscar por nome do produto..." value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} className="pl-10 pr-10" />
+                    {productSearchTerm && <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0" onClick={() => setProductSearchTerm('')}>
                         <X className="w-4 h-4" />
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
 
                   {/* Category Filter */}
@@ -3937,25 +3498,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Todas as Categorias</SelectItem>
-                        {categories
-                          .filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
-                          .map((cat) => (
-                            <SelectItem key={cat.id} value={cat.name}>
+                        {categories.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '').map(cat => <SelectItem key={cat.id} value={cat.name}>
                               {cat.name}
-                            </SelectItem>
-                          ))}
+                            </SelectItem>)}
                       </SelectContent>
                     </Select>
-                    {categoryFilter !== 'all' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCategoryFilter('all')}
-                      >
+                    {categoryFilter !== 'all' && <Button variant="ghost" size="sm" onClick={() => setCategoryFilter('all')}>
                         <X className="w-4 h-4 mr-1" />
                         Limpar
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
 
                   {/* Status Filter */}
@@ -3971,122 +3522,82 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         <SelectItem value="inactive">Apenas Inativos</SelectItem>
                       </SelectContent>
                     </Select>
-                    {productStatusFilter !== 'active' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setProductStatusFilter('active')}
-                      >
+                    {productStatusFilter !== 'active' && <Button variant="ghost" size="sm" onClick={() => setProductStatusFilter('active')}>
                         <X className="w-4 h-4 mr-1" />
                         Limpar
-                      </Button>
-                    )}
+                      </Button>}
                   </div>
 
                   {/* Clear All Filters */}
-                  {(productSearchTerm || categoryFilter !== 'all' || productStatusFilter !== 'all') && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setProductSearchTerm('');
-                        setCategoryFilter('all');
-                        setProductStatusFilter('all');
-                      }}
-                    >
+                  {(productSearchTerm || categoryFilter !== 'all' || productStatusFilter !== 'all') && <Button variant="outline" size="sm" onClick={() => {
+                    setProductSearchTerm('');
+                    setCategoryFilter('all');
+                    setProductStatusFilter('all');
+                  }}>
                       <X className="w-4 h-4 mr-1" />
                       Limpar Todos
-                    </Button>
-                  )}
+                    </Button>}
 
                   {/* View Mode Toggle */}
                   <div className="flex items-center gap-2 ml-auto">
-                    <Button
-                      variant={productViewMode === 'grid' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductViewMode('grid')}
-                    >
+                    <Button variant={productViewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setProductViewMode('grid')}>
                       <LayoutGrid className="w-4 h-4 mr-2" />
                       Grid
                     </Button>
-                    <Button
-                      variant={productViewMode === 'table' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setProductViewMode('table')}
-                    >
+                    <Button variant={productViewMode === 'table' ? 'default' : 'outline'} size="sm" onClick={() => setProductViewMode('table')}>
                       <TableIcon className="w-4 h-4 mr-2" />
                       Tabela
                     </Button>
                   </div>
 
                   {/* Reorder Mode Toggle */}
-                  {hasPermission('products', 'update') && productViewMode === 'grid' && (
-                    <Button
-                      variant={isReorderMode ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        if (isReorderMode) {
-                          // Exit reorder mode
-                          setIsReorderMode(false);
-                        } else {
-                          // Enter reorder mode - disable filters
-                          setProductSearchTerm('');
-                          setCategoryFilter('all');
-                          setProductStatusFilter('all');
-                          setIsReorderMode(true);
-                        }
-                      }}
-                      disabled={!products || products.length === 0}
-                    >
+                  {hasPermission('products', 'update') && productViewMode === 'grid' && <Button variant={isReorderMode ? 'default' : 'outline'} size="sm" onClick={() => {
+                    if (isReorderMode) {
+                      // Exit reorder mode
+                      setIsReorderMode(false);
+                    } else {
+                      // Enter reorder mode - disable filters
+                      setProductSearchTerm('');
+                      setCategoryFilter('all');
+                      setProductStatusFilter('all');
+                      setIsReorderMode(true);
+                    }
+                  }} disabled={!products || products.length === 0}>
                       <GripVertical className="w-4 h-4 mr-2" />
                       {isReorderMode ? 'Concluir' : 'Reordenar'}
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
 
                   {/* Products Grid/Table */}
                   {(() => {
-                    if (!filteredProducts || filteredProducts.length === 0) {
-                      return (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                  if (!filteredProducts || filteredProducts.length === 0) {
+                    return <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                           <Package className="w-16 h-16 text-muted-foreground/50 mb-4" />
                           <h3 className="text-lg font-semibold mb-2">Nenhum produto encontrado</h3>
                           <p className="text-muted-foreground mb-4">
-                            {productSearchTerm
-                              ? `Nenhum produto encontrado com "${productSearchTerm}"`
-                              : productStatusFilter !== 'all' 
-                                ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}`
-                                : categoryFilter !== 'all' 
-                                  ? `Não há produtos na categoria "${categoryFilter}"`
-                                  : 'Adicione seu primeiro produto ao cardápio'}
+                            {productSearchTerm ? `Nenhum produto encontrado com "${productSearchTerm}"` : productStatusFilter !== 'all' ? `Não há produtos ${productStatusFilter === 'active' ? 'ativos' : 'inativos'} ${categoryFilter !== 'all' ? `na categoria "${categoryFilter}"` : ''}` : categoryFilter !== 'all' ? `Não há produtos na categoria "${categoryFilter}"` : 'Adicione seu primeiro produto ao cardápio'}
                           </p>
-                          {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && (
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setProductSearchTerm('');
-                                setProductStatusFilter('all');
-                                setCategoryFilter('all');
-                              }}
-                            >
+                          {(productSearchTerm || productStatusFilter !== 'all' || categoryFilter !== 'all') && <Button variant="outline" onClick={() => {
+                        setProductSearchTerm('');
+                        setProductStatusFilter('all');
+                        setCategoryFilter('all');
+                      }}>
                               Limpar Filtros
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    }
+                            </Button>}
+                        </div>;
+                  }
 
                   // Table View
                   if (productViewMode === 'table') {
-                    return (
-                      <div className="space-y-4">
+                    return <div className="space-y-4">
                         {/* Bulk Actions Bar */}
-                        {selectedProducts.length > 0 && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-lg"
-                          >
+                        {selectedProducts.length > 0 && <motion.div initial={{
+                        opacity: 0,
+                        y: -10
+                      }} animate={{
+                        opacity: 1,
+                        y: 0
+                      }} className="flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-lg">
                             <div className="flex items-center gap-2">
                               <CheckCircle className="w-5 h-5 text-primary" />
                               <span className="font-medium">
@@ -4094,97 +3605,60 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               </span>
                             </div>
                             <div className="flex items-center gap-2 ml-auto">
-                              {hasPermission('products', 'update') && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkToggleAvailability(true)}
-                                  >
+                              {hasPermission('products', 'update') && <>
+                                  <Button variant="outline" size="sm" onClick={() => handleBulkToggleAvailability(true)}>
                                     <CheckCircle className="w-4 h-4 mr-2" />
                                     Ativar
                                   </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkToggleAvailability(false)}
-                                  >
+                                  <Button variant="outline" size="sm" onClick={() => handleBulkToggleAvailability(false)}>
                                     <XCircle className="w-4 h-4 mr-2" />
                                     Desativar
                                   </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setIsBulkActionDialogOpen(true)}
-                                  >
+                                  <Button variant="outline" size="sm" onClick={() => setIsBulkActionDialogOpen(true)}>
                                     <Tag className="w-4 h-4 mr-2" />
                                     Alterar Categoria
                                   </Button>
-                                </>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedProducts([])}
-                              >
+                                </>}
+                              <Button variant="ghost" size="sm" onClick={() => setSelectedProducts([])}>
                                 <X className="w-4 h-4" />
                               </Button>
                             </div>
-                          </motion.div>
-                        )}
+                          </motion.div>}
 
                         <ScrollableTable maxHeight="calc(100vh - 400px)">
                           <Table>
                             <TableHeader>
                               <TableRow>
                                 <TableHead className="w-[50px]">
-                                  <Checkbox
-                                    checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                                    onCheckedChange={handleToggleSelectAll}
-                                  />
+                                  <Checkbox checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0} onCheckedChange={handleToggleSelectAll} />
                                 </TableHead>
                                 <TableHead className="w-[80px]">Imagem</TableHead>
-                                <TableHead 
-                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
-                                  onClick={() => handleSort('name')}
-                                >
+                                <TableHead className="cursor-pointer select-none hover:bg-muted/50 transition-colors" onClick={() => handleSort('name')}>
                                   <div className="flex items-center gap-2">
                                     Nome
                                     <SortIndicator column="name" />
                                   </div>
                                 </TableHead>
-                                <TableHead 
-                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
-                                  onClick={() => handleSort('external_code')}
-                                >
+                                <TableHead className="cursor-pointer select-none hover:bg-muted/50 transition-colors" onClick={() => handleSort('external_code')}>
                                   <div className="flex items-center gap-2">
                                     Código Externo
                                     <SortIndicator column="external_code" />
                                   </div>
                                 </TableHead>
-                                <TableHead 
-                                  className="cursor-pointer select-none hover:bg-muted/50 transition-colors"
-                                  onClick={() => handleSort('category')}
-                                >
+                                <TableHead className="cursor-pointer select-none hover:bg-muted/50 transition-colors" onClick={() => handleSort('category')}>
                                   <div className="flex items-center gap-2">
                                     Categoria
                                     <SortIndicator column="category" />
                                   </div>
                                 </TableHead>
                                 <TableHead>Descrição</TableHead>
-                                <TableHead 
-                                  className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors"
-                                  onClick={() => handleSort('price')}
-                                >
+                                <TableHead className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors" onClick={() => handleSort('price')}>
                                   <div className="flex items-center justify-end gap-2">
                                     Preço
                                     <SortIndicator column="price" />
                                   </div>
                                 </TableHead>
-                                <TableHead 
-                                  className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors"
-                                  onClick={() => handleSort('promotional_price')}
-                                >
+                                <TableHead className="text-right cursor-pointer select-none hover:bg-muted/50 transition-colors" onClick={() => handleSort('promotional_price')}>
                                   <div className="flex items-center justify-end gap-2">
                                     Preço Promo
                                     <SortIndicator column="promotional_price" />
@@ -4195,25 +3669,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {filteredProducts.map((product) => (
-                                <TableRow key={product.id} className={!product.is_available ? 'opacity-60' : ''}>
+                              {filteredProducts.map(product => <TableRow key={product.id} className={!product.is_available ? 'opacity-60' : ''}>
                                   <TableCell>
-                                    <Checkbox
-                                      checked={selectedProducts.includes(product.id)}
-                                      onCheckedChange={() => handleToggleSelectProduct(product.id)}
-                                    />
+                                    <Checkbox checked={selectedProducts.includes(product.id)} onCheckedChange={() => handleToggleSelectProduct(product.id)} />
                                   </TableCell>
                                   <TableCell>
                                     <div className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                                      {product.image_url ? (
-                                        <img 
-                                          src={product.image_url} 
-                                          alt={product.name}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <Package className="w-6 h-6 text-muted-foreground" />
-                                      )}
+                                      {product.image_url ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" /> : <Package className="w-6 h-6 text-muted-foreground" />}
                                     </div>
                                 </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
@@ -4230,80 +3692,44 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                   R$ {product.price.toFixed(2)}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                  {product.promotional_price ? (
-                                    <span className="text-green-600 font-semibold">
+                                  {product.promotional_price ? <span className="text-green-600 font-semibold">
                                       R$ {product.promotional_price.toFixed(2)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-muted-foreground">-</span>
-                                  )}
+                                    </span> : <span className="text-muted-foreground">-</span>}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {hasPermission('products', 'update') ? (
-                                    <div className="flex items-center justify-center gap-2">
-                                      <Switch
-                                        checked={product.is_featured || false}
-                                        onCheckedChange={(checked) => 
-                                          toggleProductFeatured({ id: product.id, is_featured: checked })
-                                        }
-                                        className="data-[state=checked]:bg-yellow-500"
-                                      />
-                                      {product.is_featured && (
-                                        <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                      )}
-                                    </div>
-                                  ) : (
-                                    product.is_featured ? (
-                                      <Star className="h-4 w-4 fill-yellow-500 text-yellow-500 mx-auto" />
-                                    ) : (
-                                      <span className="text-muted-foreground">-</span>
-                                    )
-                                  )}
+                                  {hasPermission('products', 'update') ? <div className="flex items-center justify-center gap-2">
+                                      <Switch checked={product.is_featured || false} onCheckedChange={checked => toggleProductFeatured({
+                                    id: product.id,
+                                    is_featured: checked
+                                  })} className="data-[state=checked]:bg-yellow-500" />
+                                      {product.is_featured && <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />}
+                                    </div> : product.is_featured ? <Star className="h-4 w-4 fill-yellow-500 text-yellow-500 mx-auto" /> : <span className="text-muted-foreground">-</span>}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {hasPermission('products', 'update') ? (
-                                    <Switch
-                                      checked={product.is_available}
-                                      onCheckedChange={(checked) => 
-                                        toggleProductAvailability({ id: product.id, is_available: checked })
-                                      }
-                                    />
-                                  ) : (
-                                    <Badge variant={product.is_available ? 'default' : 'secondary'}>
+                                  {hasPermission('products', 'update') ? <Switch checked={product.is_available} onCheckedChange={checked => toggleProductAvailability({
+                                  id: product.id,
+                                  is_available: checked
+                                })} /> : <Badge variant={product.is_available ? 'default' : 'secondary'}>
                                       {product.is_available ? 'Ativo' : 'Inativo'}
-                                    </Badge>
-                                  )}
+                                    </Badge>}
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex items-center justify-center gap-2">
-                                    {hasPermission('products', 'update') && (
-                                      <>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => openDuplicateDialog(product)}
-                                          title="Duplicar produto"
-                                        >
+                                    {hasPermission('products', 'update') && <>
+                                        <Button variant="ghost" size="icon" onClick={() => openDuplicateDialog(product)} title="Duplicar produto">
                                           <Copy className="w-4 h-4" />
                                         </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleEditProduct(product)}
-                                        >
+                                        <Button variant="ghost" size="icon" onClick={() => handleEditProduct(product)}>
                                           <Edit className="w-4 h-4" />
                                         </Button>
-                                      </>
-                                    )}
+                                      </>}
                                   </div>
                                 </TableCell>
-                              </TableRow>
-                            ))}
+                              </TableRow>)}
                           </TableBody>
                         </Table>
                       </ScrollableTable>
-                      </div>
-                    );
+                      </div>;
                   }
 
                   // Grid View with Reorder Mode
@@ -4318,16 +3744,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     }, {} as Record<string, any[]>);
 
                     // Get ordered categories with products
-                    const orderedCategories = categories
-                      .filter(cat => cat.is_active && productsByCategory[cat.name])
-                      .map(cat => cat.name);
-
-                    return (
-                      <div className="col-span-full space-y-8">
-                        {orderedCategories.map((category) => {
-                          const categoryProducts = productsByCategory[category];
-                          return (
-                            <div key={category} className="space-y-4">
+                    const orderedCategories = categories.filter(cat => cat.is_active && productsByCategory[cat.name]).map(cat => cat.name);
+                    return <div className="col-span-full space-y-8">
+                        {orderedCategories.map(category => {
+                        const categoryProducts = productsByCategory[category];
+                        return <div key={category} className="space-y-4">
                               <div className="flex items-center gap-3 px-2">
                                 <div className="flex items-center gap-2">
                                   <FolderTree className="w-5 h-5 text-primary" />
@@ -4337,41 +3758,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                   {categoryProducts.length} {categoryProducts.length === 1 ? 'produto' : 'produtos'}
                                 </Badge>
                               </div>
-                              <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                              >
-                                <SortableContext
-                                  items={categoryProducts.map(p => p.id)}
-                                  strategy={verticalListSortingStrategy}
-                                >
+                              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                <SortableContext items={categoryProducts.map(p => p.id)} strategy={verticalListSortingStrategy}>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                                    {categoryProducts.map((product, index) => (
-                                      <SortableProductCard
-                                        key={product.id}
-                                        product={product}
-                                        index={index}
-                                        isReorderMode={isReorderMode}
-                                        hasPermission={hasPermission}
-                                        onEdit={handleEditProduct}
-                                        onToggleAvailability={(id, isAvailable) => 
-                                          toggleProductAvailability({ id, is_available: isAvailable })
-                                        }
-                                        onToggleFeatured={(id, isFeatured) => 
-                                          toggleProductFeatured({ id, is_featured: isFeatured })
-                                        }
-                                        onDuplicate={openDuplicateDialog}
-                                      />
-                                    ))}
+                                    {categoryProducts.map((product, index) => <SortableProductCard key={product.id} product={product} index={index} isReorderMode={isReorderMode} hasPermission={hasPermission} onEdit={handleEditProduct} onToggleAvailability={(id, isAvailable) => toggleProductAvailability({
+                                  id,
+                                  is_available: isAvailable
+                                })} onToggleFeatured={(id, isFeatured) => toggleProductFeatured({
+                                  id,
+                                  is_featured: isFeatured
+                                })} onDuplicate={openDuplicateDialog} />)}
                                   </div>
                                 </SortableContext>
                               </DndContext>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
+                            </div>;
+                      })}
+                      </div>;
                   }
 
                   // Group products by category for normal view
@@ -4384,16 +3786,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   }, {} as Record<string, any[]>);
 
                   // Get ordered categories with products
-                  const orderedCategories = categories
-                    .filter(cat => cat.is_active && productsByCategory[cat.name])
-                    .map(cat => cat.name);
-
-                  return (
-                    <div className="col-span-full space-y-8">
-                      {orderedCategories.map((category) => {
-                        const categoryProducts = productsByCategory[category];
-                        return (
-                          <div key={category} className="space-y-4">
+                  const orderedCategories = categories.filter(cat => cat.is_active && productsByCategory[cat.name]).map(cat => cat.name);
+                  return <div className="col-span-full space-y-8">
+                      {orderedCategories.map(category => {
+                      const categoryProducts = productsByCategory[category];
+                      return <div key={category} className="space-y-4">
                             <div className="flex items-center gap-3 px-2">
                               <div className="flex items-center gap-2">
                                 <FolderTree className="w-5 h-5 text-primary" />
@@ -4404,29 +3801,17 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               </Badge>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                              {categoryProducts.map((product, index) => (
-                                <SortableProductCard
-                                  key={product.id}
-                                  product={product}
-                                  index={index}
-                                  isReorderMode={false}
-                                  hasPermission={hasPermission}
-                                  onEdit={handleEditProduct}
-                                  onToggleAvailability={(id, isAvailable) => 
-                                    toggleProductAvailability({ id, is_available: isAvailable })
-                                  }
-                                  onToggleFeatured={(id, isFeatured) => 
-                                    toggleProductFeatured({ id, is_featured: isFeatured })
-                                  }
-                                  onDuplicate={openDuplicateDialog}
-                                />
-                              ))}
+                              {categoryProducts.map((product, index) => <SortableProductCard key={product.id} product={product} index={index} isReorderMode={false} hasPermission={hasPermission} onEdit={handleEditProduct} onToggleAvailability={(id, isAvailable) => toggleProductAvailability({
+                            id,
+                            is_available: isAvailable
+                          })} onToggleFeatured={(id, isFeatured) => toggleProductFeatured({
+                            id,
+                            is_featured: isFeatured
+                          })} onDuplicate={openDuplicateDialog} />)}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
+                          </div>;
+                    })}
+                    </div>;
                 })()}
               </TabsContent>
 
@@ -4439,40 +3824,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   <div className="flex gap-2">
                     {/* View Mode Toggle */}
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant={categoryViewMode === 'grid' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCategoryViewMode('grid')}
-                      >
+                      <Button variant={categoryViewMode === 'grid' ? 'default' : 'outline'} size="sm" onClick={() => setCategoryViewMode('grid')}>
                         <LayoutGrid className="w-4 h-4 mr-2" />
                         Grid
                       </Button>
-                      <Button
-                        variant={categoryViewMode === 'table' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setCategoryViewMode('table')}
-                      >
+                      <Button variant={categoryViewMode === 'table' ? 'default' : 'outline'} size="sm" onClick={() => setCategoryViewMode('table')}>
                         <TableIcon className="w-4 h-4 mr-2" />
                         Tabela
                       </Button>
                     </div>
                     
-                    {hasPermission('categories', 'update') && filteredCategories && filteredCategories.length > 1 && categoryViewMode === 'grid' && (
-                      <Button
-                        variant={isReorderCategoriesMode ? "default" : "outline"}
-                        onClick={() => setIsReorderCategoriesMode(!isReorderCategoriesMode)}
-                        size="lg"
-                      >
+                    {hasPermission('categories', 'update') && filteredCategories && filteredCategories.length > 1 && categoryViewMode === 'grid' && <Button variant={isReorderCategoriesMode ? "default" : "outline"} onClick={() => setIsReorderCategoriesMode(!isReorderCategoriesMode)} size="lg">
                         <GripVertical className="w-4 h-4 mr-2" />
                         {isReorderCategoriesMode ? "Concluir" : "Reordenar"}
-                      </Button>
-                    )}
-                    {hasPermission('categories', 'create') && (
-                      <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                        <Button 
-                          size="lg"
-                          onClick={() => setIsCategoryDialogOpen(true)}
-                        >
+                      </Button>}
+                    {hasPermission('categories', 'create') && <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                        <Button size="lg" onClick={() => setIsCategoryDialogOpen(true)}>
                           <Plus className="w-4 h-4 mr-2" />
                           Nova Categoria
                         </Button>
@@ -4483,28 +3850,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           <div className="space-y-4">
                             <div>
                               <Label>Nome da Categoria</Label>
-                              <Input
-                                value={newCategoryName}
-                                onChange={(e) => setNewCategoryName(e.target.value)}
-                                placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
-                              />
+                              <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..." />
                             </div>
-                            <Button
-                              onClick={async () => {
-                                if (newCategoryName.trim()) {
-                                  await addCategory(newCategoryName.trim());
-                                  setNewCategoryName('');
-                                  setIsCategoryDialogOpen(false);
-                                }
-                              }}
-                              className="w-full"
-                            >
+                            <Button onClick={async () => {
+                            if (newCategoryName.trim()) {
+                              await addCategory(newCategoryName.trim());
+                              setNewCategoryName('');
+                              setIsCategoryDialogOpen(false);
+                            }
+                          }} className="w-full">
                               Adicionar Categoria
                             </Button>
                           </div>
                         </ResponsiveDialogContent>
-                      </ResponsiveDialog>
-                    )}
+                      </ResponsiveDialog>}
                   </div>
                 </div>
 
@@ -4521,26 +3880,17 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       <SelectItem value="all">Todas as Categorias</SelectItem>
                     </SelectContent>
                   </Select>
-                  {categoryStatusFilter !== 'active' && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCategoryStatusFilter('active')}
-                    >
+                  {categoryStatusFilter !== 'active' && <Button variant="ghost" size="sm" onClick={() => setCategoryStatusFilter('active')}>
                       <X className="w-4 h-4 mr-1" />
                       Limpar
-                    </Button>
-                  )}
+                    </Button>}
                 </div>
 
-                {loadingCategories ? (
-                  <div className="flex justify-center p-8">
+                {loadingCategories ? <div className="flex justify-center p-8">
                     <div className="animate-spin">⏳</div>
-                  </div>
-                ) : filteredCategories && filteredCategories.length > 0 ? (
-                  categoryViewMode === 'table' ? (
-                    // Table View
-                    <ScrollableTable maxHeight="calc(100vh - 400px)">
+                  </div> : filteredCategories && filteredCategories.length > 0 ? categoryViewMode === 'table' ?
+                // Table View
+                <ScrollableTable maxHeight="calc(100vh - 400px)">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -4551,10 +3901,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredCategories.map((category) => {
-                            const categoryProducts = products?.filter(p => p.category === category.name) || [];
-                            return (
-                              <TableRow key={category.id} className={!category.is_active ? 'opacity-60' : ''}>
+                          {filteredCategories.map(category => {
+                        const categoryProducts = products?.filter(p => p.category === category.name) || [];
+                        return <TableRow key={category.id} className={!category.is_active ? 'opacity-60' : ''}>
                                 <TableCell>
                                   <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-lg bg-primary/10">
@@ -4571,133 +3920,58 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-center">
-                                  {hasPermission('categories', 'update') ? (
-                                    <Switch
-                                      checked={category.is_active}
-                                      onCheckedChange={(checked) => toggleCategoryStatus(category.id, checked)}
-                                    />
-                                  ) : (
-                                    <Badge variant={category.is_active ? 'default' : 'secondary'}>
+                                  {hasPermission('categories', 'update') ? <Switch checked={category.is_active} onCheckedChange={checked => toggleCategoryStatus(category.id, checked)} /> : <Badge variant={category.is_active ? 'default' : 'secondary'}>
                                       {category.is_active ? 'Ativa' : 'Inativa'}
-                                    </Badge>
-                                  )}
+                                    </Badge>}
                                 </TableCell>
                                 <TableCell>
                                   <div className="flex items-center justify-center gap-2">
-                                    {hasPermission('categories', 'update') && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => {
-                                          setEditingCategory(category);
-                                          setEditCategoryName(category.name);
-                                          setIsEditCategoryDialogOpen(true);
-                                        }}
-                                      >
+                                    {hasPermission('categories', 'update') && <Button size="sm" variant="outline" onClick={() => {
+                                setEditingCategory(category);
+                                setEditCategoryName(category.name);
+                                setIsEditCategoryDialogOpen(true);
+                              }}>
                                         <Edit className="w-4 h-4 mr-2" />
                                         Editar
-                                      </Button>
-                                    )}
-                                    {hasPermission('categories', 'delete') && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => deleteCategory(category.id)}
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                      >
+                                      </Button>}
+                                    {hasPermission('categories', 'delete') && <Button size="sm" variant="ghost" onClick={() => deleteCategory(category.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
                                         <Trash2 className="w-4 h-4" />
-                                      </Button>
-                                    )}
+                                      </Button>}
                                   </div>
                                 </TableCell>
-                              </TableRow>
-                            );
-                          })}
+                              </TableRow>;
+                      })}
                         </TableBody>
                       </Table>
-                    </ScrollableTable>
-                  ) : isReorderCategoriesMode ? (
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEndCategories}
-                    >
-                      <SortableContext
-                        items={localCategories.filter(cat => 
-                          categoryStatusFilter === 'all' || 
-                          (categoryStatusFilter === 'active' && cat.is_active) || 
-                          (categoryStatusFilter === 'inactive' && !cat.is_active)
-                        )}
-                        strategy={verticalListSortingStrategy}
-                      >
+                    </ScrollableTable> : isReorderCategoriesMode ? <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndCategories}>
+                      <SortableContext items={localCategories.filter(cat => categoryStatusFilter === 'all' || categoryStatusFilter === 'active' && cat.is_active || categoryStatusFilter === 'inactive' && !cat.is_active)} strategy={verticalListSortingStrategy}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                          {localCategories
-                            .filter(cat => 
-                              categoryStatusFilter === 'all' || 
-                              (categoryStatusFilter === 'active' && cat.is_active) || 
-                              (categoryStatusFilter === 'inactive' && !cat.is_active)
-                            )
-                            .map((category, index) => (
-                              <SortableCategoryCard
-                                key={category.id}
-                                category={category}
-                                index={index}
-                                isReorderMode={true}
-                                hasPermission={hasPermission}
-                                products={products}
-                                onEdit={(cat) => {
-                                  setEditingCategory(cat);
-                                  setEditCategoryName(cat.name);
-                                  setIsEditCategoryDialogOpen(true);
-                                }}
-                                onDelete={deleteCategory}
-                                onToggleStatus={toggleCategoryStatus}
-                              />
-                            ))}
+                          {localCategories.filter(cat => categoryStatusFilter === 'all' || categoryStatusFilter === 'active' && cat.is_active || categoryStatusFilter === 'inactive' && !cat.is_active).map((category, index) => <SortableCategoryCard key={category.id} category={category} index={index} isReorderMode={true} hasPermission={hasPermission} products={products} onEdit={cat => {
+                        setEditingCategory(cat);
+                        setEditCategoryName(cat.name);
+                        setIsEditCategoryDialogOpen(true);
+                      }} onDelete={deleteCategory} onToggleStatus={toggleCategoryStatus} />)}
                         </div>
                       </SortableContext>
-                    </DndContext>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                      {filteredCategories.map((category, index) => (
-                        <SortableCategoryCard
-                          key={category.id}
-                          category={category}
-                          index={index}
-                          isReorderMode={false}
-                          hasPermission={hasPermission}
-                          products={products}
-                          onEdit={(cat) => {
-                            setEditingCategory(cat);
-                            setEditCategoryName(cat.name);
-                            setIsEditCategoryDialogOpen(true);
-                          }}
-                          onDelete={deleteCategory}
-                          onToggleStatus={toggleCategoryStatus}
-                        />
-                      ))}
-                    </div>
-                  )
-                ) : (
-                  <Card className="border-dashed">
+                    </DndContext> : <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                      {filteredCategories.map((category, index) => <SortableCategoryCard key={category.id} category={category} index={index} isReorderMode={false} hasPermission={hasPermission} products={products} onEdit={cat => {
+                    setEditingCategory(cat);
+                    setEditCategoryName(cat.name);
+                    setIsEditCategoryDialogOpen(true);
+                  }} onDelete={deleteCategory} onToggleStatus={toggleCategoryStatus} />)}
+                    </div> : <Card className="border-dashed">
                     <CardContent className="py-12 text-center">
                       <FolderTree className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                       <h3 className="text-lg font-semibold mb-2">Nenhuma categoria encontrada</h3>
                       <p className="text-muted-foreground mb-4">
-                        {categoryStatusFilter !== 'all' 
-                          ? "Nenhuma categoria corresponde ao filtro selecionado"
-                          : "Comece criando sua primeira categoria de produtos"
-                        }
+                        {categoryStatusFilter !== 'all' ? "Nenhuma categoria corresponde ao filtro selecionado" : "Comece criando sua primeira categoria de produtos"}
                       </p>
-                      {hasPermission('categories', 'create') && categoryStatusFilter === 'all' && (
-                        <Button onClick={() => setIsCategoryDialogOpen(true)}>
+                      {hasPermission('categories', 'create') && categoryStatusFilter === 'all' && <Button onClick={() => setIsCategoryDialogOpen(true)}>
                           <Plus className="w-4 h-4 mr-2" />
                           Criar Primeira Categoria
-                        </Button>
-                      )}
+                        </Button>}
                     </CardContent>
-                  </Card>
-                )}
+                  </Card>}
 
                 {/* Dialog de edição de categoria */}
                 <ResponsiveDialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
@@ -4708,25 +3982,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     <div className="space-y-4">
                       <div>
                         <Label>Nome da Categoria</Label>
-                        <Input
-                          value={editCategoryName}
-                          onChange={(e) => setEditCategoryName(e.target.value)}
-                          placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..."
-                        />
+                        <Input value={editCategoryName} onChange={e => setEditCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas, Sobremesas..." />
                       </div>
-                      <Button
-                        onClick={async () => {
-                          if (editCategoryName.trim() && editingCategory) {
-                            await updateCategory(editingCategory.id, editCategoryName.trim());
-                            queryClient.invalidateQueries({ queryKey: ['my-products', myStore?.id] });
-                            queryClient.invalidateQueries({ queryKey: ['products', myStore?.id] });
-                            setIsEditCategoryDialogOpen(false);
-                            setEditingCategory(null);
-                            setEditCategoryName('');
-                          }
-                        }}
-                        className="w-full"
-                      >
+                      <Button onClick={async () => {
+                        if (editCategoryName.trim() && editingCategory) {
+                          await updateCategory(editingCategory.id, editCategoryName.trim());
+                          queryClient.invalidateQueries({
+                            queryKey: ['my-products', myStore?.id]
+                          });
+                          queryClient.invalidateQueries({
+                            queryKey: ['products', myStore?.id]
+                          });
+                          setIsEditCategoryDialogOpen(false);
+                          setEditingCategory(null);
+                          setEditCategoryName('');
+                        }
+                      }} className="w-full">
                         Salvar Alterações
                       </Button>
                     </div>
@@ -4792,48 +4063,34 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
-        )}
+          </div>}
 
         {/* Relatorios Tab Group */}
-        {myStore?.id && (
-          <div className={cn("p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6", 
-            !['relatorio-clientes', 'relatorio-produtos-vendidos', 'relatorio-produtos-cadastrados', 'relatorio-pedidos'].includes(activeTab) && 'hidden'
-          )}>
+        {myStore?.id && <div className={cn("p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6", !['relatorio-clientes', 'relatorio-produtos-vendidos', 'relatorio-produtos-cadastrados', 'relatorio-pedidos'].includes(activeTab) && 'hidden')}>
 
-            <ReportsFilters
-              periodFilter={reportsPeriodFilter}
-              onPeriodFilterChange={setReportsPeriodFilter}
-              customDateRange={reportsCustomDateRange}
-              onCustomDateRangeChange={setReportsCustomDateRange}
-            />
+            <ReportsFilters periodFilter={reportsPeriodFilter} onPeriodFilterChange={setReportsPeriodFilter} customDateRange={reportsCustomDateRange} onCustomDateRangeChange={setReportsCustomDateRange} />
             
-            {activeTab === 'relatorio-clientes' && (
-              <CustomersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
+            {activeTab === 'relatorio-clientes' && <CustomersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />}
 
-            {activeTab === 'relatorio-produtos-vendidos' && (
-              <BestSellingProductsReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
+            {activeTab === 'relatorio-produtos-vendidos' && <BestSellingProductsReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />}
 
-            {activeTab === 'relatorio-produtos-cadastrados' && (
-              <RegisteredProductsReport storeId={myStore.id} storeName={myStore.name} />
-            )}
+            {activeTab === 'relatorio-produtos-cadastrados' && <RegisteredProductsReport storeId={myStore.id} storeName={myStore.name} />}
 
-            {activeTab === 'relatorio-pedidos' && (
-              <OrdersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />
-            )}
-          </div>
-        )}
+            {activeTab === 'relatorio-pedidos' && <OrdersReport storeId={myStore.id} storeName={myStore.name} dateRange={reportsDateRange} />}
+          </div>}
 
         {/* Result Tab */}
         <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'result' && 'hidden')}>
           {/* Tabs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
+          <motion.div initial={{
+              opacity: 0,
+              y: 20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              delay: 0.3
+            }}>
             <Tabs defaultValue="personal" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 gap-2 bg-muted/50 h-auto p-2">
                   <TabsTrigger value="personal" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white text-xs sm:text-sm whitespace-nowrap">
@@ -4872,22 +4129,30 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
         {/* Personal Data Tab */}
         <TabsContent value="personal">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }}>
             <PersonalDataSettings />
           </motion.div>
         </TabsContent>
 
         {/* Permissions Tab */}
         <TabsContent value="notifications" className="space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.3
+                  }}>
             <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
                 <Shield className="w-5 h-5 text-primary" />
@@ -4900,20 +4165,29 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </div>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5,
+                    delay: 0.1
+                  }}>
             <NotificationSettings />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6"
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5,
+                    delay: 0.1
+                  }} className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Métodos de Pagamento Aceitos</CardTitle>
@@ -4926,13 +4200,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Aceita pagamento via PIX
                     </p>
                   </div>
-                  <Switch
-                    id="accepts_pix"
-                    checked={storeForm.accepts_pix}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_pix', checked)
-                    }
-                  />
+                  <Switch id="accepts_pix" checked={storeForm.accepts_pix} onCheckedChange={checked => handleUpdateDeliveryOption('accepts_pix', checked)} />
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -4942,13 +4210,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Aceita pagamento com cartão de crédito ou débito
                     </p>
                   </div>
-                  <Switch
-                    id="accepts_card"
-                    checked={storeForm.accepts_card}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_card', checked)
-                    }
-                  />
+                  <Switch id="accepts_card" checked={storeForm.accepts_card} onCheckedChange={checked => handleUpdateDeliveryOption('accepts_card', checked)} />
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -4958,13 +4220,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Aceita pagamento em dinheiro
                     </p>
                   </div>
-                  <Switch
-                    id="accepts_cash"
-                    checked={storeForm.accepts_cash}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_cash', checked)
-                    }
-                  />
+                  <Switch id="accepts_cash" checked={storeForm.accepts_cash} onCheckedChange={checked => handleUpdateDeliveryOption('accepts_cash', checked)} />
                 </div>
               </CardContent>
             </Card>
@@ -4981,13 +4237,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Mostrar o tempo médio de entrega na página da loja
                     </p>
                   </div>
-                  <Switch
-                    id="show_avg_delivery_time"
-                    checked={storeForm.show_avg_delivery_time ?? true}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('show_avg_delivery_time', checked)
-                    }
-                  />
+                  <Switch id="show_avg_delivery_time" checked={storeForm.show_avg_delivery_time ?? true} onCheckedChange={checked => handleUpdateDeliveryOption('show_avg_delivery_time', checked)} />
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -4997,13 +4247,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Mostrar o endereço completo no cabeçalho da página da loja
                     </p>
                   </div>
-                  <Switch
-                    id="show_address_on_store_page"
-                    checked={storeForm.show_address_on_store_page !== false}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('show_address_on_store_page', checked)
-                    }
-                  />
+                  <Switch id="show_address_on_store_page" checked={storeForm.show_address_on_store_page !== false} onCheckedChange={checked => handleUpdateDeliveryOption('show_address_on_store_page', checked)} />
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -5013,13 +4257,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Mostrar o telefone de contato no cabeçalho da página da loja
                     </p>
                   </div>
-                  <Switch
-                    id="show_phone_on_store_page"
-                    checked={storeForm.show_phone_on_store_page !== false}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('show_phone_on_store_page', checked)
-                    }
-                  />
+                  <Switch id="show_phone_on_store_page" checked={storeForm.show_phone_on_store_page !== false} onCheckedChange={checked => handleUpdateDeliveryOption('show_phone_on_store_page', checked)} />
                 </div>
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -5029,13 +4267,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Mostrar o WhatsApp de contato no cabeçalho da página da loja
                     </p>
                   </div>
-                  <Switch
-                    id="show_whatsapp_on_store_page"
-                    checked={(storeForm as any).show_whatsapp_on_store_page !== false}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('show_whatsapp_on_store_page', checked)
-                    }
-                  />
+                  <Switch id="show_whatsapp_on_store_page" checked={(storeForm as any).show_whatsapp_on_store_page !== false} onCheckedChange={checked => handleUpdateDeliveryOption('show_whatsapp_on_store_page', checked)} />
                 </div>
               </CardContent>
             </Card>
@@ -5056,13 +4288,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Os pedidos serão processados quando você abrir a loja.
                     </p>
                   </div>
-                  <Switch
-                    id="allow_orders_when_closed"
-                    checked={storeForm.allow_orders_when_closed}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('allow_orders_when_closed', checked)
-                    }
-                  />
+                  <Switch id="allow_orders_when_closed" checked={storeForm.allow_orders_when_closed} onCheckedChange={checked => handleUpdateDeliveryOption('allow_orders_when_closed', checked)} />
                 </div>
               </CardContent>
             </Card>
@@ -5073,11 +4299,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-4">
           {/* Store URL Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    delay: 0.1
+                  }}>
             <Card className="border-muted/50 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -5087,38 +4317,26 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2">
-                  <Input 
-                    value={storeUrl} 
-                    readOnly 
-                    className="flex-1 font-mono text-sm bg-muted/50"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={handleCopyUrl}
-                    className="shrink-0"
-                  >
-                    {copiedUrl ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
+                  <Input value={storeUrl} readOnly className="flex-1 font-mono text-sm bg-muted/50" />
+                  <Button type="button" variant="outline" size="icon" onClick={handleCopyUrl} className="shrink-0">
+                    {copiedUrl ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
-                {copiedUrl && (
-                  <p className="text-sm text-green-500 mt-2">URL copiada!</p>
-                )}
+                {copiedUrl && <p className="text-sm text-green-500 mt-2">URL copiada!</p>}
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Store Settings Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    delay: 0.2
+                  }}>
             <Card className="border-muted/50 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                 <CardTitle className="flex items-center gap-2">
@@ -5129,88 +4347,74 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             <CardContent className="space-y-6">
               <div>
                 <Label>Nome da Loja *</Label>
-                <Input
-                  value={storeForm.name}
-                  onChange={(e) => setStoreForm({ ...storeForm, name: e.target.value })}
-                />
+                <Input value={storeForm.name} onChange={e => setStoreForm({
+                            ...storeForm,
+                            name: e.target.value
+                          })} />
               </div>
 
               <div className="space-y-2">
                 <Label>URL da Loja *</Label>
                 <div className="relative">
-                  <Input
-                    value={storeForm.slug}
-                    onChange={(e) => {
-                      const sanitized = sanitizeSlug(e.target.value);
-                      setStoreForm({ ...storeForm, slug: sanitized });
-                    }}
-                    placeholder="minha-loja"
-                    className="font-mono"
-                  />
+                  <Input value={storeForm.slug} onChange={e => {
+                              const sanitized = sanitizeSlug(e.target.value);
+                              setStoreForm({
+                                ...storeForm,
+                                slug: sanitized
+                              });
+                            }} placeholder="minha-loja" className="font-mono" />
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Apenas letras minúsculas, números e hífens. Espaços serão convertidos em hífens.
                 </p>
 
                 {/* URL Preview */}
-                {storeForm.slug && (
-                  <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                {storeForm.slug && <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
                     <Store className="h-4 w-4 text-primary flex-shrink-0" />
                     <code className="text-sm text-primary font-semibold">
                       ofertas.app/{storeForm.slug}
                     </code>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Availability Check */}
-                {storeForm.slug && storeForm.slug !== myStore?.slug && (
-                  <div className="flex items-center gap-2">
-                    {slugAvailability.isChecking && (
-                      <>
+                {storeForm.slug && storeForm.slug !== myStore?.slug && <div className="flex items-center gap-2">
+                    {slugAvailability.isChecking && <>
                         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">Verificando disponibilidade...</span>
-                      </>
-                    )}
-                    {!slugAvailability.isChecking && slugAvailability.isAvailable === true && (
-                      <>
+                      </>}
+                    {!slugAvailability.isChecking && slugAvailability.isAvailable === true && <>
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-sm text-green-500">{slugAvailability.message}</span>
-                      </>
-                    )}
-                    {!slugAvailability.isChecking && slugAvailability.isAvailable === false && (
-                      <>
+                      </>}
+                    {!slugAvailability.isChecking && slugAvailability.isAvailable === false && <>
                         <AlertCircle className="h-4 w-4 text-destructive" />
                         <span className="text-sm text-destructive">{slugAvailability.message}</span>
-                      </>
-                    )}
-                  </div>
-                )}
+                      </>}
+                  </div>}
               </div>
 
               <div>
                 <Label>Descrição</Label>
-                <Textarea
-                  value={storeForm.description}
-                  onChange={(e) => setStoreForm({ ...storeForm, description: e.target.value })}
-                  placeholder="Descreva sua loja..."
-                  rows={4}
-                />
+                <Textarea value={storeForm.description} onChange={e => setStoreForm({
+                            ...storeForm,
+                            description: e.target.value
+                          })} placeholder="Descreva sua loja..." rows={4} />
               </div>
 
               <div>
                 <Label>Telefone da Loja</Label>
-                <PhoneInput
-                  value={storeForm.phone}
-                  onChange={(value) => setStoreForm({ ...storeForm, phone: value })}
-                />
+                <PhoneInput value={storeForm.phone} onChange={value => setStoreForm({
+                            ...storeForm,
+                            phone: value
+                          })} />
               </div>
 
               <div>
                 <Label>WhatsApp da Loja</Label>
-                <PhoneInput
-                  value={storeForm.whatsapp}
-                  onChange={(value) => setStoreForm({ ...storeForm, whatsapp: value })}
-                />
+                <PhoneInput value={storeForm.whatsapp} onChange={value => setStoreForm({
+                            ...storeForm,
+                            whatsapp: value
+                          })} />
                 <p className="text-xs text-muted-foreground mt-1">
                   Número do WhatsApp para contato direto com a loja
                 </p>
@@ -5223,10 +4427,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 
                 <div>
                   <Label>Categoria da Loja *</Label>
-                  <Select
-                    value={storeForm.category}
-                    onValueChange={(value) => setStoreForm({ ...storeForm, category: value })}
-                  >
+                  <Select value={storeForm.category} onValueChange={value => setStoreForm({
+                              ...storeForm,
+                              category: value
+                            })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
@@ -5251,10 +4455,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
                 <div>
                   <Label>Tipo de Exibição de Produtos</Label>
-                  <Select
-                    value={storeForm.menu_label}
-                    onValueChange={(value) => setStoreForm({ ...storeForm, menu_label: value })}
-                  >
+                  <Select value={storeForm.menu_label} onValueChange={value => setStoreForm({
+                              ...storeForm,
+                              menu_label: value
+                            })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione como deseja exibir" />
                     </SelectTrigger>
@@ -5278,34 +4482,26 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="hidden">
                     <Label>Taxa de Entrega (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={storeForm.delivery_fee}
-                      onChange={(e) => setStoreForm({ ...storeForm, delivery_fee: parseFloat(e.target.value) || 0 })}
-                    />
+                    <Input type="number" step="0.01" min="0" value={storeForm.delivery_fee} onChange={e => setStoreForm({
+                                ...storeForm,
+                                delivery_fee: parseFloat(e.target.value) || 0
+                              })} />
                   </div>
 
                   <div>
                     <Label>Pedido Mínimo (R$)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={storeForm.min_order_value}
-                      onChange={(e) => setStoreForm({ ...storeForm, min_order_value: parseFloat(e.target.value) || 0 })}
-                    />
+                    <Input type="number" step="0.01" min="0" value={storeForm.min_order_value} onChange={e => setStoreForm({
+                                ...storeForm,
+                                min_order_value: parseFloat(e.target.value) || 0
+                              })} />
                   </div>
 
                   <div>
                     <Label>Tempo Médio de Entrega (min)</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={storeForm.avg_delivery_time}
-                      onChange={(e) => setStoreForm({ ...storeForm, avg_delivery_time: parseInt(e.target.value) || 30 })}
-                    />
+                    <Input type="number" min="1" value={storeForm.avg_delivery_time} onChange={e => setStoreForm({
+                                ...storeForm,
+                                avg_delivery_time: parseInt(e.target.value) || 30
+                              })} />
                   </div>
                 </div>
               </div>
@@ -5318,19 +4514,11 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 <div>
                   <Label>CEP</Label>
                   <div className="relative">
-                    <Input
-                      value={storeForm.store_cep}
-                      onChange={(e) => {
-                        console.log('✏️ [Input CEP] Novo valor:', e.target.value);
-                        handleCepChange(e.target.value);
-                      }}
-                      placeholder="00000-000"
-                      maxLength={9}
-                      disabled={isLoadingCep}
-                    />
-                    {isLoadingCep && (
-                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
+                    <Input value={storeForm.store_cep} onChange={e => {
+                                console.log('✏️ [Input CEP] Novo valor:', e.target.value);
+                                handleCepChange(e.target.value);
+                              }} placeholder="00000-000" maxLength={9} disabled={isLoadingCep} />
+                    {isLoadingCep && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Digite o CEP para preencher automaticamente o endereço
@@ -5339,85 +4527,72 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
                 <div>
                   <Label>Cidade</Label>
-                  <Input
-                    value={storeForm.store_city}
-                    onChange={(e) => {
-                      console.log('✏️ [Input Cidade] Novo valor:', e.target.value);
-                      setStoreForm({ ...storeForm, store_city: e.target.value });
-                    }}
-                    placeholder="Nome da cidade"
-                  />
+                  <Input value={storeForm.store_city} onChange={e => {
+                              console.log('✏️ [Input Cidade] Novo valor:', e.target.value);
+                              setStoreForm({
+                                ...storeForm,
+                                store_city: e.target.value
+                              });
+                            }} placeholder="Nome da cidade" />
                 </div>
 
                 <div>
                   <Label>Rua</Label>
-                  <Input
-                    value={storeForm.store_street}
-                    onChange={(e) => {
-                      console.log('✏️ [Input Rua] Novo valor:', e.target.value);
-                      setStoreForm({ ...storeForm, store_street: e.target.value });
-                    }}
-                    placeholder="Nome da rua"
-                  />
+                  <Input value={storeForm.store_street} onChange={e => {
+                              console.log('✏️ [Input Rua] Novo valor:', e.target.value);
+                              setStoreForm({
+                                ...storeForm,
+                                store_street: e.target.value
+                              });
+                            }} placeholder="Nome da rua" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Número</Label>
-                    <Input
-                      value={storeForm.store_street_number}
-                      onChange={(e) => {
-                        console.log('✏️ [Input Número] Novo valor:', e.target.value);
-                        setStoreForm({ ...storeForm, store_street_number: e.target.value });
-                      }}
-                      placeholder="123"
-                    />
+                    <Input value={storeForm.store_street_number} onChange={e => {
+                                console.log('✏️ [Input Número] Novo valor:', e.target.value);
+                                setStoreForm({
+                                  ...storeForm,
+                                  store_street_number: e.target.value
+                                });
+                              }} placeholder="123" />
                   </div>
 
                   <div>
                     <Label>Bairro</Label>
-                    <Input
-                      value={storeForm.store_neighborhood}
-                      onChange={(e) => {
-                        console.log('✏️ [Input Bairro] Novo valor:', e.target.value);
-                        setStoreForm({ ...storeForm, store_neighborhood: e.target.value });
-                      }}
-                      placeholder="Nome do bairro"
-                    />
+                    <Input value={storeForm.store_neighborhood} onChange={e => {
+                                console.log('✏️ [Input Bairro] Novo valor:', e.target.value);
+                                setStoreForm({
+                                  ...storeForm,
+                                  store_neighborhood: e.target.value
+                                });
+                              }} placeholder="Nome do bairro" />
                   </div>
                 </div>
 
                 <div>
                   <Label>Complemento</Label>
-                  <Input
-                    value={storeForm.store_complement}
-                    onChange={(e) => {
-                      console.log('✏️ [Input Complemento] Novo valor:', e.target.value);
-                      setStoreForm({ ...storeForm, store_complement: e.target.value });
-                    }}
-                    placeholder="Apto, sala, etc. (opcional)"
-                  />
+                  <Input value={storeForm.store_complement} onChange={e => {
+                              console.log('✏️ [Input Complemento] Novo valor:', e.target.value);
+                              setStoreForm({
+                                ...storeForm,
+                                store_complement: e.target.value
+                              });
+                            }} placeholder="Apto, sala, etc. (opcional)" />
                 </div>
               </div>
 
 
-              <ImageUpload
-                bucket="store-logos"
-                folder={myStore?.id || ''}
-                currentImageUrl={storeForm.logo_url}
-                onUploadComplete={(url) => setStoreForm({ ...storeForm, logo_url: url })}
-                label="Logo da Loja"
-                aspectRatio="aspect-square"
-              />
+              <ImageUpload bucket="store-logos" folder={myStore?.id || ''} currentImageUrl={storeForm.logo_url} onUploadComplete={url => setStoreForm({
+                          ...storeForm,
+                          logo_url: url
+                        })} label="Logo da Loja" aspectRatio="aspect-square" />
 
-              <ImageUpload
-                bucket="store-banners"
-                folder={myStore?.id || ''}
-                currentImageUrl={storeForm.banner_url}
-                onUploadComplete={(url) => setStoreForm({ ...storeForm, banner_url: url })}
-                label="Banner da Loja"
-                aspectRatio="aspect-[21/9]"
-              />
+              <ImageUpload bucket="store-banners" folder={myStore?.id || ''} currentImageUrl={storeForm.banner_url} onUploadComplete={url => setStoreForm({
+                          ...storeForm,
+                          banner_url: url
+                        })} label="Banner da Loja" aspectRatio="aspect-[21/9]" />
 
               <Separator className="my-6" />
 
@@ -5428,12 +4603,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 </h3>
                 
                 <ResponsiveDialog open={isHoursDialogOpen} onOpenChange={setIsHoursDialogOpen}>
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="w-full flex items-center gap-2"
-                    onClick={() => setIsHoursDialogOpen(true)}
-                  >
+                  <Button variant="outline" size="lg" className="w-full flex items-center gap-2" onClick={() => setIsHoursDialogOpen(true)}>
                     <Clock className="h-5 w-5" />
                     Gerenciar Horários de Funcionamento
                   </Button>
@@ -5441,28 +4611,50 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     <ResponsiveDialogHeader>
                       <ResponsiveDialogTitle>Horários de Funcionamento</ResponsiveDialogTitle>
                     </ResponsiveDialogHeader>
-                    <OperatingHoursManager 
-                      initialHours={(myStore?.operating_hours as any) || {
-                        monday: { open: "08:00", close: "18:00", is_closed: false },
-                        tuesday: { open: "08:00", close: "18:00", is_closed: false },
-                        wednesday: { open: "08:00", close: "18:00", is_closed: false },
-                        thursday: { open: "08:00", close: "18:00", is_closed: false },
-                        friday: { open: "08:00", close: "18:00", is_closed: false },
-                        saturday: { open: "08:00", close: "14:00", is_closed: false },
-                        sunday: { open: "08:00", close: "12:00", is_closed: true }
-                      }}
-                      onSave={handleSaveOperatingHours}
-                    />
+                    <OperatingHoursManager initialHours={myStore?.operating_hours as any || {
+                                monday: {
+                                  open: "08:00",
+                                  close: "18:00",
+                                  is_closed: false
+                                },
+                                tuesday: {
+                                  open: "08:00",
+                                  close: "18:00",
+                                  is_closed: false
+                                },
+                                wednesday: {
+                                  open: "08:00",
+                                  close: "18:00",
+                                  is_closed: false
+                                },
+                                thursday: {
+                                  open: "08:00",
+                                  close: "18:00",
+                                  is_closed: false
+                                },
+                                friday: {
+                                  open: "08:00",
+                                  close: "18:00",
+                                  is_closed: false
+                                },
+                                saturday: {
+                                  open: "08:00",
+                                  close: "14:00",
+                                  is_closed: false
+                                },
+                                sunday: {
+                                  open: "08:00",
+                                  close: "12:00",
+                                  is_closed: true
+                                }
+                              }} onSave={handleSaveOperatingHours} />
                   </ResponsiveDialogContent>
                 </ResponsiveDialog>
               </div>
 
               <Separator className="my-6" />
 
-              <Button
-                onClick={handleUpdateStore} 
-                className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
-              >
+              <Button onClick={handleUpdateStore} className="w-full bg-gradient-primary hover:opacity-90 transition-opacity">
                 Salvar Alterações
               </Button>
             </CardContent>
@@ -5472,34 +4664,45 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
         {/* Security Tab */}
         <TabsContent value="security">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }}>
             <SecuritySettings />
           </motion.div>
         </TabsContent>
 
         {/* Order Status Tab */}
         <TabsContent value="order-status">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }}>
             {myStore?.id && <OrderStatusManager storeId={myStore.id} />}
           </motion.div>
         </TabsContent>
 
         {/* Entregas Tab */}
         <TabsContent value="entregas">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }} className="space-y-4">
             <div>
               <h2 className="text-2xl font-semibold mb-6">Configurações de entrega</h2>
             </div>
@@ -5522,13 +4725,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Permite que os clientes recebam pedidos em casa
                     </p>
                   </div>
-                  <Switch
-                    id="accepts_delivery"
-                    checked={storeForm.accepts_delivery}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_delivery', checked)
-                    }
-                  />
+                  <Switch id="accepts_delivery" checked={storeForm.accepts_delivery} onCheckedChange={checked => handleUpdateDeliveryOption('accepts_delivery', checked)} />
                 </div>
 
                 <div className="flex items-center justify-between p-3 border rounded-lg bg-background">
@@ -5538,13 +4735,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Permite que os clientes retirem pedidos na loja
                     </p>
                   </div>
-                  <Switch
-                    id="accepts_pickup"
-                    checked={storeForm.accepts_pickup}
-                    onCheckedChange={(checked) => 
-                      handleUpdateDeliveryOption('accepts_pickup', checked)
-                    }
-                  />
+                  <Switch id="accepts_pickup" checked={storeForm.accepts_pickup} onCheckedChange={checked => handleUpdateDeliveryOption('accepts_pickup', checked)} />
                 </div>
               </CardContent>
             </Card>
@@ -5556,11 +4747,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
         {/* PIX Configuration Tab */}
         <TabsContent value="pix">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }}>
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Configurações de PIX</CardTitle>
@@ -5568,10 +4763,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="pix_key_type">Tipo de Chave PIX</Label>
-                  <Select 
-                    value={pixKeyType} 
-                    onValueChange={(value: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random') => setPixKeyType(value)}
-                  >
+                  <Select value={pixKeyType} onValueChange={(value: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random') => setPixKeyType(value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o tipo de chave" />
                     </SelectTrigger>
@@ -5588,172 +4780,136 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                 <div className="space-y-2">
                   <Label htmlFor="pix_key">Chave PIX</Label>
                   <div className="relative">
-                    <Input
-                      id="pix_key"
-                      type="text"
-                      placeholder={
-                        pixKeyType === 'cpf' ? 'Digite o CPF (###.###.###-##)' :
-                        pixKeyType === 'cnpj' ? 'Digite o CNPJ (##.###.###/####-##)' :
-                        pixKeyType === 'email' ? 'Digite o e-mail' :
-                        pixKeyType === 'phone' ? 'Digite o telefone ((##) #####-####)' :
-                        'Digite a chave aleatória'
-                      }
-                      value={(() => {
-                        const key = storeForm.pix_key || '';
-                        // Remove +55 prefix from display if it's a phone number
-                        const digitsOnly = key.replace(/\D/g, '');
-                        if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
-                          // It's a phone with +55, remove the prefix for display
-                          const phoneWithoutPrefix = digitsOnly.substring(2);
-                          return formatPixKey(phoneWithoutPrefix);
-                        }
-                        return key;
-                      })()}
-                      onChange={(e) => {
-                        let value = e.target.value;
-                        const digitsOnly = value.replace(/\D/g, '');
-                        
-                        // Format based on selected PIX key type
-                        if (pixKeyType === 'cpf') {
-                          // Format CPF: ###.###.###-##
-                          if (digitsOnly.length <= 3) {
-                            value = digitsOnly;
-                          } else if (digitsOnly.length <= 6) {
-                            value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3)}`;
-                          } else if (digitsOnly.length <= 9) {
-                            value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
-                          } else if (digitsOnly.length === 11) {
-                            value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
-                          }
-                        } else if (pixKeyType === 'cnpj') {
-                          // Format CNPJ: ##.###.###/####-##
-                          if (digitsOnly.length <= 2) {
-                            value = digitsOnly;
-                          } else if (digitsOnly.length <= 5) {
-                            value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2)}`;
-                          } else if (digitsOnly.length <= 8) {
-                            value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5)}`;
-                          } else if (digitsOnly.length <= 12) {
-                            value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8)}`;
-                          } else if (digitsOnly.length === 14) {
-                            value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-${digitsOnly.slice(12, 14)}`;
-                          }
-                        } else if (pixKeyType === 'phone') {
-                          // Format Phone: (##) #####-####
-                          if (digitsOnly.length <= 2) {
-                            value = digitsOnly;
-                          } else if (digitsOnly.length <= 7) {
-                            value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
-                          } else if (digitsOnly.length === 11) {
-                            value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
-                          }
-                        } else {
-                          // Email or Random key - keep as is
-                          value = value.trim();
-                        }
-                        
-                        setStoreForm({ ...storeForm, pix_key: value });
-                        
-                        // Validate in real-time
-                        const validation = validatePixKey(value);
-                        setPixValidation(validation);
-                      }}
-                      className={cn(
-                        "pr-10",
-                        storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {storeForm.pix_key && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {pixValidation.isValid ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-destructive" />
-                        )}
-                      </div>
-                    )}
+                    <Input id="pix_key" type="text" placeholder={pixKeyType === 'cpf' ? 'Digite o CPF (###.###.###-##)' : pixKeyType === 'cnpj' ? 'Digite o CNPJ (##.###.###/####-##)' : pixKeyType === 'email' ? 'Digite o e-mail' : pixKeyType === 'phone' ? 'Digite o telefone ((##) #####-####)' : 'Digite a chave aleatória'} value={(() => {
+                              const key = storeForm.pix_key || '';
+                              // Remove +55 prefix from display if it's a phone number
+                              const digitsOnly = key.replace(/\D/g, '');
+                              if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
+                                // It's a phone with +55, remove the prefix for display
+                                const phoneWithoutPrefix = digitsOnly.substring(2);
+                                return formatPixKey(phoneWithoutPrefix);
+                              }
+                              return key;
+                            })()} onChange={e => {
+                              let value = e.target.value;
+                              const digitsOnly = value.replace(/\D/g, '');
+
+                              // Format based on selected PIX key type
+                              if (pixKeyType === 'cpf') {
+                                // Format CPF: ###.###.###-##
+                                if (digitsOnly.length <= 3) {
+                                  value = digitsOnly;
+                                } else if (digitsOnly.length <= 6) {
+                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3)}`;
+                                } else if (digitsOnly.length <= 9) {
+                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
+                                } else if (digitsOnly.length === 11) {
+                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
+                                }
+                              } else if (pixKeyType === 'cnpj') {
+                                // Format CNPJ: ##.###.###/####-##
+                                if (digitsOnly.length <= 2) {
+                                  value = digitsOnly;
+                                } else if (digitsOnly.length <= 5) {
+                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2)}`;
+                                } else if (digitsOnly.length <= 8) {
+                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5)}`;
+                                } else if (digitsOnly.length <= 12) {
+                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8)}`;
+                                } else if (digitsOnly.length === 14) {
+                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-${digitsOnly.slice(12, 14)}`;
+                                }
+                              } else if (pixKeyType === 'phone') {
+                                // Format Phone: (##) #####-####
+                                if (digitsOnly.length <= 2) {
+                                  value = digitsOnly;
+                                } else if (digitsOnly.length <= 7) {
+                                  value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
+                                } else if (digitsOnly.length === 11) {
+                                  value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
+                                }
+                              } else {
+                                // Email or Random key - keep as is
+                                value = value.trim();
+                              }
+                              setStoreForm({
+                                ...storeForm,
+                                pix_key: value
+                              });
+
+                              // Validate in real-time
+                              const validation = validatePixKey(value);
+                              setPixValidation(validation);
+                            }} className={cn("pr-10", storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive")} />
+                    {storeForm.pix_key && <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {pixValidation.isValid ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-destructive" />}
+                      </div>}
                   </div>
-                  {storeForm.pix_key && pixValidation.message && (
-                    <p className={cn(
-                      "text-xs mt-1",
-                      pixValidation.isValid ? "text-green-600" : "text-destructive"
-                    )}>
+                  {storeForm.pix_key && pixValidation.message && <p className={cn("text-xs mt-1", pixValidation.isValid ? "text-green-600" : "text-destructive")}>
                       {pixValidation.message}
-                    </p>
-                  )}
-                  {!storeForm.pix_key && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    </p>}
+                  {!storeForm.pix_key && <p className="text-xs text-muted-foreground mt-1">
                       Chave PIX para recebimento de pagamentos dos clientes
-                    </p>
-                  )}
+                    </p>}
                 </div>
 
-                <Button
-                  onClick={async () => {
-                    if (!myStore?.id) return;
-                    
-                    if (storeForm.pix_key && !pixValidation.isValid) {
-                      toast({
-                        title: "Chave PIX inválida",
-                        description: pixValidation.message,
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    
-                    try {
-                      // Only add +55 for phone type PIX keys
-                      let pixKeyToSave = storeForm.pix_key;
-                      if (pixKeyToSave) {
-                        const pixType = detectPixKeyType(pixKeyToSave);
-                        if (pixType === 'phone') {
-                          pixKeyToSave = normalizePixKeyPhone(pixKeyToSave);
-                        } else {
-                          // For CPF, CNPJ, email, random - just remove formatting
-                          pixKeyToSave = pixKeyToSave.replace(/[^\w@.-]/g, '');
-                        }
-                      }
-                      
-                      await updateStore({
-                        id: myStore.id,
-                        name: myStore.name,
-                        slug: myStore.slug,
-                        category: myStore.category,
-                        pix_key: pixKeyToSave || null,
-                        pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
-                        pix_message_enabled: pixKeyToSave ? false : myStore.pix_message_enabled,
-                      });
-                      
-                      // Update local state
-                      if (pixKeyToSave) {
-                        setStoreForm({ 
-                          ...storeForm, 
-                          pix_copiacola_message_enabled: true,
-                          pix_message_enabled: false
-                        });
-                      }
-                      
-                      toast({
-                        title: "Chave PIX salva!",
-                        description: "Sua chave PIX foi atualizada com sucesso.",
-                      });
-                    } catch (error) {
-                      toast({
-                        title: "Erro ao salvar",
-                        description: "Não foi possível salvar a chave PIX. Tente novamente.",
-                        variant: "destructive",
-                      });
-                    }
-                  }}
-                  disabled={storeForm.pix_key ? !pixValidation.isValid : false}
-                  className="w-full"
-                >
+                <Button onClick={async () => {
+                          if (!myStore?.id) return;
+                          if (storeForm.pix_key && !pixValidation.isValid) {
+                            toast({
+                              title: "Chave PIX inválida",
+                              description: pixValidation.message,
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+                          try {
+                            // Only add +55 for phone type PIX keys
+                            let pixKeyToSave = storeForm.pix_key;
+                            if (pixKeyToSave) {
+                              const pixType = detectPixKeyType(pixKeyToSave);
+                              if (pixType === 'phone') {
+                                pixKeyToSave = normalizePixKeyPhone(pixKeyToSave);
+                              } else {
+                                // For CPF, CNPJ, email, random - just remove formatting
+                                pixKeyToSave = pixKeyToSave.replace(/[^\w@.-]/g, '');
+                              }
+                            }
+                            await updateStore({
+                              id: myStore.id,
+                              name: myStore.name,
+                              slug: myStore.slug,
+                              category: myStore.category,
+                              pix_key: pixKeyToSave || null,
+                              pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
+                              pix_message_enabled: pixKeyToSave ? false : myStore.pix_message_enabled
+                            });
+
+                            // Update local state
+                            if (pixKeyToSave) {
+                              setStoreForm({
+                                ...storeForm,
+                                pix_copiacola_message_enabled: true,
+                                pix_message_enabled: false
+                              });
+                            }
+                            toast({
+                              title: "Chave PIX salva!",
+                              description: "Sua chave PIX foi atualizada com sucesso."
+                            });
+                          } catch (error) {
+                            toast({
+                              title: "Erro ao salvar",
+                              description: "Não foi possível salvar a chave PIX. Tente novamente.",
+                              variant: "destructive"
+                            });
+                          }
+                        }} disabled={storeForm.pix_key ? !pixValidation.isValid : false} className="w-full">
                   <Save className="w-4 h-4 mr-2" />
                   Salvar Chave PIX
                 </Button>
 
-                {storeForm.pix_key && (
-                  <div className="space-y-4">
+                {storeForm.pix_key && <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
                       <div className="space-y-0.5">
                         <Label className="text-base font-medium">PIX Copia e Cola</Label>
@@ -5761,32 +4917,32 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           Gerar código PIX dinâmico (Copia e Cola) automaticamente
                         </p>
                       </div>
-                      <Switch
-                        checked={storeForm.pix_copiacola_message_enabled ?? false}
-                        onCheckedChange={async (checked) => {
-                          // Se ativar PIX Copia e Cola, desativar Chave PIX Fixa
-                          const updates = {
-                            pix_copiacola_message_enabled: checked,
-                            ...(checked && { pix_message_enabled: false })
-                          };
-                          setStoreForm({ ...storeForm, ...updates });
-                          if (myStore?.id) {
-                            await updateStore({
-                              id: myStore.id,
-                              name: myStore.name,
-                              slug: myStore.slug,
-                              category: myStore.category,
-                              ...updates,
-                            });
-                            toast({
-                              title: checked ? "PIX Copia e Cola ativado" : "PIX Copia e Cola desativado",
-                              description: checked 
-                                ? "O código PIX Copia e Cola será gerado automaticamente. Chave PIX Fixa foi desativada." 
-                                : "O código PIX Copia e Cola não será mais gerado",
-                            });
-                          }
-                        }}
-                      />
+                      <Switch checked={storeForm.pix_copiacola_message_enabled ?? false} onCheckedChange={async checked => {
+                              // Se ativar PIX Copia e Cola, desativar Chave PIX Fixa
+                              const updates = {
+                                pix_copiacola_message_enabled: checked,
+                                ...(checked && {
+                                  pix_message_enabled: false
+                                })
+                              };
+                              setStoreForm({
+                                ...storeForm,
+                                ...updates
+                              });
+                              if (myStore?.id) {
+                                await updateStore({
+                                  id: myStore.id,
+                                  name: myStore.name,
+                                  slug: myStore.slug,
+                                  category: myStore.category,
+                                  ...updates
+                                });
+                                toast({
+                                  title: checked ? "PIX Copia e Cola ativado" : "PIX Copia e Cola desativado",
+                                  description: checked ? "O código PIX Copia e Cola será gerado automaticamente. Chave PIX Fixa foi desativada." : "O código PIX Copia e Cola não será mais gerado"
+                                });
+                              }
+                            }} />
                     </div>
 
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
@@ -5796,75 +4952,70 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           Mostrar chave PIX estática para o cliente copiar manualmente
                         </p>
                       </div>
-                      <Switch
-                        checked={storeForm.pix_message_enabled ?? false}
-                        onCheckedChange={async (checked) => {
-                          // Se ativar Chave PIX Fixa, desativar PIX Copia e Cola
-                          const updates = {
-                            pix_message_enabled: checked,
-                            ...(checked && { pix_copiacola_message_enabled: false })
-                          };
-                          setStoreForm({ ...storeForm, ...updates });
-                          if (myStore?.id) {
-                            await updateStore({
-                              id: myStore.id,
-                              name: myStore.name,
-                              slug: myStore.slug,
-                              category: myStore.category,
-                              ...updates,
-                            });
-                            toast({
-                              title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
-                              description: checked 
-                                ? "A chave PIX estática será exibida aos clientes. PIX Copia e Cola foi desativado." 
-                                : "A chave PIX estática não será mais exibida",
-                            });
-                          }
-                        }}
-                      />
+                      <Switch checked={storeForm.pix_message_enabled ?? false} onCheckedChange={async checked => {
+                              // Se ativar Chave PIX Fixa, desativar PIX Copia e Cola
+                              const updates = {
+                                pix_message_enabled: checked,
+                                ...(checked && {
+                                  pix_copiacola_message_enabled: false
+                                })
+                              };
+                              setStoreForm({
+                                ...storeForm,
+                                ...updates
+                              });
+                              if (myStore?.id) {
+                                await updateStore({
+                                  id: myStore.id,
+                                  name: myStore.name,
+                                  slug: myStore.slug,
+                                  category: myStore.category,
+                                  ...updates
+                                });
+                                toast({
+                                  title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
+                                  description: checked ? "A chave PIX estática será exibida aos clientes. PIX Copia e Cola foi desativado." : "A chave PIX estática não será mais exibida"
+                                });
+                              }
+                            }} />
                     </div>
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
 
-            <WhatsAppMessageConfig
-              store={myStore} 
-              onUpdate={async (data) => {
-                await updateStore({
-                  id: myStore.id,
-                  name: myStore.name,
-                  slug: myStore.slug,
-                  category: myStore.category,
-                  ...data,
-                });
-              }}
-            />
+            <WhatsAppMessageConfig store={myStore} onUpdate={async data => {
+                      await updateStore({
+                        id: myStore.id,
+                        name: myStore.name,
+                        slug: myStore.slug,
+                        category: myStore.category,
+                        ...data
+                      });
+                    }} />
           </motion.div>
         </TabsContent>
 
         {/* Layout Tab */}
         <TabsContent value="layout">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <LayoutSettings
-              currentTemplateDesktop={(myStore as any)?.product_layout_template_desktop || 'template-4'}
-              currentTemplateMobile={(myStore as any)?.product_layout_template_mobile || 'template-2'}
-              onUpdate={async (desktopTemplate: string, mobileTemplate: string) => {
-                await updateStore({
-                  id: myStore.id,
-                  name: myStore.name,
-                  slug: myStore.slug,
-                  category: myStore.category,
-                  product_layout_template_desktop: desktopTemplate,
-                  product_layout_template_mobile: mobileTemplate,
-                });
-              }}
-              isUpdating={false}
-            />
+          <motion.div initial={{
+                    opacity: 0,
+                    y: 20
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} transition={{
+                    duration: 0.5
+                  }}>
+            <LayoutSettings currentTemplateDesktop={(myStore as any)?.product_layout_template_desktop || 'template-4'} currentTemplateMobile={(myStore as any)?.product_layout_template_mobile || 'template-2'} onUpdate={async (desktopTemplate: string, mobileTemplate: string) => {
+                      await updateStore({
+                        id: myStore.id,
+                        name: myStore.name,
+                        slug: myStore.slug,
+                        category: myStore.category,
+                        product_layout_template_desktop: desktopTemplate,
+                        product_layout_template_mobile: mobileTemplate
+                      });
+                    }} isUpdating={false} />
           </motion.div>
         </TabsContent>
       </Tabs>
@@ -5873,18 +5024,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   </div>
 
   {/* Edit Order Dialog */}
-      <EditOrderDialog
-        open={isEditOrderDialogOpen}
-        onOpenChange={(open) => {
+      <EditOrderDialog open={isEditOrderDialogOpen} onOpenChange={open => {
           setIsEditOrderDialogOpen(open);
           if (!open) setEditDialogInitialTab("items");
-        }}
-        order={editingOrder}
-        initialTab={editDialogInitialTab}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['store-orders'] });
-        }}
-      />
+        }} order={editingOrder} initialTab={editDialogInitialTab} onUpdate={() => {
+          queryClient.invalidateQueries({
+            queryKey: ['store-orders']
+          });
+        }} />
 
       {/* View Order Dialog */}
       <ResponsiveDialog open={isViewOrderDialogOpen} onOpenChange={setIsViewOrderDialogOpen}>
@@ -5893,19 +5040,18 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             <ResponsiveDialogTitle>Detalhes do Pedido #{viewingOrder?.order_number}</ResponsiveDialogTitle>
           </ResponsiveDialogHeader>
           
-          {viewingOrder && (
-            <div className="space-y-6">
+          {viewingOrder && <div className="space-y-6">
               {/* Status e Data */}
               <div className="flex justify-between items-center">
                 <div>
                   <Badge variant="outline" className="capitalize">
-                    {customStatuses.find((s: any) => getEnumFromStatusKey(s.status_key) === viewingOrder.status)?.status_label || 
-                     customStatuses.find((s: any) => s.status_key === getStatusKeyFromEnum(viewingOrder.status))?.status_label ||
-                     viewingOrder.status}
+                    {customStatuses.find((s: any) => getEnumFromStatusKey(s.status_key) === viewingOrder.status)?.status_label || customStatuses.find((s: any) => s.status_key === getStatusKeyFromEnum(viewingOrder.status))?.status_label || viewingOrder.status}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(viewingOrder.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  {format(new Date(viewingOrder.created_at), "dd/MM/yyyy 'às' HH:mm", {
+                    locale: ptBR
+                  })}
                 </p>
               </div>
 
@@ -5944,28 +5090,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Status Pgto:</span>
-                    <Badge 
-                      className={
-                        viewingOrder.payment_received 
-                          ? "bg-green-600 text-white hover:bg-green-700" 
-                          : "bg-yellow-600 text-white hover:bg-yellow-700"
-                      }
-                    >
+                    <Badge className={viewingOrder.payment_received ? "bg-green-600 text-white hover:bg-green-700" : "bg-yellow-600 text-white hover:bg-yellow-700"}>
                       {viewingOrder.payment_received ? "Pagamento recebido" : "Pagamento pendente"}
                     </Badge>
                   </div>
-                  {viewingOrder.change_amount > 0 && (
-                    <div className="flex justify-between">
+                  {viewingOrder.change_amount > 0 && <div className="flex justify-between">
                       <span className="text-muted-foreground">Troco para:</span>
                       <span className="font-medium">R$ {viewingOrder.change_amount.toFixed(2)}</span>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </div>
 
               {/* Endereço de Entrega */}
-              {viewingOrder.delivery_type === 'delivery' && (
-                <>
+              {viewingOrder.delivery_type === 'delivery' && <>
                   <Separator />
                   <div>
                     <h3 className="font-semibold mb-3">Endereço de Entrega</h3>
@@ -5978,23 +5115,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       </p>
                     </div>
                   </div>
-                </>
-              )}
+                </>}
 
               {/* Observações */}
-              {viewingOrder.notes && (
-                <>
+              {viewingOrder.notes && <>
                   <Separator />
                   <div>
                     <h3 className="font-semibold mb-3">Observações do Cliente</h3>
                     <p className="text-sm text-muted-foreground">{viewingOrder.notes}</p>
                   </div>
-                </>
-              )}
+                </>}
 
               {/* Observações Externas (Cliente vê) */}
-              {(viewingOrder as any).customer_notes && (
-                <>
+              {(viewingOrder as any).customer_notes && <>
                   <Separator />
                   <div>
                     <h3 className="font-semibold mb-3">Observações Externas</h3>
@@ -6005,12 +5138,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       ℹ️ O cliente também vê estas observações
                     </p>
                   </div>
-                </>
-              )}
+                </>}
 
               {/* Observações Internas (Privadas) */}
-              {(viewingOrder as any).store_notes && (
-                <>
+              {(viewingOrder as any).store_notes && <>
                   <Separator />
                   <div>
                     <h3 className="font-semibold mb-3">Observações Internas</h3>
@@ -6019,8 +5150,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       🔒 Apenas você vê estas observações
                     </p>
                   </div>
-                </>
-              )}
+                </>}
 
               <Separator />
 
@@ -6028,53 +5158,39 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               <div>
                 <h3 className="font-semibold mb-3">Itens do Pedido</h3>
                 <div className="space-y-3">
-                  {viewingOrder.order_items?.map((item: any) => (
-                    <div key={item.id} className="bg-muted/30 p-3 rounded-lg">
+                  {viewingOrder.order_items?.map((item: any) => <div key={item.id} className="bg-muted/30 p-3 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <p className="font-medium">
                             {item.quantity}x {item.product_name}
                           </p>
-                          {item.products?.external_code && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                          {item.products?.external_code && <p className="text-xs text-muted-foreground mt-1">
                               Código: {item.products.external_code}
-                            </p>
-                          )}
-                          {item.observation && (
-                            <p className="text-sm text-muted-foreground mt-1">
+                            </p>}
+                          {item.observation && <p className="text-sm text-muted-foreground mt-1">
                               Obs: {item.observation}
-                            </p>
-                          )}
+                            </p>}
                         </div>
                         <span className="font-medium">R$ {item.subtotal.toFixed(2)}</span>
                       </div>
                       
                       {/* Sabores */}
-                      {item.order_item_flavors?.length > 0 && (
-                        <div className="mt-2 pl-4 space-y-1">
+                      {item.order_item_flavors?.length > 0 && <div className="mt-2 pl-4 space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Sabores:</p>
-                          {item.order_item_flavors.map((flavor: any) => (
-                            <p key={flavor.id} className="text-sm text-muted-foreground">
+                          {item.order_item_flavors.map((flavor: any) => <p key={flavor.id} className="text-sm text-muted-foreground">
                               • {flavor.flavor_name}
                               {flavor.flavor_price > 0 && ` (+R$ ${flavor.flavor_price.toFixed(2)})`}
-                            </p>
-                          ))}
-                        </div>
-                      )}
+                            </p>)}
+                        </div>}
                       
                       {/* Adicionais */}
-                      {item.order_item_addons?.length > 0 && (
-                        <div className="mt-2 pl-4 space-y-1">
+                      {item.order_item_addons?.length > 0 && <div className="mt-2 pl-4 space-y-1">
                           <p className="text-xs font-medium text-muted-foreground">Adicionais:</p>
-                          {item.order_item_addons.map((addon: any) => (
-                            <p key={addon.id} className="text-sm text-muted-foreground">
+                          {item.order_item_addons.map((addon: any) => <p key={addon.id} className="text-sm text-muted-foreground">
                               + {addon.addon_name} (R$ {addon.addon_price.toFixed(2)})
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                            </p>)}
+                        </div>}
+                    </div>)}
                 </div>
               </div>
 
@@ -6088,18 +5204,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     <span className="text-muted-foreground">Subtotal:</span>
                     <span>R$ {viewingOrder.subtotal.toFixed(2)}</span>
                   </div>
-                  {viewingOrder.delivery_fee > 0 && (
-                    <div className="flex justify-between">
+                  {viewingOrder.delivery_fee > 0 && <div className="flex justify-between">
                       <span className="text-muted-foreground">Taxa de Entrega:</span>
                       <span>R$ {viewingOrder.delivery_fee.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {viewingOrder.coupon_discount > 0 && (
-                    <div className="flex justify-between text-green-600">
+                    </div>}
+                  {viewingOrder.coupon_discount > 0 && <div className="flex justify-between text-green-600">
                       <span>Desconto ({viewingOrder.coupon_code}):</span>
                       <span>- R$ {viewingOrder.coupon_discount.toFixed(2)}</span>
-                    </div>
-                  )}
+                    </div>}
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
@@ -6110,105 +5222,68 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
               {/* Botões de Ação */}
               <div className="flex flex-col sm:flex-row gap-2 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => handlePrintOrder(viewingOrder)}
-                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                >
+                <Button variant="outline" onClick={() => handlePrintOrder(viewingOrder)} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                   <Printer className="w-4 h-4" />
                   Imprimir
                 </Button>
-                {hasPermission('orders', 'edit_order_details') && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsViewOrderDialogOpen(false);
-                      setNotesOrder(viewingOrder);
-                      setIsNotesDialogOpen(true);
-                    }}
-                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                  >
+                {hasPermission('orders', 'edit_order_details') && <Button variant="outline" onClick={() => {
+                  setIsViewOrderDialogOpen(false);
+                  setNotesOrder(viewingOrder);
+                  setIsNotesDialogOpen(true);
+                }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                     <MessageSquare className="w-4 h-4" />
                     Notas
-                  </Button>
-                )}
-                {hasPermission('orders', 'edit_order_details') && (
-                  <Button
-                    onClick={() => {
-                      setIsViewOrderDialogOpen(false);
-                      setEditingOrder(viewingOrder);
-                      setIsEditOrderDialogOpen(true);
-                      setEditDialogInitialTab("items");
-                    }}
-                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                  >
+                  </Button>}
+                {hasPermission('orders', 'edit_order_details') && <Button onClick={() => {
+                  setIsViewOrderDialogOpen(false);
+                  setEditingOrder(viewingOrder);
+                  setIsEditOrderDialogOpen(true);
+                  setEditDialogInitialTab("items");
+                }} className="flex items-center justify-center gap-2 w-full sm:w-auto">
                     <Edit2 className="w-4 h-4" />
                     Editar Pedido
-                  </Button>
-                )}
+                  </Button>}
               </div>
-            </div>
-          )}
+            </div>}
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
       {/* Receipt Dialog */}
-      <ReceiptDialog
-        open={isReceiptDialogOpen}
-        onOpenChange={setIsReceiptDialogOpen}
-        order={receiptOrder}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['store-orders'] });
-        }}
-      />
+      <ReceiptDialog open={isReceiptDialogOpen} onOpenChange={setIsReceiptDialogOpen} order={receiptOrder} onUpdate={() => {
+          queryClient.invalidateQueries({
+            queryKey: ['store-orders']
+          });
+        }} />
 
       {/* Notes Dialog */}
-      <NotesDialog
-        open={isNotesDialogOpen}
-        onOpenChange={setIsNotesDialogOpen}
-        order={notesOrder}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['store-orders'] });
-        }}
-      />
+      <NotesDialog open={isNotesDialogOpen} onOpenChange={setIsNotesDialogOpen} order={notesOrder} onUpdate={() => {
+          queryClient.invalidateQueries({
+            queryKey: ['store-orders']
+          });
+        }} />
 
       {/* WhatsApp Confirm Dialog */}
-      {pendingStatusChange && (
-        <WhatsAppConfirmDialog
-          open={isWhatsAppConfirmOpen}
-          onOpenChange={(open) => {
-            setIsWhatsAppConfirmOpen(open);
-            if (!open) {
-              setPendingStatusChange(null);
-            }
-          }}
-          orderId={pendingStatusChange.orderId}
-          orderNumber={pendingStatusChange.orderNumber}
-          customerName={pendingStatusChange.customerName}
-          customerPhone={pendingStatusChange.customerPhone}
-          currentStatus={normalizeStatusKey(
-            orders?.find(o => o.id === pendingStatusChange.orderId)?.status || ''
-          )}
-          newStatus={pendingStatusChange.newStatus}
-          onConfirm={() => {
-            const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
-            updateOrderStatus({ 
-              orderId: pendingStatusChange.orderId, 
-              status: enumStatus
-            });
-          }}
-          onSkip={async () => {
-            // Chama a mutation com skipNotification=true
-            const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
-            updateOrderStatus({ 
-              orderId: pendingStatusChange.orderId, 
-              status: enumStatus,
-              skipNotification: true
-            });
+      {pendingStatusChange && <WhatsAppConfirmDialog open={isWhatsAppConfirmOpen} onOpenChange={open => {
+          setIsWhatsAppConfirmOpen(open);
+          if (!open) {
             setPendingStatusChange(null);
-          }}
-        />
-      )}
+          }
+        }} orderId={pendingStatusChange.orderId} orderNumber={pendingStatusChange.orderNumber} customerName={pendingStatusChange.customerName} customerPhone={pendingStatusChange.customerPhone} currentStatus={normalizeStatusKey(orders?.find(o => o.id === pendingStatusChange.orderId)?.status || '')} newStatus={pendingStatusChange.newStatus} onConfirm={() => {
+          const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
+          updateOrderStatus({
+            orderId: pendingStatusChange.orderId,
+            status: enumStatus
+          });
+        }} onSkip={async () => {
+          // Chama a mutation com skipNotification=true
+          const enumStatus = getEnumFromStatusKey(pendingStatusChange.newStatus);
+          updateOrderStatus({
+            orderId: pendingStatusChange.orderId,
+            status: enumStatus,
+            skipNotification: true
+          });
+          setPendingStatusChange(null);
+        }} />}
 
       {/* Delete Product Confirmation */}
       <AlertDialog open={!!productToDelete} onOpenChange={() => setProductToDelete(null)}>
@@ -6233,15 +5308,12 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
+            <AlertDialogAction onClick={() => {
                 if (productToDelete) {
                   deleteProduct(productToDelete.id);
                   setProductToDelete(null);
                 }
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+              }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -6260,34 +5332,23 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="bulk-category">Nova Categoria</Label>
-              <Select
-                value={bulkCategoryChange}
-                onValueChange={setBulkCategoryChange}
-              >
+              <Select value={bulkCategoryChange} onValueChange={setBulkCategoryChange}>
                 <SelectTrigger id="bulk-category">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories
-                    ?.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '')
-                    .map(category => (
-                      <SelectItem key={category.id} value={category.name}>
+                  {categories?.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '').map(category => <SelectItem key={category.id} value={category.name}>
                         {category.name}
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
+            <Button variant="outline" onClick={() => {
                 setIsBulkActionDialogOpen(false);
                 setBulkCategoryChange('');
-              }}
-              className="w-full sm:w-auto"
-            >
+              }} className="w-full sm:w-auto">
               Cancelar
             </Button>
             <Button onClick={handleBulkChangeCategory} className="w-full sm:w-auto">
@@ -6308,9 +5369,9 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => {
-              setIsDuplicateDialogOpen(false);
-              setProductToDuplicate(null);
-            }}>
+                setIsDuplicateDialogOpen(false);
+                setProductToDuplicate(null);
+              }}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={confirmDuplicate}>
@@ -6330,30 +5391,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <div className="flex-1 overflow-y-auto px-4">
-            <Textarea
-              value={tempDescription}
-              onChange={(e) => setTempDescription(e.target.value)}
-              rows={8}
-              className="w-full resize-none"
-              placeholder="Digite a descrição do produto..."
-              autoFocus
-            />
+            <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} rows={8} className="w-full resize-none" placeholder="Digite a descrição do produto..." autoFocus />
           </div>
           <ResponsiveDialogFooter className="flex-shrink-0">
-            <Button
-              variant="outline"
-              onClick={() => setIsDescriptionDialogOpen(false)}
-              className="w-full sm:w-auto"
-            >
+            <Button variant="outline" onClick={() => setIsDescriptionDialogOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button
-              onClick={() => {
-                setProductForm({ ...productForm, description: tempDescription });
+            <Button onClick={() => {
+                setProductForm({
+                  ...productForm,
+                  description: tempDescription
+                });
                 setIsDescriptionDialogOpen(false);
-              }}
-              className="w-full sm:w-auto"
-            >
+              }} className="w-full sm:w-auto">
               Salvar
             </Button>
           </ResponsiveDialogFooter>
@@ -6362,18 +5412,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       </div>
 
       {/* Mobile Bottom Navigation */}
-      {isMobile && (
-        <DashboardBottomNav
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onMenuClick={() => {
-            setOpenRelatoriosMenu(false);
-            setIsMobileSidebarOpen(true);
-          }}
-          pendingOrdersCount={pendingOrdersCount}
-        />
-      )}
+      {isMobile && <DashboardBottomNav activeTab={activeTab} onTabChange={setActiveTab} onMenuClick={() => {
+        setOpenRelatoriosMenu(false);
+        setIsMobileSidebarOpen(true);
+      }} pendingOrdersCount={pendingOrdersCount} />}
     </div>
-    </div>
-  );
+    </div>;
 };
