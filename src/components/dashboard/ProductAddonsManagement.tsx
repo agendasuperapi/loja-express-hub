@@ -83,7 +83,7 @@ const LinkedProducts = ({ addonName, categoryId, storeId }: { addonName: string;
   return (
     <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
       <Link className="w-3 h-3 mt-0.5 flex-shrink-0" />
-      <span>
+      <span className="line-clamp-2">
         Usado em: {linkedProducts.join(', ')}
       </span>
     </div>
@@ -798,24 +798,25 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Adicionais Globais</CardTitle>
-        <CardDescription>
-          Visualize e gerencie todos os adicionais da sua loja
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-end">
-          <Button onClick={handleNewAddon} size="sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-lg sm:text-xl">Adicionais Globais</CardTitle>
+            <CardDescription className="text-xs sm:text-sm mt-1">
+              Visualize e gerencie todos os adicionais da sua loja
+            </CardDescription>
+          </div>
+          <Button onClick={handleNewAddon} size="sm" className="w-full sm:w-auto text-sm h-9">
             <Plus className="w-4 h-4 mr-2" />
             Novo Adicional
           </Button>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 sm:gap-4">
           <div className="space-y-2">
-            <Label>Filtrar por categoria</Label>
+            <Label className="text-sm">Filtrar por categoria</Label>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm">
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
@@ -831,12 +832,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
           </div>
 
           <div className="space-y-2">
-            <Label>Filtrar por status</Label>
+            <Label className="text-sm">Filtrar por status</Label>
             <Select 
               value={availabilityFilter}
               onValueChange={(v: 'all' | 'available' | 'unavailable') => setAvailabilityFilter(v)}
             >
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -850,51 +851,52 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
 
         <div className="space-y-4">
           {!addons || addons.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>Nenhum adicional cadastrado</p>
-              <p className="text-sm">Adicione produtos com adicionais para começar</p>
+            <div className="text-center py-6 sm:py-8 text-muted-foreground">
+              <Package className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm sm:text-base">Nenhum adicional cadastrado</p>
+              <p className="text-xs sm:text-sm mt-1">Adicione produtos com adicionais para começar</p>
             </div>
           ) : filteredAddons && filteredAddons.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm sm:text-base">
               Nenhum adicional encontrado para este filtro
             </div>
           ) : (
             Object.entries(addonsByCategory || {}).map(([categoryName, categoryAddons]) => (
               <div key={categoryName} className="space-y-2">
-                <h3 className="font-semibold text-sm text-muted-foreground">{categoryName}</h3>
+                <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground px-1">{categoryName}</h3>
                 <div className="space-y-2">
                   {categoryAddons?.map((addon) => (
                     <div
                       key={addon.id}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{addon.name}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-sm sm:text-base truncate">{addon.name}</span>
                           <Badge 
                             variant={addon.is_available ? "default" : "secondary"} 
-                            className={`text-xs ${addon.is_available ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20'}`}
+                            className={`text-[10px] sm:text-xs shrink-0 ${addon.is_available ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20' : 'bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20'}`}
                           >
                             {addon.is_available ? "Disponível" : "Indisponível"}
                           </Badge>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                           R$ {addon.price.toFixed(2)}
                         </div>
                         <LinkedProducts addonName={addon.name} categoryId={addon.category_id} storeId={storeId} />
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 justify-end sm:justify-start shrink-0">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleAvailability(addon)}
                           title={addon.is_available ? "Inativar" : "Ativar"}
+                          className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                         >
                           {addon.is_available ? (
-                            <EyeOff className="w-4 h-4 text-red-600" />
+                            <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600" />
                           ) : (
-                            <Power className="w-4 h-4 text-green-600" />
+                            <Power className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
                           )}
                         </Button>
                         <Button
@@ -902,16 +904,18 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                           size="sm"
                           onClick={() => handleEdit(addon)}
                           title="Editar"
+                          className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(addon.id, addon.name, addon.category_id)}
                           title="Excluir"
+                          className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                         >
-                          <Trash2 className="w-4 h-4 text-destructive" />
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" />
                         </Button>
                       </div>
                     </div>
@@ -924,10 +928,10 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
       </CardContent>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col w-[95vw] sm:w-full">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remover adicional dos produtos</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
+            <AlertDialogTitle className="text-base sm:text-lg">Remover adicional dos produtos</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-xs sm:text-sm">
               <p>
                 Selecione de quais produtos deseja remover o adicional <strong>{addonToDelete?.name}</strong>:
               </p>
@@ -942,7 +946,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                   checked={selectedProductIds.size === addonToDelete.linkedProducts.length && addonToDelete.linkedProducts.length > 0}
                   onCheckedChange={toggleAllProducts}
                 />
-                <Label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                <Label htmlFor="select-all" className="text-xs sm:text-sm font-medium cursor-pointer">
                   Selecionar todos ({addonToDelete.linkedProducts.length} produtos)
                 </Label>
               </div>
@@ -951,7 +955,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                 {addonToDelete.linkedProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                     onClick={() => toggleProductSelection(product.id)}
                   >
                     <Checkbox
@@ -959,11 +963,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                       checked={selectedProductIds.has(product.id)}
                       onCheckedChange={() => toggleProductSelection(product.id)}
                       onClick={(e) => e.stopPropagation()}
+                      className="shrink-0"
                     />
-                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                     <Label 
                       htmlFor={`product-${product.id}`}
-                      className="flex-1 font-medium text-sm cursor-pointer"
+                      className="flex-1 font-medium text-xs sm:text-sm cursor-pointer truncate"
                     >
                       {product.name}
                     </Label>
@@ -973,14 +978,14 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
             </>
           )}
           
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedProductIds(new Set())}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={() => setSelectedProductIds(new Set())} className="w-full sm:w-auto text-sm">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={selectedProductIds.size === 0}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 text-sm"
             >
               Remover de {selectedProductIds.size} produto(s)
             </AlertDialogAction>
@@ -989,12 +994,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
       </AlertDialog>
 
       <AlertDialog open={toggleDialogOpen} onOpenChange={setToggleDialogOpen}>
-        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col w-[95vw] sm:w-full">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-lg">
               {addonToToggle?.currentAvailability ? 'Desativar' : 'Ativar'} adicional
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
+            <AlertDialogDescription className="space-y-2 text-xs sm:text-sm">
               <p>
                 Selecione em quais produtos deseja {addonToToggle?.currentAvailability ? 'desativar' : 'ativar'} o adicional <strong>{addonToToggle?.name}</strong>:
               </p>
@@ -1009,7 +1014,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                   checked={selectedToggleProductIds.size === addonToToggle.linkedProducts.length && addonToToggle.linkedProducts.length > 0}
                   onCheckedChange={toggleAllToggleProducts}
                 />
-                <Label htmlFor="select-all-toggle" className="text-sm font-medium cursor-pointer">
+                <Label htmlFor="select-all-toggle" className="text-xs sm:text-sm font-medium cursor-pointer">
                   Selecionar todos ({addonToToggle.linkedProducts.length} produtos)
                 </Label>
               </div>
@@ -1018,7 +1023,7 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                 {addonToToggle.linkedProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
                     onClick={() => toggleToggleProductSelection(product.id)}
                   >
                     <Checkbox
@@ -1026,11 +1031,12 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
                       checked={selectedToggleProductIds.has(product.id)}
                       onCheckedChange={() => toggleToggleProductSelection(product.id)}
                       onClick={(e) => e.stopPropagation()}
+                      className="shrink-0"
                     />
-                    <Package className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                     <Label 
                       htmlFor={`toggle-product-${product.id}`}
-                      className="flex-1 font-medium text-sm cursor-pointer"
+                      className="flex-1 font-medium text-xs sm:text-sm cursor-pointer truncate"
                     >
                       {product.name}
                     </Label>
@@ -1040,14 +1046,14 @@ export const AddonsTab = ({ storeId }: { storeId: string }) => {
             </>
           )}
           
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setSelectedToggleProductIds(new Set())}>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={() => setSelectedToggleProductIds(new Set())} className="w-full sm:w-auto text-sm">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleToggleConfirm}
               disabled={selectedToggleProductIds.size === 0}
-              className="disabled:opacity-50"
+              className="w-full sm:w-auto disabled:opacity-50 text-sm"
             >
               {addonToToggle?.currentAvailability ? 'Desativar' : 'Ativar'} em {selectedToggleProductIds.size} produto(s)
             </AlertDialogAction>
