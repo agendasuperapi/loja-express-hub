@@ -249,6 +249,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
   const [activeProductTab, setActiveProductTab] = useState("info");
 
+  const [pixKeyType, setPixKeyType] = useState<'cpf' | 'cnpj' | 'email' | 'phone' | 'random'>('cpf');
+
   const [storeForm, setStoreForm] = useState<StoreFormData>({
     name: myStore?.name || '',
     slug: myStore?.slug || '',
@@ -569,6 +571,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
       if ((myStore as any)?.pix_key) {
         const validation = validatePixKey((myStore as any).pix_key);
         setPixValidation(validation);
+        
+        // Detect and set PIX key type
+        const detectedType = detectPixKeyType((myStore as any).pix_key);
+        const validTypes: Array<'cpf' | 'cnpj' | 'email' | 'phone' | 'random'> = ['cpf', 'cnpj', 'email', 'phone', 'random'];
+        if (validTypes.includes(detectedType as any)) {
+          setPixKeyType(detectedType as 'cpf' | 'cnpj' | 'email' | 'phone' | 'random');
+        }
       }
     }
   }, [myStore]);
@@ -5392,12 +5401,37 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="pix_key_type">Tipo de Chave PIX</Label>
+                  <Select 
+                    value={pixKeyType} 
+                    onValueChange={(value: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random') => setPixKeyType(value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo de chave" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpf">CPF</SelectItem>
+                      <SelectItem value="cnpj">CNPJ</SelectItem>
+                      <SelectItem value="email">E-mail</SelectItem>
+                      <SelectItem value="phone">Telefone</SelectItem>
+                      <SelectItem value="random">Chave Aleatória</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
                   <Label htmlFor="pix_key">Chave PIX</Label>
                   <div className="relative">
                     <Input
                       id="pix_key"
                       type="text"
-                      placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
+                      placeholder={
+                        pixKeyType === 'cpf' ? 'Digite o CPF (###.###.###-##)' :
+                        pixKeyType === 'cnpj' ? 'Digite o CNPJ (##.###.###/####-##)' :
+                        pixKeyType === 'email' ? 'Digite o e-mail' :
+                        pixKeyType === 'phone' ? 'Digite o telefone ((##) #####-####)' :
+                        'Digite a chave aleatória'
+                      }
                       value={(() => {
                         const key = storeForm.pix_key || '';
                         // Remove +55 prefix from display if it's a phone number
@@ -5413,40 +5447,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         let value = e.target.value;
                         const digitsOnly = value.replace(/\D/g, '');
                         
-                        // Format CPF as user types (###.###.###-##)
-                        if (digitsOnly.length > 0 && digitsOnly.length <= 11 && /^\d*$/.test(digitsOnly) && !value.includes('@')) {
+                        // Format based on selected PIX key type
+                        if (pixKeyType === 'cpf') {
+                          // Format CPF: ###.###.###-##
                           if (digitsOnly.length <= 3) {
                             value = digitsOnly;
                           } else if (digitsOnly.length <= 6) {
                             value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3)}`;
                           } else if (digitsOnly.length <= 9) {
                             value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
-                          } else if (digitsOnly.length === 10) {
-                            // Verifica se é celular (8 dígitos começando com 6, 7, 8 ou 9)
-                            const firstDigitAfterDDD = digitsOnly.charAt(2);
-                            if (['6', '7', '8', '9'].includes(firstDigitAfterDDD)) {
-                              // É celular com 8 dígitos, adiciona o 9 após o DDD
-                              const withNine = digitsOnly.slice(0, 2) + '9' + digitsOnly.slice(2);
-                              value = `(${withNine.slice(0, 2)}) ${withNine.slice(2, 7)}-${withNine.slice(7, 11)}`;
-                            } else {
-                              // É telefone fixo: (##) ####-####
-                              value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 6)}-${digitsOnly.slice(6, 10)}`;
-                            }
                           } else if (digitsOnly.length === 11) {
-                            // Pode ser CPF ou telefone celular
-                            // Verifica se começa com DDD válido (10-99) para ser telefone
-                            const ddd = parseInt(digitsOnly.slice(0, 2));
-                            if (ddd >= 11 && ddd <= 99) {
-                              // Formato de celular: (##) #####-####
-                              value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
-                            } else {
-                              // Formato de CPF: ###.###.###-##
-                              value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
-                            }
+                            value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
                           }
-                        }
-                        // Format CNPJ as user types (##.###.###/####-##)
-                        else if (digitsOnly.length > 11 && digitsOnly.length <= 14) {
+                        } else if (pixKeyType === 'cnpj') {
+                          // Format CNPJ: ##.###.###/####-##
                           if (digitsOnly.length <= 2) {
                             value = digitsOnly;
                           } else if (digitsOnly.length <= 5) {
@@ -5455,12 +5469,20 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5)}`;
                           } else if (digitsOnly.length <= 12) {
                             value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8)}`;
-                          } else {
+                          } else if (digitsOnly.length === 14) {
                             value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-${digitsOnly.slice(12, 14)}`;
                           }
-                        }
-                        // Keep as is for email or random keys
-                        else {
+                        } else if (pixKeyType === 'phone') {
+                          // Format Phone: (##) #####-####
+                          if (digitsOnly.length <= 2) {
+                            value = digitsOnly;
+                          } else if (digitsOnly.length <= 7) {
+                            value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
+                          } else if (digitsOnly.length === 11) {
+                            value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
+                          }
+                        } else {
+                          // Email or Random key - keep as is
                           value = value.trim();
                         }
                         
