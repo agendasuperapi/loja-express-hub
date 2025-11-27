@@ -192,6 +192,19 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
         description: "Você não receberá mais notificações push.",
       });
     } else {
+      // Verifica se a permissão está bloqueada ANTES de tentar ativar
+      const currentPermission = Notification.permission;
+      
+      if (currentPermission === 'denied') {
+        toast({
+          title: "❌ Notificações bloqueadas",
+          description: "Clique no ícone 🔒 ao lado da URL e permita as Notificações.",
+          variant: "destructive",
+          duration: 8000,
+        });
+        return;
+      }
+      
       // Passa o storeId se disponível (para lojistas)
       const success = await subscribe(user.id, storeId);
       
