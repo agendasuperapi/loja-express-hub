@@ -5400,17 +5400,24 @@ export const StoreOwnerDashboard = ({
 
       {/* Modal de descrição em mobile */}
       <ResponsiveDialog open={isDescriptionDialogOpen} onOpenChange={setIsDescriptionDialogOpen}>
-        <ResponsiveDialogContent className="max-h-[60vh] h-[60vh] flex flex-col">
+        <ResponsiveDialogContent className="sm:max-h-[60vh] flex flex-col">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Descrição do Produto</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
               Digite a descrição do produto abaixo
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
-          <div className="flex-1 overflow-y-auto px-4">
-            <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} rows={8} className="w-full resize-none" placeholder="Digite a descrição do produto..." autoFocus />
+          <div className="flex-1 min-h-0 px-4 py-2">
+            <Textarea 
+              value={tempDescription} 
+              onChange={e => setTempDescription(e.target.value)} 
+              rows={8} 
+              className="w-full h-full resize-none border-2 focus-visible:ring-2" 
+              placeholder="Digite a descrição do produto..." 
+              autoFocus 
+            />
           </div>
-          <ResponsiveDialogFooter className="flex-shrink-0">
+          <ResponsiveDialogFooter className="flex-shrink-0 border-t pt-3">
             <Button variant="outline" onClick={() => setIsDescriptionDialogOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
