@@ -5399,40 +5399,47 @@ export const StoreOwnerDashboard = ({
       </AlertDialog>
 
       {/* Modal de descrição em mobile */}
-      <ResponsiveDialog open={isDescriptionDialogOpen} onOpenChange={setIsDescriptionDialogOpen}>
-        <ResponsiveDialogContent className="sm:max-h-[60vh] flex flex-col">
-          <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>Descrição do Produto</ResponsiveDialogTitle>
-            <ResponsiveDialogDescription>
+      <Dialog open={isDescriptionDialogOpen} onOpenChange={setIsDescriptionDialogOpen}>
+        <DialogContent className="max-w-lg w-[96vw] sm:w-full">
+          <DialogHeader>
+            <DialogTitle>Descrição do Produto</DialogTitle>
+            <DialogDescription>
               Digite a descrição do produto abaixo
-            </ResponsiveDialogDescription>
-          </ResponsiveDialogHeader>
-          <div className="flex-1 min-h-0 px-4 py-2">
-            <Textarea 
-              value={tempDescription} 
-              onChange={e => setTempDescription(e.target.value)} 
-              rows={8} 
-              className="w-full h-full resize-none border-2 focus-visible:ring-2" 
-              placeholder="Digite a descrição do produto..." 
-              autoFocus 
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2">
+            <Textarea
+              value={tempDescription}
+              onChange={e => setTempDescription(e.target.value)}
+              rows={8}
+              className="w-full resize-none"
+              placeholder="Digite a descrição do produto..."
+              autoFocus
             />
           </div>
-          <ResponsiveDialogFooter className="flex-shrink-0 border-t pt-3">
-            <Button variant="outline" onClick={() => setIsDescriptionDialogOpen(false)} className="w-full sm:w-auto">
+          <div className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsDescriptionDialogOpen(false)}
+              className="w-full sm:w-auto"
+            >
               Cancelar
             </Button>
-            <Button onClick={() => {
+            <Button
+              onClick={() => {
                 setProductForm({
                   ...productForm,
-                  description: tempDescription
+                  description: tempDescription,
                 });
                 setIsDescriptionDialogOpen(false);
-              }} className="w-full sm:w-auto">
+              }}
+              className="w-full sm:w-auto"
+            >
               Salvar
             </Button>
-          </ResponsiveDialogFooter>
-        </ResponsiveDialogContent>
-      </ResponsiveDialog>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
 
       {/* Mobile Bottom Navigation */}
