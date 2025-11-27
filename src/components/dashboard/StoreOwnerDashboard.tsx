@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey, normalizePixKeyPhone } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixKeyPhone, formatPixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -5385,7 +5385,17 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       id="pix_key"
                       type="text"
                       placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                      value={storeForm.pix_key || ''}
+                      value={(() => {
+                        const key = storeForm.pix_key || '';
+                        // Remove +55 prefix from display if it's a phone number
+                        const digitsOnly = key.replace(/\D/g, '');
+                        if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
+                          // It's a phone with +55, remove the prefix for display
+                          const phoneWithoutPrefix = digitsOnly.substring(2);
+                          return formatPixKey(phoneWithoutPrefix);
+                        }
+                        return key;
+                      })()}
                       onChange={(e) => {
                         let value = e.target.value;
                         const digitsOnly = value.replace(/\D/g, '');
