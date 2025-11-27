@@ -160,14 +160,14 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <CardTitle>Sabores Globais</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Sabores Globais</CardTitle>
+              <CardDescription className="text-xs sm:text-sm mt-1">
                 Visualize e gerencie todos os sabores da sua loja
               </CardDescription>
             </div>
-            <Button onClick={() => setIsNewFlavorOpen(true)} size="sm">
+            <Button onClick={() => setIsNewFlavorOpen(true)} size="sm" className="w-full sm:w-auto text-sm h-9">
               <Plus className="w-4 h-4 mr-2" />
               Novo Sabor
             </Button>
@@ -176,44 +176,46 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
         <CardContent className="space-y-4">
           <div className="space-y-4">
             {!flavors || flavors.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Sparkles className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>Nenhum sabor cadastrado</p>
-                <p className="text-sm">Adicione produtos com sabores para começar</p>
+              <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm sm:text-base">Nenhum sabor cadastrado</p>
+                <p className="text-xs sm:text-sm mt-1">Adicione produtos com sabores para começar</p>
               </div>
             ) : (
               Object.entries(flavorsByProduct || {}).map(([productName, productFlavors]) => (
                 <div key={productName} className="space-y-2">
-                  <h3 className="font-semibold text-sm text-muted-foreground">{productName}</h3>
+                  <h3 className="font-semibold text-xs sm:text-sm text-muted-foreground px-1">{productName}</h3>
                   <div className="space-y-2">
                     {productFlavors?.map((flavor) => (
                       <div
                         key={flavor.id}
-                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         {editingFlavorId === flavor.id ? (
-                          <div className="flex-1 space-y-3">
+                          <div className="flex-1 space-y-3 w-full">
                             <div className="grid gap-2">
-                              <Label htmlFor={`name-${flavor.id}`}>Nome</Label>
+                              <Label htmlFor={`name-${flavor.id}`} className="text-sm">Nome</Label>
                               <Input
                                 id={`name-${flavor.id}`}
                                 value={editedValues.name}
                                 onChange={(e) => setEditedValues({ ...editedValues, name: e.target.value })}
                                 placeholder="Nome do sabor"
+                                className="text-sm"
                               />
                             </div>
                             <div className="grid gap-2">
-                              <Label htmlFor={`desc-${flavor.id}`}>Descrição</Label>
+                              <Label htmlFor={`desc-${flavor.id}`} className="text-sm">Descrição</Label>
                               <Textarea
                                 id={`desc-${flavor.id}`}
                                 value={editedValues.description}
                                 onChange={(e) => setEditedValues({ ...editedValues, description: e.target.value })}
                                 placeholder="Descrição (opcional)"
                                 rows={2}
+                                className="text-sm"
                               />
                             </div>
                             <div className="grid gap-2">
-                              <Label htmlFor={`price-${flavor.id}`}>Preço (R$)</Label>
+                              <Label htmlFor={`price-${flavor.id}`} className="text-sm">Preço (R$)</Label>
                               <Input
                                 id={`price-${flavor.id}`}
                                 type="number"
@@ -222,14 +224,16 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                                 value={editedValues.price}
                                 onChange={(e) => setEditedValues({ ...editedValues, price: e.target.value })}
                                 placeholder="0.00"
+                                className="text-sm"
                               />
                             </div>
-                            <div className="flex gap-2 justify-end">
+                            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={handleCancel}
                                 disabled={isUpdating}
+                                className="w-full sm:w-auto text-sm h-9"
                               >
                                 <X className="w-4 h-4 mr-1" />
                                 Cancelar
@@ -238,6 +242,7 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                                 size="sm"
                                 onClick={() => handleSave(flavor.id)}
                                 disabled={isUpdating || !editedValues.name || !editedValues.price}
+                                className="w-full sm:w-auto text-sm h-9"
                               >
                                 <Save className="w-4 h-4 mr-1" />
                                 Salvar
@@ -246,32 +251,33 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                           </div>
                         ) : (
                           <>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{flavor.name}</span>
-                                <Badge variant={flavor.is_available ? "default" : "secondary"} className="text-xs">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-medium text-sm sm:text-base truncate">{flavor.name}</span>
+                                <Badge variant={flavor.is_available ? "default" : "secondary"} className="text-[10px] sm:text-xs shrink-0">
                                   {flavor.is_available ? 'Disponível' : 'Indisponível'}
                                 </Badge>
                               </div>
                               {flavor.description && (
-                                <div className="text-sm text-muted-foreground">{flavor.description}</div>
+                                <div className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mt-1">{flavor.description}</div>
                               )}
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-xs sm:text-sm text-muted-foreground mt-1">
                                 R$ {flavor.price.toFixed(2)}
                               </div>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 justify-end sm:justify-start shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleToggleAvailability(flavor)}
                                 disabled={isUpdating}
                                 title={flavor.is_available ? 'Inativar' : 'Ativar'}
+                                className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                               >
                                 {flavor.is_available ? (
-                                  <PowerOff className="w-4 h-4" />
+                                  <PowerOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 ) : (
-                                  <Power className="w-4 h-4" />
+                                  <Power className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 )}
                               </Button>
                               <Button
@@ -279,8 +285,9 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                                 size="sm"
                                 onClick={() => handleEdit(flavor)}
                                 title="Editar"
+                                className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -288,8 +295,9 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                                 onClick={() => handleDeleteClick(flavor.id, flavor.name)}
                                 disabled={isDeleting}
                                 title="Excluir"
+                                className="h-8 w-8 p-0 sm:h-9 sm:w-9"
                               >
-                                <Trash2 className="w-4 h-4 text-destructive" />
+                                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-destructive" />
                               </Button>
                             </div>
                           </>
