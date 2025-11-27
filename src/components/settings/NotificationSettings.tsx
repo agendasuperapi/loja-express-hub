@@ -187,9 +187,22 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
 
     if (isSubscribed) {
       await unsubscribe();
+      toast({
+        title: "🔕 Push desativado",
+        description: "Você não receberá mais notificações push.",
+      });
     } else {
       // Passa o storeId se disponível (para lojistas)
-      await subscribe(user.id, storeId);
+      const success = await subscribe(user.id, storeId);
+      
+      if (success) {
+        toast({
+          title: "🔔 Push ativado!",
+          description: "Você receberá notificações mesmo com o app fechado.",
+        });
+        
+        console.log('[Push] Subscription criada com sucesso:', { userId: user.id, storeId });
+      }
     }
   };
 

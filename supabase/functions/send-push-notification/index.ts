@@ -43,15 +43,25 @@ serve(async (req) => {
       .eq('store_id', storeId)
       .eq('is_active', true);
 
+    console.log('[Push] Query result:', { 
+      subscriptionsCount: subscriptions?.length || 0, 
+      error: fetchError,
+      storeId 
+    });
+
     if (fetchError) {
       console.error('[Push] Erro ao buscar subscriptions:', fetchError);
       throw fetchError;
     }
 
     if (!subscriptions || subscriptions.length === 0) {
-      console.log('[Push] Nenhuma subscription ativa encontrada para a loja:', storeId);
+      console.log('[Push] ⚠️ NENHUMA SUBSCRIPTION ATIVA! Usuário precisa ativar Push em Configurações → Notificações');
       return new Response(
-        JSON.stringify({ message: 'Nenhuma subscription ativa', sent: 0 }),
+        JSON.stringify({ 
+          message: 'Nenhuma subscription ativa. Ative Push Notifications nas Configurações.', 
+          sent: 0,
+          storeId 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
