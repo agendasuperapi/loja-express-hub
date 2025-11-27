@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixPhoneKey, formatPixPhoneKeyForDisplay, detectPixKeyType } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -1679,8 +1679,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     }
 
     // Validação: verificar formato da chave PIX se preenchida
+    let normalizedPixKey = storeForm.pix_key;
     if (storeForm.pix_key && storeForm.pix_key.trim() !== '') {
-      const validation = validatePixKey(storeForm.pix_key);
+      // Normalizar telefone para incluir +55
+      const keyType = detectPixKeyType(storeForm.pix_key);
+      if (keyType === 'phone') {
+        normalizedPixKey = normalizePixPhoneKey(storeForm.pix_key);
+      }
+      
+      const validation = validatePixKey(normalizedPixKey);
       if (!validation.isValid) {
         toast({
           title: "Chave PIX inválida",
@@ -1743,7 +1750,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         whatsapp: (storeForm as any).whatsapp,
         menu_label: storeForm.menu_label,
         show_pix_key_to_customer: storeForm.show_pix_key_to_customer,
-        pix_key: storeForm.pix_key,
+        pix_key: normalizedPixKey,
         allow_orders_when_closed: storeForm.allow_orders_when_closed,
       } as any);
 
@@ -5385,13 +5392,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       id="pix_key"
                       type="text"
                       placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                      value={storeForm.pix_key}
+                      value={formatPixPhoneKeyForDisplay(storeForm.pix_key || '')}
                       onChange={(e) => {
                         const value = e.target.value;
+                        // Armazena sem o +55 visualmente, mas valida com o formato correto
                         setStoreForm({ ...storeForm, pix_key: value });
                         
-                        // Validate in real-time
-                        const validation = validatePixKey(value);
+                        // Validate in real-time (validar com +55 se for telefone)
+                        const keyType = detectPixKeyType(value);
+                        const keyToValidate = keyType === 'phone' ? normalizePixPhoneKey(value) : value;
+                        const validation = validatePixKey(keyToValidate);
                         setPixValidation(validation);
                       }}
                       className={cn(

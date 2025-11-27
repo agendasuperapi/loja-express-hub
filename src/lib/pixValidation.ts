@@ -123,6 +123,45 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
+ * Normalizes a PIX phone key by adding +55 prefix if needed
+ */
+export const normalizePixPhoneKey = (key: string): string => {
+  const cleaned = key.replace(/[^\d]/g, '');
+  
+  // Se já tem o +55, retornar com o +
+  if (key.startsWith('+55')) {
+    return key;
+  }
+  
+  // Se tem 13 dígitos começando com 55, adicionar o +
+  if (cleaned.startsWith('55') && cleaned.length === 13) {
+    return `+${cleaned}`;
+  }
+  
+  // Se tem 10 ou 11 dígitos (DDD + número), adicionar +55
+  if (cleaned.length === 10 || cleaned.length === 11) {
+    return `+55${cleaned}`;
+  }
+  
+  // Retornar como está se não for um dos casos acima
+  return key;
+};
+
+/**
+ * Removes +55 prefix from PIX phone key for display
+ */
+export const formatPixPhoneKeyForDisplay = (key: string): string => {
+  if (!key) return '';
+  
+  // Remove +55 do início
+  if (key.startsWith('+55')) {
+    return key.substring(3);
+  }
+  
+  return key;
+};
+
+/**
  * Formats a PIX key for display based on its type
  */
 export const formatPixKey = (key: string): string => {
@@ -137,14 +176,11 @@ export const formatPixKey = (key: string): string => {
       // Format: 12.345.678/0001-90
       return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
     case 'phone':
-      // Format: +55 (11) 99999-9999
-      if (cleaned.startsWith('55')) {
-        const ddd = cleaned.substring(2, 4);
-        const number = cleaned.substring(4);
-        return `+55 (${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
-      }
-      const ddd = cleaned.substring(0, 2);
-      const number = cleaned.substring(2);
+      // Format: (11) 99999-9999 (sem o +55)
+      const displayKey = formatPixPhoneKeyForDisplay(key);
+      const displayCleaned = displayKey.replace(/[^\d]/g, '');
+      const ddd = displayCleaned.substring(0, 2);
+      const number = displayCleaned.substring(2);
       return `(${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
     default:
       return key;
