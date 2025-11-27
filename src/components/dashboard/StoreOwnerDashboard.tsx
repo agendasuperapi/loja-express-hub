@@ -76,7 +76,7 @@ import { EmployeesManager } from "./EmployeesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobileOrTablet } from "@/hooks/use-mobile-or-tablet";
 import { CustomersReport } from "./CustomersReport";
 import { BestSellingProductsReport } from "./BestSellingProductsReport";
 import { RegisteredProductsReport } from "./RegisteredProductsReport";
@@ -100,7 +100,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobileOrTablet();
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
