@@ -11,8 +11,8 @@ interface DashboardBottomNavProps {
 export const DashboardBottomNav = ({ activeTab, onTabChange, onMenuClick }: DashboardBottomNavProps) => {
   const navItems = [
     { id: "home", label: "Início", icon: Home },
-    { id: "pedidos", label: "Pedidos", icon: ShoppingBag },
     { id: "produtos", label: "Produtos", icon: Package },
+    { id: "pedidos", label: "Pedidos", icon: ShoppingBag },
     { id: "relatorios", label: "Relatórios", icon: TrendingUp },
     { id: "menu", label: "Menu", icon: Menu, isMenu: true },
   ];
