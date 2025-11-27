@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { MessageSquare, Phone, QrCode, CheckCircle2, Loader2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +87,7 @@ export const WhatsAppIntegration = ({ storeId, store, onStoreUpdate, isActive = 
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [autoReconnectEnabled, setAutoReconnectEnabled] = useState(true);
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
   
   // Refs para prevenir atualizações de estado desnecessárias
   const prevIsConnectedRef = useRef<boolean>(false);
@@ -826,7 +828,7 @@ await invokeEvolution({
                 </Button>
                 
                 <Button 
-                  onClick={disconnectInstance} 
+                  onClick={() => setShowDisconnectDialog(true)} 
                   disabled={isLoading || !canEditWhatsApp}
                   variant="destructive"
                   className="w-full"
@@ -883,6 +885,30 @@ await invokeEvolution({
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desconectar WhatsApp?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação irá desconectar seu WhatsApp da loja. Você precisará escanear o QR Code novamente para reconectar.
+              Tem certeza que deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowDisconnectDialog(false);
+                disconnectInstance();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Desconectar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
