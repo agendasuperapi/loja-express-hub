@@ -35,6 +35,7 @@ import { ReceiptDialog } from "./ReceiptDialog";
 import { NotesDialog } from "./NotesDialog";
 import { WhatsAppConfirmDialog } from "./WhatsAppConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
@@ -3526,7 +3527,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                     <p className="text-muted-foreground">Gerencie o cardápio da sua loja</p>
                   </div>
                   {hasPermission('products', 'create') && (
-                <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                <ResponsiveDialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={() => {
                       setEditingProduct(null);
@@ -3549,30 +3550,32 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       Novo Produto
                     </Button>
                   </DialogTrigger>
-                <DialogContent className="max-w-[50vw] max-h-[95vh] overflow-hidden flex flex-col bg-background z-50">
-                  <DialogHeader className="flex-shrink-0">
-                    <DialogTitle>
+                <ResponsiveDialogContent className="w-full max-w-[95vw] md:max-w-[80vw] lg:max-w-[50vw] max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col bg-background z-50">
+                  <ResponsiveDialogHeader className="flex-shrink-0">
+                    <ResponsiveDialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
-                    </DialogTitle>
-                  </DialogHeader>
+                    </ResponsiveDialogTitle>
+                  </ResponsiveDialogHeader>
                   
-                  <div className="flex-1 overflow-y-auto -mx-6 px-6">
-                    <div className="pr-4 space-y-4 pb-4">
+                  <ScrollArea className="flex-1 -mx-4 md:-mx-6 px-4 md:px-6">
+                    <div className="space-y-4 pb-24 md:pb-4">
                       <Tabs value={activeProductTab} onValueChange={setActiveProductTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-4">
-                          <TabsTrigger value="info">Informações</TabsTrigger>
-                          <TabsTrigger value="sizes" disabled={!editingProduct}>
-                            Tamanhos {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                        <TabsList className="flex overflow-x-auto md:grid md:grid-cols-4 w-full gap-1 scrollbar-hide">
+                          <TabsTrigger value="info" className="whitespace-nowrap">Informações</TabsTrigger>
+                          <TabsTrigger value="sizes" disabled={!editingProduct} className="whitespace-nowrap">
+                            Tamanhos {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
                           </TabsTrigger>
-                          <TabsTrigger value="addons" disabled={!editingProduct}>
-                            Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                          <TabsTrigger value="addons" disabled={!editingProduct} className="whitespace-nowrap">
+                            Adicionais {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
                           </TabsTrigger>
-                          <TabsTrigger value="flavors" disabled={!editingProduct}>
-                            Múltiplos Sabores {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                          <TabsTrigger value="flavors" disabled={!editingProduct} className="whitespace-nowrap">
+                            <span className="hidden md:inline">Múltiplos Sabores</span>
+                            <span className="md:hidden">Sabores</span>
+                            {!editingProduct && <span className="text-xs ml-1 hidden md:inline">(salve primeiro)</span>}
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[800px]">
+                        <TabsContent value="info" className="space-y-4 mt-4">
                       
                           <ImageUpload
                             bucket="product-images"
@@ -3739,13 +3742,13 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           </div>
                         </TabsContent>
 
-                        <TabsContent value="sizes" className="mt-4 pr-2 min-h-[800px]">
+                        <TabsContent value="sizes" className="mt-4">
                           {editingProduct && (
                             <ProductSizesManager productId={editingProduct.id} />
                           )}
                         </TabsContent>
 
-                        <TabsContent value="addons" className="mt-4 pr-2 min-h-[800px]">
+                        <TabsContent value="addons" className="mt-4">
                           {editingProduct && myStore && (
                             <ProductAddonsManager 
                               productId={editingProduct.id}
@@ -3754,7 +3757,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                           )}
                         </TabsContent>
 
-                        <TabsContent value="flavors" className="mt-4 pr-2 min-h-[800px]">
+                        <TabsContent value="flavors" className="mt-4">
                           {editingProduct && (
                             <>
                               <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
@@ -3797,10 +3800,10 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         </TabsContent>
                       </Tabs>
                     </div>
-                  </div>
+                  </ScrollArea>
                   
                   {activeProductTab !== "addons" && (
-                    <div className="flex-shrink-0 pt-4 border-t mt-4">
+                    <div className="flex-shrink-0 pt-4 border-t sticky bottom-0 bg-background pb-safe z-10">
                       <Button
                         onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
                         className="w-full"
@@ -3809,8 +3812,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       </Button>
                     </div>
                   )}
-                </DialogContent>
-                </Dialog>
+                </ResponsiveDialogContent>
+                </ResponsiveDialog>
                   )}
                 </div>
 
