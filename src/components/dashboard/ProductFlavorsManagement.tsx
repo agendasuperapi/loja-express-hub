@@ -10,7 +10,7 @@ import { Package, Sparkles, Edit, Save, X, Plus, Trash2, Power, PowerOff } from 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -305,31 +305,33 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
       </Card>
 
       {/* Dialog Novo Sabor */}
-      <Dialog open={isNewFlavorOpen} onOpenChange={setIsNewFlavorOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Sabor</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
+      <ResponsiveDialog open={isNewFlavorOpen} onOpenChange={setIsNewFlavorOpen}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Novo Sabor</ResponsiveDialogTitle>
+          </ResponsiveDialogHeader>
+          <div className="space-y-4 px-4 sm:px-0">
             <div className="space-y-2">
-              <Label>Nome do Sabor</Label>
+              <Label className="text-sm">Nome do Sabor</Label>
               <Input
                 value={newFlavorData.name}
                 onChange={(e) => setNewFlavorData({ ...newFlavorData, name: e.target.value })}
                 placeholder="Ex: Calabresa"
+                className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label>Descrição (opcional)</Label>
+              <Label className="text-sm">Descrição (opcional)</Label>
               <Textarea
                 value={newFlavorData.description}
                 onChange={(e) => setNewFlavorData({ ...newFlavorData, description: e.target.value })}
                 placeholder="Descrição do sabor"
                 rows={2}
+                className="text-sm"
               />
             </div>
             <div className="space-y-2">
-              <Label>Preço (R$)</Label>
+              <Label className="text-sm">Preço (R$)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -337,6 +339,7 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                 value={newFlavorData.price}
                 onChange={(e) => setNewFlavorData({ ...newFlavorData, price: e.target.value })}
                 placeholder="0.00"
+                className="text-sm"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -344,18 +347,20 @@ export const FlavorsTab = ({ storeId }: { storeId: string }) => {
                 checked={newFlavorData.is_available}
                 onCheckedChange={(checked) => setNewFlavorData({ ...newFlavorData, is_available: checked })}
               />
-              <Label>Disponível</Label>
+              <Label className="text-sm">Disponível</Label>
             </div>
-            <div className="bg-muted p-3 rounded-lg text-sm text-muted-foreground">
+            <div className="bg-muted p-3 rounded-lg text-xs sm:text-sm text-muted-foreground">
               <p>💡 Sabores devem ser criados diretamente em produtos específicos.</p>
               <p className="mt-1">Acesse a aba "Produtos" e adicione sabores aos seus produtos.</p>
             </div>
-            <Button onClick={() => setIsNewFlavorOpen(false)} className="w-full">
+          </div>
+          <ResponsiveDialogFooter className="px-4 sm:px-0">
+            <Button onClick={() => setIsNewFlavorOpen(false)} className="w-full text-sm">
               Entendi
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
 
       {/* AlertDialog para confirmar exclusão */}
       <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
