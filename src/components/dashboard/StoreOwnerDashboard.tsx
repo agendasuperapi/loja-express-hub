@@ -840,8 +840,27 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
     newStatus: string;
   } | null>(null);
 
-  // Ajustar filtro padrão baseado em permissões
+  // Ajustar filtro padrão baseado em permissões e definir status padrão
   useEffect(() => {
+    // Se os customStatuses foram carregados e o filtro ainda está em 'all'
+    if (customStatuses.length > 0 && orderStatusFilter === 'all') {
+      // Procurar por status "pending" ou variações
+      const pendingStatus = customStatuses.find(s => 
+        s.status_key.toLowerCase() === 'pending' || 
+        s.status_key.toLowerCase() === 'pendente'
+      );
+      
+      if (pendingStatus) {
+        console.log('[Filtro Padrão] Definindo para pending');
+        setOrderStatusFilter(pendingStatus.status_key);
+      } else if (customStatuses.length > 0) {
+        // Se não houver pending, usar o primeiro status disponível
+        console.log('[Filtro Padrão] Definindo para primeiro status disponível');
+        setOrderStatusFilter(customStatuses[0].status_key);
+      }
+    }
+    
+    // Lógica para funcionários com permissões restritas
     if (employeeAccess.isEmployee && employeeAccess.permissions) {
       console.log('[Ajustando Filtro]', {
         orderStatusFilter,
@@ -870,7 +889,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         }
       }
     }
-  }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, canViewConfirmedOrders, canViewPreparingOrders, canViewOutForDeliveryOrders, canViewDeliveredOrders, canViewCancelledOrders, customStatuses]);
+  }, [employeeAccess.isEmployee, employeeAccess.permissions, canViewAllOrders, canViewPendingOrders, canViewConfirmedOrders, canViewPreparingOrders, canViewOutForDeliveryOrders, canViewDeliveredOrders, canViewCancelledOrders, customStatuses, orderStatusFilter]);
 
   // (removido) havia um segundo useEffect sincronizando storeForm com myStore,
   // o que sobrescrevia os campos de endereço personalizados. Agora toda a
