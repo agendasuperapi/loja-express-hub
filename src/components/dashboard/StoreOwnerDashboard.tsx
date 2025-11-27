@@ -3228,7 +3228,22 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                             <SelectContent>
                               {customStatuses.length > 0 ? (
                                 customStatuses
-                                  .filter(status => status.is_active && status.status_key && status.status_key.trim() !== '')
+                                  .filter(status => {
+                                    // Verificar se está ativo e tem status_key válido
+                                    if (!status.is_active || !status.status_key || status.status_key.trim() === '') {
+                                      return false;
+                                    }
+                                    
+                                    // Filtrar baseado no tipo de entrega do pedido
+                                    if (order.delivery_type === 'delivery') {
+                                      return status.show_for_delivery !== false;
+                                    } else if (order.delivery_type === 'pickup') {
+                                      return status.show_for_pickup !== false;
+                                    }
+                                    
+                                    // Se não tiver tipo definido, mostrar todos
+                                    return true;
+                                  })
                                   .sort((a, b) => a.display_order - b.display_order)
                                   .filter(status => canChangeTo(status.status_key))
                                   .map((status) => (
