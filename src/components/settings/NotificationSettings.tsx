@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Bell, Volume2, BellOff, Loader2 } from "lucide-react";
+import { Bell, Volume2, BellOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,6 +31,58 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
     const saved = localStorage.getItem('notification-volume');
     return saved !== null ? JSON.parse(saved) : 100;
   });
+
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
+  // Verificar permissão de notificações ao montar o componente
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      console.warn('⚠️ Este navegador não suporta notificações');
+      return;
+    }
+
+    const checkPermission = async () => {
+      const currentPermission = Notification.permission;
+      setNotificationPermission(currentPermission);
+      
+      console.log('🔔 Status da permissão de notificações:', currentPermission);
+
+      // Se a permissão ainda não foi concedida, solicitar automaticamente
+      if (currentPermission === 'default' && storeId) {
+        console.log('📢 Solicitando permissão de notificações automaticamente...');
+        
+        try {
+          const permission = await Notification.requestPermission();
+          setNotificationPermission(permission);
+          
+          if (permission === 'granted') {
+            toast({
+              title: "✅ Notificações permitidas",
+              description: "Você receberá alertas de novos pedidos!",
+            });
+          } else if (permission === 'denied') {
+            toast({
+              title: "❌ Notificações bloqueadas",
+              description: "Para receber alertas, permita notificações nas configurações do navegador.",
+              variant: "destructive",
+              duration: 7000,
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao solicitar permissão:', error);
+        }
+      } else if (currentPermission === 'denied') {
+        toast({
+          title: "🔕 Notificações bloqueadas",
+          description: "Para receber alertas de pedidos, permita notificações nas configurações do seu navegador.",
+          variant: "destructive",
+          duration: 10000,
+        });
+      }
+    };
+
+    checkPermission();
+  }, [storeId]);
 
   useEffect(() => {
     localStorage.setItem('notification-sound-enabled', JSON.stringify(soundEnabled));
@@ -219,6 +271,28 @@ export const NotificationSettings = ({ storeId }: NotificationSettingsProps = {}
             disabled={!soundEnabled}
           />
         </div>
+
+        {/* Alerta de permissão negada */}
+        {notificationPermission === 'denied' && (
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 space-y-2">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-destructive">
+                  Notificações bloqueadas
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Você bloqueou as notificações. Para receber alertas:
+                </p>
+                <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1 ml-2">
+                  <li>Clique no ícone <strong>🔒</strong> ou <strong>ⓘ</strong> na barra de endereço</li>
+                  <li>Encontre "Notificações" e mude para <strong>"Permitir"</strong></li>
+                  <li>Recarregue a página</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Web Push Notifications */}
         <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 space-y-3">
