@@ -3823,7 +3823,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                   </ScrollArea>
                   
                   {activeProductTab !== "addons" && (
-                    <div className="flex-shrink-0 pt-4 border-t sticky bottom-0 bg-background pb-safe z-10">
+                    <div className="flex-shrink-0 pt-4 px-4 md:px-6 border-t sticky bottom-0 bg-background pb-safe z-10">
                       <Button
                         onClick={editingProduct ? handleUpdateProduct : handleCreateProduct}
                         className="w-full"
