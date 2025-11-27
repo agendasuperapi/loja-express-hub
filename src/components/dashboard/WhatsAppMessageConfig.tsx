@@ -166,201 +166,205 @@ export const WhatsAppMessageConfig = ({ store, onUpdate }: WhatsAppMessageConfig
             </Alert>
           )}
 
-          {/* PIX Chave Fixa */}
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="mb-1">PIX Chave Fixa</Badge>
-              </div>
-              <CardTitle className="text-lg text-orange-600">Mensagem com Chave PIX</CardTitle>
-              <CardDescription>
-                Configure a mensagem que será enviada com sua chave PIX cadastrada para o cliente copiar e realizar o pagamento
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          {/* PIX Chave Fixa - Mostrar apenas se não houver PIX Copia e Cola ativo */}
+          {!formData.pix_copiacola_message_enabled && (
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="mb-1">PIX Chave Fixa</Badge>
+                </div>
+                <CardTitle className="text-lg text-orange-600">Mensagem com Chave PIX</CardTitle>
+                <CardDescription>
+                  Configure a mensagem que será enviada com sua chave PIX cadastrada para o cliente copiar e realizar o pagamento
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
 
-            <div className="space-y-2">
-              <Label htmlFor="title">Título da Mensagem</Label>
-              <Input
-                id="title"
-                placeholder="Ex: 💳 Pagamento via PIX"
-                value={formData.pix_message_title}
-                onChange={(e) => setFormData({ ...formData, pix_message_title: e.target.value })}
-                maxLength={100}
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de 100 caracteres
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                placeholder="Ex: Clique no botão abaixo para copiar o código PIX..."
-                value={formData.pix_message_description}
-                onChange={(e) => setFormData({ ...formData, pix_message_description: e.target.value })}
-                rows={3}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de 500 caracteres
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="footer">Rodapé</Label>
-              <Input
-                id="footer"
-                placeholder="Ex: Obrigado pela preferência!"
-                value={formData.pix_message_footer}
-                onChange={(e) => setFormData({ ...formData, pix_message_footer: e.target.value })}
-                maxLength={100}
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de 100 caracteres
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
-              <Input
-                id="buttonText"
-                placeholder="Ex: 📋 COPIAR CHAVE PIX"
-                value={formData.pix_message_button_text}
-                onChange={(e) => setFormData({ ...formData, pix_message_button_text: e.target.value })}
-                maxLength={50}
-              />
-              <p className="text-xs text-muted-foreground">
-                Texto do botão na mensagem do WhatsApp (Máximo de 50 caracteres)
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
-              <div className="space-y-0.5">
-                <Label className="text-base">Ativar Envio Automático no WhatsApp da (Chave Fixa)</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enviar chave PIX após confirmação do pedido
+              <div className="space-y-2">
+                <Label htmlFor="title">Título da Mensagem</Label>
+                <Input
+                  id="title"
+                  placeholder="Ex: 💳 Pagamento via PIX"
+                  value={formData.pix_message_title}
+                  onChange={(e) => setFormData({ ...formData, pix_message_title: e.target.value })}
+                  maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo de 100 caracteres
                 </p>
               </div>
-              <Switch
-                checked={formData.pix_message_enabled}
-                onCheckedChange={(checked) => {
-                  if (checked && !store.pix_key) {
-                    toast({
-                      title: "Chave PIX não configurada",
-                      description: "Configure sua chave PIX primeiro.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  setFormData({ ...formData, pix_message_enabled: checked });
-                }}
-                disabled={!store.pix_key}
-              />
-            </div>
-            </CardContent>
-          </Card>
 
-          {/* PIX Copia e Cola Gerado */}
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="mb-1">PIX Copia e Cola Gerado</Badge>
-              </div>
-              <CardTitle className="text-lg text-orange-600">PIX Copia e Cola</CardTitle>
-              <CardDescription>
-                Configure a mensagem que será enviada junta com o código do Pix copia e cola.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-            <div className="space-y-2">
-              <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
-              <Input
-                id="copiacolaTitle"
-                placeholder="Ex: 💳 Código PIX Gerado"
-                value={formData.pix_copiacola_message_title}
-                onChange={(e) => setFormData({ ...formData, pix_copiacola_message_title: e.target.value })}
-                maxLength={100}
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de 100 caracteres
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="copiacolaDescription">Descrição</Label>
-              <Textarea
-                id="copiacolaDescription"
-                placeholder="Ex: Use o código PIX Copia e Cola gerado automaticamente..."
-                value={formData.pix_copiacola_message_description}
-                onChange={(e) => setFormData({ ...formData, pix_copiacola_message_description: e.target.value })}
-                rows={3}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground">
-                💡 Variável disponível: {'{'}{'{'}<strong>botao_pix_copiacola</strong>{'}'}{'}'}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="copiacolaFooter">Rodapé</Label>
-              <Input
-                id="copiacolaFooter"
-                placeholder="Ex: Código válido para este pedido específico."
-                value={formData.pix_copiacola_message_footer}
-                onChange={(e) => setFormData({ ...formData, pix_copiacola_message_footer: e.target.value })}
-                maxLength={100}
-              />
-              <p className="text-xs text-muted-foreground">
-                Máximo de 100 caracteres
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="copiacolaButtonTextWpp">Texto do Botão (WhatsApp)</Label>
-              <Input
-                id="copiacolaButtonTextWpp"
-                placeholder="Ex: 📋 COPIAR CÓDIGO PIX"
-                value={formData.pix_copiacola_message_button_text}
-                onChange={(e) => setFormData({ ...formData, pix_copiacola_message_button_text: e.target.value })}
-                maxLength={50}
-              />
-              <p className="text-xs text-muted-foreground">
-                Texto do botão na mensagem do WhatsApp (Máximo de 50 caracteres)
-              </p>
-            </div>
-
-            <Separator />
-
-            <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
-              <div className="space-y-0.5">
-                <Label className="text-base">Ativar Envio Automático no Whatsapp do (Código Copia e Cola)</Label>
-                <p className="text-sm text-muted-foreground">
-                  Enviar código PIX Copia e Cola após confirmação
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Ex: Clique no botão abaixo para copiar o código PIX..."
+                  value={formData.pix_message_description}
+                  onChange={(e) => setFormData({ ...formData, pix_message_description: e.target.value })}
+                  rows={3}
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo de 500 caracteres
                 </p>
               </div>
-              <Switch
-                checked={formData.pix_copiacola_message_enabled}
-                onCheckedChange={(checked) => {
-                  if (checked && !store.pix_key) {
-                    toast({
-                      title: "Chave PIX não configurada",
-                      description: "Configure sua chave PIX primeiro.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  setFormData({ ...formData, pix_copiacola_message_enabled: checked });
-                }}
-                disabled={!store.pix_key}
-              />
-            </div>
-            </CardContent>
-          </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="footer">Rodapé</Label>
+                <Input
+                  id="footer"
+                  placeholder="Ex: Obrigado pela preferência!"
+                  value={formData.pix_message_footer}
+                  onChange={(e) => setFormData({ ...formData, pix_message_footer: e.target.value })}
+                  maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo de 100 caracteres
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
+                <Input
+                  id="buttonText"
+                  placeholder="Ex: 📋 COPIAR CHAVE PIX"
+                  value={formData.pix_message_button_text}
+                  onChange={(e) => setFormData({ ...formData, pix_message_button_text: e.target.value })}
+                  maxLength={50}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Texto do botão na mensagem do WhatsApp (Máximo de 50 caracteres)
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Ativar Envio Automático no WhatsApp da (Chave Fixa)</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enviar chave PIX após confirmação do pedido
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.pix_message_enabled}
+                  onCheckedChange={(checked) => {
+                    if (checked && !store.pix_key) {
+                      toast({
+                        title: "Chave PIX não configurada",
+                        description: "Configure sua chave PIX primeiro.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setFormData({ ...formData, pix_message_enabled: checked });
+                  }}
+                  disabled={!store.pix_key}
+                />
+              </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* PIX Copia e Cola Gerado - Mostrar apenas se não houver Chave PIX Fixa ativa */}
+          {!formData.pix_message_enabled && (
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="mb-1">PIX Copia e Cola Gerado</Badge>
+                </div>
+                <CardTitle className="text-lg text-orange-600">PIX Copia e Cola</CardTitle>
+                <CardDescription>
+                  Configure a mensagem que será enviada junta com o código do Pix copia e cola.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+              <div className="space-y-2">
+                <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
+                <Input
+                  id="copiacolaTitle"
+                  placeholder="Ex: 💳 Código PIX Gerado"
+                  value={formData.pix_copiacola_message_title}
+                  onChange={(e) => setFormData({ ...formData, pix_copiacola_message_title: e.target.value })}
+                  maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo de 100 caracteres
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="copiacolaDescription">Descrição</Label>
+                <Textarea
+                  id="copiacolaDescription"
+                  placeholder="Ex: Use o código PIX Copia e Cola gerado automaticamente..."
+                  value={formData.pix_copiacola_message_description}
+                  onChange={(e) => setFormData({ ...formData, pix_copiacola_message_description: e.target.value })}
+                  rows={3}
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground">
+                  💡 Variável disponível: {'{'}{'{'}<strong>botao_pix_copiacola</strong>{'}'}{'}'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="copiacolaFooter">Rodapé</Label>
+                <Input
+                  id="copiacolaFooter"
+                  placeholder="Ex: Código válido para este pedido específico."
+                  value={formData.pix_copiacola_message_footer}
+                  onChange={(e) => setFormData({ ...formData, pix_copiacola_message_footer: e.target.value })}
+                  maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Máximo de 100 caracteres
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="copiacolaButtonTextWpp">Texto do Botão (WhatsApp)</Label>
+                <Input
+                  id="copiacolaButtonTextWpp"
+                  placeholder="Ex: 📋 COPIAR CÓDIGO PIX"
+                  value={formData.pix_copiacola_message_button_text}
+                  onChange={(e) => setFormData({ ...formData, pix_copiacola_message_button_text: e.target.value })}
+                  maxLength={50}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Texto do botão na mensagem do WhatsApp (Máximo de 50 caracteres)
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Ativar Envio Automático no Whatsapp do (Código Copia e Cola)</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enviar código PIX Copia e Cola após confirmação
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.pix_copiacola_message_enabled}
+                  onCheckedChange={(checked) => {
+                    if (checked && !store.pix_key) {
+                      toast({
+                        title: "Chave PIX não configurada",
+                        description: "Configure sua chave PIX primeiro.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    setFormData({ ...formData, pix_copiacola_message_enabled: checked });
+                  }}
+                  disabled={!store.pix_key}
+                />
+              </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Configuração do botão na página de pedidos */}
           <Card className="border-2">
