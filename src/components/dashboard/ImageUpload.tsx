@@ -38,12 +38,19 @@ export const ImageUpload = ({
   productId
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Sincronizar previewUrl com currentImageUrl quando mudar
   useEffect(() => {
-    setPreviewUrl(currentImageUrl || null);
+    if (currentImageUrl) {
+      // Remover query strings antigas e adicionar nova timestamp para forçar reload
+      const cleanUrl = currentImageUrl.split('?')[0];
+      const urlWithTimestamp = `${cleanUrl}?t=${Date.now()}`;
+      setPreviewUrl(urlWithTimestamp);
+    } else {
+      setPreviewUrl(null);
+    }
   }, [currentImageUrl]);
 
   // Limpar URLs de objetos quando o componente é desmontado
@@ -215,7 +222,9 @@ export const ImageUpload = ({
       // Remover imagem antiga antes de fazer upload da nova
       if (currentImageUrl && bucket === 'product-images' && productId) {
         try {
-          const oldPath = currentImageUrl.split(`${bucket}/`)[1]?.split('?')[0];
+          // Limpar URL primeiro (remover query strings) e então extrair o path
+          const cleanUrl = currentImageUrl.split('?')[0];
+          const oldPath = cleanUrl.split(`${bucket}/`)[1];
           if (oldPath) {
             console.log('🗑️ Removendo imagem antiga:', oldPath);
             await supabase.storage.from(bucket).remove([oldPath]);
@@ -280,10 +289,11 @@ export const ImageUpload = ({
   const confirmRemove = async () => {
     if (currentImageUrl) {
       try {
-        // Extrair o caminho do arquivo da URL
-        const path = currentImageUrl.split(`${bucket}/`)[1];
-        if (path) {
-          await supabase.storage.from(bucket).remove([path]);
+        // Extrair o caminho do arquivo da URL (removendo query strings primeiro)
+        const cleanUrl = currentImageUrl.split('?')[0];
+        const pathMatch = cleanUrl.split(`${bucket}/`)[1];
+        if (pathMatch) {
+          await supabase.storage.from(bucket).remove([pathMatch]);
         }
       } catch (error) {
         console.error('Erro ao remover imagem:', error);
