@@ -2072,8 +2072,7 @@ export const StoreOwnerDashboard = ({
             }} transition={{
               delay: 0.2
             }}>
-              <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100/30 via-purple-100/20 to-pink-100/10 dark:from-blue-900/20 dark:via-purple-900/10 dark:to-pink-900/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+              <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden relative bg-gradient-to-br from-gray-50 via-blue-50/50 to-gray-100 dark:from-gray-900 dark:via-blue-950/30 dark:to-gray-900 backdrop-blur-sm">
                 <CardContent className="p-6 relative z-10">
                   <div className="flex items-center justify-between">
                     <div>
