@@ -5554,7 +5554,16 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                         slug: myStore.slug,
                         category: myStore.category,
                         pix_key: pixKeyToSave || null,
+                        pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
                       });
+                      
+                      // Update local state
+                      if (pixKeyToSave) {
+                        setStoreForm({ 
+                          ...storeForm, 
+                          pix_copiacola_message_enabled: true 
+                        });
+                      }
                       
                       toast({
                         title: "Chave PIX salva!",
