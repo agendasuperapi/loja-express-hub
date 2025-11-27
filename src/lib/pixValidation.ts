@@ -34,13 +34,15 @@ const isValidCNPJ = (cnpj: string): boolean => {
 const isValidPhone = (phone: string): boolean => {
   const cleaned = phone.replace(/[^\d]/g, '');
   
-  // Brazilian phone with country code: 5511999999999 (13 digits) or 11999999999 (11 digits)
-  // With +55: +5511999999999
+  // Brazilian phone formats:
+  // 1. With country code: 5538999524679 (13 digits)
+  // 2. Without country code: 38999524679 (11 digits - DDD + 9 digits)
   if (cleaned.startsWith('55')) {
     return cleaned.length === 13; // 55 + DDD (2) + number (9)
   }
   
-  return cleaned.length === 11; // DDD (2) + number (9)
+  // DDD (2 digits) + number (9 digits for mobile, 8 for landline)
+  return cleaned.length === 11 || cleaned.length === 10;
 };
 
 /**
