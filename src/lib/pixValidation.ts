@@ -149,9 +149,9 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
     case 'empty':
       return { isValid: true, type, message: '' };
     case 'cpf':
-      return { isValid: true, type, message: 'Chave PIX do tipo CPF (validado)' };
+      return { isValid: true, type, message: 'Chave PIX do tipo CPF' };
     case 'cnpj':
-      return { isValid: true, type, message: 'Chave PIX do tipo CNPJ (validado)' };
+      return { isValid: true, type, message: 'Chave PIX do tipo CNPJ' };
     case 'email':
       return { isValid: true, type, message: 'Chave PIX do tipo E-mail' };
     case 'phone':
@@ -159,22 +159,6 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
     case 'random':
       return { isValid: true, type, message: 'Chave PIX do tipo Aleatória' };
     case 'invalid':
-      // More specific error messages
-      const cleaned = key.replace(/[^\d]/g, '');
-      if (cleaned.length === 11) {
-        return { 
-          isValid: false, 
-          type, 
-          message: 'CPF inválido - Verifique os dígitos verificadores' 
-        };
-      }
-      if (cleaned.length === 14) {
-        return { 
-          isValid: false, 
-          type, 
-          message: 'CNPJ inválido - Verifique os dígitos verificadores' 
-        };
-      }
       return { 
         isValid: false, 
         type, 
