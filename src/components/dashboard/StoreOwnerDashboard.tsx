@@ -22,7 +22,7 @@ import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
 import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
-import { validatePixKey, normalizePixPhoneKey, formatPixPhoneKeyForDisplay, detectPixKeyType } from "@/lib/pixValidation";
+import { validatePixKey, normalizePixPhoneKey, formatPixPhoneKeyForDisplay, detectPixKeyType, formatPixKeyAsTyping, cleanPixKey } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
 import { ProductFlavorsManager } from "./ProductFlavorsManager";
@@ -5392,15 +5392,19 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       id="pix_key"
                       type="text"
                       placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
-                      value={formatPixPhoneKeyForDisplay(storeForm.pix_key || '')}
+                      value={formatPixKeyAsTyping(formatPixPhoneKeyForDisplay(storeForm.pix_key || ''))}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        // Armazena sem o +55 visualmente, mas valida com o formato correto
-                        setStoreForm({ ...storeForm, pix_key: value });
+                        const inputValue = e.target.value;
+                        // Formata enquanto digita
+                        const formattedValue = formatPixKeyAsTyping(inputValue);
+                        // Remove formatação para armazenar valor limpo
+                        const cleanValue = cleanPixKey(formattedValue);
+                        
+                        setStoreForm({ ...storeForm, pix_key: cleanValue });
                         
                         // Validate in real-time (validar com +55 se for telefone)
-                        const keyType = detectPixKeyType(value);
-                        const keyToValidate = keyType === 'phone' ? normalizePixPhoneKey(value) : value;
+                        const keyType = detectPixKeyType(cleanValue);
+                        const keyToValidate = keyType === 'phone' ? normalizePixPhoneKey(cleanValue) : cleanValue;
                         const validation = validatePixKey(keyToValidate);
                         setPixValidation(validation);
                       }}

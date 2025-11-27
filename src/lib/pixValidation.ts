@@ -123,6 +123,99 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
+ * Formats PIX key as user types based on detected type
+ */
+export const formatPixKeyAsTyping = (value: string): string => {
+  if (!value) return '';
+  
+  // Remove all non-alphanumeric except @ and . for email
+  const cleaned = value.replace(/[^\w@.-]/g, '');
+  
+  // Check if it's an email (has @ or looks like email)
+  if (cleaned.includes('@') || /^[a-zA-Z0-9._-]+$/.test(cleaned)) {
+    return cleaned;
+  }
+  
+  // Only digits for CPF/CNPJ/Phone formatting
+  const digitsOnly = cleaned.replace(/\D/g, '');
+  
+  if (!digitsOnly) return value;
+  
+  // UUID/Random key (has letters and numbers with hyphens)
+  if (/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i.test(value)) {
+    return value;
+  }
+  
+  // CPF: 123.456.789-01 (11 digits)
+  if (digitsOnly.length <= 11) {
+    let formatted = digitsOnly;
+    if (digitsOnly.length > 3) {
+      formatted = digitsOnly.substring(0, 3) + '.' + digitsOnly.substring(3);
+    }
+    if (digitsOnly.length > 6) {
+      formatted = formatted.substring(0, 7) + '.' + formatted.substring(7);
+    }
+    if (digitsOnly.length > 9) {
+      formatted = formatted.substring(0, 11) + '-' + formatted.substring(11);
+    }
+    return formatted;
+  }
+  
+  // Phone with country code: +55 (38) 99952-4679 (13 digits starting with 55)
+  if (digitsOnly.startsWith('55') && digitsOnly.length <= 13) {
+    let formatted = '+55';
+    if (digitsOnly.length > 2) {
+      formatted += ' (' + digitsOnly.substring(2, Math.min(4, digitsOnly.length));
+    }
+    if (digitsOnly.length > 4) {
+      formatted += ') ' + digitsOnly.substring(4, Math.min(9, digitsOnly.length));
+    }
+    if (digitsOnly.length > 9) {
+      formatted += '-' + digitsOnly.substring(9, 13);
+    }
+    return formatted;
+  }
+  
+  // CNPJ: 12.345.678/0001-90 (14 digits)
+  if (digitsOnly.length > 11) {
+    let formatted = digitsOnly;
+    if (digitsOnly.length > 2) {
+      formatted = digitsOnly.substring(0, 2) + '.' + digitsOnly.substring(2);
+    }
+    if (digitsOnly.length > 5) {
+      formatted = formatted.substring(0, 6) + '.' + formatted.substring(6);
+    }
+    if (digitsOnly.length > 8) {
+      formatted = formatted.substring(0, 10) + '/' + formatted.substring(10);
+    }
+    if (digitsOnly.length > 12) {
+      formatted = formatted.substring(0, 15) + '-' + formatted.substring(15);
+    }
+    return formatted;
+  }
+  
+  return digitsOnly;
+};
+
+/**
+ * Removes formatting from PIX key to get clean value
+ */
+export const cleanPixKey = (value: string): string => {
+  // Keep email format
+  if (value.includes('@')) {
+    return value.trim();
+  }
+  
+  // Keep UUID format
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value)) {
+    return value.toLowerCase();
+  }
+  
+  // Remove all formatting, keep only digits
+  return value.replace(/\D/g, '');
+};
+
+/**
  * Normalizes a PIX phone key by adding +55 prefix if needed
  */
 export const normalizePixPhoneKey = (key: string): string => {
