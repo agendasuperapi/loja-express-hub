@@ -170,8 +170,8 @@ export const validatePixKey = (key: string): { isValid: boolean; type: PixKeyTyp
 };
 
 /**
- * Normalizes phone PIX keys by removing formatting and +55 prefix
- * Saves only the digits in the database
+ * Normalizes phone PIX keys by adding +55 prefix for database storage
+ * Adds +55 if it's a valid phone number without the prefix
  */
 export const normalizePixKeyPhone = (key: string): string => {
   if (!key || key.trim() === '') return key;
@@ -179,14 +179,14 @@ export const normalizePixKeyPhone = (key: string): string => {
   const trimmed = key.trim();
   const digitsOnly = trimmed.replace(/\D/g, '');
   
-  // Remove +55 prefix if present
+  // If already has +55 prefix, return with +55
   if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
-    return digitsOnly.substring(2);
+    return '+' + digitsOnly;
   }
   
-  // Return only digits for phone numbers (10-11 digits)
+  // Add +55 prefix for phone numbers (10-11 digits)
   if (digitsOnly.length === 10 || digitsOnly.length === 11) {
-    return digitsOnly;
+    return '+55' + digitsOnly;
   }
   
   return key; // Return original if not a phone
@@ -194,6 +194,7 @@ export const normalizePixKeyPhone = (key: string): string => {
 
 /**
  * Formats a PIX key for display based on its type
+ * For phone numbers, removes +55 prefix for display
  */
 export const formatPixKey = (key: string): string => {
   const type = detectPixKeyType(key);
@@ -207,14 +208,14 @@ export const formatPixKey = (key: string): string => {
       // Format: 12.345.678/0001-90
       return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
     case 'phone':
-      // Format: +55 (11) 99999-9999
-      if (cleaned.startsWith('55')) {
-        const ddd = cleaned.substring(2, 4);
-        const number = cleaned.substring(4);
-        return `+55 (${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
+      // Format: (11) 99999-9999 (without +55)
+      let phoneDigits = cleaned;
+      // Remove +55 prefix if present
+      if (phoneDigits.startsWith('55') && (phoneDigits.length === 12 || phoneDigits.length === 13)) {
+        phoneDigits = phoneDigits.substring(2);
       }
-      const ddd = cleaned.substring(0, 2);
-      const number = cleaned.substring(2);
+      const ddd = phoneDigits.substring(0, 2);
+      const number = phoneDigits.substring(2);
       return `(${ddd}) ${number.substring(0, 5)}-${number.substring(5)}`;
     default:
       return key;
