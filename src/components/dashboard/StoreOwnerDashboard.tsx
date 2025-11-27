@@ -6370,10 +6370,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
             setOpenRelatoriosMenu(false);
             setIsMobileSidebarOpen(true);
           }}
-          onRelatoriosClick={() => {
-            setOpenRelatoriosMenu(true);
-            setIsMobileSidebarOpen(true);
-          }}
           pendingOrdersCount={pendingOrdersCount}
         />
       )}
