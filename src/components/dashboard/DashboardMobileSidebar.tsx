@@ -16,6 +16,8 @@ interface DashboardMobileSidebarProps {
   isEmployee?: boolean;
   employeePermissions?: EmployeePermissions | null;
   onSignOut?: () => void;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const DashboardMobileSidebar = ({
@@ -26,10 +28,16 @@ export const DashboardMobileSidebar = ({
   isEmployee,
   employeePermissions,
   onSignOut,
+  isOpen: externalIsOpen,
+  onOpenChange: externalOnOpenChange,
 }: DashboardMobileSidebarProps) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+
+  // Use controlled ou uncontrolled state
+  const open = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
 
   const hasPermission = (module: string, action: string = 'view'): boolean => {
     if (!isEmployee || !employeePermissions) return true;
@@ -70,6 +78,7 @@ export const DashboardMobileSidebar = ({
           variant="ghost"
           size="icon"
           className="md:hidden fixed top-4 left-4 z-50"
+          data-mobile-menu-button
         >
           <Menu className="h-6 w-6" />
         </Button>

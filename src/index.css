@@ -267,4 +267,17 @@ All colors MUST be HSL.
   .glass-card {
     @apply glass rounded-xl shadow-lg;
   }
+
+  /* Safe area for iOS devices */
+  .h-safe-area-inset-bottom {
+    height: env(safe-area-inset-bottom, 0);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0);
+  }
 }

@@ -48,6 +48,7 @@ import { WhatsAppIntegration } from "./WhatsAppIntegration";
 import { WhatsAppStatusIndicator } from "./WhatsAppStatusIndicator";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { DashboardMobileSidebar } from "./DashboardMobileSidebar";
+import { DashboardBottomNav } from "./DashboardBottomNav";
 import { CircularProgress } from "./CircularProgress";
 import { DataCard } from "./DataCard";
 import { BarChartCard } from "./BarChartCard";
@@ -75,6 +76,7 @@ import { EmployeesManager } from "./EmployeesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CustomersReport } from "./CustomersReport";
 import { BestSellingProductsReport } from "./BestSellingProductsReport";
 import { RegisteredProductsReport } from "./RegisteredProductsReport";
@@ -98,6 +100,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const { isStoreOwner } = useUserRole();
   const employeeAccess = useEmployeeAccess();
   const { myStore, isLoading, updateStore } = useStoreManagement();
@@ -380,6 +383,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
   const [duplicatingFromProductId, setDuplicatingFromProductId] = useState<string | null>(null);
   const [isHoursDialogOpen, setIsHoursDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any>(null);
@@ -2036,6 +2040,8 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
           isEmployee={employeeAccess.isEmployee}
           employeePermissions={employeeAccess.permissions}
           onSignOut={onSignOut}
+          isOpen={isMobileSidebarOpen}
+          onOpenChange={setIsMobileSidebarOpen}
         />
         
         {/* Desktop Sidebar */}
@@ -2050,7 +2056,7 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         />
       
       
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className={cn("flex-1 overflow-y-auto overflow-x-hidden", isMobile && "pb-20")}>
         <div className="w-full">
         {/* Home Tab */}
         <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 w-full", activeTab !== 'home' && 'hidden')}>
@@ -6174,6 +6180,15 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
         </AlertDialogContent>
       </AlertDialog>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      {isMobile && (
+        <DashboardBottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onMenuClick={() => setIsMobileSidebarOpen(true)}
+        />
+      )}
     </div>
     </div>
   );
