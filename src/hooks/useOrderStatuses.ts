@@ -10,13 +10,17 @@ export interface OrderStatusConfig {
   display_order: number;
   is_active: boolean;
   whatsapp_message?: string;
+  show_for_delivery: boolean;
+  show_for_pickup: boolean;
 }
 
 /**
  * Hook para buscar status de pedidos configurados no banco de dados
  * Permite que novos status apareçam automaticamente no sistema
+ * @param storeId - ID da loja
+ * @param deliveryType - Tipo de entrega para filtrar status (opcional)
  */
-export const useOrderStatuses = (storeId?: string) => {
+export const useOrderStatuses = (storeId?: string, deliveryType?: 'delivery' | 'pickup') => {
   const [statuses, setStatuses] = useState<OrderStatusConfig[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,7 +37,21 @@ export const useOrderStatuses = (storeId?: string) => {
         .order('display_order');
 
       if (error) throw error;
-      setStatuses(data || []);
+      
+      // Filter by delivery type if specified
+      let filteredData = data || [];
+      if (deliveryType && data) {
+        filteredData = data.filter((status: any) => {
+          if (deliveryType === 'delivery') {
+            return status.show_for_delivery !== false;
+          } else if (deliveryType === 'pickup') {
+            return status.show_for_pickup !== false;
+          }
+          return true;
+        });
+      }
+      
+      setStatuses(filteredData as any);
     } catch (error) {
       console.error('Error fetching order statuses:', error);
     } finally {

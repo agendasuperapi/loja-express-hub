@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, GripVertical, Save, AlertCircle, Edit, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -217,6 +218,8 @@ interface OrderStatus {
   display_order: number;
   whatsapp_message: string | null;
   is_active: boolean;
+  show_for_delivery: boolean;
+  show_for_pickup: boolean;
 }
 
 interface SortableStatusItemProps {
@@ -270,9 +273,21 @@ const SortableStatusItem = ({ status, index, canEdit, onEdit, onDelete }: Sortab
         )}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
+          {status.show_for_delivery && (
+            <Badge variant="outline" className="text-xs" title="Exibir em pedidos de entrega">
+              🛵
+            </Badge>
+          )}
+          {status.show_for_pickup && (
+            <Badge variant="outline" className="text-xs" title="Exibir em pedidos de retirada">
+              🏪
+            </Badge>
+          )}
+        </div>
         {!status.is_active && (
-          <Badge variant="outline" className="text-xs ml-1">Inativa</Badge>
+          <Badge variant="outline" className="text-xs">Inativa</Badge>
         )}
 
         {canEdit && (
@@ -370,7 +385,9 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
             status_color: editingStatus.status_color,
             display_order: editingStatus.display_order,
             whatsapp_message: editingStatus.whatsapp_message,
-            is_active: editingStatus.is_active
+            is_active: editingStatus.is_active,
+            show_for_delivery: editingStatus.show_for_delivery,
+            show_for_pickup: editingStatus.show_for_pickup,
           });
 
         if (error) throw error;
@@ -382,7 +399,9 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
             status_label: editingStatus.status_label,
             status_color: editingStatus.status_color,
             whatsapp_message: editingStatus.whatsapp_message,
-            is_active: editingStatus.is_active
+            is_active: editingStatus.is_active,
+            show_for_delivery: editingStatus.show_for_delivery,
+            show_for_pickup: editingStatus.show_for_pickup,
           })
           .eq('id', editingStatus.id);
 
@@ -438,7 +457,9 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
       status_color: '#3B82F6',
       display_order: statuses.length + 1,
       whatsapp_message: '',
-      is_active: true
+      is_active: true,
+      show_for_delivery: true,
+      show_for_pickup: true,
     });
     setIsDialogOpen(true);
   };
@@ -664,7 +685,39 @@ export const OrderStatusManager = ({ storeId }: OrderStatusManagerProps) => {
                       </Alert>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="space-y-2 border-t pt-4">
+                      <Label>Exibir este status em pedidos do tipo:</Label>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="show_for_delivery"
+                            checked={editingStatus.show_for_delivery}
+                            onCheckedChange={(checked) => setEditingStatus({
+                              ...editingStatus,
+                              show_for_delivery: checked as boolean
+                            })}
+                          />
+                          <Label htmlFor="show_for_delivery" className="cursor-pointer font-normal">
+                            🛵 Entrega
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="show_for_pickup"
+                            checked={editingStatus.show_for_pickup}
+                            onCheckedChange={(checked) => setEditingStatus({
+                              ...editingStatus,
+                              show_for_pickup: checked as boolean
+                            })}
+                          />
+                          <Label htmlFor="show_for_pickup" className="cursor-pointer font-normal">
+                            🏪 Retirada
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 border-t pt-4">
                       <Switch
                         id="is_active"
                         checked={editingStatus.is_active}
