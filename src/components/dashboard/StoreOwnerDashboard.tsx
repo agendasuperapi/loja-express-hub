@@ -5387,7 +5387,14 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                       placeholder="Digite a chave PIX (CPF, CNPJ, E-mail, Telefone ou Chave Aleatória)"
                       value={storeForm.pix_key}
                       onChange={(e) => {
-                        const value = e.target.value;
+                        let value = e.target.value;
+                        
+                        // Remove +55 prefix if user pastes it (keep display clean)
+                        const digitsOnly = value.replace(/\D/g, '');
+                        if (digitsOnly.startsWith('55') && (digitsOnly.length === 13 || digitsOnly.length === 12)) {
+                          value = digitsOnly.substring(2);
+                        }
+                        
                         setStoreForm({ ...storeForm, pix_key: value });
                         
                         // Validate in real-time
