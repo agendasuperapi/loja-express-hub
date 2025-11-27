@@ -5467,124 +5467,6 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
 
                 {storeForm.pix_key && (
                   <div className="space-y-4">
-                    {/* Mostrar switch da Chave PIX Fixa apenas se PIX Copia e Cola não estiver ativo */}
-                    {!storeForm.pix_copiacola_message_enabled && (
-                      <>
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
-                          <div className="space-y-0.5">
-                            <Label className="text-base font-medium">Chave PIX Fixa</Label>
-                            <p className="text-sm text-muted-foreground">
-                              Mostrar chave PIX estática para o cliente copiar manualmente
-                            </p>
-                          </div>
-                          <Switch
-                            checked={storeForm.pix_message_enabled ?? false}
-                            onCheckedChange={async (checked) => {
-                              setStoreForm({ ...storeForm, pix_message_enabled: checked });
-                              if (myStore?.id) {
-                                await updateStore({
-                                  id: myStore.id,
-                                  name: myStore.name,
-                                  slug: myStore.slug,
-                                  category: myStore.category,
-                                  pix_message_enabled: checked,
-                                });
-                                toast({
-                                  title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
-                                  description: checked 
-                                    ? "A chave PIX estática será exibida aos clientes" 
-                                    : "A chave PIX estática não será mais exibida",
-                                });
-                              }
-                            }}
-                          />
-                        </div>
-                        
-                        {storeForm.pix_message_enabled && (
-                          <Card className="border-primary/20">
-                            <CardHeader>
-                              <CardTitle className="text-base">Personalizar mensagens - Chave PIX Fixa</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="pix_message_title">Título</Label>
-                                <Input
-                                  id="pix_message_title"
-                                  placeholder="Ex: Pague com PIX"
-                                  value={storeForm.pix_message_title || ''}
-                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_title: e.target.value })}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label htmlFor="pix_message_description">Descrição</Label>
-                                <Textarea
-                                  id="pix_message_description"
-                                  placeholder="Ex: Copie a chave PIX abaixo e realize o pagamento pelo seu aplicativo bancário"
-                                  value={storeForm.pix_message_description || ''}
-                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_description: e.target.value })}
-                                  rows={3}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label htmlFor="pix_message_footer">Rodapé</Label>
-                                <Textarea
-                                  id="pix_message_footer"
-                                  placeholder="Ex: Após o pagamento, envie o comprovante para confirmação"
-                                  value={storeForm.pix_message_footer || ''}
-                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_footer: e.target.value })}
-                                  rows={2}
-                                />
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label htmlFor="pix_message_button_text">Texto do botão de copiar</Label>
-                                <Input
-                                  id="pix_message_button_text"
-                                  placeholder="Ex: Copiar Chave PIX"
-                                  value={storeForm.pix_message_button_text || ''}
-                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_button_text: e.target.value })}
-                                />
-                              </div>
-                              
-                              <Button
-                                onClick={async () => {
-                                  if (!myStore?.id) return;
-                                  try {
-                                    await updateStore({
-                                      id: myStore.id,
-                                      name: myStore.name,
-                                      slug: myStore.slug,
-                                      category: myStore.category,
-                                      pix_message_title: storeForm.pix_message_title || null,
-                                      pix_message_description: storeForm.pix_message_description || null,
-                                      pix_message_footer: storeForm.pix_message_footer || null,
-                                      pix_message_button_text: storeForm.pix_message_button_text || null,
-                                    });
-                                    toast({
-                                      title: "Mensagens salvas!",
-                                      description: "As mensagens personalizadas da Chave PIX Fixa foram atualizadas.",
-                                    });
-                                  } catch (error) {
-                                    toast({
-                                      title: "Erro ao salvar",
-                                      description: "Não foi possível salvar as mensagens. Tente novamente.",
-                                      variant: "destructive",
-                                    });
-                                  }
-                                }}
-                                className="w-full"
-                              >
-                                <Save className="w-4 h-4 mr-2" />
-                                Salvar mensagens da Chave PIX Fixa
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </>
-                    )}
-
                     {/* Mostrar switch do PIX Copia e Cola apenas se Chave PIX Fixa não estiver ativo */}
                     {!storeForm.pix_message_enabled && (
                       <>
@@ -5696,6 +5578,124 @@ export const StoreOwnerDashboard = ({ onSignOut }: StoreOwnerDashboardProps) => 
                               >
                                 <Save className="w-4 h-4 mr-2" />
                                 Salvar mensagens do PIX Copia e Cola
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </>
+                    )}
+
+                    {/* Mostrar switch da Chave PIX Fixa apenas se PIX Copia e Cola não estiver ativo */}
+                    {!storeForm.pix_copiacola_message_enabled && (
+                      <>
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
+                          <div className="space-y-0.5">
+                            <Label className="text-base font-medium">Chave PIX Fixa</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Mostrar chave PIX estática para o cliente copiar manualmente
+                            </p>
+                          </div>
+                          <Switch
+                            checked={storeForm.pix_message_enabled ?? false}
+                            onCheckedChange={async (checked) => {
+                              setStoreForm({ ...storeForm, pix_message_enabled: checked });
+                              if (myStore?.id) {
+                                await updateStore({
+                                  id: myStore.id,
+                                  name: myStore.name,
+                                  slug: myStore.slug,
+                                  category: myStore.category,
+                                  pix_message_enabled: checked,
+                                });
+                                toast({
+                                  title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
+                                  description: checked 
+                                    ? "A chave PIX estática será exibida aos clientes" 
+                                    : "A chave PIX estática não será mais exibida",
+                                });
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        {storeForm.pix_message_enabled && (
+                          <Card className="border-primary/20">
+                            <CardHeader>
+                              <CardTitle className="text-base">Personalizar mensagens - Chave PIX Fixa</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="pix_message_title">Título</Label>
+                                <Input
+                                  id="pix_message_title"
+                                  placeholder="Ex: Pague com PIX"
+                                  value={storeForm.pix_message_title || ''}
+                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_title: e.target.value })}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="pix_message_description">Descrição</Label>
+                                <Textarea
+                                  id="pix_message_description"
+                                  placeholder="Ex: Copie a chave PIX abaixo e realize o pagamento pelo seu aplicativo bancário"
+                                  value={storeForm.pix_message_description || ''}
+                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_description: e.target.value })}
+                                  rows={3}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="pix_message_footer">Rodapé</Label>
+                                <Textarea
+                                  id="pix_message_footer"
+                                  placeholder="Ex: Após o pagamento, envie o comprovante para confirmação"
+                                  value={storeForm.pix_message_footer || ''}
+                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_footer: e.target.value })}
+                                  rows={2}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label htmlFor="pix_message_button_text">Texto do botão de copiar</Label>
+                                <Input
+                                  id="pix_message_button_text"
+                                  placeholder="Ex: Copiar Chave PIX"
+                                  value={storeForm.pix_message_button_text || ''}
+                                  onChange={(e) => setStoreForm({ ...storeForm, pix_message_button_text: e.target.value })}
+                                />
+                              </div>
+                              
+                              <Button
+                                onClick={async () => {
+                                  if (!myStore?.id) return;
+                                  try {
+                                    await updateStore({
+                                      id: myStore.id,
+                                      name: myStore.name,
+                                      slug: myStore.slug,
+                                      category: myStore.category,
+                                      pix_message_title: storeForm.pix_message_title || null,
+                                      pix_message_description: storeForm.pix_message_description || null,
+                                      pix_message_footer: storeForm.pix_message_footer || null,
+                                      pix_message_button_text: storeForm.pix_message_button_text || null,
+                                    });
+                                    toast({
+                                      title: "Mensagens salvas!",
+                                      description: "As mensagens personalizadas da Chave PIX Fixa foram atualizadas.",
+                                    });
+                                  } catch (error) {
+                                    toast({
+                                      title: "Erro ao salvar",
+                                      description: "Não foi possível salvar as mensagens. Tente novamente.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                <Save className="w-4 h-4 mr-2" />
+                                Salvar mensagens da Chave PIX Fixa
                               </Button>
                             </CardContent>
                           </Card>
