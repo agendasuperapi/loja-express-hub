@@ -88,7 +88,6 @@ export const WhatsAppMessageConfig = ({
       pix_copiacola_button_text: store.pix_copiacola_button_text || DEFAULT_VALUES.pix_copiacola_button_text
     });
   }, [store]);
-
   const resetField = (field: keyof typeof DEFAULT_VALUES) => {
     setFormData({
       ...formData,
@@ -193,13 +192,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="copiacolaTitle">Título da Mensagem</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_copiacola_message_title')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_message_title')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -216,13 +209,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="copiacolaDescription">Descrição</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_copiacola_message_description')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_message_description')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -239,13 +226,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="copiacolaFooter">Rodapé</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_copiacola_message_footer')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_message_footer')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -262,13 +243,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="copiacolaButtonTextWpp">Texto do Botão (WhatsApp)</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_copiacola_message_button_text')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_message_button_text')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -325,13 +300,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="title">Título da Mensagem</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_message_title')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_message_title')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -348,13 +317,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="description">Descrição</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_message_description')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_message_description')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -371,13 +334,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="footer">Rodapé</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_message_footer')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_message_footer')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -394,13 +351,7 @@ export const WhatsAppMessageConfig = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="buttonText">Texto do Botão (WhatsApp)</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_message_button_text')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_message_button_text')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
@@ -443,23 +394,13 @@ export const WhatsAppMessageConfig = ({
 
           {/* Configuração do botão na página de pedidos - Parte do PIX Copia e Cola */}
           {!formData.pix_message_enabled && <Card className="border-2">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="mb-1">Página de Pedidos</Badge>
-                </div>
-              </CardHeader>
+              
               <CardContent className="space-y-4">
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="copiacolaButtonText">Texto do Botão "PIX Copia e Cola"</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => resetField('pix_copiacola_button_text')}
-                    className="h-8"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => resetField('pix_copiacola_button_text')} className="h-8">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Padrão
                   </Button>
