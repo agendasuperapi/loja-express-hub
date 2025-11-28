@@ -80,7 +80,7 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
               value={customerNotes}
               onChange={(e) => setCustomerNotes(e.target.value)}
               placeholder="Observações do cliente sobre o pedido..."
-              className="mt-2 min-h-[100px] sm:min-h-[120px]"
+              className="mt-2 min-h-[60px] sm:min-h-[120px]"
             />
             <p className="text-xs text-muted-foreground mt-2">
               Notas enviadas pelo cliente no momento do pedido
@@ -94,7 +94,7 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
               value={storeNotes}
               onChange={(e) => setStoreNotes(e.target.value)}
               placeholder="Observações internas sobre este pedido..."
-              className="mt-2 min-h-[100px] sm:min-h-[120px]"
+              className="mt-2 min-h-[60px] sm:min-h-[120px]"
             />
             <p className="text-xs text-muted-foreground mt-2">
               Notas internas da loja (não visíveis para o cliente)
