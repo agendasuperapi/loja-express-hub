@@ -7,13 +7,13 @@ import { Switch } from '@/components/ui/switch';
 import { Plus, Pencil, Trash2, GripVertical, Search, Filter } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from '@/components/ui/responsive-dialog';
 import {
   Select,
   SelectContent,
@@ -237,14 +237,14 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
         </DndContext>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingSize ? 'Editar Tamanho' : 'Novo Tamanho'}</DialogTitle>
-            <DialogDescription>
+      <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <ResponsiveDialogContent>
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>{editingSize ? 'Editar Tamanho' : 'Novo Tamanho'}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
               {editingSize ? 'Edite as informações do tamanho.' : 'Adicione um novo tamanho ao produto.'}
-            </DialogDescription>
-          </DialogHeader>
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -290,16 +290,16 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          <ResponsiveDialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={!formData.name || formData.price <= 0}>
+            <Button onClick={handleSubmit} disabled={!formData.name || formData.price <= 0} className="w-full sm:w-auto">
               {editingSize ? 'Salvar' : 'Criar'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 }
