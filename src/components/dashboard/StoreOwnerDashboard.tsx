@@ -2122,7 +2122,7 @@ export const StoreOwnerDashboard = ({
                             {storeStatusText}
                           </Badge>
                           {myStore?.id && <WhatsAppStatusIndicator storeId={myStore.id} />}
-                          <span className="text-xs text-muted-foreground">v 1.8</span>
+                          <span className="text-xs text-muted-foreground">v 1.9</span>
                         </div>
                       </div>
                     </div>
@@ -4081,10 +4081,7 @@ export const StoreOwnerDashboard = ({
               delay: 0.3
             }}>
             <div className="space-y-6">
-                <Select 
-                  value={profileSettingsTab} 
-                  onValueChange={setProfileSettingsTab}
-                >
+                <Select value={profileSettingsTab} onValueChange={setProfileSettingsTab}>
                   <SelectTrigger className="w-full bg-background border-2">
                     <SelectValue placeholder="Selecione uma opção" />
                   </SelectTrigger>
@@ -4141,32 +4138,29 @@ export const StoreOwnerDashboard = ({
                 </Select>
 
         {/* Personal Data Tab */}
-        {profileSettingsTab === "personal" && (
-          <motion.div initial={{
+        {profileSettingsTab === "personal" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }}>
+            <PersonalDataSettings />
+          </motion.div>}
+
+        {/* Permissions Tab */}
+        {profileSettingsTab === "notifications" && <>
+            <motion.div initial={{
                     opacity: 0,
                     y: 20
                   }} animate={{
                     opacity: 1,
                     y: 0
                   }} transition={{
-                    duration: 0.5
+                    duration: 0.3
                   }}>
-            <PersonalDataSettings />
-          </motion.div>
-        )}
-
-        {/* Permissions Tab */}
-        {profileSettingsTab === "notifications" && (
-          <>
-            <motion.div initial={{
-                      opacity: 0,
-                      y: 20
-                    }} animate={{
-                      opacity: 1,
-                      y: 0
-                    }} transition={{
-                      duration: 0.3
-                    }}>
               <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
                 <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 mb-2">
                   <Shield className="w-5 h-5 text-primary" />
@@ -4308,12 +4302,10 @@ export const StoreOwnerDashboard = ({
             </Card>
 
           </motion.div>
-        </>
-        )}
+        </>}
 
         {/* Settings Tab */}
-        {profileSettingsTab === "settings" && (
-          <div className="space-y-4">
+        {profileSettingsTab === "settings" && <div className="space-y-4">
           {/* Store URL Card */}
           <motion.div initial={{
                     opacity: 0,
@@ -4676,50 +4668,44 @@ export const StoreOwnerDashboard = ({
             </CardContent>
           </Card>
           </motion.div>
-          </div>
-        )}
+          </div>}
 
         {/* Security Tab */}
-        {profileSettingsTab === "security" && (
-          <motion.div initial={{
-                    opacity: 0,
-                    y: 20
-                  }} animate={{
-                    opacity: 1,
-                    y: 0
-                  }} transition={{
-                    duration: 0.5
-                  }}>
+        {profileSettingsTab === "security" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }}>
             <SecuritySettings />
-          </motion.div>
-        )}
+          </motion.div>}
 
         {/* Order Status Tab */}
-        {profileSettingsTab === "order-status" && (
-          <motion.div initial={{
-                    opacity: 0,
-                    y: 20
-                  }} animate={{
-                    opacity: 1,
-                    y: 0
-                  }} transition={{
-                    duration: 0.5
-                  }}>
+        {profileSettingsTab === "order-status" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }}>
             {myStore?.id && <OrderStatusManager storeId={myStore.id} />}
-          </motion.div>
-        )}
+          </motion.div>}
 
         {/* Entregas Tab */}
-        {profileSettingsTab === "entregas" && (
-          <motion.div initial={{
-                    opacity: 0,
-                    y: 20
-                  }} animate={{
-                    opacity: 1,
-                    y: 0
-                  }} transition={{
-                    duration: 0.5
-                  }} className="space-y-4">
+        {profileSettingsTab === "entregas" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }} className="space-y-4">
             <div>
               <h2 className="text-2xl font-semibold mb-6">Configurações de entrega</h2>
             </div>
@@ -4759,20 +4745,18 @@ export const StoreOwnerDashboard = ({
 
             <PickupLocationsManager storeId={myStore.id} />
             <DeliveryZonesManager storeId={myStore.id} />
-          </motion.div>
-        )}
+          </motion.div>}
 
         {/* PIX Configuration Tab */}
-        {profileSettingsTab === "pix" && (
-          <motion.div initial={{
-                    opacity: 0,
-                    y: 20
-                  }} animate={{
-                    opacity: 1,
-                    y: 0
-                  }} transition={{
-                    duration: 0.5
-                  }}>
+        {profileSettingsTab === "pix" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }}>
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Configurações de PIX</CardTitle>
@@ -4798,66 +4782,66 @@ export const StoreOwnerDashboard = ({
                   <Label htmlFor="pix_key">Chave PIX</Label>
                   <div className="relative">
                     <Input id="pix_key" type="text" placeholder={pixKeyType === 'cpf' ? 'Digite o CPF (###.###.###-##)' : pixKeyType === 'cnpj' ? 'Digite o CNPJ (##.###.###/####-##)' : pixKeyType === 'email' ? 'Digite o e-mail' : pixKeyType === 'phone' ? 'Digite o telefone ((##) #####-####)' : 'Digite a chave aleatória'} value={(() => {
-                              const key = storeForm.pix_key || '';
-                              // Remove +55 prefix from display if it's a phone number
-                              const digitsOnly = key.replace(/\D/g, '');
-                              if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
-                                // It's a phone with +55, remove the prefix for display
-                                const phoneWithoutPrefix = digitsOnly.substring(2);
-                                return formatPixKey(phoneWithoutPrefix);
-                              }
-                              return key;
-                            })()} onChange={e => {
-                              let value = e.target.value;
-                              const digitsOnly = value.replace(/\D/g, '');
+                            const key = storeForm.pix_key || '';
+                            // Remove +55 prefix from display if it's a phone number
+                            const digitsOnly = key.replace(/\D/g, '');
+                            if (digitsOnly.startsWith('55') && (digitsOnly.length === 12 || digitsOnly.length === 13)) {
+                              // It's a phone with +55, remove the prefix for display
+                              const phoneWithoutPrefix = digitsOnly.substring(2);
+                              return formatPixKey(phoneWithoutPrefix);
+                            }
+                            return key;
+                          })()} onChange={e => {
+                            let value = e.target.value;
+                            const digitsOnly = value.replace(/\D/g, '');
 
-                              // Format based on selected PIX key type
-                              if (pixKeyType === 'cpf') {
-                                // Format CPF: ###.###.###-##
-                                if (digitsOnly.length <= 3) {
-                                  value = digitsOnly;
-                                } else if (digitsOnly.length <= 6) {
-                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3)}`;
-                                } else if (digitsOnly.length <= 9) {
-                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
-                                } else if (digitsOnly.length === 11) {
-                                  value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
-                                }
-                              } else if (pixKeyType === 'cnpj') {
-                                // Format CNPJ: ##.###.###/####-##
-                                if (digitsOnly.length <= 2) {
-                                  value = digitsOnly;
-                                } else if (digitsOnly.length <= 5) {
-                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2)}`;
-                                } else if (digitsOnly.length <= 8) {
-                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5)}`;
-                                } else if (digitsOnly.length <= 12) {
-                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8)}`;
-                                } else if (digitsOnly.length === 14) {
-                                  value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-${digitsOnly.slice(12, 14)}`;
-                                }
-                              } else if (pixKeyType === 'phone') {
-                                // Format Phone: (##) #####-####
-                                if (digitsOnly.length <= 2) {
-                                  value = digitsOnly;
-                                } else if (digitsOnly.length <= 7) {
-                                  value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
-                                } else if (digitsOnly.length === 11) {
-                                  value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
-                                }
-                              } else {
-                                // Email or Random key - keep as is
-                                value = value.trim();
+                            // Format based on selected PIX key type
+                            if (pixKeyType === 'cpf') {
+                              // Format CPF: ###.###.###-##
+                              if (digitsOnly.length <= 3) {
+                                value = digitsOnly;
+                              } else if (digitsOnly.length <= 6) {
+                                value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3)}`;
+                              } else if (digitsOnly.length <= 9) {
+                                value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6)}`;
+                              } else if (digitsOnly.length === 11) {
+                                value = `${digitsOnly.slice(0, 3)}.${digitsOnly.slice(3, 6)}.${digitsOnly.slice(6, 9)}-${digitsOnly.slice(9, 11)}`;
                               }
-                              setStoreForm({
-                                ...storeForm,
-                                pix_key: value
-                              });
+                            } else if (pixKeyType === 'cnpj') {
+                              // Format CNPJ: ##.###.###/####-##
+                              if (digitsOnly.length <= 2) {
+                                value = digitsOnly;
+                              } else if (digitsOnly.length <= 5) {
+                                value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2)}`;
+                              } else if (digitsOnly.length <= 8) {
+                                value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5)}`;
+                              } else if (digitsOnly.length <= 12) {
+                                value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8)}`;
+                              } else if (digitsOnly.length === 14) {
+                                value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 5)}.${digitsOnly.slice(5, 8)}/${digitsOnly.slice(8, 12)}-${digitsOnly.slice(12, 14)}`;
+                              }
+                            } else if (pixKeyType === 'phone') {
+                              // Format Phone: (##) #####-####
+                              if (digitsOnly.length <= 2) {
+                                value = digitsOnly;
+                              } else if (digitsOnly.length <= 7) {
+                                value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2)}`;
+                              } else if (digitsOnly.length === 11) {
+                                value = `(${digitsOnly.slice(0, 2)}) ${digitsOnly.slice(2, 7)}-${digitsOnly.slice(7, 11)}`;
+                              }
+                            } else {
+                              // Email or Random key - keep as is
+                              value = value.trim();
+                            }
+                            setStoreForm({
+                              ...storeForm,
+                              pix_key: value
+                            });
 
-                              // Validate in real-time
-                              const validation = validatePixKey(value);
-                              setPixValidation(validation);
-                            }} className={cn("pr-10", storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive")} />
+                            // Validate in real-time
+                            const validation = validatePixKey(value);
+                            setPixValidation(validation);
+                          }} className={cn("pr-10", storeForm.pix_key && !pixValidation.isValid && "border-destructive focus-visible:ring-destructive")} />
                     {storeForm.pix_key && <div className="absolute right-3 top-1/2 -translate-y-1/2">
                         {pixValidation.isValid ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-destructive" />}
                       </div>}
@@ -4871,57 +4855,57 @@ export const StoreOwnerDashboard = ({
                 </div>
 
                 <Button onClick={async () => {
-                          if (!myStore?.id) return;
-                          if (storeForm.pix_key && !pixValidation.isValid) {
-                            toast({
-                              title: "Chave PIX inválida",
-                              description: pixValidation.message,
-                              variant: "destructive"
-                            });
-                            return;
-                          }
-                          try {
-                            // Only add +55 for phone type PIX keys
-                            let pixKeyToSave = storeForm.pix_key;
-                            if (pixKeyToSave) {
-                              const pixType = detectPixKeyType(pixKeyToSave);
-                              if (pixType === 'phone') {
-                                pixKeyToSave = normalizePixKeyPhone(pixKeyToSave);
-                              } else {
-                                // For CPF, CNPJ, email, random - just remove formatting
-                                pixKeyToSave = pixKeyToSave.replace(/[^\w@.-]/g, '');
-                              }
+                        if (!myStore?.id) return;
+                        if (storeForm.pix_key && !pixValidation.isValid) {
+                          toast({
+                            title: "Chave PIX inválida",
+                            description: pixValidation.message,
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                        try {
+                          // Only add +55 for phone type PIX keys
+                          let pixKeyToSave = storeForm.pix_key;
+                          if (pixKeyToSave) {
+                            const pixType = detectPixKeyType(pixKeyToSave);
+                            if (pixType === 'phone') {
+                              pixKeyToSave = normalizePixKeyPhone(pixKeyToSave);
+                            } else {
+                              // For CPF, CNPJ, email, random - just remove formatting
+                              pixKeyToSave = pixKeyToSave.replace(/[^\w@.-]/g, '');
                             }
-                            await updateStore({
-                              id: myStore.id,
-                              name: myStore.name,
-                              slug: myStore.slug,
-                              category: myStore.category,
-                              pix_key: pixKeyToSave || null,
-                              pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
-                              pix_message_enabled: pixKeyToSave ? false : myStore.pix_message_enabled
-                            });
+                          }
+                          await updateStore({
+                            id: myStore.id,
+                            name: myStore.name,
+                            slug: myStore.slug,
+                            category: myStore.category,
+                            pix_key: pixKeyToSave || null,
+                            pix_copiacola_message_enabled: pixKeyToSave ? true : myStore.pix_copiacola_message_enabled,
+                            pix_message_enabled: pixKeyToSave ? false : myStore.pix_message_enabled
+                          });
 
-                            // Update local state
-                            if (pixKeyToSave) {
-                              setStoreForm({
-                                ...storeForm,
-                                pix_copiacola_message_enabled: true,
-                                pix_message_enabled: false
-                              });
-                            }
-                            toast({
-                              title: "Chave PIX salva!",
-                              description: "Sua chave PIX foi atualizada com sucesso."
-                            });
-                          } catch (error) {
-                            toast({
-                              title: "Erro ao salvar",
-                              description: "Não foi possível salvar a chave PIX. Tente novamente.",
-                              variant: "destructive"
+                          // Update local state
+                          if (pixKeyToSave) {
+                            setStoreForm({
+                              ...storeForm,
+                              pix_copiacola_message_enabled: true,
+                              pix_message_enabled: false
                             });
                           }
-                        }} disabled={storeForm.pix_key ? !pixValidation.isValid : false} className="w-full">
+                          toast({
+                            title: "Chave PIX salva!",
+                            description: "Sua chave PIX foi atualizada com sucesso."
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Erro ao salvar",
+                            description: "Não foi possível salvar a chave PIX. Tente novamente.",
+                            variant: "destructive"
+                          });
+                        }
+                      }} disabled={storeForm.pix_key ? !pixValidation.isValid : false} className="w-full">
                   <Save className="w-4 h-4 mr-2" />
                   Salvar Chave PIX
                 </Button>
@@ -4935,31 +4919,31 @@ export const StoreOwnerDashboard = ({
                         </p>
                       </div>
                       <Switch checked={storeForm.pix_copiacola_message_enabled ?? false} onCheckedChange={async checked => {
-                              // Se ativar PIX Copia e Cola, desativar Chave PIX Fixa
-                              const updates = {
-                                pix_copiacola_message_enabled: checked,
-                                ...(checked && {
-                                  pix_message_enabled: false
-                                })
-                              };
-                              setStoreForm({
-                                ...storeForm,
+                            // Se ativar PIX Copia e Cola, desativar Chave PIX Fixa
+                            const updates = {
+                              pix_copiacola_message_enabled: checked,
+                              ...(checked && {
+                                pix_message_enabled: false
+                              })
+                            };
+                            setStoreForm({
+                              ...storeForm,
+                              ...updates
+                            });
+                            if (myStore?.id) {
+                              await updateStore({
+                                id: myStore.id,
+                                name: myStore.name,
+                                slug: myStore.slug,
+                                category: myStore.category,
                                 ...updates
                               });
-                              if (myStore?.id) {
-                                await updateStore({
-                                  id: myStore.id,
-                                  name: myStore.name,
-                                  slug: myStore.slug,
-                                  category: myStore.category,
-                                  ...updates
-                                });
-                                toast({
-                                  title: checked ? "PIX Copia e Cola ativado" : "PIX Copia e Cola desativado",
-                                  description: checked ? "O código PIX Copia e Cola será gerado automaticamente. Chave PIX Fixa foi desativada." : "O código PIX Copia e Cola não será mais gerado"
-                                });
-                              }
-                            }} />
+                              toast({
+                                title: checked ? "PIX Copia e Cola ativado" : "PIX Copia e Cola desativado",
+                                description: checked ? "O código PIX Copia e Cola será gerado automaticamente. Chave PIX Fixa foi desativada." : "O código PIX Copia e Cola não será mais gerado"
+                              });
+                            }
+                          }} />
                     </div>
 
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
@@ -4970,71 +4954,68 @@ export const StoreOwnerDashboard = ({
                         </p>
                       </div>
                       <Switch checked={storeForm.pix_message_enabled ?? false} onCheckedChange={async checked => {
-                              // Se ativar Chave PIX Fixa, desativar PIX Copia e Cola
-                              const updates = {
-                                pix_message_enabled: checked,
-                                ...(checked && {
-                                  pix_copiacola_message_enabled: false
-                                })
-                              };
-                              setStoreForm({
-                                ...storeForm,
+                            // Se ativar Chave PIX Fixa, desativar PIX Copia e Cola
+                            const updates = {
+                              pix_message_enabled: checked,
+                              ...(checked && {
+                                pix_copiacola_message_enabled: false
+                              })
+                            };
+                            setStoreForm({
+                              ...storeForm,
+                              ...updates
+                            });
+                            if (myStore?.id) {
+                              await updateStore({
+                                id: myStore.id,
+                                name: myStore.name,
+                                slug: myStore.slug,
+                                category: myStore.category,
                                 ...updates
                               });
-                              if (myStore?.id) {
-                                await updateStore({
-                                  id: myStore.id,
-                                  name: myStore.name,
-                                  slug: myStore.slug,
-                                  category: myStore.category,
-                                  ...updates
-                                });
-                                toast({
-                                  title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
-                                  description: checked ? "A chave PIX estática será exibida aos clientes. PIX Copia e Cola foi desativado." : "A chave PIX estática não será mais exibida"
-                                });
-                              }
-                            }} />
+                              toast({
+                                title: checked ? "Chave PIX Fixa ativada" : "Chave PIX Fixa desativada",
+                                description: checked ? "A chave PIX estática será exibida aos clientes. PIX Copia e Cola foi desativado." : "A chave PIX estática não será mais exibida"
+                              });
+                            }
+                          }} />
                     </div>
                   </div>}
               </CardContent>
             </Card>
 
             <WhatsAppMessageConfig store={myStore} onUpdate={async data => {
-                      await updateStore({
-                        id: myStore.id,
-                        name: myStore.name,
-                        slug: myStore.slug,
-                        category: myStore.category,
-                        ...data
-                      });
-                    }} />
-          </motion.div>
-        )}
+                    await updateStore({
+                      id: myStore.id,
+                      name: myStore.name,
+                      slug: myStore.slug,
+                      category: myStore.category,
+                      ...data
+                    });
+                  }} />
+          </motion.div>}
 
         {/* Layout Tab */}
-        {profileSettingsTab === "layout" && (
-          <motion.div initial={{
-                    opacity: 0,
-                    y: 20
-                  }} animate={{
-                    opacity: 1,
-                    y: 0
-                  }} transition={{
-                    duration: 0.5
-                  }}>
+        {profileSettingsTab === "layout" && <motion.div initial={{
+                  opacity: 0,
+                  y: 20
+                }} animate={{
+                  opacity: 1,
+                  y: 0
+                }} transition={{
+                  duration: 0.5
+                }}>
             <LayoutSettings currentTemplateDesktop={(myStore as any)?.product_layout_template_desktop || 'template-4'} currentTemplateMobile={(myStore as any)?.product_layout_template_mobile || 'template-2'} onUpdate={async (desktopTemplate: string, mobileTemplate: string) => {
-                      await updateStore({
-                        id: myStore.id,
-                        name: myStore.name,
-                        slug: myStore.slug,
-                        category: myStore.category,
-                        product_layout_template_desktop: desktopTemplate,
-                        product_layout_template_mobile: mobileTemplate
-                      });
-                    }} isUpdating={false} />
-          </motion.div>
-        )}
+                    await updateStore({
+                      id: myStore.id,
+                      name: myStore.name,
+                      slug: myStore.slug,
+                      category: myStore.category,
+                      product_layout_template_desktop: desktopTemplate,
+                      product_layout_template_mobile: mobileTemplate
+                    });
+                  }} isUpdating={false} />
+          </motion.div>}
       </div>
       </motion.div>
     </div>
@@ -5408,33 +5389,19 @@ export const StoreOwnerDashboard = ({
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2">
-            <Textarea
-              value={tempDescription}
-              onChange={e => setTempDescription(e.target.value)}
-              rows={8}
-              className="w-full resize-none"
-              placeholder="Digite a descrição do produto..."
-              autoFocus
-            />
+            <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} rows={8} className="w-full resize-none" placeholder="Digite a descrição do produto..." autoFocus />
           </div>
           <div className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsDescriptionDialogOpen(false)}
-              className="w-full sm:w-auto"
-            >
+            <Button variant="outline" onClick={() => setIsDescriptionDialogOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button
-              onClick={() => {
+            <Button onClick={() => {
                 setProductForm({
                   ...productForm,
-                  description: tempDescription,
+                  description: tempDescription
                 });
                 setIsDescriptionDialogOpen(false);
-              }}
-              className="w-full sm:w-auto"
-            >
+              }} className="w-full sm:w-auto">
               Salvar
             </Button>
           </div>
