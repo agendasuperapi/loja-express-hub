@@ -239,7 +239,7 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
       )}
 
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <ResponsiveDialogContent className="h-[87vh] flex flex-col">
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{editingSize ? 'Editar Tamanho' : 'Novo Tamanho'}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
