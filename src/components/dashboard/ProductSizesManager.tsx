@@ -186,7 +186,7 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
 
   return (
     <>
-      <Card>
+      <Card className="min-h-[600px]">
       <CardHeader>
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex-1">
@@ -202,7 +202,7 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 min-h-[450px]">
         <div className="flex flex-col sm:flex-row flex-1 gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
