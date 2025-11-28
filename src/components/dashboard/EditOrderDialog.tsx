@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -933,12 +934,15 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
     </ResponsiveDialog>
 
     {/* Modal de Observação */}
-    <ResponsiveDialog open={observationModalOpen} onOpenChange={setObservationModalOpen}>
-      <ResponsiveDialogContent>
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Observação do Produto</ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
-        <div className="space-y-4">
+    <Dialog open={observationModalOpen} onOpenChange={setObservationModalOpen}>
+      <DialogContent className="max-w-lg w-[96vw] sm:w-full">
+        <DialogHeader>
+          <DialogTitle>Observação do Produto</DialogTitle>
+          <DialogDescription>
+            Edite a observação deste item do pedido
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
           <div>
             <Label>Produto: {editingObservationItem?.product_name}</Label>
           </div>
@@ -953,13 +957,13 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
             />
           </div>
         </div>
-        <ResponsiveDialogFooter>
+        <div className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <Button
             variant="outline"
             onClick={() => {
               setObservationModalOpen(false);
               setEditingObservationItem(null);
-              setTempObservation('');
+              setTempObservation("");
             }}
           >
             Cancelar
@@ -971,14 +975,14 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
               }
               setObservationModalOpen(false);
               setEditingObservationItem(null);
-              setTempObservation('');
+              setTempObservation("");
             }}
           >
             Salvar
           </Button>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
     </>
   );
 };
