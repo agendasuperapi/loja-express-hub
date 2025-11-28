@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Pencil, Trash2, GripVertical, Search, Filter } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import {
@@ -238,7 +239,7 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
       )}
 
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <ResponsiveDialogContent>
+        <ResponsiveDialogContent className="h-[87vh] flex flex-col">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{editingSize ? 'Editar Tamanho' : 'Novo Tamanho'}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
@@ -246,49 +247,51 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome do Tamanho *</Label>
-              <Input
-                id="name"
-                placeholder="Ex: Pequeno, Médio, Grande..."
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
+          <ScrollArea className="flex-1 px-4 md:px-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Tamanho *</Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Pequeno, Médio, Grande..."
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="price">Preço *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Preço *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descrição (opcional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Descrição do tamanho..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição (opcional)</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Descrição do tamanho..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+              </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_available"
-                checked={formData.is_available}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-              />
-              <Label htmlFor="is_available">Disponível</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_available"
+                  checked={formData.is_available}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+                />
+                <Label htmlFor="is_available">Disponível</Label>
+              </div>
             </div>
-          </div>
+          </ScrollArea>
 
           <ResponsiveDialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
