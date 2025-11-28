@@ -75,6 +75,7 @@ export default function Cart() {
   const [highlightPickupLocation, setHighlightPickupLocation] = useState(false);
   const [highlightPayment, setHighlightPayment] = useState(false);
   const [highlightAuthSection, setHighlightAuthSection] = useState(false);
+  const [highlightDeliveryType, setHighlightDeliveryType] = useState(false);
   const deliveryTypeRef = useRef<HTMLDivElement>(null);
   const cartItemsRef = useRef<HTMLDivElement>(null);
   const paymentSectionRef = useRef<HTMLDivElement>(null);
@@ -806,8 +807,14 @@ export default function Cart() {
                     setHighlightAuthSection(false);
                   }, 1000);
                 } else {
-                  // Se já estiver logado, rola para a seção de tipo de entrega
+                  // Se já estiver logado, rola para a seção de tipo de entrega e destaca
+                  setHighlightDeliveryType(true);
                   deliveryTypeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  
+                  // Remove o destaque após 1 segundo
+                  setTimeout(() => {
+                    setHighlightDeliveryType(false);
+                  }, 1000);
                 }
               }}
               className="gap-2 w-full"
@@ -1191,10 +1198,14 @@ export default function Cart() {
                                 }, 2500);
                               }
                             }}
-                            className={`p-4 rounded-lg border-2 transition-all ${
+                            className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                               deliveryType === 'pickup'
                                 ? 'border-primary bg-primary/10'
                                 : 'border-border hover:border-primary/50'
+                            } ${
+                              highlightDeliveryType 
+                                ? 'ring-4 ring-orange-500 shadow-lg shadow-orange-500/50 animate-[pulse-ring_1s_ease-in-out]' 
+                                : ''
                             }`}
                           >
                             <Store className="w-6 h-6 mx-auto mb-2" />
@@ -1207,10 +1218,14 @@ export default function Cart() {
                           <button
                             type="button"
                             onClick={() => setDeliveryType('delivery')}
-                            className={`p-4 rounded-lg border-2 transition-all ${
+                            className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                               deliveryType === 'delivery'
                                 ? 'border-primary bg-primary/10'
                                 : 'border-border hover:border-primary/50'
+                            } ${
+                              highlightDeliveryType 
+                                ? 'ring-4 ring-orange-500 shadow-lg shadow-orange-500/50 animate-[pulse-ring_1s_ease-in-out]' 
+                                : ''
                             }`}
                           >
                             <Package className="w-6 h-6 mx-auto mb-2" />
