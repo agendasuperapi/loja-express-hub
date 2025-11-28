@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Pencil, Trash2, GripVertical, Search, Filter } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import {
@@ -184,8 +185,23 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
   }
 
   return (
-    <div className="space-y-4 min-h-[400px]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+    <>
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex-1">
+            <CardTitle>Tamanhos</CardTitle>
+            <CardDescription className="mt-1">
+              Gerencie os tamanhos disponíveis para este produto
+            </CardDescription>
+          </div>
+          <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Tamanho
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row flex-1 gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -208,11 +224,6 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Tamanho
-        </Button>
-      </div>
 
       {!filteredSizes || filteredSizes.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -237,6 +248,8 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
           </SortableContext>
         </DndContext>
       )}
+      </CardContent>
+    </Card>
 
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
@@ -303,6 +316,6 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
-    </div>
+    </>
   );
 }
