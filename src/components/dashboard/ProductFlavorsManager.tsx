@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogDescription } from "@/components/ui/responsive-dialog";
 import { useStoreAddonsAndFlavors } from "@/hooks/useStoreAddonsAndFlavors";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -698,14 +698,14 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
         </div>
 
         {/* Dialog: Importar de Produto */}
-        <Dialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Importar Sabores de Produto</DialogTitle>
-              <DialogDescription>
+        <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>Importar Sabores de Produto</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
                 Selecione um produto para importar seus sabores
-              </DialogDescription>
-            </DialogHeader>
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
             <div className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -751,30 +751,30 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 </p>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
 
         {/* Dialog: Importar Template */}
-        <Dialog open={importTemplateOpen} onOpenChange={(open) => {
+        <ResponsiveDialog open={importTemplateOpen} onOpenChange={(open) => {
           setImportTemplateOpen(open);
           if (!open) {
             setSelectedTemplate(null);
             setSelectedFlavors([]);
           }
         }}>
-          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5" />
                 {selectedTemplate ? 'Selecionar Sabores' : 'Importar Templates de Sabores'}
-              </DialogTitle>
-              <DialogDescription>
+              </ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
                 {selectedTemplate 
                   ? 'Marque os sabores que deseja importar para este produto'
                   : 'Selecione um template para visualizar seus sabores'
                 }
-              </DialogDescription>
-            </DialogHeader>
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
             {!selectedTemplate ? (
               <div className="space-y-3">
                 {loadingTemplates ? (
@@ -911,18 +911,18 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 </div>
               </div>
             )}
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
 
         {/* Dialog: Novo Sabor */}
-        <Dialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
-          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Novo Sabor</DialogTitle>
-              <DialogDescription>
+        <ResponsiveDialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>Novo Sabor</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
                 Adicione um novo sabor para este produto
-              </DialogDescription>
-            </DialogHeader>
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
 
             <div className="space-y-4">
               <div className="space-y-2">
@@ -1010,18 +1010,18 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
 
         {/* Dialog: Buscar Sabores da Loja */}
-        <Dialog open={searchFlavorsOpen} onOpenChange={setSearchFlavorsOpen}>
-          <DialogContent className="max-w-[50vw] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Buscar Sabores da Loja</DialogTitle>
-              <DialogDescription>
+        <ResponsiveDialog open={searchFlavorsOpen} onOpenChange={setSearchFlavorsOpen}>
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+            <ResponsiveDialogHeader>
+              <ResponsiveDialogTitle>Buscar Sabores da Loja</ResponsiveDialogTitle>
+              <ResponsiveDialogDescription>
                 Todos os sabores únicos cadastrados em sua loja
-              </DialogDescription>
-            </DialogHeader>
+              </ResponsiveDialogDescription>
+            </ResponsiveDialogHeader>
 
             {/* Form to Create New Flavor */}
             {showFlavorFormInModal && (
@@ -1211,8 +1211,8 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                 </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
+          </ResponsiveDialogContent>
+        </ResponsiveDialog>
       </CardContent>
     </Card>
     </>
