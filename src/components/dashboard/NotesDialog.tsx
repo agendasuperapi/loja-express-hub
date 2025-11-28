@@ -65,15 +65,17 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[96vw] sm:w-full max-h-[90vh] flex flex-col top-[5%] translate-y-0">
-        <DialogHeader>
-          <DialogTitle>Notas - #{order.order_number}</DialogTitle>
-          <DialogDescription>
-            Gerencie as notas do cliente e as notas internas da loja
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl w-[96vw] sm:w-full max-h-[90vh] flex flex-col top-[5%] translate-y-0 p-0">
+        <div className="px-6 pt-6">
+          <DialogHeader>
+            <DialogTitle>Notas - #{order.order_number}</DialogTitle>
+            <DialogDescription>
+              Gerencie as notas do cliente e as notas internas da loja
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <ScrollArea className="flex-1 pr-4">
+        <ScrollArea className="flex-1 px-6">
           <div className="space-y-6 py-4">
             <div>
               <Label htmlFor="customer-notes" className="text-sm sm:text-base">Notas do Cliente</Label>
@@ -105,7 +107,7 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
           </div>
         </ScrollArea>
 
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
+        <div className="sticky bottom-0 flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-4 border-t bg-background z-10">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
