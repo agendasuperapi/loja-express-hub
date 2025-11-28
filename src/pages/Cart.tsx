@@ -965,7 +965,7 @@ export default function Cart() {
                     exit={{ opacity: 0, x: -20 }}
                     className={`space-y-6 rounded-lg transition-all duration-300 ${
                       highlightAuthSection 
-                        ? 'ring-4 ring-orange-500 shadow-lg shadow-orange-500/50 p-4 animate-pulse' 
+                        ? 'ring-4 ring-orange-500 shadow-lg shadow-orange-500/50 p-4 animate-[pulse-ring_1s_ease-in-out]' 
                         : ''
                     }`}
                   >

@@ -237,6 +237,15 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes pulse-ring {
+    0%, 100% {
+      box-shadow: 0 0 0 0px hsl(25 95% 53% / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 0 8px hsl(25 95% 53% / 0);
+    }
+  }
+
   /* Hover effects */
   .hover-lift {
     @apply transition-all duration-300;
