@@ -5381,7 +5381,7 @@ export const StoreOwnerDashboard = ({
 
       {/* Modal de descrição em mobile */}
       <Dialog open={isDescriptionDialogOpen} onOpenChange={setIsDescriptionDialogOpen}>
-        <DialogContent className="max-w-lg w-[96vw] sm:w-full">
+        <DialogContent className="max-w-lg w-[96vw] sm:w-full top-[10%] translate-y-0">
           <DialogHeader>
             <DialogTitle>Descrição do Produto</DialogTitle>
             <DialogDescription>
