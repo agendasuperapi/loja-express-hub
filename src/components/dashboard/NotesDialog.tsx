@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle, ResponsiveDialogFooter } from "@/components/ui/responsive-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NotesDialogProps {
   open: boolean;
@@ -61,18 +60,19 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
     }
   };
 
-  const isMobile = useIsMobile();
-
   if (!order) return null;
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
-      <ResponsiveDialogContent className={isMobile ? "p-0" : "max-w-2xl"}>
-        <ResponsiveDialogHeader>
-          <ResponsiveDialogTitle>Notas - #{order.order_number}</ResponsiveDialogTitle>
-        </ResponsiveDialogHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl w-[96vw] sm:w-full max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Notas - #{order.order_number}</DialogTitle>
+          <DialogDescription>
+            Gerencie as notas do cliente e as notas internas da loja
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className={isMobile ? "space-y-4" : "space-y-6 py-4"}>
+        <div className="space-y-6 py-4">
           <div>
             <Label htmlFor="customer-notes" className="text-sm sm:text-base">Notas do Cliente</Label>
             <Textarea
@@ -102,20 +102,25 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
           </div>
         </div>
 
-        <ResponsiveDialogFooter>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={loading} className="flex-1 sm:flex-initial">
+          <Button 
+            onClick={handleSubmit} 
+            disabled={loading} 
+            className="w-full sm:w-auto"
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Salvar
           </Button>
-        </ResponsiveDialogFooter>
-      </ResponsiveDialogContent>
-    </ResponsiveDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
