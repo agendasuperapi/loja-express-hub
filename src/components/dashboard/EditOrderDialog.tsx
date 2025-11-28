@@ -935,7 +935,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
 
     {/* Modal de Observação */}
     <Dialog open={observationModalOpen} onOpenChange={setObservationModalOpen}>
-      <DialogContent className="max-w-lg w-[96vw] sm:w-full">
+      <DialogContent className="max-w-lg w-[96vw] sm:w-full top-[15%] translate-y-0">
         <DialogHeader>
           <DialogTitle>Observação do Produto</DialogTitle>
           <DialogDescription>
