@@ -184,7 +184,7 @@ export function ProductSizesManager({ productId }: ProductSizesManagerProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-h-[400px]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
         <div className="flex flex-col sm:flex-row flex-1 gap-2">
           <div className="relative flex-1">
