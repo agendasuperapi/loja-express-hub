@@ -5389,7 +5389,7 @@ export const StoreOwnerDashboard = ({
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2">
-            <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} rows={8} className="w-full resize-none" placeholder="Digite a descrição do produto..." autoFocus />
+            <Textarea value={tempDescription} onChange={e => setTempDescription(e.target.value)} className="w-full resize-none min-h-[60px] sm:min-h-[120px]" placeholder="Digite a descrição do produto..." autoFocus />
           </div>
           <div className="mt-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
             <Button variant="outline" onClick={() => setIsDescriptionDialogOpen(false)} className="w-full sm:w-auto">
