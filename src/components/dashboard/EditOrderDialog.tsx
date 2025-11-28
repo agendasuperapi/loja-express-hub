@@ -952,8 +952,7 @@ export const EditOrderDialog = ({ open, onOpenChange, order, onUpdate, initialTa
               value={tempObservation}
               onChange={(e) => setTempObservation(e.target.value)}
               placeholder="Digite a observação do produto..."
-              rows={5}
-              className="resize-none"
+              className="resize-none min-h-[60px] sm:min-h-[120px]"
             />
           </div>
         </div>
