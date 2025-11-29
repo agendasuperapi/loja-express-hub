@@ -1016,7 +1016,7 @@ export default function StoreDetails() {
                                 className="w-full h-full object-cover transition-transform duration-500 ease-out"
                               />
                               {/* Subtle gray-blue gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/3 via-blue-900/2 to-transparent pointer-events-none" />
                               {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0 }}
@@ -1152,7 +1152,7 @@ export default function StoreDetails() {
                                 className="w-full h-full object-cover transition-transform duration-500 ease-out"
                               />
                               {/* Subtle gray-blue gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/3 via-blue-900/2 to-transparent pointer-events-none" />
                               {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0, rotate: -180 }}
