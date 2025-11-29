@@ -76,11 +76,13 @@ export default function Cart() {
   const [highlightPayment, setHighlightPayment] = useState(false);
   const [highlightAuthSection, setHighlightAuthSection] = useState(false);
   const [highlightDeliveryType, setHighlightDeliveryType] = useState(false);
+  const [highlightDeliveryAddress, setHighlightDeliveryAddress] = useState(false);
   const deliveryTypeRef = useRef<HTMLDivElement>(null);
   const cartItemsRef = useRef<HTMLDivElement>(null);
   const paymentSectionRef = useRef<HTMLDivElement>(null);
   const pickupLocationRef = useRef<HTMLDivElement>(null);
   const authSectionRef = useRef<HTMLDivElement>(null);
+  const deliveryAddressRef = useRef<HTMLDivElement>(null);
 
   // Reset email exists alert when email changes
   useEffect(() => {
@@ -125,6 +127,19 @@ export default function Cart() {
       return () => clearTimeout(timer);
     }
   }, [selectedPickupLocation, deliveryType]);
+
+  // Effect when delivery is selected -> highlight delivery address section
+  useEffect(() => {
+    if (deliveryType === 'delivery') {
+      setHighlightDeliveryAddress(true);
+
+      const timer = setTimeout(() => {
+        setHighlightDeliveryAddress(false);
+      }, 2500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [deliveryType]);
 
   const storeIsOpen = storeData ? isStoreOpen(storeData.operating_hours) : true;
   const storeStatusText = storeData ? getStoreStatusText(storeData.operating_hours) : '';
@@ -1240,7 +1255,14 @@ export default function Cart() {
 
                       {deliveryType === 'delivery' && (
                         <>
-                          <div className="space-y-4">
+                          <div 
+                            ref={deliveryAddressRef}
+                            className={`space-y-4 p-4 rounded-lg transition-all duration-300 ${
+                              highlightDeliveryAddress 
+                                ? 'ring-4 ring-orange-500 border-2 border-orange-500 shadow-lg shadow-orange-500/50 animate-[pulse-ring_1s_ease-in-out_3]' 
+                                : 'border-2 border-transparent'
+                            }`}
+                          >
                             <h3 className="text-lg font-semibold">Endereço de Entrega</h3>
                             
                             <Alert>
