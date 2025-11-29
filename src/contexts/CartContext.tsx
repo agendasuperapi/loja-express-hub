@@ -102,7 +102,7 @@ interface CartContextType {
   getItemCount: () => number;
   applyCoupon: (code: string, discount: number) => void;
   removeCoupon: () => void;
-  validateAndSyncCart: () => Promise<void>;
+  validateAndSyncCart: (targetStoreId?: string) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -477,20 +477,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const validateAndSyncCart = async () => {
-    if (!multiCart.activeStoreId) return;
+  const validateAndSyncCart = async (targetStoreId?: string) => {
+    // Use targetStoreId explícito ou fallback para activeStoreId
+    const storeIdToValidate = targetStoreId || multiCart.activeStoreId;
     
-    const activeCart = multiCart.carts[multiCart.activeStoreId];
-    if (!activeCart || activeCart.items.length === 0) return;
+    console.log('🔍 validateAndSyncCart called:', {
+      targetStoreId,
+      activeStoreId: multiCart.activeStoreId,
+      storeIdToValidate,
+      cartsAvailable: Object.keys(multiCart.carts),
+      itemsInTargetCart: multiCart.carts[storeIdToValidate || '']?.items.length
+    });
     
-    const cart = activeCart;
+    if (!storeIdToValidate) return;
+    
+    const cartToValidate = multiCart.carts[storeIdToValidate];
+    if (!cartToValidate || cartToValidate.items.length === 0) return;
 
     try {
-      // Buscar produtos atuais da loja
+      console.log('🔍 Validating cart for store:', storeIdToValidate);
+      
+      // Buscar produtos usando storeIdToValidate (não activeStoreId)
       const { data: products, error } = await supabase
         .from('products')
         .select('id, name, price, promotional_price, is_available, image_url')
-        .eq('store_id', cart.storeId)
+        .eq('store_id', storeIdToValidate)
         .eq('is_available', true);
 
       if (error) throw error;
@@ -500,7 +511,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       let hasChanges = false;
 
       setMultiCart(prevMulti => {
-        const prev = prevMulti.carts[prevMulti.activeStoreId!];
+        // Usar storeIdToValidate em vez de activeStoreId para garantir validação correta
+        const prev = prevMulti.carts[storeIdToValidate];
         if (!prev) return prevMulti;
         
         const newItems = prev.items.filter(item => {
@@ -537,7 +549,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
         if (newItems.length === 0) {
           // Remove empty cart
-          const { [prevMulti.activeStoreId!]: removed, ...remainingCarts } = prevMulti.carts;
+          const { [storeIdToValidate]: removed, ...remainingCarts } = prevMulti.carts;
           return {
             carts: remainingCarts,
             activeStoreId: Object.keys(remainingCarts)[0] || null
@@ -548,7 +560,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           ...prevMulti,
           carts: {
             ...prevMulti.carts,
-            [prevMulti.activeStoreId!]: {
+            [storeIdToValidate]: {
               ...prev,
               items: newItems
             }

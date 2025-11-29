@@ -28,7 +28,9 @@ export const FloatingCartButton = ({ storeId }: { storeId?: string }) => {
   }, 0);
 
   const handleCartClick = async () => {
-    await validateAndSyncCart();
+    if (storeId) {
+      await validateAndSyncCart(storeId);
+    }
     navigate('/cart');
   };
 

@@ -28,10 +28,12 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
   const deliveryFee = 5;
   const total = getTotal() + (itemCount > 0 ? deliveryFee : 0);
 
-  // Validate cart on mount
+  // Validate cart on mount - pass storeId explicitly
   useEffect(() => {
-    validateAndSyncCart();
-  }, []);
+    if (storeId) {
+      validateAndSyncCart(storeId);
+    }
+  }, [storeId, validateAndSyncCart]);
 
   if (inDrawer) {
     const firstItem = filteredItems[0];
