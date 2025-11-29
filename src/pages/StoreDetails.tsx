@@ -1258,7 +1258,7 @@ export default function StoreDetails() {
         onOpenChange={(open) => !open && setDetailsProduct(null)}
       />
 
-      <FloatingCartButton />
+      <FloatingCartButton storeId={store?.id} />
     </div>
   );
 }

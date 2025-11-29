@@ -78,6 +78,7 @@ interface CartContextType {
   activeStoreId: string | null;
   switchToStore: (storeId: string) => void;
   getStoreCartCount: (storeId: string) => number;
+  getCartForStore: (storeId: string) => Cart;
   addToCart: (
     productId: string,
     productName: string,
@@ -219,6 +220,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const storeCart = multiCart.carts[storeId];
     if (!storeCart) return 0;
     return storeCart.items.reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  // Safety filter: returns cart with only items from the specified store
+  const getCartForStore = (storeId: string): Cart => {
+    const storeCart = multiCart.carts[storeId];
+    if (!storeCart) return emptyCart();
+    
+    // Extra safety: filter items to ensure they belong to this store
+    const filteredItems = storeCart.items.filter(item => item.storeId === storeId);
+    
+    return {
+      ...storeCart,
+      items: filteredItems
+    };
   };
 
   const addToCart = (
@@ -560,6 +575,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       activeStoreId: multiCart.activeStoreId,
       switchToStore,
       getStoreCartCount,
+      getCartForStore,
       addToCart,
       removeFromCart,
       updateQuantity,

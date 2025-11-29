@@ -18,7 +18,13 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
   const navigate = useNavigate();
   const { cart, updateQuantity, removeFromCart, getTotal, getItemCount, updateCartItem, validateAndSyncCart, switchToStore } = useCart();
   const [editingItem, setEditingItem] = useState<any>(null);
-  const itemCount = getItemCount();
+  
+  // Filter items by current store for safety
+  const filteredItems = storeId 
+    ? cart.items.filter(item => item.storeId === storeId)
+    : cart.items;
+  
+  const itemCount = filteredItems.reduce((sum, item) => sum + item.quantity, 0);
   const deliveryFee = 5;
   const total = getTotal() + (itemCount > 0 ? deliveryFee : 0);
 
@@ -28,7 +34,7 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
   }, []);
 
   if (inDrawer) {
-    const firstItem = cart.items[0];
+    const firstItem = filteredItems[0];
 
     return (
       <div className="flex flex-col h-full relative bg-background">
@@ -66,7 +72,7 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
             {/* Conteúdo rolável */}
             <div className="flex-1 overflow-y-auto">
               <div className="p-4 space-y-3">
-                {cart.items.map((item) => (
+                {filteredItems.map((item) => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -10 }}
@@ -230,7 +236,7 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
               <h3 className="text-xl font-bold mb-4">Seu Carrinho</h3>
               
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {cart.items.map((item) => (
+                {filteredItems.map((item) => (
                   <motion.div
                     key={item.id}
                     initial={{ opacity: 0, x: -10 }}
