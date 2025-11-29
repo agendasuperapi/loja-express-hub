@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export const FloatingCartButton = () => {
+export const FloatingCartButton = ({ storeId }: { storeId?: string }) => {
   const { cart, getItemCount, getTotal, validateAndSyncCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,8 +14,18 @@ export const FloatingCartButton = () => {
   const isMobile = useIsMobile();
   const [shouldAnimate, setShouldAnimate] = useState(false);
   
-  const itemCount = getItemCount();
-  const total = getTotal();
+  // Filter items by current store for safety
+  const filteredItems = storeId 
+    ? cart.items.filter(item => item.storeId === storeId)
+    : cart.items;
+  
+  const itemCount = filteredItems.reduce((sum, item) => sum + item.quantity, 0);
+  const total = filteredItems.reduce((sum, item) => {
+    const basePrice = item.size ? item.size.price : (item.promotionalPrice || item.price);
+    const addonsPrice = item.addons?.reduce((addonSum, addon) => addonSum + addon.price, 0) || 0;
+    const flavorsPrice = item.flavors?.reduce((flavorSum, flavor) => flavorSum + flavor.price, 0) || 0;
+    return sum + ((basePrice + addonsPrice + flavorsPrice) * item.quantity);
+  }, 0);
 
   const handleCartClick = async () => {
     await validateAndSyncCart();
@@ -30,7 +40,7 @@ export const FloatingCartButton = () => {
   console.log('🎨 FloatingCartButton:', { itemCount, total, cartItems: cart.items.length });
 
   useEffect(() => {
-    if (cart.items.length > 0) {
+    if (filteredItems.length > 0) {
       console.log('✨ Animating button - forcing zoom');
       setShouldAnimate(true);
       
@@ -47,7 +57,7 @@ export const FloatingCartButton = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [cart.items.length, controls]);
+  }, [filteredItems.length, controls]);
 
   if (itemCount === 0) {
     console.log('❌ FloatingCartButton: hidden (no items)');
