@@ -128,8 +128,8 @@ export const FeaturedProductsCarousel = ({
                         </div>
                       )}
                       
-                      {/* Gradiente extremamente suave */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/[0.02] via-transparent to-transparent pointer-events-none" />
+                      {/* Gradiente suave */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/5 via-transparent to-transparent pointer-events-none" />
                     </div>
 
                     {/* Conteúdo do Card */}
