@@ -787,7 +787,7 @@ export default function StoreDetails() {
                           >
                             {/* Product Image on Left */}
                             <div className="flex-shrink-0 relative">
-                              <div className="w-36 h-24 md:w-48 md:h-32 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                              <div className="w-36 h-24 md:w-48 md:h-32 rounded-xl overflow-hidden bg-muted/30">
                                 {product.image_url ? (
                                   <img 
                                     src={product.image_url} 
@@ -890,7 +890,7 @@ export default function StoreDetails() {
                           >
                             {/* Product Image on Left */}
                             <div className="flex-shrink-0 relative">
-                              <div className="w-36 h-24 md:w-48 md:h-32 rounded-xl overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                              <div className="w-36 h-24 md:w-48 md:h-32 rounded-xl overflow-hidden bg-muted/30">
                                 {product.image_url ? (
                                   <img 
                                     src={product.image_url} 
@@ -1005,7 +1005,7 @@ export default function StoreDetails() {
                           onClick={() => setDetailsProduct(product)}
                         >
                           {product.image_url && (
-                            <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                            <div className="relative aspect-[4/3] overflow-hidden bg-muted/30">
                               <motion.img
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -1141,7 +1141,7 @@ export default function StoreDetails() {
                           onClick={() => setDetailsProduct(product)}
                         >
                           {product.image_url && (
-                            <div className="relative h-56 md:h-44 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
+                            <div className="relative h-56 md:h-44 overflow-hidden bg-muted/30">
                               <motion.img
                                 initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
