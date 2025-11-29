@@ -127,6 +127,9 @@ export const FeaturedProductsCarousel = ({
                           <ShoppingCart className="h-16 w-16 text-muted-foreground/30" />
                         </div>
                       )}
+                      
+                      {/* Gradiente sutil */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/3 via-transparent to-transparent pointer-events-none" />
                     </div>
 
                     {/* Conteúdo do Card */}

@@ -1015,6 +1015,8 @@ export default function StoreDetails() {
                               alt={product.name}
                               className="w-full h-full object-cover transition-transform duration-500 ease-out"
                             />
+                            {/* Gradiente sutil */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/3 via-transparent to-transparent pointer-events-none" />
                             {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0 }}
@@ -1149,6 +1151,8 @@ export default function StoreDetails() {
                               alt={product.name}
                               className="w-full h-full object-cover transition-transform duration-500 ease-out"
                             />
+                            {/* Gradiente sutil */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/3 via-transparent to-transparent pointer-events-none" />
                             {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0, rotate: -180 }}
