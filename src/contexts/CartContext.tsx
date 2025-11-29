@@ -207,10 +207,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           ...prev,
           carts: mergedCarts
         }));
-        
-        if (totalRecovered > 0) {
-          toast.success(`Recuperamos ${totalRecovered} ${totalRecovered === 1 ? 'item' : 'itens'} do seu carrinho!`);
-        }
       }
       
       setIsInitialized(true);
