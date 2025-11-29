@@ -1012,12 +1012,10 @@ export default function StoreDetails() {
                                 transition={{ duration: 0.6, ease: "easeOut" }}
                                 whileHover={{ scale: 1.15 }}
                                 src={product.image_url} 
-                                alt={product.name}
-                                className="w-full h-full object-cover transition-transform duration-500 ease-out"
-                              />
-                              {/* Subtle gray-blue gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
-                              {isInCart && (
+                              alt={product.name}
+                              className="w-full h-full object-cover transition-transform duration-500 ease-out"
+                            />
+                            {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
@@ -1148,12 +1146,10 @@ export default function StoreDetails() {
                                 transition={{ duration: 0.6, ease: "easeOut" }}
                                 whileHover={{ scale: 1.15 }}
                                 src={product.image_url} 
-                                alt={product.name}
-                                className="w-full h-full object-cover transition-transform duration-500 ease-out"
-                              />
-                              {/* Subtle gray-blue gradient overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
-                              {isInCart && (
+                              alt={product.name}
+                              className="w-full h-full object-cover transition-transform duration-500 ease-out"
+                            />
+                            {isInCart && (
                                 <motion.div
                                   initial={{ scale: 0, rotate: -180 }}
                                   animate={{ scale: 1, rotate: 0 }}

@@ -127,9 +127,6 @@ export const FeaturedProductsCarousel = ({
                           <ShoppingCart className="h-16 w-16 text-muted-foreground/30" />
                         </div>
                       )}
-                      
-                      {/* Subtle gray-blue gradient overlay - permanente */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
                     </div>
 
                     {/* Conteúdo do Card */}
