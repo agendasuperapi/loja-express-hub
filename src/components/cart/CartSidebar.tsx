@@ -24,11 +24,12 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
 
   // Auto-switch to store cart when storeId is provided
   useEffect(() => {
-    if (storeId) {
-      console.log('🏪 CartSidebar: switching to store', storeId);
+    // Only switch if the storeId is different from current cart's storeId
+    if (storeId && storeId !== cart.storeId) {
+      console.log('🏪 CartSidebar: switching to store', storeId, 'from', cart.storeId);
       switchToStore(storeId);
     }
-  }, [storeId]); // Removed switchToStore from dependencies as it's now stable with useCallback
+  }, [storeId, cart.storeId, switchToStore]);
 
   useEffect(() => {
     validateAndSyncCart();

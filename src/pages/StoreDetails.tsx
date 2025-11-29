@@ -212,6 +212,7 @@ export default function StoreDetails() {
   // Auto-switch to store cart when entering a store page
   useEffect(() => {
     if (store) {
+      console.log('🏪 StoreDetails: Switching to store', store.id);
       // Switch to this store's cart
       switchToStore(store.id);
       
@@ -235,7 +236,7 @@ export default function StoreDetails() {
         name: store.name
       }));
     }
-  }, [store?.id]);
+  }, [store?.id, switchToStore, allCarts]);
 
   // Open product from URL parameter and show dialog
   useEffect(() => {
