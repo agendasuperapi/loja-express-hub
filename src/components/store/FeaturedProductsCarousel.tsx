@@ -129,7 +129,7 @@ export const FeaturedProductsCarousel = ({
                       )}
                       
                       {/* Subtle gray-blue gradient overlay - permanente */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/15 via-blue-900/10 to-transparent pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/8 via-blue-900/5 to-transparent pointer-events-none" />
                       
                       {/* Gradiente overlay - hover */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
