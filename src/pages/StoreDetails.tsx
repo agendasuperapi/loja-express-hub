@@ -41,6 +41,7 @@ export default function StoreDetails() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const categoryRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const lastSwitchRef = useRef<string | null>(null);
   
   // Get layout templates from store (separate for desktop and mobile)
   const layoutTemplateDesktop = (store as any)?.product_layout_template_desktop || 'template-4';
@@ -209,14 +210,23 @@ export default function StoreDetails() {
   const allowOrdersWhenClosed = (store as any)?.allow_orders_when_closed ?? false;
   const canAcceptOrders = storeIsOpen || allowOrdersWhenClosed;
 
-  // Auto-switch to store cart when entering a store page
+  // Auto-switch to store cart when entering a store page (with protection against duplicate calls)
   useEffect(() => {
-    if (store) {
+    if (store && store.id !== lastSwitchRef.current) {
       console.log('🏪 StoreDetails: Switching to store', store.id);
-      // Switch to this store's cart
+      lastSwitchRef.current = store.id;
       switchToStore(store.id);
       
-      // Show notification about other carts if they exist
+      localStorage.setItem('lastVisitedStore', JSON.stringify({
+        slug: store.slug,
+        name: store.name
+      }));
+    }
+  }, [store?.id, switchToStore]);
+
+  // Show notification about other carts (separate effect to avoid re-triggering switchToStore)
+  useEffect(() => {
+    if (store && allCarts) {
       const otherCarts = Object.entries(allCarts).filter(([storeId]) => storeId !== store.id);
       if (otherCarts.length > 0) {
         const totalOtherItems = otherCarts.reduce((sum, [_, storeCart]) => 
@@ -230,13 +240,8 @@ export default function StoreDetails() {
           });
         }
       }
-      
-      localStorage.setItem('lastVisitedStore', JSON.stringify({
-        slug: store.slug,
-        name: store.name
-      }));
     }
-  }, [store?.id, switchToStore, allCarts]);
+  }, [store?.id]);
 
   // Open product from URL parameter and show dialog
   useEffect(() => {

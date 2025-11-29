@@ -178,14 +178,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [multiCart]);
 
   const switchToStore = useCallback((storeId: string) => {
-    console.log('🔄 switchToStore called:', storeId);
+    console.log('🔄 CartContext: switchToStore called for', storeId);
     setMultiCart(prev => {
-      // Don't do anything if already on this store
+      // Early return if already on this store
       if (prev.activeStoreId === storeId) {
-        console.log('⏭️ Already on store', storeId, '- skipping switch');
+        console.log('✅ CartContext: already on this store, no change needed');
         return prev;
       }
       
+      console.log('🔄 CartContext: switching from', prev.activeStoreId, 'to', storeId);
       console.log('📦 Previous multiCart state:', {
         activeStoreId: prev.activeStoreId,
         carts: Object.keys(prev.carts),
@@ -195,8 +196,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         }))
       });
       
-      // Just change activeStoreId, preserve ALL existing carts
-      const newState = {
+      // CRITICAL: Preserve ALL existing carts when switching
+      const newState: MultiStoreCart = {
         carts: { ...prev.carts }, // Spread to ensure immutability
         activeStoreId: storeId
       };
