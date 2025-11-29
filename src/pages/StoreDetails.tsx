@@ -17,6 +17,7 @@ import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { useCart } from "@/contexts/CartContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast as sonnerToast } from "sonner";
 import { useState, useRef, useEffect } from "react";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { formatDisplayPhone } from "@/lib/phone";
@@ -34,7 +35,7 @@ export default function StoreDetails() {
   const { data: products, isLoading: productsLoading } = useProducts(store?.id || '');
   const { data: featuredProducts } = useFeaturedProducts(store?.id || '');
   const { categories: storeCategories } = useCategories(store?.id);
-  const { addToCart, cart } = useCart();
+  const { addToCart, cart, clearCart } = useCart();
   const { toast } = useToast();
   const [detailsProduct, setDetailsProduct] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -208,15 +209,23 @@ export default function StoreDetails() {
   const allowOrdersWhenClosed = (store as any)?.allow_orders_when_closed ?? false;
   const canAcceptOrders = storeIsOpen || allowOrdersWhenClosed;
 
-  // Save last visited store to localStorage
+  // Save last visited store to localStorage and clear cart if different store
   useEffect(() => {
     if (store) {
+      // Check if there are items in cart from a different store
+      if (cart.items.length > 0 && cart.storeId && cart.storeId !== store.id) {
+        clearCart();
+        sonnerToast.info("Carrinho limpo", {
+          description: `O carrinho foi limpo porque você entrou em ${store.name}. Você tinha itens de ${cart.storeName}.`
+        });
+      }
+      
       localStorage.setItem('lastVisitedStore', JSON.stringify({
         slug: store.slug,
         name: store.name
       }));
     }
-  }, [store]);
+  }, [store, cart.storeId, cart.items.length, cart.storeName, clearCart]);
 
   // Open product from URL parameter and show dialog
   useEffect(() => {
