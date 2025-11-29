@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useSavedCarts } from '@/hooks/useSavedCarts';
+import { useDebounce } from '@/hooks/useNotificationThrottler';
 
 // Função para gerar ID único para cada item do carrinho
 // Baseado em: storeId + productId + customizações (size, addons, flavors, observation)
@@ -119,6 +122,16 @@ const emptyCart = (): Cart => ({
 });
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
+  const { 
+    saveCartToDatabase, 
+    loadCartsFromDatabase, 
+    deleteCartFromDatabase,
+    mergeWithLocalCarts 
+  } = useSavedCarts();
+  
+  const [isInitialized, setIsInitialized] = useState(false);
+  
   const [multiCart, setMultiCart] = useState<MultiStoreCart>(() => {
     const stored = localStorage.getItem(MULTI_CART_STORAGE_KEY);
     if (stored) {
@@ -177,6 +190,66 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     console.log('💾 CartProvider: saving multi-cart to localStorage', cartSummary);
     localStorage.setItem(MULTI_CART_STORAGE_KEY, JSON.stringify(multiCart));
   }, [multiCart]);
+
+  // Load and merge carts from database on user login
+  useEffect(() => {
+    const loadAndMergeCarts = async () => {
+      if (!user || isInitialized) return;
+      
+      console.log('👤 User logged in, loading saved carts...');
+      const dbCarts = await loadCartsFromDatabase();
+      
+      if (dbCarts && dbCarts.length > 0) {
+        const mergedCarts = mergeWithLocalCarts(dbCarts, multiCart.carts);
+        const totalRecovered = dbCarts.reduce((sum, cart) => sum + cart.items.length, 0);
+        
+        setMultiCart(prev => ({
+          ...prev,
+          carts: mergedCarts
+        }));
+        
+        if (totalRecovered > 0) {
+          toast.success(`Recuperamos ${totalRecovered} ${totalRecovered === 1 ? 'item' : 'itens'} do seu carrinho!`);
+        }
+      }
+      
+      setIsInitialized(true);
+    };
+    
+    loadAndMergeCarts();
+  }, [user?.id, loadCartsFromDatabase, mergeWithLocalCarts]);
+
+  // Persist to localStorage with date tracking
+  useEffect(() => {
+    if (multiCart.activeStoreId) {
+      localStorage.setItem(
+        `cart_${multiCart.activeStoreId}_date`, 
+        new Date().toISOString()
+      );
+    }
+  }, [multiCart]);
+
+  // Debounced save to database (only if user is logged in)
+  const debouncedSaveToDatabase = useDebounce(
+    useCallback((carts: Record<string, Cart>) => {
+      if (!user) return;
+      
+      // Save each non-empty cart
+      Object.entries(carts).forEach(([storeId, cart]) => {
+        if (cart.items.length > 0) {
+          saveCartToDatabase(cart, storeId);
+        }
+      });
+    }, [user, saveCartToDatabase]),
+    2000 // 2 second debounce
+  );
+
+  // Auto-save to database when carts change (debounced)
+  useEffect(() => {
+    if (user && isInitialized && Object.keys(multiCart.carts).length > 0) {
+      debouncedSaveToDatabase(multiCart.carts);
+    }
+  }, [multiCart.carts, user?.id, isInitialized, debouncedSaveToDatabase]);
 
   const switchToStore = useCallback((storeId: string) => {
     console.log('🔄 CartContext: switchToStore called for', storeId);
@@ -410,13 +483,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     console.log('🗑️ CartProvider: clearing active cart');
     if (!multiCart.activeStoreId) return;
 
+    const storeIdToRemove = multiCart.activeStoreId;
+    
     setMultiCart((prev) => {
-      const { [prev.activeStoreId!]: removed, ...remainingCarts } = prev.carts;
+      const { [storeIdToRemove]: removed, ...remainingCarts } = prev.carts;
       return {
         carts: remainingCarts,
         activeStoreId: Object.keys(remainingCarts)[0] || null
       };
     });
+    
+    // Delete from database if user is logged in
+    if (user) {
+      deleteCartFromDatabase(storeIdToRemove);
+    }
   };
 
   const getTotal = () => {

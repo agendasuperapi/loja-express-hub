@@ -1,0 +1,189 @@
+import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { Cart } from '@/contexts/CartContext';
+
+interface SavedCartDB {
+  id: string;
+  user_id: string;
+  store_id: string;
+  store_name: string;
+  store_slug: string | null;
+  items: any[];
+  coupon_code: string | null;
+  coupon_discount: number;
+  updated_at: string;
+  created_at: string;
+}
+
+export const useSavedCarts = () => {
+  const { user } = useAuth();
+
+  /**
+   * Salva um carrinho no banco de dados
+   * Usa upsert para criar ou atualizar
+   */
+  const saveCartToDatabase = useCallback(async (cart: Cart, storeId: string) => {
+    if (!user) {
+      console.log('⚠️ User not logged in, skipping cart save');
+      return;
+    }
+
+    if (!cart.items || cart.items.length === 0) {
+      console.log('⚠️ Empty cart, skipping save');
+      return;
+    }
+
+    try {
+      console.log('💾 Saving cart to database:', {
+        storeId,
+        itemCount: cart.items.length,
+        userId: user.id
+      });
+
+      const { error } = await supabase
+        .from('saved_carts' as any)
+        .upsert({
+          user_id: user.id,
+          store_id: storeId,
+          store_name: cart.storeName,
+          store_slug: cart.storeSlug,
+          items: cart.items,
+          coupon_code: cart.couponCode || null,
+          coupon_discount: cart.couponDiscount || 0,
+          updated_at: new Date().toISOString()
+        } as any, {
+          onConflict: 'user_id,store_id'
+        });
+
+      if (error) {
+        console.error('❌ Error saving cart:', error);
+        throw error;
+      }
+
+      console.log('✅ Cart saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to save cart to database:', error);
+    }
+  }, [user]);
+
+  /**
+   * Carrega todos os carrinhos salvos do usuário
+   */
+  const loadCartsFromDatabase = useCallback(async (): Promise<SavedCartDB[] | null> => {
+    if (!user) {
+      console.log('⚠️ User not logged in, skipping cart load');
+      return null;
+    }
+
+    try {
+      console.log('📥 Loading carts from database for user:', user.id);
+
+      const { data, error } = await supabase
+        .from('saved_carts' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Error loading carts:', error);
+        throw error;
+      }
+
+      if (!data) return null;
+
+      console.log('✅ Loaded carts:', {
+        count: data?.length || 0,
+        stores: data?.map((c: any) => c.store_name)
+      });
+
+      return data as unknown as SavedCartDB[];
+    } catch (error) {
+      console.error('❌ Failed to load carts from database:', error);
+      return null;
+    }
+  }, [user]);
+
+  /**
+   * Remove um carrinho salvo do banco de dados
+   * Usado após finalizar um pedido
+   */
+  const deleteCartFromDatabase = useCallback(async (storeId: string) => {
+    if (!user) return;
+
+    try {
+      console.log('🗑️ Deleting saved cart for store:', storeId);
+
+      const { error } = await supabase
+        .from('saved_carts' as any)
+        .delete()
+        .eq('user_id', user.id)
+        .eq('store_id', storeId);
+
+      if (error) {
+        console.error('❌ Error deleting cart:', error);
+        throw error;
+      }
+
+      console.log('✅ Cart deleted successfully');
+    } catch (error) {
+      console.error('❌ Failed to delete cart from database:', error);
+    }
+  }, [user]);
+
+  /**
+   * Mescla carrinhos do banco com carrinhos locais
+   * Prioriza o mais recente (maior updated_at)
+   */
+  const mergeWithLocalCarts = useCallback((
+    dbCarts: SavedCartDB[],
+    localCarts: Record<string, Cart>
+  ): Record<string, Cart> => {
+    console.log('🔄 Merging carts:', {
+      dbCount: dbCarts.length,
+      localCount: Object.keys(localCarts).length
+    });
+
+    const merged: Record<string, Cart> = { ...localCarts };
+    let recoveredItems = 0;
+
+    dbCarts.forEach(dbCart => {
+      const localCart = localCarts[dbCart.store_id];
+      
+      // Se não existe local ou o do banco é mais recente
+      const dbDate = new Date(dbCart.updated_at).getTime();
+      const localStorageDate = localStorage.getItem(`cart_${dbCart.store_id}_date`);
+      const localDate = localStorageDate ? new Date(localStorageDate).getTime() : 0;
+
+      if (!localCart || dbDate > localDate) {
+        console.log(`📦 Using database cart for ${dbCart.store_name} (more recent)`);
+        
+        merged[dbCart.store_id] = {
+          storeId: dbCart.store_id,
+          storeName: dbCart.store_name,
+          storeSlug: dbCart.store_slug || undefined,
+          items: dbCart.items,
+          couponCode: dbCart.coupon_code || undefined,
+          couponDiscount: dbCart.coupon_discount || 0
+        };
+        
+        recoveredItems += dbCart.items.length;
+      } else {
+        console.log(`💻 Using local cart for ${dbCart.store_name} (more recent)`);
+      }
+    });
+
+    if (recoveredItems > 0) {
+      console.log(`✅ Recovered ${recoveredItems} items from database`);
+    }
+
+    return merged;
+  }, []);
+
+  return {
+    saveCartToDatabase,
+    loadCartsFromDatabase,
+    deleteCartFromDatabase,
+    mergeWithLocalCarts
+  };
+};
