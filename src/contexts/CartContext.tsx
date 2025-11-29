@@ -413,7 +413,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         const { [prev.activeStoreId!]: removed, ...remainingCarts } = prev.carts;
         return {
           carts: remainingCarts,
-          activeStoreId: Object.keys(remainingCarts)[0] || null
+          activeStoreId: null
         };
       }
       
@@ -489,7 +489,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const { [storeIdToRemove]: removed, ...remainingCarts } = prev.carts;
       return {
         carts: remainingCarts,
-        activeStoreId: Object.keys(remainingCarts)[0] || null
+        activeStoreId: null
       };
     });
     
