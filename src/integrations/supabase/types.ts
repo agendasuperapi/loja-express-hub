@@ -1134,6 +1134,53 @@ export type Database = {
           },
         ]
       }
+      saved_carts: {
+        Row: {
+          coupon_code: string | null
+          coupon_discount: number | null
+          created_at: string | null
+          id: string
+          items: Json
+          store_id: string
+          store_name: string
+          store_slug: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          coupon_code?: string | null
+          coupon_discount?: number | null
+          created_at?: string | null
+          id?: string
+          items?: Json
+          store_id: string
+          store_name: string
+          store_slug?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          coupon_code?: string | null
+          coupon_discount?: number | null
+          created_at?: string | null
+          id?: string
+          items?: Json
+          store_id?: string
+          store_name?: string
+          store_slug?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_carts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_addon_templates: {
         Row: {
           categories: Json
