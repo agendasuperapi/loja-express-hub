@@ -96,6 +96,28 @@ export default function StoreDetails() {
   const isMobileHorizontal = layoutTemplateMobile === 'template-horizontal';
   const isDesktopHorizontal = layoutTemplateDesktop === 'template-horizontal';
   
+  // Update favicon dynamically based on store logo
+  useEffect(() => {
+    if (store?.logo_url) {
+      const favicon = document.querySelector("link[rel='icon']") as HTMLLinkElement;
+      const faviconShortcut = document.querySelector("link[rel='shortcut icon']") as HTMLLinkElement;
+      
+      // Store original favicons
+      const originalFavicon = favicon?.href;
+      const originalShortcut = faviconShortcut?.href;
+      
+      // Update to store logo
+      if (favicon) favicon.href = store.logo_url;
+      if (faviconShortcut) faviconShortcut.href = store.logo_url;
+      
+      // Restore original favicon when component unmounts
+      return () => {
+        if (favicon && originalFavicon) favicon.href = originalFavicon;
+        if (faviconShortcut && originalShortcut) faviconShortcut.href = originalShortcut;
+      };
+    }
+  }, [store?.logo_url]);
+  
   // Detect shared product from URL and open in popup
   const sharedProductShortId = searchParams.get('product');
 
