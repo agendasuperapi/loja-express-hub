@@ -25,8 +25,7 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
     : cart.items;
   
   const itemCount = filteredItems.reduce((sum, item) => sum + item.quantity, 0);
-  const deliveryFee = 5;
-  const total = getTotal() + (itemCount > 0 ? deliveryFee : 0);
+  const total = getTotal();
 
   // Validate cart on mount - pass storeId explicitly
   useEffect(() => {
@@ -171,19 +170,13 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
             {/* Fixed bottom section */}
             <div className="border-t bg-background p-4 space-y-3">
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-                  <span className="font-semibold">R$ {getTotal().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Taxa de entrega</span>
-                  <span className="font-semibold">R$ {deliveryFee.toFixed(2)}</span>
-                </div>
-                <Separator />
                 <div className="flex justify-between text-base font-bold">
-                  <span>Total</span>
+                  <span>Subtotal</span>
                   <span className="text-primary">R$ {total.toFixed(2)}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Taxa de entrega calculada no checkout
+                </p>
               </div>
 
               <Button
@@ -334,19 +327,13 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
               <Separator />
 
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Subtotal</span>
-                  <span>R$ {getTotal().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Taxa de entrega</span>
-                  <span>R$ {deliveryFee.toFixed(2)}</span>
-                </div>
-                <Separator />
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
+                  <span>Subtotal</span>
                   <span>R$ {total.toFixed(2)}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Taxa de entrega calculada no checkout
+                </p>
               </div>
 
               <Button
