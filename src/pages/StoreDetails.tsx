@@ -233,12 +233,13 @@ export default function StoreDetails() {
           sum + storeCart.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
         );
         
-        if (totalOtherItems > 0) {
-          sonnerToast.info("Carrinhos de outras lojas salvos", {
-            description: `Você tem ${totalOtherItems} ${totalOtherItems === 1 ? 'item' : 'itens'} em ${otherCarts.length} ${otherCarts.length === 1 ? 'outra loja' : 'outras lojas'}. Eles serão mantidos.`,
-            duration: 4000
-          });
-        }
+        // Notification hidden as per user request
+        // if (totalOtherItems > 0) {
+        //   sonnerToast.info("Carrinhos de outras lojas salvos", {
+        //     description: `Você tem ${totalOtherItems} ${totalOtherItems === 1 ? 'item' : 'itens'} em ${otherCarts.length} ${otherCarts.length === 1 ? 'outra loja' : 'outras lojas'}. Eles serão mantidos.`,
+        //     duration: 4000
+        //   });
+        // }
       }
     }
   }, [store?.id]);
