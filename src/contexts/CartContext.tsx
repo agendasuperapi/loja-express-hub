@@ -2,6 +2,28 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Função para gerar ID único para cada item do carrinho
+// Baseado em: storeId + productId + customizações (size, addons, flavors, observation)
+const generateCartItemId = (
+  storeId: string,
+  productId: string,
+  observation?: string,
+  addons?: CartAddon[],
+  flavors?: CartFlavor[],
+  size?: CartSize
+): string => {
+  const parts = [
+    `store:${storeId}`,
+    `product:${productId}`,
+    observation ? `obs:${observation}` : '',
+    size ? `size:${size.id}` : '',
+    addons && addons.length > 0 ? `addons:${addons.map(a => a.id).sort().join(',')}` : '',
+    flavors && flavors.length > 0 ? `flavors:${flavors.map(f => f.id).sort().join(',')}` : ''
+  ].filter(Boolean);
+  
+  return parts.join('|');
+};
+
 export interface CartAddon {
   id: string;
   name: string;
@@ -99,21 +121,36 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [multiCart, setMultiCart] = useState<MultiStoreCart>(() => {
     const stored = localStorage.getItem(MULTI_CART_STORAGE_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored);
-      console.log('🎬 CartProvider: initialized with multi-cart', parsed);
-      return parsed;
+      try {
+        const parsed = JSON.parse(stored);
+        console.log('🎬 CartProvider: initialized with multi-cart', {
+          activeStore: parsed.activeStoreId,
+          storesWithCarts: Object.keys(parsed.carts || {}),
+          totalItems: Object.values(parsed.carts || {}).reduce((sum: number, cart: any) => sum + (cart.items?.length || 0), 0)
+        });
+        return parsed;
+      } catch (e) {
+        console.error('❌ Error parsing stored cart:', e);
+        localStorage.removeItem(MULTI_CART_STORAGE_KEY);
+      }
     }
     
     // Migrar carrinho antigo se existir
     const oldCart = localStorage.getItem('shopping_cart');
     if (oldCart) {
-      const parsed = JSON.parse(oldCart);
-      if (parsed.storeId && parsed.items.length > 0) {
-        console.log('🔄 Migrating old cart to multi-cart system');
-        return {
-          carts: { [parsed.storeId]: parsed },
-          activeStoreId: parsed.storeId
-        };
+      try {
+        const parsed = JSON.parse(oldCart);
+        if (parsed.storeId && parsed.items.length > 0) {
+          console.log('🔄 Migrating old cart to multi-cart system');
+          localStorage.removeItem('shopping_cart');
+          return {
+            carts: { [parsed.storeId]: parsed },
+            activeStoreId: parsed.storeId
+          };
+        }
+      } catch (e) {
+        console.error('❌ Error migrating old cart:', e);
+        localStorage.removeItem('shopping_cart');
       }
     }
     
@@ -126,7 +163,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     : emptyCart();
 
   useEffect(() => {
-    console.log('💾 CartProvider: saving multi-cart to localStorage', multiCart);
+    const cartSummary = {
+      activeStore: multiCart.activeStoreId,
+      storesWithCarts: Object.keys(multiCart.carts),
+      itemsPerStore: Object.entries(multiCart.carts).map(([storeId, cart]) => ({
+        storeId,
+        storeName: cart.storeName,
+        itemCount: cart.items.length,
+        totalItems: cart.items.reduce((sum, item) => sum + item.quantity, 0)
+      }))
+    };
+    console.log('💾 CartProvider: saving multi-cart to localStorage', cartSummary);
     localStorage.setItem(MULTI_CART_STORAGE_KEY, JSON.stringify(multiCart));
   }, [multiCart]);
 
@@ -210,14 +257,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         couponDiscount: 0
       };
 
+      // Generate unique ID for this item
+      const itemUniqueId = generateCartItemId(storeId, productId, observation, addons, flavors, size);
+      console.log('🆔 Generated cart item ID:', itemUniqueId);
+      
       // Check if item already exists in this store's cart
-      const existingIndex = storeCart.items.findIndex(
-        item => item.productId === productId && 
-                item.observation === observation &&
-                JSON.stringify(item.addons) === JSON.stringify(addons) &&
-                JSON.stringify(item.flavors) === JSON.stringify(flavors) &&
-                JSON.stringify(item.size) === JSON.stringify(size)
-      );
+      const existingIndex = storeCart.items.findIndex(item => item.id === itemUniqueId);
       
       let updatedStoreCart: Cart;
       if (existingIndex >= 0) {
@@ -229,7 +274,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updatedStoreCart = {
           ...storeCart,
           items: [...storeCart.items, {
-            id: `${productId}-${Date.now()}`,
+            id: itemUniqueId, // Usar o ID único gerado
             productId,
             productName,
             price,
