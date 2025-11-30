@@ -3278,6 +3278,11 @@ export const StoreOwnerDashboard = ({
                     <ResponsiveDialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
                     </ResponsiveDialogTitle>
+                    {editingProduct && (
+                      <ResponsiveDialogDescription>
+                        {editingProduct.name}
+                      </ResponsiveDialogDescription>
+                    )}
                   </ResponsiveDialogHeader>
                   
                   <ScrollArea className="flex-1 px-4 md:px-6">
