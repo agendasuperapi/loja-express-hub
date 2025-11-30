@@ -512,7 +512,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
   return (
     <>
-      <Card>
+      <Card className="md:min-h-[90vh]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
