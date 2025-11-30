@@ -29,12 +29,14 @@ interface SortableSizeItemProps {
     id: string;
     is_available: boolean;
   }) => void;
+  categoryName?: string;
 }
 function SortableSizeItem({
   size,
   onEdit,
   onDelete,
-  onToggleAvailability
+  onToggleAvailability,
+  categoryName
 }: SortableSizeItemProps) {
   const {
     attributes,
@@ -62,6 +64,11 @@ function SortableSizeItem({
           <span className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">
             R$ {size.price.toFixed(2)}
           </span>
+          {categoryName && (
+            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
+              {categoryName}
+            </span>
+          )}
           {size.allow_quantity && (
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
               Quantidade
@@ -231,7 +238,21 @@ export function ProductSizesManager({
           </div> : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredSizes.map(s => s.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-2">
-                {filteredSizes.map(size => <SortableSizeItem key={size.id} size={size} onEdit={handleOpenDialog} onDelete={deleteSize} onToggleAvailability={toggleSizeAvailability} />)}
+                {filteredSizes.map(size => {
+                  const categoryName = size.category_id 
+                    ? categories.find(c => c.id === size.category_id)?.name 
+                    : undefined;
+                  return (
+                    <SortableSizeItem 
+                      key={size.id} 
+                      size={size} 
+                      onEdit={handleOpenDialog} 
+                      onDelete={deleteSize} 
+                      onToggleAvailability={toggleSizeAvailability}
+                      categoryName={categoryName}
+                    />
+                  );
+                })}
               </div>
             </SortableContext>
           </DndContext>}

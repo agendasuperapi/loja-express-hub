@@ -880,6 +880,8 @@ export type Database = {
       }
       product_sizes: {
         Row: {
+          allow_quantity: boolean | null
+          category_id: string | null
           created_at: string
           description: string | null
           display_order: number | null
@@ -891,6 +893,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow_quantity?: boolean | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -902,6 +906,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow_quantity?: boolean | null
+          category_id?: string | null
           created_at?: string
           description?: string | null
           display_order?: number | null
@@ -913,6 +919,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_sizes_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "size_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "product_sizes_product_id_fkey"
             columns: ["product_id"]
@@ -1174,6 +1187,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "saved_carts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      size_categories: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_exclusive: boolean
+          max_items: number | null
+          min_items: number
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          max_items?: number | null
+          min_items?: number
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_exclusive?: boolean
+          max_items?: number | null
+          min_items?: number
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "size_categories_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
