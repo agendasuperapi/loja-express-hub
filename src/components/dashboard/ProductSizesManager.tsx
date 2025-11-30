@@ -115,8 +115,16 @@ export function ProductSizesManager({
   const [isStoreSizesOpen, setIsStoreSizesOpen] = useState(false);
   const [storeSizesSearch, setStoreSizesSearch] = useState('');
   const [isEditCategoriesOpen, setIsEditCategoriesOpen] = useState(false);
+  const [isNewCategoryDialogOpen, setIsNewCategoryDialogOpen] = useState(false);
+  const [newCategoryForm, setNewCategoryForm] = useState({
+    name: '',
+    is_exclusive: false,
+    min_items: 1,
+    max_items: null as number | null
+  });
   
   const { sizes: storeSizes, isLoading: isLoadingStoreSizes } = useStoreSizes(storeId);
+  const { addCategory } = useSizeCategories(storeId);
   const [formData, setFormData] = useState<SizeFormData>({
     name: '',
     price: 0,
@@ -339,6 +347,36 @@ export function ProductSizesManager({
         });
       }
     });
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryForm.name.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome da categoria é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await addCategory({
+        name: newCategoryForm.name.trim(),
+        is_exclusive: newCategoryForm.is_exclusive,
+        min_items: newCategoryForm.min_items,
+        max_items: newCategoryForm.max_items
+      });
+      
+      setIsNewCategoryDialogOpen(false);
+      setNewCategoryForm({
+        name: '',
+        is_exclusive: false,
+        min_items: 1,
+        max_items: null
+      });
+    } catch (error) {
+      console.error('Erro ao criar categoria:', error);
+    }
   };
 
   const filteredSizes = sizes?.filter(size => {
@@ -650,8 +688,13 @@ export function ProductSizesManager({
                 size="sm" 
                 variant="outline"
                 onClick={() => {
-                  setIsStoreSizesOpen(false);
-                  setShowCategoryManager(true);
+                  setNewCategoryForm({
+                    name: '',
+                    is_exclusive: false,
+                    min_items: 1,
+                    max_items: null
+                  });
+                  setIsNewCategoryDialogOpen(true);
                 }}
                 className="shrink-0"
               >
@@ -912,6 +955,76 @@ export function ProductSizesManager({
               )}
             </div>
           </ScrollArea>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Dialog Nova Categoria */}
+      <ResponsiveDialog open={isNewCategoryDialogOpen} onOpenChange={setIsNewCategoryDialogOpen}>
+        <ResponsiveDialogContent className="max-w-md">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Nova Categoria de Variação</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Crie uma nova categoria para organizar suas variações
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 p-4">
+              <div className="space-y-2">
+                <Label htmlFor="category-name">Nome da Categoria *</Label>
+                <Input
+                  id="category-name"
+                  placeholder="Ex: Tamanhos, Sabores..."
+                  value={newCategoryForm.name}
+                  onChange={(e) => setNewCategoryForm({ ...newCategoryForm, name: e.target.value })}
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is-exclusive"
+                  checked={newCategoryForm.is_exclusive}
+                  onCheckedChange={(checked) => setNewCategoryForm({ ...newCategoryForm, is_exclusive: checked })}
+                />
+                <Label htmlFor="is-exclusive">Categoria exclusiva (apenas uma variação pode ser selecionada)</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="min-items">Mínimo de itens</Label>
+                <Input
+                  id="min-items"
+                  type="number"
+                  min="0"
+                  value={newCategoryForm.min_items}
+                  onChange={(e) => setNewCategoryForm({ ...newCategoryForm, min_items: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="max-items">Máximo de itens (opcional)</Label>
+                <Input
+                  id="max-items"
+                  type="number"
+                  min="0"
+                  placeholder="Deixe vazio para ilimitado"
+                  value={newCategoryForm.max_items || ''}
+                  onChange={(e) => setNewCategoryForm({ 
+                    ...newCategoryForm, 
+                    max_items: e.target.value ? parseInt(e.target.value) : null 
+                  })}
+                />
+              </div>
+            </div>
+          </ScrollArea>
+
+          <ResponsiveDialogFooter>
+            <Button variant="outline" onClick={() => setIsNewCategoryDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateCategory}>
+              Criar Categoria
+            </Button>
+          </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </>;
