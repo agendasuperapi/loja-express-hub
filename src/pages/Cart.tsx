@@ -1452,7 +1452,7 @@ export default function Cart() {
                       ref={paymentSectionRef} 
                       className={`space-y-4 rounded-lg transition-all duration-300 ${
                         highlightPayment 
-                          ? 'ring-4 ring-primary/50 bg-primary/5 p-4 shadow-lg' 
+                          ? 'ring-4 ring-orange-500 border-2 border-orange-500 p-4 animate-[pulse-ring_1s_ease-in-out_3]' 
                           : ''
                       }`}
                     >
