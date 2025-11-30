@@ -4081,61 +4081,132 @@ export const StoreOwnerDashboard = ({
               delay: 0.3
             }}>
             <div className="space-y-6">
-                <Select value={profileSettingsTab} onValueChange={setProfileSettingsTab}>
-                  <SelectTrigger className="w-full bg-background border-2">
-                    <SelectValue placeholder="Selecione uma opção" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value="personal">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        <span>Dados Pessoais</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="settings">
-                      <div className="flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        <span>Loja</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="entregas">
-                      <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4" />
-                        <span>Entregas</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="pix">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
-                        <span>PIX</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="order-status">
-                      <div className="flex items-center gap-2">
-                        <Menu className="w-4 h-4" />
-                        <span>Status dos Pedidos</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="notifications">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        <span>Permissões</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="layout">
-                      <div className="flex items-center gap-2">
-                        <LayoutGrid className="w-4 h-4" />
-                        <span>Layout</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="security">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        <span>Segurança</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                {/* Mobile: Dropdown */}
+                <div className="md:hidden">
+                  <Select value={profileSettingsTab} onValueChange={setProfileSettingsTab}>
+                    <SelectTrigger className="w-full bg-background border-2">
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="personal">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          <span>Dados Pessoais</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="settings">
+                        <div className="flex items-center gap-2">
+                          <Settings className="w-4 h-4" />
+                          <span>Loja</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="entregas">
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4" />
+                          <span>Entregas</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="pix">
+                        <div className="flex items-center gap-2">
+                          <DollarSign className="w-4 h-4" />
+                          <span>PIX</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="order-status">
+                        <div className="flex items-center gap-2">
+                          <Menu className="w-4 h-4" />
+                          <span>Status dos Pedidos</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="notifications">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-4 h-4" />
+                          <span>Permissões</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="layout">
+                        <div className="flex items-center gap-2">
+                          <LayoutGrid className="w-4 h-4" />
+                          <span>Layout</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="security">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          <span>Segurança</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Desktop: Buttons */}
+                <div className="hidden md:flex flex-wrap gap-2">
+                  <Button
+                    variant={profileSettingsTab === 'personal' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('personal')}
+                    className="flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Dados Pessoais
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'settings' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('settings')}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Loja
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'entregas' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('entregas')}
+                    className="flex items-center gap-2"
+                  >
+                    <Truck className="w-4 h-4" />
+                    Entregas
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'pix' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('pix')}
+                    className="flex items-center gap-2"
+                  >
+                    <DollarSign className="w-4 h-4" />
+                    PIX
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'order-status' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('order-status')}
+                    className="flex items-center gap-2"
+                  >
+                    <Menu className="w-4 h-4" />
+                    Status dos Pedidos
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'notifications' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('notifications')}
+                    className="flex items-center gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Permissões
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'layout' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('layout')}
+                    className="flex items-center gap-2"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                    Layout
+                  </Button>
+                  <Button
+                    variant={profileSettingsTab === 'security' ? 'default' : 'outline'}
+                    onClick={() => setProfileSettingsTab('security')}
+                    className="flex items-center gap-2"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Segurança
+                  </Button>
+                </div>
 
         {/* Personal Data Tab */}
         {profileSettingsTab === "personal" && <motion.div initial={{
