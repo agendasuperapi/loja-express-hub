@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus, X, Download, Package } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle } from '@/components/ui/responsive-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,6 +18,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { SizeCategoriesManager } from './SizeCategoriesManager';
 import { useSizeCategories } from '@/hooks/useSizeCategories';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 interface ProductSizesManagerProps {
   productId: string;
   storeId: string;
@@ -105,6 +107,10 @@ export function ProductSizesManager({
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
   const { categories } = useSizeCategories(storeId);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [importFromProductOpen, setImportFromProductOpen] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
   const [formData, setFormData] = useState<SizeFormData>({
     name: '',
     price: 0,
@@ -170,6 +176,83 @@ export function ProductSizesManager({
     }
     setIsDialogOpen(false);
   };
+  const loadProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('store_id', storeId)
+        .neq('id', productId);
+      
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao carregar produtos',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const handleImportFromProduct = async (selectedProductId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('product_sizes')
+        .select('*')
+        .eq('product_id', selectedProductId);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        for (const size of data) {
+          await createSize({
+            product_id: productId,
+            name: size.name,
+            price: size.price,
+            description: size.description,
+            is_available: size.is_available,
+            category_id: size.category_id,
+            allow_quantity: size.allow_quantity,
+          });
+        }
+        
+        toast({
+          title: 'Variações importadas!',
+          description: `${data.length} variação(ões) foram importadas com sucesso.`,
+        });
+      } else {
+        toast({
+          title: 'Nenhuma variação encontrada',
+          description: 'O produto selecionado não possui variações cadastradas.',
+          variant: 'destructive',
+        });
+      }
+      
+      setImportFromProductOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao importar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    if (!productSearchTerm.trim()) return products;
+    
+    const term = productSearchTerm.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(term) || 
+      (p.description && p.description.toLowerCase().includes(term))
+    );
+  }, [products, productSearchTerm]);
+
   const filteredSizes = sizes?.filter(size => {
     const matchesSearch = size.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesAvailability = availabilityFilter === 'all' || availabilityFilter === 'available' && size.is_available || availabilityFilter === 'unavailable' && !size.is_available;
@@ -221,6 +304,18 @@ export function ProductSizesManager({
           <Button onClick={() => handleOpenDialog()} size="sm" className="whitespace-nowrap">
             <Plus className="h-4 w-4 mr-2" />
             Nova Variação
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => {
+              loadProducts();
+              setImportFromProductOpen(true);
+            }}
+            className="whitespace-nowrap"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Importar de Produtos
           </Button>
           <Button onClick={() => setShowCategoryManager(true)} variant="secondary" size="sm" className="whitespace-nowrap">
             <FolderPlus className="h-4 w-4 mr-2" />
@@ -407,6 +502,71 @@ export function ProductSizesManager({
               {editingSize ? 'Salvar' : 'Criar'}
             </Button>
           </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
+      {/* Import from Product Dialog */}
+      <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle>Importar Variações de Outro Produto</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Selecione um produto para importar suas variações
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <ScrollArea className="flex-1 px-4 md:px-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar produto..."
+                  value={productSearchTerm}
+                  onChange={(e) => setProductSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+
+              {loadingProducts ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Carregando produtos...
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhum produto encontrado
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() => handleImportFromProduct(product.id)}
+                    >
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{product.name}</p>
+                        {product.description && (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {product.description}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary">
+                        R$ {product.price.toFixed(2)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
     </>;
