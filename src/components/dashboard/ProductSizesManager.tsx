@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle } from '@/components/ui/responsive-dialog';
@@ -29,14 +30,12 @@ interface SortableSizeItemProps {
     id: string;
     is_available: boolean;
   }) => void;
-  categoryName?: string;
 }
 function SortableSizeItem({
   size,
   onEdit,
   onDelete,
-  onToggleAvailability,
-  categoryName
+  onToggleAvailability
 }: SortableSizeItemProps) {
   const {
     attributes,
@@ -64,11 +63,6 @@ function SortableSizeItem({
           <span className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">
             R$ {size.price.toFixed(2)}
           </span>
-          {categoryName && (
-            <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded">
-              {categoryName}
-            </span>
-          )}
           {size.allow_quantity && (
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
               Quantidade
@@ -237,22 +231,77 @@ export function ProductSizesManager({
             {searchTerm || availabilityFilter !== 'all' ? 'Nenhum tamanho encontrado com os filtros aplicados.' : 'Nenhum tamanho cadastrado. Clique em "Novo Tamanho" para adicionar.'}
           </div> : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredSizes.map(s => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-2">
-                {filteredSizes.map(size => {
-                  const categoryName = size.category_id 
-                    ? categories.find(c => c.id === size.category_id)?.name 
-                    : undefined;
-                  return (
-                    <SortableSizeItem 
-                      key={size.id} 
-                      size={size} 
-                      onEdit={handleOpenDialog} 
-                      onDelete={deleteSize} 
-                      onToggleAvailability={toggleSizeAvailability}
-                      categoryName={categoryName}
-                    />
-                  );
-                })}
+              <div className="space-y-6">
+                {/* Variações com categorias */}
+                {categories && categories.length > 0 && categories
+                  .filter(cat => cat.is_active && filteredSizes.some(size => size.category_id === cat.id))
+                  .sort((a, b) => a.display_order - b.display_order)
+                  .map((category) => {
+                    const categorySizes = filteredSizes.filter(size => size.category_id === category.id);
+                    if (categorySizes.length === 0) return null;
+
+                    return (
+                      <div key={category.id} className="space-y-2">
+                        <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="text-sm font-bold text-foreground">
+                              {category.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {category.is_exclusive ? 'Exclusivo' : 'Não exclusivo'}
+                              {' • '}
+                              Mín: {category.min_items}
+                              {category.max_items !== null && ` • Máx: ${category.max_items}`}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {categorySizes.length} {categorySizes.length === 1 ? 'variação' : 'variações'}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2 pl-4 border-l-2 border-muted">
+                          {categorySizes.map(size => (
+                            <SortableSizeItem 
+                              key={size.id} 
+                              size={size} 
+                              onEdit={handleOpenDialog} 
+                              onDelete={deleteSize} 
+                              onToggleAvailability={toggleSizeAvailability}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {/* Variações sem categoria */}
+                {filteredSizes.filter(size => !size.category_id).length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="text-sm font-bold text-foreground">
+                          Sem Categoria
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Variações não categorizadas
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {filteredSizes.filter(size => !size.category_id).length} {filteredSizes.filter(size => !size.category_id).length === 1 ? 'variação' : 'variações'}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                      {filteredSizes.filter(size => !size.category_id).map(size => (
+                        <SortableSizeItem 
+                          key={size.id} 
+                          size={size} 
+                          onEdit={handleOpenDialog} 
+                          onDelete={deleteSize} 
+                          onToggleAvailability={toggleSizeAvailability}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </SortableContext>
           </DndContext>}
