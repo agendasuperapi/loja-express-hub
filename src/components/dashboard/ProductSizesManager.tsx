@@ -171,7 +171,7 @@ export function ProductSizesManager({
           </div>
           <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Novo Tamanho
+            Nova Variação
           </Button>
         </div>
       </CardHeader>
@@ -210,9 +210,9 @@ export function ProductSizesManager({
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
-            <ResponsiveDialogTitle>{editingSize ? 'Editar Tamanho' : 'Novo Tamanho'}</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>{editingSize ? 'Editar Variação' : 'Nova Variação'}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              {editingSize ? 'Edite as informações do tamanho.' : 'Adicione um novo tamanho ao produto.'}
+              {editingSize ? 'Edite as informações da variação.' : 'Adicione uma nova variação ao produto.'}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
