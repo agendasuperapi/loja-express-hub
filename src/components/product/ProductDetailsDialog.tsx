@@ -15,6 +15,7 @@ import { useProductAddons } from "@/hooks/useProductAddons";
 import { useProductFlavors } from "@/hooks/useProductFlavors";
 import { useProductSizes } from "@/hooks/useProductSizes";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
+import { useSizeCategories } from "@/hooks/useSizeCategories";
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
@@ -42,6 +43,8 @@ export function ProductDetailsDialog({
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedSizesByCategory, setSelectedSizesByCategory] = useState<Record<string, Set<string>>>({});
+  const [sizeQuantities, setSizeQuantities] = useState<Map<string, number>>(new Map());
   const {
     addons
   } = useProductAddons(product?.id);
@@ -51,6 +54,7 @@ export function ProductDetailsDialog({
   const {
     sizes
   } = useProductSizes(product?.id);
+  const { categories: sizeCategories } = useSizeCategories(store?.id);
   const {
     categories
   } = useAddonCategories(store?.id);
@@ -85,6 +89,8 @@ export function ProductDetailsDialog({
       setSelectedFlavors(new Set());
       setSelectedAddonsByCategory({});
       setSelectedSize("");
+      setSelectedSizesByCategory({});
+      setSizeQuantities(new Map());
     }
   }, [open]);
   
@@ -204,13 +210,31 @@ export function ProductDetailsDialog({
       return;
     }
 
-    // Validate category limits
+    // Validate addon category limits
     if (categories && categories.length > 0) {
       for (const category of categories) {
         if (!category.is_active) continue;
         const categoryAddons = addons?.filter(a => a.category_id === category.id && a.is_available) || [];
         if (categoryAddons.length === 0) continue;
         const selectedCount = selectedAddonsByCategory[category.id]?.size || 0;
+        if (category.min_items > 0 && selectedCount < category.min_items) {
+          toast({
+            title: "Seleção obrigatória",
+            description: `Você precisa selecionar pelo menos ${category.min_items} ${category.min_items === 1 ? 'item' : 'itens'} de ${category.name}`,
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+    }
+
+    // Validate size category limits
+    if (sizeCategories && sizeCategories.length > 0) {
+      for (const category of sizeCategories) {
+        if (!category.is_active) continue;
+        const categorySizes = availableSizes.filter(s => s.category_id === category.id);
+        if (categorySizes.length === 0) continue;
+        const selectedCount = selectedSizesByCategory[category.id]?.size || 0;
         if (category.min_items > 0 && selectedCount < category.min_items) {
           toast({
             title: "Seleção obrigatória",
@@ -351,41 +375,274 @@ export function ProductDetailsDialog({
         </div>
       </div>
 
-      {/* Tamanhos */}
+      {/* Tamanhos/Variações */}
       {hasSizes && (
         <div className="space-y-2 px-4 md:px-0">
           <Label className="text-sm font-semibold">
-            Tamanhos
+            Variações
             <span className="text-destructive ml-1">*</span>
           </Label>
-          <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
-            {availableSizes.map(size => (
-              <div
-                key={size.id}
-                className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                  selectedSize === size.id
-                    ? 'bg-primary/10 border-primary shadow-sm'
-                    : 'bg-muted/50 border-transparent hover:border-primary/30'
-                }`}
-                onClick={() => setSelectedSize(size.id)}
-              >
-                <div className="flex items-center gap-3 flex-1">
-                  <RadioGroupItem value={size.id} id={size.id} />
-                  <Label htmlFor={size.id} className="flex-1 cursor-pointer">
-                    <span className="font-semibold">{size.name}</span>
-                    {size.description && (
-                      <span className="text-xs text-muted-foreground block">{size.description}</span>
-                    )}
-                  </Label>
+          {sizeCategories && sizeCategories.length > 0 ? (
+            <>
+              {sizeCategories
+                .filter(cat => cat.is_active && availableSizes.some(size => size.category_id === cat.id))
+                .sort((a, b) => a.display_order - b.display_order)
+                .map((category) => {
+                  const categorySizes = availableSizes.filter(size => size.category_id === category.id);
+                  if (categorySizes.length === 0) return null;
+
+                  return (
+                    <div key={category.id} className="space-y-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-bold text-foreground">
+                            {category.name}
+                            {category.min_items > 0 && <span className="text-destructive ml-1">*</span>}
+                          </p>
+                          {category.max_items !== null && category.max_items > 1 && (
+                            <Badge 
+                              variant={(selectedSizesByCategory[category.id]?.size || 0) >= category.min_items ? "default" : "secondary"} 
+                              className="text-xs"
+                            >
+                              {selectedSizesByCategory[category.id]?.size || 0}/{category.max_items}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {category.max_items === 1 
+                            ? "Escolha Apenas 1 opção" 
+                            : <>
+                                {category.min_items > 0 ? `Mín: ${category.min_items} ${category.min_items === 1 ? 'opção' : 'opções'}` : 'Escolha'}
+                                {category.max_items !== null && category.max_items > 1 && ` até ${category.max_items} opções`}
+                              </>
+                          }
+                        </p>
+                      </div>
+                      
+                      {category.max_items === 1 ? (
+                        <RadioGroup 
+                          value={Array.from(selectedSizesByCategory[category.id] || [])[0] || ''} 
+                          onValueChange={(value) => {
+                            const newByCategory = { ...selectedSizesByCategory };
+                            newByCategory[category.id] = new Set([value]);
+                            setSelectedSizesByCategory(newByCategory);
+                            setSelectedSize(value);
+                          }}
+                        >
+                          <div className="space-y-1.5">
+                            {categorySizes.map(size => {
+                              const isSelected = selectedSizesByCategory[category.id]?.has(size.id);
+                              return (
+                                <div
+                                  key={size.id}
+                                  className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-primary/10 border-primary shadow-sm'
+                                      : 'bg-muted/50 border-transparent hover:border-primary/30'
+                                  }`}
+                                  onClick={() => {
+                                    const newByCategory = { ...selectedSizesByCategory };
+                                    newByCategory[category.id] = new Set([size.id]);
+                                    setSelectedSizesByCategory(newByCategory);
+                                    setSelectedSize(size.id);
+                                  }}
+                                >
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <RadioGroupItem value={size.id} id={size.id} />
+                                    <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                                      <span className="font-semibold">{size.name}</span>
+                                      {size.description && (
+                                        <span className="text-xs text-muted-foreground block">{size.description}</span>
+                                      )}
+                                    </Label>
+                                  </div>
+                                  <span className="text-lg font-bold text-primary">
+                                    R$ {size.price.toFixed(2)}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </RadioGroup>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {categorySizes.map(size => {
+                            const isSelected = selectedSizesByCategory[category.id]?.has(size.id);
+                            return (
+                              <div
+                                key={size.id}
+                                className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                                  isSelected
+                                    ? 'bg-primary/10 border-primary shadow-sm'
+                                    : 'bg-muted/50 border-transparent'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 flex-1">
+                                  <Checkbox
+                                    id={size.id}
+                                    checked={isSelected}
+                                    onCheckedChange={() => {
+                                      const newByCategory = { ...selectedSizesByCategory };
+                                      const categorySet = new Set(newByCategory[category.id] || []);
+                                      
+                                      if (categorySet.has(size.id)) {
+                                        categorySet.delete(size.id);
+                                        setSizeQuantities(prev => {
+                                          const newMap = new Map(prev);
+                                          newMap.delete(size.id);
+                                          return newMap;
+                                        });
+                                      } else {
+                                        if (category.max_items && categorySet.size >= category.max_items) {
+                                          toast({
+                                            title: "Limite atingido",
+                                            description: `Você pode selecionar no máximo ${category.max_items} ${category.max_items === 1 ? 'item' : 'itens'} de ${category.name}`,
+                                            variant: "destructive"
+                                          });
+                                          return;
+                                        }
+                                        categorySet.add(size.id);
+                                        if (size.allow_quantity) {
+                                          setSizeQuantities(prev => {
+                                            const newMap = new Map(prev);
+                                            newMap.set(size.id, 1);
+                                            return newMap;
+                                          });
+                                        }
+                                      }
+                                      
+                                      newByCategory[category.id] = categorySet;
+                                      setSelectedSizesByCategory(newByCategory);
+                                      
+                                      // Update selectedSize with first selected
+                                      if (categorySet.size > 0) {
+                                        setSelectedSize(Array.from(categorySet)[0]);
+                                      } else {
+                                        setSelectedSize("");
+                                      }
+                                    }}
+                                  />
+                                  <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                                    <span className="font-semibold">{size.name}</span>
+                                    {size.description && (
+                                      <span className="text-xs text-muted-foreground block">{size.description}</span>
+                                    )}
+                                  </Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {size.allow_quantity && isSelected && (
+                                    <div className="flex items-center gap-1">
+                                      <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="h-6 w-6"
+                                        onClick={() => {
+                                          setSizeQuantities(prev => {
+                                            const newMap = new Map(prev);
+                                            const current = newMap.get(size.id) || 1;
+                                            if (current > 1) {
+                                              newMap.set(size.id, current - 1);
+                                            }
+                                            return newMap;
+                                          });
+                                        }}
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </Button>
+                                      <span className="text-xs font-medium w-6 text-center">
+                                        {sizeQuantities.get(size.id) || 1}x
+                                      </span>
+                                      <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="h-6 w-6"
+                                        onClick={() => {
+                                          setSizeQuantities(prev => {
+                                            const newMap = new Map(prev);
+                                            const current = newMap.get(size.id) || 1;
+                                            newMap.set(size.id, current + 1);
+                                            return newMap;
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                  <span className="text-lg font-bold text-primary">
+                                    R$ {size.price.toFixed(2)}
+                                  </span>
+                                  {isSelected && <Check className="h-5 w-5 text-primary" />}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              
+              {/* Tamanhos sem categoria */}
+              {availableSizes.filter(size => !size.category_id).length > 0 && (
+                <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
+                  {availableSizes.filter(size => !size.category_id).map(size => (
+                    <div
+                      key={size.id}
+                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                        selectedSize === size.id
+                          ? 'bg-primary/10 border-primary shadow-sm'
+                          : 'bg-muted/50 border-transparent hover:border-primary/30'
+                      }`}
+                      onClick={() => setSelectedSize(size.id)}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <RadioGroupItem value={size.id} id={size.id} />
+                        <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                          <span className="font-semibold">{size.name}</span>
+                          {size.description && (
+                            <span className="text-xs text-muted-foreground block">{size.description}</span>
+                          )}
+                        </Label>
+                      </div>
+                      <span className="text-lg font-bold text-primary">
+                        R$ {size.price.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
+            </>
+          ) : (
+            <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
+              {availableSizes.map(size => (
+                <div
+                  key={size.id}
+                  className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    selectedSize === size.id
+                      ? 'bg-primary/10 border-primary shadow-sm'
+                      : 'bg-muted/50 border-transparent hover:border-primary/30'
+                  }`}
+                  onClick={() => setSelectedSize(size.id)}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <RadioGroupItem value={size.id} id={size.id} />
+                    <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                      <span className="font-semibold">{size.name}</span>
+                      {size.description && (
+                        <span className="text-xs text-muted-foreground block">{size.description}</span>
+                      )}
+                    </Label>
+                  </div>
+                  <span className="text-lg font-bold text-primary">
+                    R$ {size.price.toFixed(2)}
+                  </span>
                 </div>
-                <span className="text-lg font-bold text-primary">
-                  R$ {size.price.toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </RadioGroup>
+              ))}
+            </RadioGroup>
+          )}
           {!selectedSize && (
-            <p className="text-xs text-destructive">Selecione um tamanho</p>
+            <p className="text-xs text-destructive">Selecione uma variação</p>
           )}
         </div>
       )}
