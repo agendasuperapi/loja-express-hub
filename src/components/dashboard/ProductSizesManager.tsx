@@ -976,6 +976,25 @@ export function ProductSizesManager({
         </ResponsiveDialogContent>
       </ResponsiveDialog>
 
+      {/* Editar Categorias Modal */}
+      <ResponsiveDialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[60vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogHeader>
+            <ResponsiveDialogTitle className="flex items-center gap-2">
+              <FolderTree className="w-5 h-5" />
+              Gerenciar Categorias de Variações
+            </ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              Organize suas variações em categorias para facilitar a seleção
+            </ResponsiveDialogDescription>
+          </ResponsiveDialogHeader>
+
+          <ScrollArea className="flex-1 px-4 md:px-6">
+            <SizeCategoriesManager storeId={storeId} />
+          </ScrollArea>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
+
       {/* Dialog Nova Categoria */}
       <ResponsiveDialog open={isNewCategoryDialogOpen} onOpenChange={setIsNewCategoryDialogOpen}>
         <ResponsiveDialogContent className="max-w-md">
