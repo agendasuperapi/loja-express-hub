@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus, X } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle } from '@/components/ui/responsive-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -188,34 +188,46 @@ export function ProductSizesManager({
         <TabsContent value="variations">
           <Card className="md:min-h-[90vh]">
             <CardHeader>
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex-1">
-                  <CardTitle>Variações</CardTitle>
-                  <CardDescription className="mt-1">
-                    Gerencie os tamanhos disponíveis para este produto
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <Button onClick={() => setShowCategoryManager(true)} variant="outline" className="flex-1 sm:flex-initial">
-                    <FolderPlus className="h-4 w-4 mr-2" />
-                    Categorias
-                  </Button>
-                  <Button onClick={() => handleOpenDialog()} className="flex-1 sm:flex-initial">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Variação
-                  </Button>
-                </div>
-              </div>
+              <CardTitle>Variações</CardTitle>
+              <CardDescription className="mt-1">
+                Gerencie os tamanhos disponíveis para este produto
+              </CardDescription>
             </CardHeader>
 
       <CardContent className="space-y-4 md:min-h-[75vh]">
-        <div className="flex flex-col sm:flex-row flex-1 gap-2">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-wrap">
+          {/* Campo de busca */}
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9" placeholder="Buscar Variações..." />
+            <Input 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)} 
+              className="pl-9" 
+              placeholder="Buscar variações..." 
+            />
+            {searchTerm && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                onClick={() => setSearchTerm('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
+          
+          {/* Botões de ação */}
+          <Button onClick={() => handleOpenDialog()} size="sm" className="whitespace-nowrap">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Variação
+          </Button>
+          <Button onClick={() => setShowCategoryManager(true)} variant="secondary" size="sm" className="whitespace-nowrap">
+            <FolderPlus className="h-4 w-4 mr-2" />
+            Nova Categoria
+          </Button>
           <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue />
             </SelectTrigger>
