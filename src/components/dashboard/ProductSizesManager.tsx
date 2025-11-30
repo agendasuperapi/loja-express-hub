@@ -350,14 +350,7 @@ export function ProductSizesManager({
     return <div className="text-center py-8">Carregando tamanhos...</div>;
   }
   return <>
-      <Tabs defaultValue="variations" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="variations">Variações</TabsTrigger>
-          <TabsTrigger value="categories">Categorias</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="variations">
-          <Card className="md:min-h-[90vh]">
+      <Card className="md:min-h-[90vh]">
             <CardHeader>
               <div className="flex flex-col gap-4">
                 <div className="flex-1">
@@ -522,12 +515,6 @@ export function ProductSizesManager({
           </DndContext>}
           </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="categories">
-          <SizeCategoriesManager storeId={storeId} />
-        </TabsContent>
-      </Tabs>
 
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
