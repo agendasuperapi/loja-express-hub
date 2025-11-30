@@ -3160,80 +3160,82 @@ export const StoreOwnerDashboard = ({
 
         {/* Produtos Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'produtos' && 'hidden')}>
-            <div className="mb-6">
-              {/* Mobile: Dropdown */}
-              <div className="md:hidden">
-                <Select value={productSectionTab} onValueChange={setProductSectionTab}>
-                  <SelectTrigger className="w-full max-w-md">
-                    <SelectValue placeholder="Selecione uma seção" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background z-50">
-                    <SelectItem value="lista">
-                      <div className="flex items-center gap-2">
-                        <Package className="w-4 h-4" />
-                        <span>Lista de Produtos</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="categorias">
-                      <div className="flex items-center gap-2">
-                        <FolderTree className="w-4 h-4" />
-                        <span>Categorias de Produtos</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="combos">
-                      <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4" />
-                        <span>Combos</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="edit">
-                      <div className="flex items-center gap-2">
-                        <Edit className="w-4 h-4" />
-                        <span>Adicionais & Sabores</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Desktop: Buttons */}
-              <div className="hidden md:flex flex-wrap gap-2">
-                <Button
-                  variant={productSectionTab === 'lista' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('lista')}
-                  className="flex items-center gap-2"
-                >
-                  <Package className="w-4 h-4" />
-                  Lista de Produtos
-                </Button>
-                <Button
-                  variant={productSectionTab === 'categorias' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('categorias')}
-                  className="flex items-center gap-2"
-                >
-                  <FolderTree className="w-4 h-4" />
-                  Categorias de Produtos
-                </Button>
-                <Button
-                  variant={productSectionTab === 'combos' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('combos')}
-                  className="flex items-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Combos
-                </Button>
-                <Button
-                  variant={productSectionTab === 'edit' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('edit')}
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  Adicionais & Sabores
-                </Button>
-              </div>
-            </div>
             
             <Tabs value={productSectionTab} onValueChange={setProductSectionTab} className="w-full">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold gradient-text mb-4">Gerenciar Produtos</h2>
+                
+                {/* Mobile: Dropdown */}
+                <div className="md:hidden">
+                  <Select value={productSectionTab} onValueChange={setProductSectionTab}>
+                    <SelectTrigger className="w-full max-w-md">
+                      <SelectValue placeholder="Selecione uma seção" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="lista">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-4 h-4" />
+                          <span>Lista de Produtos</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="categorias">
+                        <div className="flex items-center gap-2">
+                          <FolderTree className="w-4 h-4" />
+                          <span>Categorias de Produtos</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="combos">
+                        <div className="flex items-center gap-2">
+                          <ShoppingBag className="w-4 h-4" />
+                          <span>Combos</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="edit">
+                        <div className="flex items-center gap-2">
+                          <Edit className="w-4 h-4" />
+                          <span>Adicionais & Sabores</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Desktop: Buttons */}
+                <div className="hidden md:flex flex-wrap gap-2">
+                  <Button
+                    variant={productSectionTab === 'lista' ? 'default' : 'outline'}
+                    onClick={() => setProductSectionTab('lista')}
+                    className="flex items-center gap-2"
+                  >
+                    <Package className="w-4 h-4" />
+                    Lista de Produtos
+                  </Button>
+                  <Button
+                    variant={productSectionTab === 'categorias' ? 'default' : 'outline'}
+                    onClick={() => setProductSectionTab('categorias')}
+                    className="flex items-center gap-2"
+                  >
+                    <FolderTree className="w-4 h-4" />
+                    Categorias de Produtos
+                  </Button>
+                  <Button
+                    variant={productSectionTab === 'combos' ? 'default' : 'outline'}
+                    onClick={() => setProductSectionTab('combos')}
+                    className="flex items-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Combos
+                  </Button>
+                  <Button
+                    variant={productSectionTab === 'edit' ? 'default' : 'outline'}
+                    onClick={() => setProductSectionTab('edit')}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Adicionais & Sabores
+                  </Button>
+                </div>
+              </div>
 
               <TabsContent value="lista" className="space-y-6">
                 <div className="flex justify-between items-center">
