@@ -3285,7 +3285,7 @@ export const StoreOwnerDashboard = ({
                     )}
                   </ResponsiveDialogHeader>
                   
-                  <ScrollArea className="flex-1 px-4 md:px-6">
+                  <ScrollArea className="flex-1 px-4 md:px-6 max-h-[calc(90vh-200px)]">
                     <div className="space-y-4 pb-24 md:pb-4">
                       {/* Mobile: Select dropdown para as abas */}
                       <div className="md:hidden">
