@@ -1010,7 +1010,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
 
   return (
     <>
-      <Card className="md:min-h-[90vh]">
+      <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex-1">
@@ -1075,7 +1075,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 md:min-h-[calc(90vh-200px)]">
+        <CardContent className="space-y-4">
         {/* Search and Filters */}
         {addons && addons.length > 0 && (
           <div className="space-y-3">

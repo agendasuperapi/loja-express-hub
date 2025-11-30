@@ -388,7 +388,7 @@ export function ProductSizesManager({
     return <div className="text-center py-8">Carregando tamanhos...</div>;
   }
   return <>
-      <Card className="md:min-h-[90vh]">
+      <Card>
             <CardHeader>
               <div className="flex flex-col gap-4">
                 <div className="flex-1">
@@ -443,7 +443,7 @@ export function ProductSizesManager({
               </div>
             </CardHeader>
 
-      <CardContent className="space-y-4 md:min-h-[calc(90vh-200px)]">
+      <CardContent className="space-y-4">
         {/* Search and Filters */}
         {sizes && sizes.length > 0 && (
           <div className="space-y-3">
@@ -473,7 +473,7 @@ export function ProductSizesManager({
           </div>
         )}
 
-        {!filteredSizes || filteredSizes.length === 0 ? <div className="text-center py-12 text-muted-foreground min-h-[calc(90vh-350px)] flex items-center justify-center">
+        {!filteredSizes || filteredSizes.length === 0 ? <div className="text-center py-12 text-muted-foreground flex items-center justify-center">
             {searchTerm || availabilityFilter !== 'all' ? 'Nenhum tamanho encontrado com os filtros aplicados.' : 'Nenhum tamanho cadastrado. Clique em "Novo Tamanho" para adicionar.'}
           </div> : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredSizes.map(s => s.id)} strategy={verticalListSortingStrategy}>

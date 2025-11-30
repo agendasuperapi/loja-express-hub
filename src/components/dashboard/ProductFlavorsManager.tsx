@@ -512,251 +512,251 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
   return (
     <>
-      <Card className="md:min-h-[90vh]">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Sabores</CardTitle>
-            <CardDescription>Gerencie os sabores disponíveis para este produto</CardDescription>
-          </div>
-          {!isAdding && (
-            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-              <Button 
-                size="sm" 
-                variant="default"
-                onClick={() => setNewFlavorModalOpen(true)}
-                className="w-full sm:w-auto"
-              >
-                <Plus className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Novo Sabor</span>
-                <span className="sm:hidden">Novo</span>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  loadTemplates();
-                  setImportTemplateOpen(true);
-                }}
-                className="w-full sm:w-auto"
-              >
-                <Package className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Importar Template</span>
-                <span className="sm:hidden">Template</span>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => {
-                  loadProducts();
-                  setImportFromProductOpen(true);
-                }}
-                className="w-full sm:w-auto"
-              >
-                <Package className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Importar de Produto</span>
-                <span className="sm:hidden">Produto</span>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setSearchFlavorsOpen(true)}
-                className="w-full sm:w-auto"
-              >
-                <Search className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Buscar Sabores</span>
-                <span className="sm:hidden">Buscar</span>
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4 md:min-h-[calc(90vh-200px)]">
-        {isAdding && (
-          <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-            <div className="space-y-2">
-              <Label>Nome do Sabor</Label>
-              <Input
-                placeholder="Ex: Calabresa, Mussarela..."
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Descrição (Opcional)</Label>
-              <Textarea
-                placeholder="Descreva os ingredientes do sabor..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={2}
-              />
-            </div>
+      <Card>
+       <CardHeader>
+         <div className="flex items-center justify-between">
+           <div>
+             <CardTitle>Sabores</CardTitle>
+             <CardDescription>Gerencie os sabores disponíveis para este produto</CardDescription>
+           </div>
+           {!isAdding && (
+             <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+               <Button 
+                 size="sm" 
+                 variant="default"
+                 onClick={() => setNewFlavorModalOpen(true)}
+                 className="w-full sm:w-auto"
+               >
+                 <Plus className="w-4 h-4 sm:mr-2" />
+                 <span className="hidden sm:inline">Novo Sabor</span>
+                 <span className="sm:hidden">Novo</span>
+               </Button>
+               <Button 
+                 size="sm" 
+                 variant="outline"
+                 onClick={() => {
+                   loadTemplates();
+                   setImportTemplateOpen(true);
+                 }}
+                 className="w-full sm:w-auto"
+               >
+                 <Package className="w-4 h-4 sm:mr-2" />
+                 <span className="hidden sm:inline">Importar Template</span>
+                 <span className="sm:hidden">Template</span>
+               </Button>
+               <Button 
+                 size="sm" 
+                 variant="outline"
+                 onClick={() => {
+                   loadProducts();
+                   setImportFromProductOpen(true);
+                 }}
+                 className="w-full sm:w-auto"
+               >
+                 <Package className="w-4 h-4 sm:mr-2" />
+                 <span className="hidden sm:inline">Importar de Produto</span>
+                 <span className="sm:hidden">Produto</span>
+               </Button>
+               <Button 
+                 size="sm" 
+                 variant="outline"
+                 onClick={() => setSearchFlavorsOpen(true)}
+                 className="w-full sm:w-auto"
+               >
+                 <Search className="w-4 h-4 sm:mr-2" />
+                 <span className="hidden sm:inline">Buscar Sabores</span>
+                 <span className="sm:hidden">Buscar</span>
+               </Button>
+             </div>
+           )}
+         </div>
+       </CardHeader>
+       <CardContent className="space-y-4">
+         {isAdding && (
+           <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+             <div className="space-y-2">
+               <Label>Nome do Sabor</Label>
+               <Input
+                 placeholder="Ex: Calabresa, Mussarela..."
+                 value={formData.name}
+                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+               />
+             </div>
+             
+             <div className="space-y-2">
+               <Label>Descrição (Opcional)</Label>
+               <Textarea
+                 placeholder="Descreva os ingredientes do sabor..."
+                 value={formData.description}
+                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                 rows={2}
+               />
+             </div>
 
-            <div className="space-y-2">
-              <Label>Preço do Sabor</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  className="pl-9"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Quando o cliente escolher múltiplos sabores, o preço final será a média dos sabores selecionados
-              </p>
-            </div>
+             <div className="space-y-2">
+               <Label>Preço do Sabor</Label>
+               <div className="relative">
+                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                 <Input
+                   type="number"
+                   step="0.01"
+                   min="0"
+                   placeholder="0.00"
+                   className="pl-9"
+                   value={formData.price}
+                   onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                 />
+               </div>
+               <p className="text-xs text-muted-foreground">
+                 Quando o cliente escolher múltiplos sabores, o preço final será a média dos sabores selecionados
+               </p>
+             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.is_available}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
-                />
-                <Label>Disponível</Label>
-              </div>
-            </div>
+             <div className="flex items-center justify-between">
+               <div className="flex items-center gap-2">
+                 <Switch
+                   checked={formData.is_available}
+                   onCheckedChange={(checked) => setFormData({ ...formData, is_available: checked })}
+                 />
+                 <Label>Disponível</Label>
+               </div>
+             </div>
 
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleSubmit} disabled={isCreating} className="flex-1">
-                {editingId ? 'Atualizar' : 'Adicionar'}
-              </Button>
-              <Button variant="outline" onClick={handleCancel}>
-                Cancelar
-              </Button>
-            </div>
-          </div>
-        )}
+             <div className="flex gap-2 pt-2">
+               <Button onClick={handleSubmit} disabled={isCreating} className="flex-1">
+                 {editingId ? 'Atualizar' : 'Adicionar'}
+               </Button>
+               <Button variant="outline" onClick={handleCancel}>
+                 Cancelar
+               </Button>
+             </div>
+           </div>
+         )}
 
-        {/* Filters */}
-        {flavors && flavors.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar sabores..."
-                    value={flavorSearchTerm}
-                    onChange={(e) => setFlavorSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="available">Disponíveis</SelectItem>
-                  <SelectItem value="unavailable">Indisponíveis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
+         {/* Filters */}
+         {flavors && flavors.length > 0 && (
+           <div className="space-y-3">
+             <div className="flex flex-col sm:flex-row gap-2">
+               <div className="flex-1">
+                 <div className="relative">
+                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                   <Input
+                     placeholder="Buscar sabores..."
+                     value={flavorSearchTerm}
+                     onChange={(e) => setFlavorSearchTerm(e.target.value)}
+                     className="pl-9"
+                   />
+                 </div>
+               </div>
+               <Select value={availabilityFilter} onValueChange={(value: any) => setAvailabilityFilter(value)}>
+                 <SelectTrigger className="w-full sm:w-[180px]">
+                   <Filter className="w-4 h-4 mr-2" />
+                   <SelectValue />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">Todos</SelectItem>
+                   <SelectItem value="available">Disponíveis</SelectItem>
+                   <SelectItem value="unavailable">Indisponíveis</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
+         )}
 
-        <div className="space-y-2 min-h-[calc(90vh-250px)]">
-          {filteredFlavors && filteredFlavors.length > 0 ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={filteredFlavors.map(f => f.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {filteredFlavors.map((flavor) => (
-                  <SortableFlavorItem
-                    key={flavor.id}
-                    flavor={flavor}
-                    onEdit={() => handleEdit(flavor)}
-                    onDelete={() => deleteFlavor(flavor.id)}
-                    onToggleAvailability={() => handleToggleAvailability(flavor)}
-                    isDeleting={isDeleting}
-                  />
-                ))}
-              </SortableContext>
-            </DndContext>
-          ) : flavors && flavors.length > 0 ? (
-            <div className="min-h-[calc(90vh-350px)] flex items-center justify-center">
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum sabor encontrado com os filtros aplicados
-              </p>
-            </div>
-          ) : (
-            <div className="min-h-[calc(90vh-350px)] flex items-center justify-center">
-              <p className="text-sm text-muted-foreground text-center py-4">
-                Nenhum sabor cadastrado
-              </p>
-            </div>
-          )}
-        </div>
+         <div className="space-y-2">
+           {filteredFlavors && filteredFlavors.length > 0 ? (
+             <DndContext
+               sensors={sensors}
+               collisionDetection={closestCenter}
+               onDragEnd={handleDragEnd}
+             >
+               <SortableContext
+                 items={filteredFlavors.map(f => f.id)}
+                 strategy={verticalListSortingStrategy}
+               >
+                 {filteredFlavors.map((flavor) => (
+                   <SortableFlavorItem
+                     key={flavor.id}
+                     flavor={flavor}
+                     onEdit={() => handleEdit(flavor)}
+                     onDelete={() => deleteFlavor(flavor.id)}
+                     onToggleAvailability={() => handleToggleAvailability(flavor)}
+                     isDeleting={isDeleting}
+                   />
+                 ))}
+               </SortableContext>
+             </DndContext>
+           ) : flavors && flavors.length > 0 ? (
+             <div className="flex items-center justify-center">
+               <p className="text-sm text-muted-foreground text-center py-4">
+                 Nenhum sabor encontrado com os filtros aplicados
+               </p>
+             </div>
+           ) : (
+             <div className="flex items-center justify-center">
+               <p className="text-sm text-muted-foreground text-center py-4">
+                 Nenhum sabor cadastrado
+               </p>
+             </div>
+           )}
+         </div>
 
-        {/* Dialog: Importar de Produto */}
-        <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
-            <ResponsiveDialogHeader>
-              <ResponsiveDialogTitle>Importar Sabores de Produto</ResponsiveDialogTitle>
-              <ResponsiveDialogDescription>
-                Selecione um produto para importar seus sabores
-              </ResponsiveDialogDescription>
-            </ResponsiveDialogHeader>
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar produto..."
-                  value={productSearchTerm}
-                  onChange={(e) => setProductSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="space-y-3">
-              {loadingProducts ? (
-                <p className="text-center py-4 text-muted-foreground">Carregando produtos...</p>
-              ) : filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handleImportFromProduct(product.id)}
-                  >
-                    {product.image_url && (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <p className="font-medium">{product.name}</p>
-                      {product.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
-                      )}
-                      <p className="text-sm font-medium text-primary mt-1">
-                        R$ {product.price.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center py-4 text-muted-foreground">
-                  Nenhum outro produto encontrado
-                </p>
-              )}
-            </div>
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
+         {/* Dialog: Importar de Produto */}
+         <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
+           <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
+             <ResponsiveDialogHeader>
+               <ResponsiveDialogTitle>Importar Sabores de Produto</ResponsiveDialogTitle>
+               <ResponsiveDialogDescription>
+                 Selecione um produto para importar seus sabores
+               </ResponsiveDialogDescription>
+             </ResponsiveDialogHeader>
+             <div className="mb-4">
+               <div className="relative">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                 <Input
+                   placeholder="Pesquisar produto..."
+                   value={productSearchTerm}
+                   onChange={(e) => setProductSearchTerm(e.target.value)}
+                   className="pl-9"
+                 />
+               </div>
+             </div>
+             <div className="space-y-3">
+               {loadingProducts ? (
+                 <p className="text-center py-4 text-muted-foreground">Carregando produtos...</p>
+               ) : filteredProducts.length > 0 ? (
+                 filteredProducts.map((product) => (
+                   <div
+                     key={product.id}
+                     className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                     onClick={() => handleImportFromProduct(product.id)}
+                   >
+                     {product.image_url && (
+                       <img
+                         src={product.image_url}
+                         alt={product.name}
+                         className="w-16 h-16 object-cover rounded"
+                       />
+                     )}
+                     <div className="flex-1">
+                       <p className="font-medium">{product.name}</p>
+                       {product.description && (
+                         <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+                       )}
+                       <p className="text-sm font-medium text-primary mt-1">
+                         R$ {product.price.toFixed(2)}
+                       </p>
+                     </div>
+                   </div>
+                 ))
+               ) : (
+                 <p className="text-center py-4 text-muted-foreground">
+                   Nenhum outro produto encontrado
+                 </p>
+               )}
+             </div>
+           </ResponsiveDialogContent>
+         </ResponsiveDialog>
 
         {/* Dialog: Importar Template */}
         <ResponsiveDialog open={importTemplateOpen} onOpenChange={(open) => {
