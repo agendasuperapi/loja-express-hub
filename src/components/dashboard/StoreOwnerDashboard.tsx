@@ -3291,7 +3291,7 @@ export const StoreOwnerDashboard = ({
                           <SelectContent>
                             <SelectItem value="info">Informações</SelectItem>
                             <SelectItem value="sizes" disabled={!editingProduct}>
-                              Tamanhos {!editingProduct && "(salve primeiro)"}
+                              Variações {!editingProduct && "(salve primeiro)"}
                             </SelectItem>
                             <SelectItem value="addons" disabled={!editingProduct}>
                               Adicionais {!editingProduct && "(salve primeiro)"}
@@ -3308,7 +3308,7 @@ export const StoreOwnerDashboard = ({
                         <TabsList className="hidden md:grid md:grid-cols-4 w-full gap-1">
                           <TabsTrigger value="info">Informações</TabsTrigger>
                           <TabsTrigger value="sizes" disabled={!editingProduct}>
-                            Tamanhos {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                            Variações {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
                           <TabsTrigger value="addons" disabled={!editingProduct}>
                             Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
