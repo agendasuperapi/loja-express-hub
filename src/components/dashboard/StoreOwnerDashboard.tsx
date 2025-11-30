@@ -21,7 +21,7 @@ import { useStoreManagement, type StoreFormData } from "@/hooks/useStoreManageme
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut, Users, ShoppingCart } from "lucide-react";
 import { validatePixKey, normalizePixKeyPhone, formatPixKey, detectPixKeyType } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
@@ -4095,6 +4095,42 @@ export const StoreOwnerDashboard = ({
 
         {/* Relatorios Tab Group */}
         {myStore?.id && <div className={cn("p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6", !['relatorio-clientes', 'relatorio-produtos-vendidos', 'relatorio-produtos-cadastrados', 'relatorio-pedidos'].includes(activeTab) && 'hidden')}>
+
+            {/* Navegação de Relatórios - Botões para Desktop */}
+            <div className="hidden md:flex flex-wrap gap-2 mb-6">
+              <Button
+                variant={activeTab === 'relatorio-clientes' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('relatorio-clientes')}
+                className="flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Clientes
+              </Button>
+              <Button
+                variant={activeTab === 'relatorio-produtos-vendidos' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('relatorio-produtos-vendidos')}
+                className="flex items-center gap-2"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Mais Vendidos
+              </Button>
+              <Button
+                variant={activeTab === 'relatorio-produtos-cadastrados' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('relatorio-produtos-cadastrados')}
+                className="flex items-center gap-2"
+              >
+                <Package className="w-4 h-4" />
+                Produtos
+              </Button>
+              <Button
+                variant={activeTab === 'relatorio-pedidos' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('relatorio-pedidos')}
+                className="flex items-center gap-2"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Pedidos
+              </Button>
+            </div>
 
             <ReportsFilters periodFilter={reportsPeriodFilter} onPeriodFilterChange={setReportsPeriodFilter} customDateRange={reportsCustomDateRange} onCustomDateRangeChange={setReportsCustomDateRange} />
             
