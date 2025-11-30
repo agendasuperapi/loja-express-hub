@@ -1075,7 +1075,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 min-h-[calc(90vh-250px)]">
         {/* Search and Filters */}
         {addons && addons.length > 0 && (
           <div className="space-y-3">
