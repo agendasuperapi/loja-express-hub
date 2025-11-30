@@ -3273,7 +3273,7 @@ export const StoreOwnerDashboard = ({
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Produto
                   </Button>
-                <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+                <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
                   <ResponsiveDialogHeader className="flex-shrink-0">
                     <ResponsiveDialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
