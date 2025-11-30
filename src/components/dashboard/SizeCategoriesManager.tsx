@@ -152,14 +152,18 @@ export function SizeCategoriesManager({ storeId }: SizeCategoriesManagerProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center gap-2">
               <CardTitle>Categorias de Variações</CardTitle>
-              <CardDescription>Organize suas variações em categorias</CardDescription>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                onClick={() => handleOpenDialog()}
+                className="h-8 w-8"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Categoria
-            </Button>
+            <CardDescription className="hidden sm:block">Organize suas variações em categorias</CardDescription>
           </div>
         </CardHeader>
 
