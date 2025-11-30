@@ -1075,7 +1075,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 md:min-h-[calc(90vh-250px)]">
+        <CardContent className="space-y-4 md:min-h-[calc(90vh-200px)]">
         {/* Search and Filters */}
         {addons && addons.length > 0 && (
           <div className="space-y-3">
@@ -1160,7 +1160,7 @@ export default function ProductAddonsManager({ productId, storeId }: ProductAddo
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <div className="space-y-2 min-h-[calc(90vh-300px)]">
+            <div className="space-y-2">
               {categoryFilter === 'all' ? (
                 // Group by category view with sortable categories
                 <SortableContext
