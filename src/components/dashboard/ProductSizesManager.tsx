@@ -443,7 +443,7 @@ export function ProductSizesManager({
               </div>
             </CardHeader>
 
-      <CardContent className="space-y-4 md:min-h-[75vh]">
+      <CardContent className="space-y-4 md:min-h-[calc(90vh-200px)]">
         {/* Search and Filters */}
         {sizes && sizes.length > 0 && (
           <div className="space-y-3">
@@ -555,7 +555,7 @@ export function ProductSizesManager({
           </Card>
 
       <ResponsiveDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>{editingSize ? 'Editar Variação' : 'Nova Variação'}</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
@@ -658,7 +658,7 @@ export function ProductSizesManager({
 
       {/* Store Sizes Dialog */}
       <ResponsiveDialog open={isStoreSizesOpen} onOpenChange={setIsStoreSizesOpen}>
-        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="flex items-center gap-2">
               <Store className="w-5 h-5" />
@@ -913,7 +913,7 @@ export function ProductSizesManager({
 
       {/* Import from Product Dialog */}
       <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle>Importar Variações de Outro Produto</ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
@@ -978,7 +978,7 @@ export function ProductSizesManager({
 
       {/* Editar Categorias Modal */}
       <ResponsiveDialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
-        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+        <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
           <ResponsiveDialogHeader>
             <ResponsiveDialogTitle className="flex items-center gap-2">
               <FolderTree className="w-5 h-5" />
@@ -1005,7 +1005,7 @@ export function ProductSizesManager({
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
 
-          <ScrollArea className="max-h-[60vh]">
+          <ScrollArea className="max-h-[calc(90vh-200px)]">
             <div className="space-y-4 p-4">
               <div className="space-y-2">
                 <Label htmlFor="category-name">Nome da Categoria *</Label>

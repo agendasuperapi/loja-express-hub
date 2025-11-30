@@ -663,7 +663,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
           </div>
         )}
 
-        <div className="space-y-2 min-h-[800px]">
+        <div className="space-y-2 min-h-[calc(90vh-250px)]">
           {filteredFlavors && filteredFlavors.length > 0 ? (
             <DndContext
               sensors={sensors}
@@ -699,7 +699,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Importar de Produto */}
         <ResponsiveDialog open={importFromProductOpen} onOpenChange={setImportFromProductOpen}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle>Importar Sabores de Produto</ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
@@ -762,7 +762,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             setSelectedFlavors([]);
           }
         }}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle className="flex items-center gap-2">
                 <Package className="w-5 h-5" />
@@ -916,7 +916,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Novo Sabor */}
         <ResponsiveDialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle>Novo Sabor</ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
@@ -1015,7 +1015,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
 
         {/* Dialog: Buscar Sabores da Loja */}
         <ResponsiveDialog open={searchFlavorsOpen} onOpenChange={setSearchFlavorsOpen}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[87vh] md:max-h-[90vh] flex flex-col bg-background z-50">
+          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle>Buscar Sabores da Loja</ResponsiveDialogTitle>
               <ResponsiveDialogDescription>
@@ -1160,7 +1160,7 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
             </div>
 
             {/* Store Flavors List */}
-            <div className="overflow-y-auto max-h-[50vh] space-y-2">
+            <div className="overflow-y-auto max-h-[calc(90vh-300px)] space-y-2">
               {filteredStoreFlavors && filteredStoreFlavors.length > 0 ? (
                 filteredStoreFlavors.map((flavor) => {
                   const isInProduct = flavors?.some(f => f.name === flavor.name && f.is_available);
