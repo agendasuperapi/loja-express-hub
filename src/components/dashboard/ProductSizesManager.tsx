@@ -835,7 +835,7 @@ export function ProductSizesManager({
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <h4 className="text-sm font-semibold truncate">{storeSize.name}</h4>
                                     {isAlreadyAdded && (
-                                      <Badge variant="secondary" className="text-xs bg-black text-white hover:bg-black/80">
+                                      <Badge variant="outline" className="text-xs flex-shrink-0">
                                         Já adicionado
                                       </Badge>
                                     )}
@@ -852,14 +852,14 @@ export function ProductSizesManager({
                                 <Button
                                   size="sm"
                                   onClick={() => handleCopyStoreSize(storeSize)}
-                                  className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
+                                  className="w-full sm:w-auto"
                                 >
                                   <Plus className="w-4 h-4 mr-2" />
                                   {isAlreadyAdded && existingSize?.is_available
-                                    ? '+ Remover do produto'
+                                    ? 'Remover do produto'
                                     : isAlreadyAdded && !existingSize?.is_available
-                                    ? '+ Adicionar novamente'
-                                    : '+ Adicionar'
+                                    ? 'Adicionar novamente'
+                                    : 'Adicionar'
                                   }
                                 </Button>
                               </div>
@@ -903,7 +903,7 @@ export function ProductSizesManager({
                               <div className="flex items-center gap-2 flex-wrap">
                                 <h4 className="text-sm font-semibold truncate">{storeSize.name}</h4>
                                 {isAlreadyAdded && (
-                                  <Badge variant="secondary" className="text-xs bg-black text-white hover:bg-black/80">
+                                  <Badge variant="outline" className="text-xs flex-shrink-0">
                                     Já adicionado
                                   </Badge>
                                 )}
@@ -920,14 +920,14 @@ export function ProductSizesManager({
                             <Button
                               size="sm"
                               onClick={() => handleCopyStoreSize(storeSize)}
-                              className="bg-orange-500 hover:bg-orange-600 text-white w-full sm:w-auto"
+                              className="w-full sm:w-auto"
                             >
                               <Plus className="w-4 h-4 mr-2" />
                               {isAlreadyAdded && existingSize?.is_available
-                                ? '+ Remover do produto'
+                                ? 'Remover do produto'
                                 : isAlreadyAdded && !existingSize?.is_available
-                                ? '+ Adicionar novamente'
-                                : '+ Adicionar'
+                                ? 'Adicionar novamente'
+                                : 'Adicionar'
                               }
                             </Button>
                           </div>
