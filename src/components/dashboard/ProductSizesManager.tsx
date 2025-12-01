@@ -710,7 +710,7 @@ export function ProductSizesManager({
               </Button>
               <Button 
                 size="sm" 
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   setNewCategoryForm({
                     name: '',
@@ -745,7 +745,7 @@ export function ProductSizesManager({
                 disabled={filteredStoreSizes.length === 0}
                 className="shrink-0"
               >
-                <Download className="w-4 h-4 mr-2" />
+                <Plus className="w-4 h-4 mr-2" />
                 Adicionar Todos
               </Button>
             </div>
@@ -827,8 +827,9 @@ export function ProductSizesManager({
                                   size="sm"
                                   variant={isAlreadyAdded ? "outline" : "default"}
                                   onClick={() => handleCopyStoreSize(storeSize)}
-                                  className="shrink-0"
+                                  className="w-full sm:w-auto"
                                 >
+                                  <Plus className="w-4 h-4 mr-2" />
                                   {isAlreadyAdded 
                                     ? (existingSize.is_available ? 'Remover do produto' : 'Adicionar novamente')
                                     : 'Adicionar'
@@ -898,8 +899,9 @@ export function ProductSizesManager({
                               size="sm"
                               variant={isAlreadyAdded ? "outline" : "default"}
                               onClick={() => handleCopyStoreSize(storeSize)}
-                              className="shrink-0"
+                              className="w-full sm:w-auto"
                             >
+                              <Plus className="w-4 h-4 mr-2" />
                               {isAlreadyAdded 
                                 ? (existingSize.is_available ? 'Remover do produto' : 'Adicionar novamente')
                                 : 'Adicionar'
