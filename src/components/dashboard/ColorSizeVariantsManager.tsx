@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Grid3x3, Check, X, DollarSign } from 'lucide-react';
 import { useColorSizeVariants } from '@/hooks/useColorSizeVariants';
 import { useProductColors } from '@/hooks/useProductColors';
@@ -146,89 +147,101 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
       {/* Matrix Grid */}
       <Card className="p-4">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-muted">
+        <ScrollArea className="w-full">
           <div className="min-w-max pb-4">
           {/* Header Row - Sizes */}
           <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}>
             <div className="font-semibold text-sm p-2">Cor / Tamanho</div>
             {sizes.map(size => (
-              <div key={size.id} className="font-semibold text-sm text-center p-2">
+              <div key={size.id} className="font-semibold text-sm p-2 text-center bg-muted rounded">
                 {size.name}
+                <div className="text-xs text-muted-foreground font-normal">
+                  +R$ {size.price.toFixed(2)}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Color Rows */}
-          {colors.map(color => {
-            return (
-              <div 
-                key={color.id}
-                className="grid gap-2 mb-2"
-                style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}
-              >
-                {/* Color Name Cell */}
-                <div className="flex items-center gap-2 p-2 border rounded">
-                  <div 
-                    className="w-4 h-4 rounded-full border"
-                    style={{ backgroundColor: color.hex_code }}
-                  />
-                  <span className="text-sm font-medium">{color.name}</span>
-                </div>
-
-                {/* Variant Cells */}
-                {sizes.map(size => {
-                  const variantKey = `${color.id}-${size.id}`;
-                  const variant = variantMap[variantKey];
-                  const isAvailable = variant?.is_available || false;
-
-                  return (
-                    <div
-                      key={variantKey}
-                      className={`
-                        border rounded p-2 flex flex-col items-center justify-center gap-1
-                        cursor-pointer transition-all hover:shadow-md
-                        ${isAvailable ? 'bg-success/10 border-success/30' : 'bg-muted/30 border-border'}
-                      `}
-                      onClick={() => handleToggleVariant(color.id, size.id)}
-                    >
-                      {isAvailable ? (
-                        <>
-                          <Check className="w-4 h-4 text-success" />
-                          <div className="text-xs text-center">
-                            <div className="font-medium">
-                              Estoque: {variant?.stock_quantity ?? 0}
-                            </div>
-                            {variant?.price_adjustment !== 0 && (
-                              <div className="text-muted-foreground flex items-center justify-center gap-0.5">
-                                <DollarSign className="w-3 h-3" />
-                                {variant?.price_adjustment > 0 ? '+' : ''}
-                                {variant?.price_adjustment?.toFixed(2)}
-                              </div>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs mt-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenEdit(color.id, size.id);
-                            }}
-                          >
-                            Editar
-                          </Button>
-                        </>
-                      ) : (
-                        <X className="w-4 h-4 text-muted-foreground" />
-                      )}
+          {/* Data Rows - Colors */}
+          {colors.map(color => (
+            <div 
+              key={color.id} 
+              className="grid gap-2 mb-2" 
+              style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}
+            >
+              {/* Color Label */}
+              <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                <div
+                  className="w-6 h-6 rounded border-2 border-border flex-shrink-0"
+                  style={{ backgroundColor: color.hex_code }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{color.name}</div>
+                  {color.price_adjustment !== 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
-            );
-          })}
+
+              {/* Variant Cells */}
+              {sizes.map(size => {
+                const key = `${color.id}-${size.id}`;
+                const variant = variantMap.get(key);
+                const isAvailable = variant?.is_available || false;
+
+                return (
+                  <div 
+                    key={size.id} 
+                    className={`
+                      border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer
+                      transition-all hover:border-primary/50
+                      ${isAvailable ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}
+                    `}
+                    onClick={() => handleToggleVariant(color.id, size.id)}
+                  >
+                    {isAvailable ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <X className="w-5 h-5 text-red-600" />
+                    )}
+                    
+                    {variant && (
+                      <>
+                        {variant.stock_quantity !== null && (
+                          <Badge variant="secondary" className="text-xs">
+                            Estoque: {variant.stock_quantity}
+                          </Badge>
+                        )}
+                        {variant.price_adjustment !== 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            <DollarSign className="w-3 h-3" />
+                            {variant.price_adjustment > 0 ? '+' : ''}
+                            {variant.price_adjustment.toFixed(2)}
+                          </Badge>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 text-xs mt-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEdit(color.id, size.id);
+                          }}
+                        >
+                          Editar
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
           </div>
-        </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
         <div className="mt-4 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
           <strong>Dica:</strong> Clique em uma célula para ativar/desativar a combinação. 
