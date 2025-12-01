@@ -36,6 +36,22 @@ interface SortableSizeItemProps {
   }) => void;
   hideDeleteButton?: boolean;
 }
+
+interface SortableCategoryGroupProps {
+  category: {
+    id: string;
+    name: string;
+    is_exclusive: boolean;
+    min_items: number;
+    max_items: number | null;
+    display_order: number;
+  };
+  categorySizes: ProductSize[];
+  onEditSize: (size: ProductSize) => void;
+  onDeleteSize: (id: string) => void;
+  onToggleAvailability: (args: { id: string; is_available: boolean }) => void;
+  hideDeleteButton?: boolean;
+}
 function SortableSizeItem({
   size,
   onEdit,
@@ -112,6 +128,70 @@ function SortableSizeItem({
       </div>
     </div>;
 }
+
+function SortableCategoryGroup({
+  category,
+  categorySizes,
+  onEditSize,
+  onDeleteSize,
+  onToggleAvailability,
+  hideDeleteButton
+}: SortableCategoryGroupProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: category.id
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="space-y-2">
+      <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
+        <div className="flex items-center gap-2 flex-1">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing flex-shrink-0">
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">
+              {category.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {category.is_exclusive ? 'Exclusivo' : 'Não exclusivo'}
+              {' • '}
+              Mín: {category.min_items}
+              {category.max_items !== null && ` • Máx: ${category.max_items}`}
+            </p>
+          </div>
+        </div>
+        <Badge variant="secondary" className="text-xs">
+          {categorySizes.length} {categorySizes.length === 1 ? 'variação' : 'variações'}
+        </Badge>
+      </div>
+      <div className="space-y-2 pl-4 border-l-2 border-muted">
+        {categorySizes.map(size => (
+          <SortableSizeItem 
+            key={size.id} 
+            size={size} 
+            onEdit={onEditSize} 
+            onDelete={onDeleteSize} 
+            onToggleAvailability={onToggleAvailability}
+            hideDeleteButton={hideDeleteButton}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 export function ProductSizesManager({
   productId,
   storeId,
@@ -130,7 +210,7 @@ export function ProductSizesManager({
   const [editingSize, setEditingSize] = useState<ProductSize | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'available' | 'unavailable'>('all');
-  const { categories, addCategory } = useSizeCategories(storeId);
+  const { categories, addCategory, reorderCategories } = useSizeCategories(storeId);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [importFromProductOpen, setImportFromProductOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
@@ -173,6 +253,27 @@ export function ProductSizesManager({
         display_order: index
       }));
       reorderSizes(updates);
+    }
+  };
+
+  const handleCategoryDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id && categories) {
+      const activeCategoriesWithSizes = categories.filter(cat => 
+        cat.is_active && filteredSizes?.some(size => size.category_id === cat.id)
+      );
+      
+      const oldIndex = activeCategoriesWithSizes.findIndex(c => c.id === active.id);
+      const newIndex = activeCategoriesWithSizes.findIndex(c => c.id === over.id);
+      
+      const newOrder = arrayMove(activeCategoriesWithSizes, oldIndex, newIndex);
+      const updates = newOrder.map((category, index) => ({
+        id: category.id,
+        display_order: index
+      }));
+      
+      reorderCategories(updates);
     }
   };
   const handleNewAddon = () => {
@@ -511,52 +612,45 @@ export function ProductSizesManager({
 
         {!filteredSizes || filteredSizes.length === 0 ? <div className="text-center py-12 text-muted-foreground flex items-center justify-center">
             {searchTerm || availabilityFilter !== 'all' ? 'Nenhum tamanho encontrado com os filtros aplicados.' : 'Nenhum tamanho cadastrado. Clique em "Novo Tamanho" para adicionar.'}
-          </div> : <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={filteredSizes.map(s => s.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-6">
-                {/* Variações com categorias */}
-                {categories && categories.length > 0 && categories
-                  .filter(cat => cat.is_active && filteredSizes.some(size => size.category_id === cat.id))
-                  .sort((a, b) => a.display_order - b.display_order)
-                  .map((category) => {
-                    const categorySizes = filteredSizes.filter(size => size.category_id === category.id);
-                    if (categorySizes.length === 0) return null;
+          </div> : <div className="space-y-6">
+                {/* Variações com categorias - com drag and drop */}
+                {categories && categories.length > 0 && (() => {
+                  const activeCategoriesWithSizes = categories
+                    .filter(cat => cat.is_active && filteredSizes.some(size => size.category_id === cat.id))
+                    .sort((a, b) => a.display_order - b.display_order);
 
-                    return (
-                      <div key={category.id} className="space-y-2">
-                        <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
-                          <div>
-                            <p className="text-sm font-bold text-foreground">
-                              {category.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {category.is_exclusive ? 'Exclusivo' : 'Não exclusivo'}
-                              {' • '}
-                              Mín: {category.min_items}
-                              {category.max_items !== null && ` • Máx: ${category.max_items}`}
-                            </p>
-                          </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {categorySizes.length} {categorySizes.length === 1 ? 'variação' : 'variações'}
-                          </Badge>
-                        </div>
-                        <div className="space-y-2 pl-4 border-l-2 border-muted">
-                          {categorySizes.map(size => (
-                            <SortableSizeItem 
-                              key={size.id} 
-                              size={size} 
-                              onEdit={handleOpenDialog} 
-                              onDelete={deleteSize} 
+                  return activeCategoriesWithSizes.length > 0 && (
+                    <DndContext 
+                      sensors={sensors} 
+                      collisionDetection={closestCenter} 
+                      onDragEnd={handleCategoryDragEnd}
+                    >
+                      <SortableContext 
+                        items={activeCategoriesWithSizes.map(c => c.id)} 
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {activeCategoriesWithSizes.map((category) => {
+                          const categorySizes = filteredSizes.filter(size => size.category_id === category.id);
+                          if (categorySizes.length === 0) return null;
+
+                          return (
+                            <SortableCategoryGroup
+                              key={category.id}
+                              category={category}
+                              categorySizes={categorySizes}
+                              onEditSize={handleOpenDialog}
+                              onDeleteSize={deleteSize}
                               onToggleAvailability={toggleSizeAvailability}
                               hideDeleteButton={hideDeleteButton}
                             />
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+                          );
+                        })}
+                      </SortableContext>
+                    </DndContext>
+                  );
+                })()}
 
-                {/* Variações sem categoria */}
+                 {/* Variações sem categoria */}
                 {filteredSizes.filter(size => !size.category_id).length > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
@@ -572,23 +666,25 @@ export function ProductSizesManager({
                         {filteredSizes.filter(size => !size.category_id).length} {filteredSizes.filter(size => !size.category_id).length === 1 ? 'variação' : 'variações'}
                       </Badge>
                     </div>
-                    <div className="space-y-2 pl-4 border-l-2 border-muted">
-                      {filteredSizes.filter(size => !size.category_id).map(size => (
-                        <SortableSizeItem 
-                          key={size.id} 
-                          size={size} 
-                          onEdit={handleOpenDialog} 
-                          onDelete={deleteSize} 
-                          onToggleAvailability={toggleSizeAvailability}
-                          hideDeleteButton={hideDeleteButton}
-                        />
-                      ))}
-                    </div>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={filteredSizes.filter(size => !size.category_id).map(s => s.id)} strategy={verticalListSortingStrategy}>
+                        <div className="space-y-2 pl-4 border-l-2 border-muted">
+                          {filteredSizes.filter(size => !size.category_id).map(size => (
+                            <SortableSizeItem 
+                              key={size.id} 
+                              size={size} 
+                              onEdit={handleOpenDialog} 
+                              onDelete={deleteSize} 
+                              onToggleAvailability={toggleSizeAvailability}
+                              hideDeleteButton={hideDeleteButton}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 )}
-              </div>
-            </SortableContext>
-          </DndContext>}
+              </div>}
           </CardContent>
           </Card>
 
