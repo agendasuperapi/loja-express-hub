@@ -148,8 +148,15 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
       {/* Matrix Grid */}
       <Card className="p-4">
-        <div className="max-h-[500px] w-full overflow-auto">
-          <div className="min-w-max">
+        <div 
+          className="max-h-[500px] w-full overflow-auto nested-scroll scrollbar-thin"
+          data-scroll-visible="true"
+          style={{
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch'
+          }}
+        >
+          <div className="min-w-max pb-2 pr-2">
             {/* Header Row - Sizes */}
             <div
               className="grid gap-2 mb-2"

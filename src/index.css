@@ -353,4 +353,36 @@ All colors MUST be HSL.
      width: 8px !important;
      height: 8px !important;
    }
+
+   /* Force scrollbars visible in nested scroll containers inside Radix ScrollArea */
+   [data-radix-scroll-area-viewport] .nested-scroll,
+   [data-radix-scroll-area-viewport] [data-scroll-visible="true"] {
+     scrollbar-width: thin !important;
+     overflow: auto !important;
+   }
+
+   [data-radix-scroll-area-viewport] .nested-scroll::-webkit-scrollbar,
+   [data-radix-scroll-area-viewport] [data-scroll-visible="true"]::-webkit-scrollbar {
+     display: block !important;
+     width: 10px !important;
+     height: 10px !important;
+   }
+
+   [data-radix-scroll-area-viewport] .nested-scroll::-webkit-scrollbar-track,
+   [data-radix-scroll-area-viewport] [data-scroll-visible="true"]::-webkit-scrollbar-track {
+     background: hsl(var(--muted));
+     border-radius: 4px;
+   }
+
+   [data-radix-scroll-area-viewport] .nested-scroll::-webkit-scrollbar-thumb,
+   [data-radix-scroll-area-viewport] [data-scroll-visible="true"]::-webkit-scrollbar-thumb {
+     background: hsl(var(--muted-foreground) / 0.4);
+     border-radius: 4px;
+     border: 2px solid hsl(var(--muted));
+   }
+
+   [data-radix-scroll-area-viewport] .nested-scroll::-webkit-scrollbar-thumb:hover,
+   [data-radix-scroll-area-viewport] [data-scroll-visible="true"]::-webkit-scrollbar-thumb:hover {
+     background: hsl(var(--muted-foreground) / 0.6);
+   }
  }
