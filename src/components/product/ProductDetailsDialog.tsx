@@ -369,6 +369,9 @@ export function ProductDetailsDialog({
     const colorWithImage = availableColors.find(color => color.image_id === imageId);
     if (colorWithImage) {
       setSelectedColor(colorWithImage.id);
+    } else {
+      // If no color is linked to this image, deselect the current color
+      setSelectedColor(null);
     }
   };
 
