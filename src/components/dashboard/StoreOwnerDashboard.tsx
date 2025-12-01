@@ -3302,7 +3302,7 @@ export const StoreOwnerDashboard = ({
                               Adicionais {!editingProduct && "(salve primeiro)"}
                             </SelectItem>
                             <SelectItem value="flavors" disabled={!editingProduct}>
-                              Múltiplos Sabores {!editingProduct && "(salve primeiro)"}
+                              Múltiplos Sabores Pizza {!editingProduct && "(salve primeiro)"}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -3319,7 +3319,7 @@ export const StoreOwnerDashboard = ({
                             Adicionais {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
                           <TabsTrigger value="flavors" disabled={!editingProduct}>
-                            Múltiplos Sabores {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
+                            Múltiplos Sabores Pizza {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
                           </TabsTrigger>
                         </TabsList>
                         
