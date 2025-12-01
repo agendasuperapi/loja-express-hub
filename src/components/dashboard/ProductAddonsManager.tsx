@@ -48,6 +48,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { addonTemplates, type BusinessTemplate } from "@/lib/addonTemplates";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -1446,89 +1447,33 @@ export default function ProductAddonsManager({ productId, storeId, hideDeleteBut
           </div>
 
           {/* Store Addons List */}
-          <div className="overflow-y-auto max-h-[calc(90vh-300px)] space-y-4">
-            {filteredStoreAddons.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>Nenhum adicional encontrado</p>
-                <p className="text-sm">Adicione adicionais em outros produtos para reutilizá-los aqui</p>
-              </div>
-            ) : (
-              <>
-                {/* Uncategorized */}
-                {groupedStoreAddons.uncategorized && groupedStoreAddons.uncategorized.length > 0 && (
-                  <div className="space-y-2">
-                    <div 
-                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2 cursor-pointer hover:text-foreground transition-colors"
-                      onClick={() => toggleStoreAddonCategoryExpansion('uncategorized')}
-                    >
-                      <FolderTree className="w-4 h-4" />
-                      <span className="flex-1">Sem categoria</span>
-                      {expandedStoreAddonCategories.has('uncategorized') ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                    {expandedStoreAddonCategories.has('uncategorized') && (
-                      <div className="animate-accordion-down">
-                        {groupedStoreAddons.uncategorized.map((addon) => {
-                          const isInProduct = addons?.some(a => a.name === addon.name && a.is_available);
-                          return (
-                            <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-medium truncate">{addon.name}</span>
-                                  {isInProduct && (
-                                    <Badge variant="outline" className="text-xs flex-shrink-0">
-                                      Já adicionado
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                  R$ {addon.price.toFixed(2)}
-                                </p>
-                              </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleCopyStoreAddon(addon)}
-                                className="w-full sm:w-auto"
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                {addons?.some(a => a.name === addon.name && a.category_id === addon.category_id && a.is_available)
-                                  ? 'Remover do produto'
-                                  : 'Adicionar'}
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Categorized */}
-                {activeCategories.map((category) => {
-                  const categoryAddons = groupedStoreAddons[category.id];
-                  if (!categoryAddons || categoryAddons.length === 0) return null;
-
-                  return (
-                    <div key={category.id} className="space-y-2">
-                      <Separator />
+          <ScrollArea className="h-[500px]">
+            <div className="space-y-4 pr-4">
+              {filteredStoreAddons.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Nenhum adicional encontrado</p>
+                  <p className="text-sm">Adicione adicionais em outros produtos para reutilizá-los aqui</p>
+                </div>
+              ) : (
+                <>
+                  {/* Uncategorized */}
+                  {groupedStoreAddons.uncategorized && groupedStoreAddons.uncategorized.length > 0 && (
+                    <div className="space-y-2">
                       <div 
                         className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2 cursor-pointer hover:text-foreground transition-colors"
-                        onClick={() => toggleStoreAddonCategoryExpansion(category.id)}
+                        onClick={() => toggleStoreAddonCategoryExpansion('uncategorized')}
                       >
                         <FolderTree className="w-4 h-4" />
-                        <span className="flex-1">{category.name}</span>
-                        {expandedStoreAddonCategories.has(category.id) ? (
+                        <span className="flex-1">Sem categoria</span>
+                        {expandedStoreAddonCategories.has('uncategorized') ? (
                           <ChevronUp className="w-4 h-4" />
                         ) : (
                           <ChevronDown className="w-4 h-4" />
                         )}
                       </div>
-                      {expandedStoreAddonCategories.has(category.id) && (
+                      {expandedStoreAddonCategories.has('uncategorized') && (
                         <div className="animate-accordion-down">
-                          {categoryAddons.map((addon) => {
+                          {groupedStoreAddons.uncategorized.map((addon) => {
                             const isInProduct = addons?.some(a => a.name === addon.name && a.is_available);
                             return (
                               <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
@@ -1561,11 +1506,69 @@ export default function ProductAddonsManager({ productId, storeId, hideDeleteBut
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </>
-            )}
-          </div>
+                  )}
+
+                  {/* Categorized */}
+                  {activeCategories.map((category) => {
+                    const categoryAddons = groupedStoreAddons[category.id];
+                    if (!categoryAddons || categoryAddons.length === 0) return null;
+
+                    return (
+                      <div key={category.id} className="space-y-2">
+                        <Separator />
+                        <div 
+                          className="flex items-center gap-2 text-sm font-medium text-muted-foreground py-2 cursor-pointer hover:text-foreground transition-colors"
+                          onClick={() => toggleStoreAddonCategoryExpansion(category.id)}
+                        >
+                          <FolderTree className="w-4 h-4" />
+                          <span className="flex-1">{category.name}</span>
+                          {expandedStoreAddonCategories.has(category.id) ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </div>
+                        {expandedStoreAddonCategories.has(category.id) && (
+                          <div className="animate-accordion-down">
+                            {categoryAddons.map((addon) => {
+                              const isInProduct = addons?.some(a => a.name === addon.name && a.is_available);
+                              return (
+                                <div key={addon.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="font-medium truncate">{addon.name}</span>
+                                      {isInProduct && (
+                                        <Badge variant="outline" className="text-xs flex-shrink-0">
+                                          Já adicionado
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      R$ {addon.price.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleCopyStoreAddon(addon)}
+                                    className="w-full sm:w-auto"
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    {addons?.some(a => a.name === addon.name && a.category_id === addon.category_id && a.is_available)
+                                      ? 'Remover do produto'
+                                      : 'Adicionar'}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </ScrollArea>
         </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
