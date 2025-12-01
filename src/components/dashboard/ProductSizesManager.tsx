@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus, X, Download, Package, Store, Edit, FolderTree } from 'lucide-react';
+import { Plus, Pencil, Trash2, GripVertical, Search, Filter, FolderPlus, X, Download, Package, Store, Edit, FolderTree, Power, PowerOff } from 'lucide-react';
 import { useProductSizes, type ProductSize, type SizeFormData } from '@/hooks/useProductSizes';
 import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogDescription, ResponsiveDialogFooter, ResponsiveDialogHeader, ResponsiveDialogTitle } from '@/components/ui/responsive-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -58,7 +58,11 @@ function SortableSizeItem({
     transition,
     opacity: isDragging ? 0.5 : 1
   };
-  return <div ref={setNodeRef} style={style} className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-card border rounded-lg hover:border-primary/50 transition-colors">
+  return <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-card border rounded-lg hover:border-primary/50 transition-colors ${!size.is_available ? 'opacity-60 bg-muted/30' : ''}`}
+    >
       <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing flex-shrink-0">
         <GripVertical className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
       </div>
@@ -66,23 +70,37 @@ function SortableSizeItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <h4 className="text-sm font-semibold truncate">{size.name}</h4>
-          <span className="text-sm sm:text-base font-bold text-primary whitespace-nowrap">
-            R$ {size.price.toFixed(2)}
-          </span>
+          <Badge variant={size.is_available ? "default" : "destructive"} className={size.is_available ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}>
+            {size.is_available ? "Ativo" : "Inativo"}
+          </Badge>
           {size.allow_quantity && (
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+            <Badge variant="outline" className="text-xs">
               Quantidade
-            </span>
+            </Badge>
           )}
         </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          + R$ {size.price.toFixed(2)}
+        </p>
         {size.description && <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">{size.description}</p>}
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-        <Switch checked={size.is_available} onCheckedChange={checked => onToggleAvailability({
-        id: size.id,
-        is_available: checked
-      })} />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => onToggleAvailability({
+            id: size.id,
+            is_available: !size.is_available
+          })}
+          className="h-8 w-8 sm:h-10 sm:w-10"
+        >
+          {size.is_available ? (
+            <PowerOff className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+          ) : (
+            <Power className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+          )}
+        </Button>
         <Button variant="ghost" size="icon" onClick={() => onEdit(size)} className="h-8 w-8 sm:h-10 sm:w-10">
           <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
