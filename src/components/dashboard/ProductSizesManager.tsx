@@ -334,12 +334,17 @@ export function ProductSizesManager({
       s => s.name === storeSize.name && s.category_id === storeSize.category_id
     );
 
-    if (existingSize) {
+    if (existingSize && existingSize.is_available) {
+      // Se já existe e está ativo, remove
+      deleteSize(existingSize.id);
+    } else if (existingSize && !existingSize.is_available) {
+      // Se existe mas está inativo, reativa
       toggleSizeAvailability({
         id: existingSize.id,
-        is_available: !existingSize.is_available
+        is_available: true
       });
     } else {
+      // Se não existe, cria novo
       createSize({
         product_id: productId,
         name: storeSize.name,
@@ -831,7 +836,7 @@ export function ProductSizesManager({
                                     <h4 className="text-sm font-semibold truncate">{storeSize.name}</h4>
                                     {isAlreadyAdded && (
                                       <Badge variant="secondary" className="text-xs">
-                                        Já adicionado
+                                        {existingSize?.is_available ? 'Já adicionado' : 'Indisponível'}
                                       </Badge>
                                     )}
                                   </div>
@@ -852,6 +857,8 @@ export function ProductSizesManager({
                                   <Plus className="w-4 h-4 mr-2" />
                                   {isAlreadyAdded && existingSize?.is_available
                                     ? '+ Remover do produto'
+                                    : isAlreadyAdded && !existingSize?.is_available
+                                    ? '+ Adicionar novamente'
                                     : '+ Adicionar'
                                   }
                                 </Button>
@@ -897,7 +904,7 @@ export function ProductSizesManager({
                                 <h4 className="text-sm font-semibold truncate">{storeSize.name}</h4>
                                 {isAlreadyAdded && (
                                   <Badge variant="secondary" className="text-xs">
-                                    Já adicionado
+                                    {existingSize?.is_available ? 'Já adicionado' : 'Indisponível'}
                                   </Badge>
                                 )}
                               </div>
@@ -918,6 +925,8 @@ export function ProductSizesManager({
                               <Plus className="w-4 h-4 mr-2" />
                               {isAlreadyAdded && existingSize?.is_available
                                 ? '+ Remover do produto'
+                                : isAlreadyAdded && !existingSize?.is_available
+                                ? '+ Adicionar novamente'
                                 : '+ Adicionar'
                               }
                             </Button>
