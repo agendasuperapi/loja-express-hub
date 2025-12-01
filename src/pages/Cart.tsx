@@ -861,9 +861,9 @@ export default function Cart() {
                             <span className="font-medium">Sabores:</span>
                             {item.flavors.map((flavor, idx) => (
                               <div key={idx} className="flex justify-between ml-2">
-                                <span>• {flavor.name}</span>
+                                <span>• {flavor.quantity && flavor.quantity > 1 ? `${flavor.quantity}x ` : ''}{flavor.name}</span>
                                 {flavor.price > 0 && (
-                                  <span>R$ {flavor.price.toFixed(2)}</span>
+                                  <span>R$ {(flavor.price * (flavor.quantity || 1)).toFixed(2)}</span>
                                 )}
                               </div>
                             ))}
@@ -889,8 +889,8 @@ export default function Cart() {
                           {(item.addons && item.addons.length > 0) || (item.flavors && item.flavors.length > 0) ? (
                             <span className="text-sm text-muted-foreground ml-2">
                               + R$ {(
-                                (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
-                                (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)
+                                (item.addons?.reduce((sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0) || 0) +
+                                (item.flavors?.reduce((sum, flavor) => sum + (flavor.price * (flavor.quantity || 1)), 0) || 0)
                               ).toFixed(2)}
                             </span>
                           ) : null}

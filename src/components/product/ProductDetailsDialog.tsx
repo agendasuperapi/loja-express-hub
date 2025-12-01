@@ -42,6 +42,7 @@ export function ProductDetailsDialog({
   const [addonQuantities, setAddonQuantities] = useState<Map<string, number>>(new Map());
   const [selectedAddonsByCategory, setSelectedAddonsByCategory] = useState<Record<string, Set<string>>>({});
   const [selectedFlavors, setSelectedFlavors] = useState<Set<string>>(new Set());
+  const [flavorQuantities, setFlavorQuantities] = useState<Map<string, number>>(new Map());
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedSizesByCategory, setSelectedSizesByCategory] = useState<Record<string, Set<string>>>({});
   const [sizeQuantities, setSizeQuantities] = useState<Map<string, number>>(new Map());
@@ -87,6 +88,7 @@ export function ProductDetailsDialog({
       setSelectedAddons(new Set());
       setAddonQuantities(new Map());
       setSelectedFlavors(new Set());
+      setFlavorQuantities(new Map());
       setSelectedAddonsByCategory({});
       setSelectedSize("");
       setSelectedSizesByCategory({});
@@ -175,20 +177,28 @@ export function ProductDetailsDialog({
   };
   const handleFlavorToggle = (flavorId: string) => {
     const newSelected = new Set(selectedFlavors);
+    const newQuantities = new Map(flavorQuantities);
+    
     if (newSelected.has(flavorId)) {
       newSelected.delete(flavorId);
+      newQuantities.delete(flavorId);
     } else {
       if (newSelected.size < maxFlavors) {
         newSelected.add(flavorId);
+        newQuantities.set(flavorId, 1);
       }
     }
     setSelectedFlavors(newSelected);
+    setFlavorQuantities(newQuantities);
   };
   const addonsTotal = addons?.filter(addon => selectedAddons.has(addon.id)).reduce((sum, addon) => {
     const qty = addonQuantities.get(addon.id) || 1;
     return sum + addon.price * qty;
   }, 0) || 0;
-  const flavorsTotal = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).reduce((sum, flavor) => sum + flavor.price, 0) || 0;
+  const flavorsTotal = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).reduce((sum, flavor) => {
+    const qty = flavorQuantities.get(flavor.id) || 1;
+    return sum + flavor.price * qty;
+  }, 0) || 0;
   const total = (currentPrice + addonsTotal + flavorsTotal) * quantity;
   const handleAddToCart = () => {
     // Validate size selection if product has sizes
@@ -254,11 +264,15 @@ export function ProductDetailsDialog({
         quantity: qty
       };
     }) || [];
-    const flavorsToAdd = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).map(flavor => ({
-      id: flavor.id,
-      name: flavor.name,
-      price: flavor.price
-    })) || [];
+    const flavorsToAdd = flavors?.filter(flavor => selectedFlavors.has(flavor.id)).map(flavor => {
+      const qty = flavorQuantities.get(flavor.id) || 1;
+      return {
+        id: flavor.id,
+        name: flavor.name,
+        price: flavor.price,
+        quantity: qty
+      };
+    }) || [];
     
     const sizeToAdd = selectedSizeData ? {
       id: selectedSizeData.id,
@@ -656,6 +670,7 @@ export function ProductDetailsDialog({
           <div className="space-y-1.5 max-h-60 overflow-y-auto">
             {flavors?.filter(flavor => flavor.is_available).map(flavor => {
             const isSelected = selectedFlavors.has(flavor.id);
+            const currentQuantity = flavorQuantities.get(flavor.id) || 1;
             return <div key={flavor.id} className={`flex items-center justify-between p-2.5 rounded-lg transition-all ${isSelected ? 'bg-primary/10 border-2 border-primary shadow-sm' : 'bg-muted/50 border-2 border-transparent'}`}>
                   <div className="flex items-center gap-2.5 flex-1">
                     <Checkbox id={flavor.id} checked={isSelected} onCheckedChange={() => handleFlavorToggle(flavor.id)} disabled={!isSelected && selectedFlavors.size >= maxFlavors} />
@@ -667,6 +682,39 @@ export function ProductDetailsDialog({
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
+                    {isSelected && (
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-6 w-6"
+                          onClick={() => {
+                            const newQuantities = new Map(flavorQuantities);
+                            if (currentQuantity > 1) {
+                              newQuantities.set(flavor.id, currentQuantity - 1);
+                            }
+                            setFlavorQuantities(newQuantities);
+                          }}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="text-xs font-semibold min-w-[1.5rem] text-center">
+                          {currentQuantity}
+                        </span>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-6 w-6"
+                          onClick={() => {
+                            const newQuantities = new Map(flavorQuantities);
+                            newQuantities.set(flavor.id, currentQuantity + 1);
+                            setFlavorQuantities(newQuantities);
+                          }}
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
                     {flavor.price > 0 && <span className="text-sm font-semibold text-primary">
                         + R$ {flavor.price.toFixed(2)}
                       </span>}

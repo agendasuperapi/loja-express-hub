@@ -96,7 +96,9 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
                           <div className="text-xs text-muted-foreground mt-1">
                             <span className="font-medium">Sabores:</span>
                             {item.flavors.map((flavor, idx) => (
-                              <div key={idx} className="ml-1">• {flavor.name}</div>
+                              <div key={idx} className="ml-1">
+                                • {flavor.quantity && flavor.quantity > 1 ? `${flavor.quantity}x ` : ''}{flavor.name}
+                              </div>
                             ))}
                           </div>
                         )}
@@ -114,8 +116,8 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
                         )}
                         <p className="text-sm font-bold text-primary mt-1">
                           R$ {((item.promotionalPrice || item.price) + 
-                            (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
-                            (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)).toFixed(2)}
+                            (item.addons?.reduce((sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0) || 0) +
+                            (item.flavors?.reduce((sum, flavor) => sum + (flavor.price * (flavor.quantity || 1)), 0) || 0)).toFixed(2)}
                         </p>
                         
                         <div className="flex items-center justify-between mt-2">
@@ -254,7 +256,9 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
                           <div className="text-xs text-muted-foreground mt-1">
                             <span className="font-medium">Sabores:</span>
                             {item.flavors.map((flavor, idx) => (
-                              <div key={idx} className="ml-1">• {flavor.name}</div>
+                              <div key={idx} className="ml-1">
+                                • {flavor.quantity && flavor.quantity > 1 ? `${flavor.quantity}x ` : ''}{flavor.name}
+                              </div>
                             ))}
                           </div>
                         )}
@@ -272,8 +276,8 @@ export const CartSidebar = ({ inDrawer = false, onClose, storeId }: CartSidebarP
                         )}
                         <p className="text-sm font-bold text-primary mt-1">
                           R$ {((item.promotionalPrice || item.price) + 
-                            (item.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0) +
-                            (item.flavors?.reduce((sum, flavor) => sum + flavor.price, 0) || 0)).toFixed(2)}
+                            (item.addons?.reduce((sum, addon) => sum + (addon.price * (addon.quantity || 1)), 0) || 0) +
+                            (item.flavors?.reduce((sum, flavor) => sum + (flavor.price * (flavor.quantity || 1)), 0) || 0)).toFixed(2)}
                         </p>
                         
                         <div className="flex items-center justify-between mt-2">
