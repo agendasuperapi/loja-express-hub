@@ -6,20 +6,22 @@ import { useSavedCarts } from '@/hooks/useSavedCarts';
 import { useDebounce } from '@/hooks/useNotificationThrottler';
 
 // Função para gerar ID único para cada item do carrinho
-// Baseado em: storeId + productId + customizações (size, addons, flavors, observation)
+// Baseado em: storeId + productId + customizações (size, addons, flavors, observation, color)
 const generateCartItemId = (
   storeId: string,
   productId: string,
   observation?: string,
   addons?: CartAddon[],
   flavors?: CartFlavor[],
-  size?: CartSize
+  size?: CartSize,
+  color?: CartColor
 ): string => {
   const parts = [
     `store:${storeId}`,
     `product:${productId}`,
     observation ? `obs:${observation}` : '',
     size ? `size:${size.id}` : '',
+    color ? `color:${color.id}` : '',
     addons && addons.length > 0 ? `addons:${addons.map(a => a.id).sort().join(',')}` : '',
     flavors && flavors.length > 0 ? `flavors:${flavors.map(f => f.id).sort().join(',')}` : ''
   ].filter(Boolean);
@@ -48,6 +50,13 @@ export interface CartSize {
   quantity?: number;
 }
 
+export interface CartColor {
+  id: string;
+  name: string;
+  hex_code: string;
+  price: number;
+}
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -62,6 +71,7 @@ export interface CartItem {
   addons?: CartAddon[];
   flavors?: CartFlavor[];
   size?: CartSize;
+  color?: CartColor;
 }
 
 export interface Cart {
@@ -98,7 +108,8 @@ interface CartContextType {
     storeSlug?: string,
     addons?: CartAddon[],
     flavors?: CartFlavor[],
-    size?: CartSize
+    size?: CartSize,
+    color?: CartColor
   ) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -325,7 +336,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     storeSlug?: string,
     addons?: CartAddon[],
     flavors?: CartFlavor[],
-    size?: CartSize
+    size?: CartSize,
+    color?: CartColor
   ) => {
     console.log('🛒 CartProvider addToCart:', { productName, quantity, size, storeId });
     
@@ -350,7 +362,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // Generate unique ID for this item
-      const itemUniqueId = generateCartItemId(storeId, productId, observation, addons, flavors, size);
+      const itemUniqueId = generateCartItemId(storeId, productId, observation, addons, flavors, size, color);
       console.log('🆔 Generated cart item ID:', itemUniqueId);
       
       // Check if item already exists in this store's cart
@@ -379,6 +391,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             addons,
             flavors,
             size,
+            color,
           }],
         };
         console.log('🛒 Updated cart (new item):', updatedStoreCart);

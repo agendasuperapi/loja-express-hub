@@ -17,6 +17,7 @@ import { useProductSizes } from "@/hooks/useProductSizes";
 import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useSizeCategories } from "@/hooks/useSizeCategories";
 import { useProductImages } from "@/hooks/useProductImages";
+import { useProductColors } from "@/hooks/useProductColors";
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
@@ -48,6 +49,7 @@ export function ProductDetailsDialog({
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedSizesByCategory, setSelectedSizesByCategory] = useState<Record<string, Set<string>>>({});
   const [sizeQuantities, setSizeQuantities] = useState<Map<string, number>>(new Map());
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const {
     addons
   } = useProductAddons(product?.id);
@@ -64,6 +66,9 @@ export function ProductDetailsDialog({
   const {
     images: productImages
   } = useProductImages(product?.id);
+  const {
+    colors
+  } = useProductColors(product?.id);
   const observationRef = useRef<HTMLTextAreaElement>(null);
   const drawerContentRef = useRef<HTMLDivElement>(null);
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
@@ -85,6 +90,8 @@ export function ProductDetailsDialog({
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
   const hasSizes = product?.has_sizes && sizes && sizes.length > 0;
   const availableSizes = sizes?.filter(s => s.is_available) || [];
+  const hasColors = product?.has_colors && colors && colors.length > 0;
+  const availableColors = colors?.filter(c => c.is_available) || [];
   
   useEffect(() => {
     if (!open) {
@@ -98,6 +105,7 @@ export function ProductDetailsDialog({
       setSelectedSize("");
       setSelectedSizesByCategory({});
       setSizeQuantities(new Map());
+      setSelectedColor("");
     }
   }, [open]);
   
@@ -298,10 +306,19 @@ export function ProductDetailsDialog({
       quantity: sizeQuantities.get(selectedSizeData.id) || 1
     } : undefined;
     
+    // Handle selected color
+    const selectedColorData = availableColors.find(c => c.id === selectedColor);
+    const colorToAdd = selectedColorData ? {
+      id: selectedColorData.id,
+      name: selectedColorData.name,
+      hex_code: selectedColorData.hex_code,
+      price: selectedColorData.price_adjustment
+    } : undefined;
+    
     // Use primary image from gallery if available, otherwise fallback to product.image_url
     const primaryImage = productImages.find(img => img.is_primary)?.image_url || product.image_url;
     
-    addToCart(product.id, product.name, product.price, store.id, store.name, quantity, product.promotional_price, primaryImage, observation, store.slug, addonsToAdd, flavorsToAdd, sizeToAdd);
+    addToCart(product.id, product.name, product.price, store.id, store.name, quantity, product.promotional_price, primaryImage, observation, store.slug, addonsToAdd, flavorsToAdd, sizeToAdd, colorToAdd);
     onOpenChange(false);
     toast({
       title: "Adicionado ao carrinho!",
@@ -378,6 +395,46 @@ export function ProductDetailsDialog({
             </Badge>}
         </div>
       </div>
+
+      {/* Cores */}
+      {hasColors && (
+        <div className="space-y-2 px-4 md:px-0">
+          <Label className="text-sm font-semibold">
+            Escolha uma cor
+          </Label>
+          <div className="flex flex-wrap gap-2">
+            {availableColors.map((color) => {
+              const isSelected = selectedColor === color.id;
+              return (
+                <button
+                  key={color.id}
+                  onClick={() => setSelectedColor(color.id)}
+                  className={`relative flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  title={color.name}
+                >
+                  <div
+                    className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+                    style={{ backgroundColor: color.hex_code }}
+                  />
+                  <span className="text-sm font-medium">{color.name}</span>
+                  {color.price_adjustment !== 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
+                    </span>
+                  )}
+                  {isSelected && (
+                    <Check className="w-4 h-4 text-primary absolute -top-1 -right-1 bg-background rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quantidade */}
       <div className="space-y-1.5 px-4 md:px-0">
