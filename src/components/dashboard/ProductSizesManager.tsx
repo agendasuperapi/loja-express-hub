@@ -1162,34 +1162,36 @@ export function ProductSizesManager({
                   Nenhum produto encontrado
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => handleImportFromProduct(product.id)}
-                    >
-                      {product.image_url && (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{product.name}</p>
-                        {product.description && (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {product.description}
-                          </p>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-2 pr-4">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => handleImportFromProduct(product.id)}
+                      >
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
                         )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{product.name}</p>
+                          {product.description && (
+                            <p className="text-sm text-muted-foreground truncate">
+                              {product.description}
+                            </p>
+                          )}
+                        </div>
+                        <Badge variant="secondary">
+                          R$ {product.price.toFixed(2)}
+                        </Badge>
                       </div>
-                      <Badge variant="secondary">
-                        R$ {product.price.toFixed(2)}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               )}
             </div>
           </ScrollArea>
