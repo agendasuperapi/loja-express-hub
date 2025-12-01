@@ -160,14 +160,9 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
     is_available: true,
   });
   const [importFromProductOpen, setImportFromProductOpen] = useState(false);
-  const [importTemplateOpen, setImportTemplateOpen] = useState(false);
   const [searchFlavorsOpen, setSearchFlavorsOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
-  const [templates, setTemplates] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-  const [selectedFlavors, setSelectedFlavors] = useState<string[]>([]);
   const [showFlavorFormInModal, setShowFlavorFormInModal] = useState(false);
   const [flavorFormData, setFlavorFormData] = useState({
     name: '',
@@ -325,29 +320,6 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
     }
   };
 
-  const loadTemplates = async () => {
-    if (!storeId) return;
-    setLoadingTemplates(true);
-    try {
-      const { data, error } = await supabase
-        .from('store_addon_templates' as any)
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('is_custom', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setTemplates(data || []);
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao carregar templates',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setLoadingTemplates(false);
-    }
-  };
 
   const handleImportFromProduct = async (selectedProductId: string) => {
     try {
@@ -391,68 +363,6 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
     }
   };
 
-  const handleSelectTemplate = (template: any) => {
-    setSelectedTemplate(template);
-    const allFlavors = (template.flavors || []).map((f: any, idx: number) => `${idx}`);
-    setSelectedFlavors(allFlavors);
-  };
-
-  const handleToggleFlavor = (flavorIndex: string) => {
-    setSelectedFlavors(prev => 
-      prev.includes(flavorIndex) 
-        ? prev.filter(idx => idx !== flavorIndex)
-        : [...prev, flavorIndex]
-    );
-  };
-
-  const handleConfirmImportTemplate = async () => {
-    if (!selectedTemplate) return;
-
-    try {
-      const flavorsToImport = (selectedTemplate.flavors || []).filter(
-        (_: any, idx: number) => selectedFlavors.includes(`${idx}`)
-      );
-      
-      if (flavorsToImport.length > 0) {
-        for (const flavor of flavorsToImport) {
-          await createFlavor({
-            product_id: productId,
-            name: flavor.name,
-            description: flavor.description || '',
-            price: flavor.price || 0,
-            is_available: true,
-          });
-        }
-        
-        toast({
-          title: 'Sabores importados!',
-          description: `${flavorsToImport.length} sabor(es) foram importados do template.`,
-        });
-      } else {
-        toast({
-          title: 'Nenhum sabor selecionado',
-          description: 'Selecione pelo menos um sabor para importar.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setImportTemplateOpen(false);
-      setSelectedTemplate(null);
-      setSelectedFlavors([]);
-    } catch (error: any) {
-      toast({
-        title: 'Erro ao importar template',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleCancelImportTemplate = () => {
-    setSelectedTemplate(null);
-    setSelectedFlavors([]);
-  };
 
   const handleAddStoreFlavor = async (flavor: any) => {
     // Verificar se já existe um sabor com o mesmo nome neste produto
@@ -558,19 +468,6 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
                  <Plus className="w-4 h-4 sm:mr-2" />
                  <span className="hidden sm:inline">Novo Sabor</span>
                  <span className="sm:hidden">Novo</span>
-               </Button>
-               <Button 
-                 size="sm" 
-                 variant="outline"
-                 onClick={() => {
-                   loadTemplates();
-                   setImportTemplateOpen(true);
-                 }}
-                 className="w-full sm:w-auto"
-               >
-                 <Package className="w-4 h-4 sm:mr-2" />
-                 <span className="hidden sm:inline">Importar Template</span>
-                 <span className="sm:hidden">Template</span>
                </Button>
                <Button 
                  size="sm" 
@@ -786,166 +683,6 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
              </div>
            </ResponsiveDialogContent>
          </ResponsiveDialog>
-
-        {/* Dialog: Importar Template */}
-        <ResponsiveDialog open={importTemplateOpen} onOpenChange={(open) => {
-          setImportTemplateOpen(open);
-          if (!open) {
-            setSelectedTemplate(null);
-            setSelectedFlavors([]);
-          }
-        }}>
-          <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
-            <ResponsiveDialogHeader>
-              <ResponsiveDialogTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                {selectedTemplate ? 'Selecionar Sabores' : 'Importar Templates de Sabores'}
-              </ResponsiveDialogTitle>
-              <ResponsiveDialogDescription>
-                {selectedTemplate 
-                  ? 'Marque os sabores que deseja importar para este produto'
-                  : 'Selecione um template para visualizar seus sabores'
-                }
-              </ResponsiveDialogDescription>
-            </ResponsiveDialogHeader>
-            {!selectedTemplate ? (
-              <div className="space-y-3">
-                {loadingTemplates ? (
-                  <p className="text-center py-4 text-muted-foreground">Carregando templates...</p>
-                ) : templates.length > 0 ? (
-                  templates.map((template) => {
-                    const flavorCount = Array.isArray(template.flavors) ? template.flavors.length : 0;
-                    const hasNoFlavors = flavorCount === 0;
-                    
-                    return (
-                      <div
-                        key={template.id}
-                        className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
-                          hasNoFlavors 
-                            ? 'opacity-50 cursor-not-allowed' 
-                            : 'hover:bg-muted/50 cursor-pointer'
-                        }`}
-                        onClick={() => !hasNoFlavors && handleSelectTemplate(template)}
-                      >
-                        <div className="text-3xl">{template.icon || '📦'}</div>
-                        <div className="flex-1">
-                          <p className="font-medium">{template.name}</p>
-                          {template.description && (
-                            <p className="text-sm text-muted-foreground">{template.description}</p>
-                          )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-muted-foreground">
-                              {flavorCount} sabor(es)
-                            </p>
-                            {hasNoFlavors && (
-                              <Badge variant="destructive" className="text-xs">
-                                Sem sabores
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="font-medium">Nenhum template encontrado</p>
-                    <p className="text-sm mt-1">Crie templates na aba Templates para reutilizá-los aqui</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
-                  <div className="text-3xl">{selectedTemplate.icon || '📦'}</div>
-                  <div className="flex-1">
-                    <p className="font-medium">{selectedTemplate.name}</p>
-                    {selectedTemplate.description && (
-                      <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
-                    )}
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={handleCancelImportTemplate}
-                  >
-                    Voltar
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium">Sabores disponíveis:</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {selectedFlavors.length} de {selectedTemplate.flavors?.length || 0} selecionados
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const allFlavors = (selectedTemplate.flavors || []).map((_: any, idx: number) => `${idx}`);
-                          setSelectedFlavors(allFlavors);
-                        }}
-                        className="h-7 text-xs"
-                      >
-                        Selecionar Todos
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedFlavors([])}
-                        className="h-7 text-xs"
-                      >
-                        Desmarcar Todos
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {(selectedTemplate.flavors || []).map((flavor: any, index: number) => (
-                    <div 
-                      key={index}
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <Checkbox
-                        checked={selectedFlavors.includes(`${index}`)}
-                        onCheckedChange={() => handleToggleFlavor(`${index}`)}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{flavor.name}</p>
-                          <span className="text-sm text-muted-foreground">
-                            R$ {(flavor.price || 0).toFixed(2)}
-                          </span>
-                        </div>
-                        {flavor.description && (
-                          <p className="text-sm text-muted-foreground">{flavor.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    onClick={handleConfirmImportTemplate}
-                    disabled={selectedFlavors.length === 0}
-                    className="flex-1"
-                  >
-                    Importar {selectedFlavors.length} Sabor(es)
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCancelImportTemplate}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            )}
-          </ResponsiveDialogContent>
-        </ResponsiveDialog>
 
         {/* Dialog: Novo Sabor */}
         <ResponsiveDialog open={newFlavorModalOpen} onOpenChange={setNewFlavorModalOpen}>
