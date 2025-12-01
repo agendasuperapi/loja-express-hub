@@ -331,4 +331,15 @@ All colors MUST be HSL.
   .scrollbar-track-gray-100::-webkit-scrollbar-track {
     background: hsl(var(--muted));
   }
+
+  /* Force scrollbar visibility in nested scroll areas */
+  .force-scrollbar {
+    scrollbar-width: thin !important;
+  }
+
+  .force-scrollbar::-webkit-scrollbar {
+    display: block !important;
+    width: 8px !important;
+    height: 8px !important;
+  }
 }
