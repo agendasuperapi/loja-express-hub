@@ -28,12 +28,12 @@ interface ColorSizeVariantsManagerProps {
 export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVariantsManagerProps) => {
   const { colors } = useProductColors(productId);
   const { sizes } = useProductSizes(productId);
-  const { 
-    variants, 
-    isLoading, 
-    toggleVariant, 
+  const {
+    variants,
+    isLoading,
+    toggleVariant,
     generateAllCombinations,
-    updateVariant 
+    updateVariant,
   } = useColorSizeVariants(productId);
 
   const [editingVariant, setEditingVariant] = useState<{ colorId: string; sizeId: string } | null>(null);
@@ -42,8 +42,8 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
   // Create a map for quick variant lookup
   const variantMap = useMemo(() => {
-    const map = new Map<string, typeof variants[0]>();
-    variants.forEach(v => {
+    const map = new Map<string, (typeof variants)[0]>();
+    variants.forEach((v) => {
       map.set(`${v.color_id}-${v.size_id}`, v);
     });
     return map;
@@ -54,16 +54,16 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
       return;
     }
 
-    const colorIds = colors.map(c => c.id);
-    const sizeIds = sizes.map(s => s.id);
-    
+    const colorIds = colors.map((c) => c.id);
+    const sizeIds = sizes.map((s) => s.id);
+
     generateAllCombinations({ productId, colorIds, sizeIds });
   };
 
   const handleToggleVariant = (colorId: string, sizeId: string) => {
     const key = `${colorId}-${sizeId}`;
     const variant = variantMap.get(key);
-    
+
     if (variant) {
       toggleVariant({ variantId: variant.id, isAvailable: !variant.is_available });
     }
@@ -72,20 +72,20 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
   const handleOpenEdit = (colorId: string, sizeId: string) => {
     const key = `${colorId}-${sizeId}`;
     const variant = variantMap.get(key);
-    
+
     if (variant) {
       setEditingVariant({ colorId, sizeId });
       setStockValue(variant.stock_quantity);
-      setPriceAdjustment(variant.price_adjustment);
+      setPriceAdjustment(variant.price_adjustment ?? 0);
     }
   };
 
   const handleSaveEdit = () => {
     if (!editingVariant) return;
-    
+
     const key = `${editingVariant.colorId}-${editingVariant.sizeId}`;
     const variant = variantMap.get(key);
-    
+
     if (variant) {
       updateVariant({
         variantId: variant.id,
@@ -95,7 +95,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
         },
       });
     }
-    
+
     setEditingVariant(null);
   };
 
@@ -123,7 +123,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
     return <div className="p-4 text-center text-muted-foreground">Carregando variantes...</div>;
   }
 
-  const availableCount = variants.filter(v => v.is_available).length;
+  const availableCount = variants.filter((v) => v.is_available).length;
   const totalPossible = colors.length * sizes.length;
 
   return (
@@ -148,108 +148,112 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
       {/* Matrix Grid */}
       <Card className="p-4">
-        <ScrollArea className="h-[500px] w-full">
+        <div className="max-h-[500px] w-full overflow-auto">
           <div className="min-w-max">
-          {/* Header Row - Sizes */}
-          <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}>
-            <div className="font-semibold text-sm p-2">Cor / Tamanho</div>
-            {sizes.map(size => (
-              <div key={size.id} className="font-semibold text-sm p-2 text-center bg-muted rounded">
-                {size.name}
-                <div className="text-xs text-muted-foreground font-normal">
-                  +R$ {size.price.toFixed(2)}
+            {/* Header Row - Sizes */}
+            <div
+              className="grid gap-2 mb-2"
+              style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}
+            >
+              <div className="font-semibold text-sm p-2">Cor / Tamanho</div>
+              {sizes.map((size) => (
+                <div
+                  key={size.id}
+                  className="font-semibold text-sm p-2 text-center bg-muted rounded"
+                >
+                  {size.name}
+                  <div className="text-xs text-muted-foreground font-normal">
+                    +R$ {size.price.toFixed(2)}
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Data Rows - Colors */}
+            {colors.map((color) => (
+              <div
+                key={color.id}
+                className="grid gap-2 mb-2"
+                style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}
+              >
+                {/* Color Label */}
+                <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                  <div
+                    className="w-6 h-6 rounded border-2 border-border flex-shrink-0"
+                    style={{ backgroundColor: color.hex_code }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{color.name}</div>
+                    {color.price_adjustment !== 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Variant Cells */}
+                {sizes.map((size) => {
+                  const key = `${color.id}-${size.id}`;
+                  const variant = variantMap.get(key);
+                  const isAvailable = variant?.is_available || false;
+
+                  return (
+                    <div
+                      key={size.id}
+                      className={`
+                        border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer
+                        transition-all hover:border-primary/50
+                        ${isAvailable ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}
+                      `}
+                      onClick={() => handleToggleVariant(color.id, size.id)}
+                    >
+                      {isAvailable ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <X className="w-5 h-5 text-red-600" />
+                      )}
+
+                      {variant && (
+                        <>
+                          {variant.stock_quantity !== null && (
+                            <Badge variant="secondary" className="text-xs">
+                              Estoque: {variant.stock_quantity}
+                            </Badge>
+                          )}
+                          {variant.price_adjustment !== 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              <DollarSign className="w-3 h-3" />
+                              {variant.price_adjustment > 0 ? '+' : ''}
+                              {variant.price_adjustment.toFixed(2)}
+                            </Badge>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 text-xs mt-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEdit(color.id, size.id);
+                            }}
+                          >
+                            Editar
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
-
-          {/* Data Rows - Colors */}
-          {colors.map(color => (
-            <div 
-              key={color.id} 
-              className="grid gap-2 mb-2" 
-              style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}
-            >
-              {/* Color Label */}
-              <div className="flex items-center gap-2 p-2 bg-muted rounded">
-                <div
-                  className="w-6 h-6 rounded border-2 border-border flex-shrink-0"
-                  style={{ backgroundColor: color.hex_code }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{color.name}</div>
-                  {color.price_adjustment !== 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Variant Cells */}
-              {sizes.map(size => {
-                const key = `${color.id}-${size.id}`;
-                const variant = variantMap.get(key);
-                const isAvailable = variant?.is_available || false;
-
-                return (
-                  <div 
-                    key={size.id} 
-                    className={`
-                      border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer
-                      transition-all hover:border-primary/50
-                      ${isAvailable ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}
-                    `}
-                    onClick={() => handleToggleVariant(color.id, size.id)}
-                  >
-                    {isAvailable ? (
-                      <Check className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <X className="w-5 h-5 text-red-600" />
-                    )}
-                    
-                    {variant && (
-                      <>
-                        {variant.stock_quantity !== null && (
-                          <Badge variant="secondary" className="text-xs">
-                            Estoque: {variant.stock_quantity}
-                          </Badge>
-                        )}
-                        {variant.price_adjustment !== 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            <DollarSign className="w-3 h-3" />
-                            {variant.price_adjustment > 0 ? '+' : ''}
-                            {variant.price_adjustment.toFixed(2)}
-                          </Badge>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 text-xs mt-1"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEdit(color.id, size.id);
-                          }}
-                        >
-                          Editar
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-          </div>
-          <ScrollBar orientation="vertical" />
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-
-        <div className="mt-4 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
-          <strong>Dica:</strong> Clique em uma célula para ativar/desativar a combinação. 
-          Use "Editar" para configurar estoque e ajuste de preço específico para cada variante.
         </div>
       </Card>
+
+      <div className="mt-4 p-3 bg-muted/50 rounded text-xs text-muted-foreground">
+        <strong>Dica:</strong> Clique em uma célula para ativar/desativar a combinação. Use "Editar" para
+        configurar estoque e ajuste de preço específico para cada variante.
+      </div>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingVariant} onOpenChange={() => setEditingVariant(null)}>
@@ -297,9 +301,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
             <Button variant="outline" onClick={() => setEditingVariant(null)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveEdit}>
-              Salvar
-            </Button>
+            <Button onClick={handleSaveEdit}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
