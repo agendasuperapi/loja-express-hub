@@ -368,10 +368,11 @@ export function ProductSizesManager({
       });
       
       if (newCategory) {
-        setFormData({
-          ...formData,
+        // Usa forma funcional para garantir o estado mais recente
+        setFormData(prev => ({
+          ...prev,
           category_id: newCategory.id
-        });
+        }));
       }
       
       setIsNewCategoryDialogOpen(false);
