@@ -45,6 +45,8 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ImageUpload } from "./ImageUpload";
+import { MultipleImageUpload } from "./MultipleImageUpload";
+import { useProductImages } from "@/hooks/useProductImages";
 import { OperatingHoursManager } from "./OperatingHoursManager";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { WhatsAppIntegration } from "./WhatsAppIntegration";
@@ -392,6 +394,11 @@ export const StoreOwnerDashboard = ({
     message: ''
   });
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  
+  const {
+    images: productImages,
+    invalidateImages: invalidateProductImages
+  } = useProductImages(editingProduct?.id);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
   const [tempDescription, setTempDescription] = useState('');
@@ -3326,11 +3333,26 @@ export const StoreOwnerDashboard = ({
                         </TabsList>
                         
                         <TabsContent value="info" className="space-y-4 mt-4 min-h-[calc(90vh-250px)]">
-                      
-                          <ImageUpload bucket="product-images" folder="temp" productId={editingProduct?.id} currentImageUrl={productForm.image_url} onUploadComplete={url => setProductForm({
+                          {editingProduct ? (
+                            <MultipleImageUpload
+                              productId={editingProduct.id}
+                              images={productImages}
+                              onImagesChange={invalidateProductImages}
+                            />
+                          ) : (
+                            <ImageUpload 
+                              bucket="product-images" 
+                              folder="temp" 
+                              productId={editingProduct?.id} 
+                              currentImageUrl={productForm.image_url} 
+                              onUploadComplete={url => setProductForm({
                                 ...productForm,
                                 image_url: url
-                              })} label="Imagem do Produto" aspectRatio="aspect-video" />
+                              })} 
+                              label="Imagem do Produto" 
+                              aspectRatio="aspect-video" 
+                            />
+                          )}
                           <div>
                             <Label>Nome *</Label>
                             <Input value={productForm.name} onChange={e => setProductForm({
