@@ -647,41 +647,43 @@ export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: 
                    className="pl-9"
                  />
                </div>
-             </div>
-             <div className="space-y-3">
-               {loadingProducts ? (
-                 <p className="text-center py-4 text-muted-foreground">Carregando produtos...</p>
-               ) : filteredProducts.length > 0 ? (
-                 filteredProducts.map((product) => (
-                   <div
-                     key={product.id}
-                     className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                     onClick={() => handleImportFromProduct(product.id)}
-                   >
-                     {product.image_url && (
-                       <img
-                         src={product.image_url}
-                         alt={product.name}
-                         className="w-16 h-16 object-cover rounded"
-                       />
-                     )}
-                     <div className="flex-1">
-                       <p className="font-medium">{product.name}</p>
-                       {product.description && (
-                         <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
-                       )}
-                       <p className="text-sm font-medium text-primary mt-1">
-                         R$ {product.price.toFixed(2)}
-                       </p>
-                     </div>
-                   </div>
-                 ))
-               ) : (
-                 <p className="text-center py-4 text-muted-foreground">
-                   Nenhum outro produto encontrado
-                 </p>
-               )}
-             </div>
+              </div>
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-3 pr-4">
+                  {loadingProducts ? (
+                    <p className="text-center py-4 text-muted-foreground">Carregando produtos...</p>
+                  ) : filteredProducts.length > 0 ? (
+                    filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => handleImportFromProduct(product.id)}
+                      >
+                        {product.image_url && (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium">{product.name}</p>
+                          {product.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+                          )}
+                          <p className="text-sm font-medium text-primary mt-1">
+                            R$ {product.price.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center py-4 text-muted-foreground">
+                      Nenhum outro produto encontrado
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
            </ResponsiveDialogContent>
          </ResponsiveDialog>
 
