@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, ZoomIn, X } from 'lucide-react';
@@ -19,6 +19,7 @@ interface ProductImageGalleryProps {
   hasDiscount?: boolean;
   discountPercentage?: number;
   onImageChange?: (imageId: string) => void;
+  selectedImageId?: string | null;
 }
 
 export function ProductImageGallery({ 
@@ -26,7 +27,8 @@ export function ProductImageGallery({
   productName,
   hasDiscount,
   discountPercentage,
-  onImageChange 
+  onImageChange,
+  selectedImageId 
 }: ProductImageGalleryProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
@@ -37,6 +39,16 @@ export function ProductImageGallery({
     if (b.is_primary) return 1;
     return a.display_order - b.display_order;
   });
+
+  // Update selected index when selectedImageId changes
+  useEffect(() => {
+    if (selectedImageId) {
+      const index = sortedImages.findIndex(img => img.id === selectedImageId);
+      if (index !== -1) {
+        setSelectedImageIndex(index);
+      }
+    }
+  }, [selectedImageId, sortedImages]);
 
   const currentImage = sortedImages[selectedImageIndex] || sortedImages[0];
 

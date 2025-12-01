@@ -349,29 +349,22 @@ export function ProductDetailsDialog({
       console.error('Erro ao compartilhar:', error);
     }
   };
-  // Determine images to display based on selected color
-  const selectedColorData = availableColors.find(c => c.id === selectedColor);
-  const imagesToDisplay = selectedColorData?.image_url 
-    ? [{ 
-        id: `color-${selectedColorData.id}`, 
-        image_url: selectedColorData.image_url, 
+  // Always show all product images
+  const imagesToDisplay = productImages.length > 0 
+    ? productImages 
+    : (product.image_url ? [{ 
+        id: 'fallback', 
+        image_url: product.image_url, 
         display_order: 0, 
         is_primary: true 
-      }]
-    : productImages.length > 0 
-      ? productImages 
-      : (product.image_url ? [{ 
-          id: 'fallback', 
-          image_url: product.image_url, 
-          display_order: 0, 
-          is_primary: true 
-        }] : []);
+      }] : []);
+
+  // Get the selected color's image ID
+  const selectedColorData = availableColors.find(c => c.id === selectedColor);
+  const selectedColorImageId = selectedColorData?.image_id;
 
   // Handle image change - find and select the color that matches the image
   const handleImageChange = (imageId: string) => {
-    // Skip if it's a color-specific image ID
-    if (imageId.startsWith('color-')) return;
-    
     // Find color that has this image linked
     const colorWithImage = availableColors.find(color => color.image_id === imageId);
     if (colorWithImage) {
@@ -387,6 +380,7 @@ export function ProductDetailsDialog({
         hasDiscount={hasDiscount}
         discountPercentage={hasDiscount ? Math.round((product.price - product.promotional_price) / product.price * 100) : undefined}
         onImageChange={handleImageChange}
+        selectedImageId={selectedColorImageId}
       />
 
       <div className="md:px-5 md:pt-4">
