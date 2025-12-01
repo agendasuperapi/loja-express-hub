@@ -21,7 +21,7 @@ import { useStoreManagement, type StoreFormData } from "@/hooks/useStoreManageme
 import { useProductManagement } from "@/hooks/useProductManagement";
 import { useStoreOrders } from "@/hooks/useStoreOrders";
 import { useCategories } from "@/hooks/useCategories";
-import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut, Users, ShoppingCart } from "lucide-react";
+import { Store, Package, ShoppingBag, Plus, Edit, Trash2, Settings, Clock, Search, Tag, X, Copy, Check, Pizza, MessageSquare, Menu, TrendingUp, TrendingDown, DollarSign, Calendar as CalendarIcon, ArrowUp, ArrowDown, FolderTree, User, Lock, Edit2, Eye, Printer, AlertCircle, CheckCircle, Loader2, Bell, Shield, XCircle, Receipt, Truck, Save, Sparkles, LayoutGrid, Table as TableIcon, Star, LogOut, Users, ShoppingCart, Layers } from "lucide-react";
 import { validatePixKey, normalizePixKeyPhone, formatPixKey, detectPixKeyType } from "@/lib/pixValidation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ProductAddonsManager from "./ProductAddonsManager";
@@ -29,6 +29,7 @@ import { ProductFlavorsManager } from "./ProductFlavorsManager";
 import { ProductSizesManager } from "./ProductSizesManager";
 import { ProductAddonsManagement, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
 import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
+import { SizeCategoriesManager } from "./SizeCategoriesManager";
 import { CombosManager } from "./CombosManager";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
@@ -4045,7 +4046,7 @@ export const StoreOwnerDashboard = ({
               <TabsContent value="edit">
                 <div className="space-y-6">
                   <Tabs defaultValue="adicionais" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsList className="grid w-full grid-cols-3 mb-6">
                       <TabsTrigger value="adicionais" className="flex items-center gap-2">
                         <Plus className="w-4 h-4" />
                         Adicionais
@@ -4053,6 +4054,10 @@ export const StoreOwnerDashboard = ({
                       <TabsTrigger value="sabores" className="flex items-center gap-2">
                         <Pizza className="w-4 h-4" />
                         Sabores
+                      </TabsTrigger>
+                      <TabsTrigger value="variacoes" className="flex items-center gap-2">
+                        <Layers className="w-4 h-4" />
+                        Variações
                       </TabsTrigger>
                     </TabsList>
 
@@ -4083,6 +4088,23 @@ export const StoreOwnerDashboard = ({
 
                     <TabsContent value="sabores">
                       <ProductFlavorsManagement storeId={myStore.id} />
+                    </TabsContent>
+
+                    <TabsContent value="variacoes">
+                      <div className="space-y-6">
+                        <Tabs defaultValue="categorias" className="w-full">
+                          <TabsList className="grid w-full grid-cols-1 mb-6">
+                            <TabsTrigger value="categorias" className="flex items-center gap-2">
+                              <FolderTree className="w-4 h-4" />
+                              Categorias de Variações
+                            </TabsTrigger>
+                          </TabsList>
+
+                          <TabsContent value="categorias">
+                            <SizeCategoriesManager storeId={myStore.id} />
+                          </TabsContent>
+                        </Tabs>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </div>
