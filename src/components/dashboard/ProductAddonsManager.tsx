@@ -205,6 +205,9 @@ const SortableCategory = ({ category, addons, onEdit, onDelete, onToggleAvailabi
         </button>
         <FolderTree className="w-4 h-4" />
         <span className="flex-1">{category.name}</span>
+        <Badge variant="secondary" className="text-xs">
+          {addons.length} {addons.length === 1 ? 'adicional' : 'adicionais'}
+        </Badge>
         {isExpanded ? (
           <ChevronUp className="w-4 h-4" />
         ) : (
