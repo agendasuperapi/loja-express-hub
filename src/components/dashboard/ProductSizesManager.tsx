@@ -751,7 +751,7 @@ export function ProductSizesManager({
             </div>
           </div>
 
-          <ScrollArea className="flex-1 px-4 md:px-6">
+          <ScrollArea className="flex-1 px-4 md:px-6 max-h-[600px]">
             {isLoadingStoreSizes ? (
               <div className="text-center py-8 text-muted-foreground">
                 Carregando variações...
