@@ -8,6 +8,7 @@ export interface ProductColor {
   name: string;
   hex_code: string;
   image_id: string | null;
+  image_url?: string | null;
   price_adjustment: number;
   display_order: number;
   is_available: boolean;
@@ -34,12 +35,25 @@ export const useProductColors = (productId?: string) => {
       
       const { data, error } = await supabase
         .from('product_colors' as any)
-        .select('*')
+        .select(`
+          *,
+          product_images:image_id (
+            image_url
+          )
+        `)
         .eq('product_id', productId)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      return ((data || []) as any) as ProductColor[];
+      
+      // Map the data to include image_url from the joined table
+      const colors = (data || []).map((color: any) => ({
+        ...color,
+        image_url: color.product_images?.image_url || null,
+        product_images: undefined, // Remove the nested object
+      })) as ProductColor[];
+      
+      return colors;
     },
     enabled: !!productId,
   });

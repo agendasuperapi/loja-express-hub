@@ -349,15 +349,28 @@ export function ProductDetailsDialog({
       console.error('Erro ao compartilhar:', error);
     }
   };
-  const productContent = <>
-      {/* Galeria de Imagens do Produto */}
-      <ProductImageGallery
-        images={productImages.length > 0 ? productImages : (product.image_url ? [{ 
+  // Determine images to display based on selected color
+  const selectedColorData = availableColors.find(c => c.id === selectedColor);
+  const imagesToDisplay = selectedColorData?.image_url 
+    ? [{ 
+        id: `color-${selectedColorData.id}`, 
+        image_url: selectedColorData.image_url, 
+        display_order: 0, 
+        is_primary: true 
+      }]
+    : productImages.length > 0 
+      ? productImages 
+      : (product.image_url ? [{ 
           id: 'fallback', 
           image_url: product.image_url, 
           display_order: 0, 
           is_primary: true 
-        }] : [])}
+        }] : []);
+
+  const productContent = <>
+      {/* Galeria de Imagens do Produto */}
+      <ProductImageGallery
+        images={imagesToDisplay}
         productName={product.name}
         hasDiscount={hasDiscount}
         discountPercentage={hasDiscount ? Math.round((product.price - product.promotional_price) / product.price * 100) : undefined}
