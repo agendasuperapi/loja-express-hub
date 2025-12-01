@@ -364,17 +364,53 @@ export function ProductSizesManager({
     }
     setIsDialogOpen(true);
   };
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (editingSize) {
       updateSize({
         id: editingSize.id,
         ...formData
       });
     } else {
+      // When creating a new size, also generate variants with existing colors
       createSize({
         product_id: productId,
         ...formData
       });
+      
+      // Auto-generate combinations with existing colors
+      const { data: colors } = await supabase
+        .from('product_colors' as any)
+        .select('id')
+        .eq('product_id', productId);
+      
+      if (colors && colors.length > 0) {
+        // Wait a bit for the size to be created
+        setTimeout(async () => {
+          const { data: newSizes } = await supabase
+            .from('product_sizes')
+            .select('id')
+            .eq('product_id', productId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (newSizes && newSizes.length > 0) {
+            const newSizeId = (newSizes[0] as any).id;
+            const colorIds = colors.map((c: any) => (c as any).id);
+            
+            // Create variants for the new size with all existing colors
+            const variants = colorIds.map((colorId: string) => ({
+              product_id: productId,
+              color_id: colorId,
+              size_id: newSizeId,
+              is_available: true,
+            }));
+            
+            await supabase
+              .from('color_size_variants' as any)
+              .insert(variants);
+          }
+        }, 500);
+      }
     }
     setIsDialogOpen(false);
   };

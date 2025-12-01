@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Edit2, Trash2, GripVertical, Image as ImageIcon, DollarSign } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -207,7 +208,7 @@ export const ProductColorsManager = ({ productId, storeId, productImages = [] }:
     setEditingColor(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name.trim()) {
       toast.error('Nome da cor é obrigatório');
       return;
@@ -221,7 +222,44 @@ export const ProductColorsManager = ({ productId, storeId, productImages = [] }:
     if (editingColor) {
       updateColor({ colorId: editingColor.id, colorData: formData });
     } else {
+      // When creating a new color, also generate variants with existing sizes
       createColor({ productId, colorData: formData });
+      
+      // Auto-generate combinations with existing sizes
+      // This will be handled by the hook after successful creation
+      const { data: sizes } = await supabase
+        .from('product_sizes')
+        .select('id')
+        .eq('product_id', productId);
+      
+      if (sizes && sizes.length > 0) {
+        // Wait a bit for the color to be created
+        setTimeout(async () => {
+          const { data: newColors } = await supabase
+            .from('product_colors' as any)
+            .select('id')
+            .eq('product_id', productId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (newColors && newColors.length > 0) {
+            const newColorId = (newColors[0] as any).id;
+            const sizeIds = sizes.map((s) => (s as any).id);
+            
+            // Create variants for the new color with all existing sizes
+            const variants = sizeIds.map((sizeId: string) => ({
+              product_id: productId,
+              color_id: newColorId,
+              size_id: sizeId,
+              is_available: true,
+            }));
+            
+            await supabase
+              .from('color_size_variants' as any)
+              .insert(variants);
+          }
+        }, 500);
+      }
     }
     
     handleCloseDialog();
