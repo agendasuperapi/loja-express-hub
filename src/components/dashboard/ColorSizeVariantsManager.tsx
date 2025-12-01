@@ -47,7 +47,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   
   // Check if content will overflow (based on column count)
-  const expectedWidth = 140 + (sizes.length * 100);
+  const expectedWidth = 140 + ((sizes?.length || 0) * 100);
   const initialShowRightShadow = expectedWidth > (typeof window !== 'undefined' ? window.innerWidth * 0.8 : 400);
   const [showRightShadow, setShowRightShadow] = useState(initialShowRightShadow);
   const [showSwipeIndicator, setShowSwipeIndicator] = useState(true);
