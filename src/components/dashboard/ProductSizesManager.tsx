@@ -582,17 +582,16 @@ export function ProductSizesManager({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Categoria (opcional)</Label>
+                <Label htmlFor="category">Categoria *</Label>
                 <div className="flex gap-2">
-                  <Select value={formData.category_id || 'none'} onValueChange={(value) => setFormData({
+                  <Select value={formData.category_id || ''} onValueChange={(value) => setFormData({
                     ...formData,
-                    category_id: value === 'none' ? null : value
+                    category_id: value
                   })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem categoria</SelectItem>
                       {categories.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -649,7 +648,7 @@ export function ProductSizesManager({
             <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
               Cancelar
             </Button>
-            <Button onClick={handleSubmit} disabled={!formData.name || formData.price <= 0} className="w-full sm:w-auto">
+            <Button onClick={handleSubmit} disabled={!formData.name || formData.price <= 0 || !formData.category_id} className="w-full sm:w-auto">
               {editingSize ? 'Salvar' : 'Criar'}
             </Button>
           </ResponsiveDialogFooter>
