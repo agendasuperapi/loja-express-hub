@@ -147,7 +147,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
       {/* Matrix Grid */}
       <Card className="p-4">
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <div className="max-h-[600px] overflow-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <div className="min-w-max pb-4">
           {/* Header Row - Sizes */}
           <div className="grid gap-2 mb-2" style={{ gridTemplateColumns: `200px repeat(${sizes.length}, 120px)` }}>
