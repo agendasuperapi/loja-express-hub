@@ -3508,7 +3508,7 @@ export const StoreOwnerDashboard = ({
                           )}
                         </TabsContent>
 
-                        <TabsContent value="variants" className="mt-4 min-h-[calc(90vh-250px)]">
+                        <TabsContent value="variants" className="mt-4 max-h-[calc(90vh-250px)] overflow-y-auto">
                           {editingProduct && myStore && (
                             <ColorSizeVariantsManager 
                               productId={editingProduct.id} 
