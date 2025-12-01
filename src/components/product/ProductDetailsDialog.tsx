@@ -447,7 +447,7 @@ export function ProductDetailsDialog({
                             {categorySizes.map(size => {
                               const isSelected = selectedSizesByCategory[category.id]?.has(size.id);
                               return (
-                                <div
+                                 <div
                                   key={size.id}
                                   className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
                                     isSelected
@@ -459,6 +459,12 @@ export function ProductDetailsDialog({
                                     newByCategory[category.id] = new Set([size.id]);
                                     setSelectedSizesByCategory(newByCategory);
                                     setSelectedSize(size.id);
+                                    // Initialize quantity
+                                    setSizeQuantities(prev => {
+                                      const newMap = new Map(prev);
+                                      newMap.set(size.id, 1);
+                                      return newMap;
+                                    });
                                   }}
                                 >
                                   <div className="flex items-center gap-3 flex-1">
@@ -470,9 +476,52 @@ export function ProductDetailsDialog({
                                       )}
                                     </Label>
                                   </div>
-                                  <span className="text-lg font-bold text-primary">
-                                    R$ {size.price.toFixed(2)}
-                                  </span>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-lg font-bold text-primary">
+                                      R$ {size.price.toFixed(2)}
+                                    </span>
+                                    {isSelected && (
+                                      <div className="flex items-center gap-1">
+                                        <Button 
+                                          variant="outline" 
+                                          size="icon" 
+                                          className="h-6 w-6"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSizeQuantities(prev => {
+                                              const newMap = new Map(prev);
+                                              const current = newMap.get(size.id) || 1;
+                                              if (current > 1) {
+                                                newMap.set(size.id, current - 1);
+                                              }
+                                              return newMap;
+                                            });
+                                          }}
+                                        >
+                                          <Minus className="w-3 h-3" />
+                                        </Button>
+                                        <span className="text-xs font-semibold min-w-[1.5rem] text-center">
+                                          {sizeQuantities.get(size.id) || 1}
+                                        </span>
+                                        <Button 
+                                          variant="outline" 
+                                          size="icon" 
+                                          className="h-6 w-6"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSizeQuantities(prev => {
+                                              const newMap = new Map(prev);
+                                              const current = newMap.get(size.id) || 1;
+                                              newMap.set(size.id, current + 1);
+                                              return newMap;
+                                            });
+                                          }}
+                                        >
+                                          <Plus className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               );
                             })}
@@ -516,13 +565,12 @@ export function ProductDetailsDialog({
                                           return;
                                         }
                                         categorySet.add(size.id);
-                                        if (size.allow_quantity) {
-                                          setSizeQuantities(prev => {
-                                            const newMap = new Map(prev);
-                                            newMap.set(size.id, 1);
-                                            return newMap;
-                                          });
-                                        }
+                                        // Always initialize quantity to 1
+                                        setSizeQuantities(prev => {
+                                          const newMap = new Map(prev);
+                                          newMap.set(size.id, 1);
+                                          return newMap;
+                                        });
                                       }
                                       
                                       newByCategory[category.id] = categorySet;
@@ -543,8 +591,11 @@ export function ProductDetailsDialog({
                                     )}
                                   </Label>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {size.allow_quantity && isSelected && (
+                                <div className="flex items-center gap-3">
+                                  <span className="text-lg font-bold text-primary">
+                                    R$ {size.price.toFixed(2)}
+                                  </span>
+                                  {isSelected && (
                                     <div className="flex items-center gap-1">
                                       <Button 
                                         variant="outline" 
@@ -563,8 +614,8 @@ export function ProductDetailsDialog({
                                       >
                                         <Minus className="w-3 h-3" />
                                       </Button>
-                                      <span className="text-xs font-medium w-6 text-center">
-                                        {sizeQuantities.get(size.id) || 1}x
+                                      <span className="text-xs font-semibold min-w-[1.5rem] text-center">
+                                        {sizeQuantities.get(size.id) || 1}
                                       </span>
                                       <Button 
                                         variant="outline" 
@@ -583,10 +634,6 @@ export function ProductDetailsDialog({
                                       </Button>
                                     </div>
                                   )}
-                                  <span className="text-lg font-bold text-primary">
-                                    R$ {size.price.toFixed(2)}
-                                  </span>
-                                  {isSelected && <Check className="h-5 w-5 text-primary" />}
                                 </div>
                               </div>
                             );
@@ -600,59 +647,165 @@ export function ProductDetailsDialog({
               {/* Tamanhos sem categoria */}
               {availableSizes.filter(size => !size.category_id).length > 0 && (
                 <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
-                  {availableSizes.filter(size => !size.category_id).map(size => (
-                    <div
-                      key={size.id}
-                      className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                        selectedSize === size.id
-                          ? 'bg-primary/10 border-primary shadow-sm'
-                          : 'bg-muted/50 border-transparent hover:border-primary/30'
-                      }`}
-                      onClick={() => setSelectedSize(size.id)}
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <RadioGroupItem value={size.id} id={size.id} />
-                        <Label htmlFor={size.id} className="flex-1 cursor-pointer">
-                          <span className="font-semibold">{size.name}</span>
-                          {size.description && (
-                            <span className="text-xs text-muted-foreground block">{size.description}</span>
+                  {availableSizes.filter(size => !size.category_id).map(size => {
+                    const isSelected = selectedSize === size.id;
+                    return (
+                      <div
+                        key={size.id}
+                        className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary/10 border-primary shadow-sm'
+                            : 'bg-muted/50 border-transparent hover:border-primary/30'
+                        }`}
+                        onClick={() => {
+                          setSelectedSize(size.id);
+                          setSizeQuantities(prev => {
+                            const newMap = new Map(prev);
+                            newMap.set(size.id, 1);
+                            return newMap;
+                          });
+                        }}
+                      >
+                        <div className="flex items-center gap-3 flex-1">
+                          <RadioGroupItem value={size.id} id={size.id} />
+                          <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                            <span className="font-semibold">{size.name}</span>
+                            {size.description && (
+                              <span className="text-xs text-muted-foreground block">{size.description}</span>
+                            )}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-primary">
+                            R$ {size.price.toFixed(2)}
+                          </span>
+                          {isSelected && (
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSizeQuantities(prev => {
+                                    const newMap = new Map(prev);
+                                    const current = newMap.get(size.id) || 1;
+                                    if (current > 1) {
+                                      newMap.set(size.id, current - 1);
+                                    }
+                                    return newMap;
+                                  });
+                                }}
+                              >
+                                <Minus className="w-3 h-3" />
+                              </Button>
+                              <span className="text-xs font-semibold min-w-[1.5rem] text-center">
+                                {sizeQuantities.get(size.id) || 1}
+                              </span>
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSizeQuantities(prev => {
+                                    const newMap = new Map(prev);
+                                    const current = newMap.get(size.id) || 1;
+                                    newMap.set(size.id, current + 1);
+                                    return newMap;
+                                  });
+                                }}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
                           )}
-                        </Label>
+                        </div>
                       </div>
-                      <span className="text-lg font-bold text-primary">
-                        R$ {size.price.toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </RadioGroup>
               )}
             </>
           ) : (
             <RadioGroup value={selectedSize} onValueChange={setSelectedSize} className="space-y-2">
-              {availableSizes.map(size => (
-                <div
-                  key={size.id}
-                  className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                    selectedSize === size.id
-                      ? 'bg-primary/10 border-primary shadow-sm'
-                      : 'bg-muted/50 border-transparent hover:border-primary/30'
-                  }`}
-                  onClick={() => setSelectedSize(size.id)}
-                >
-                  <div className="flex items-center gap-3 flex-1">
-                    <RadioGroupItem value={size.id} id={size.id} />
-                    <Label htmlFor={size.id} className="flex-1 cursor-pointer">
-                      <span className="font-semibold">{size.name}</span>
-                      {size.description && (
-                        <span className="text-xs text-muted-foreground block">{size.description}</span>
+              {availableSizes.map(size => {
+                const isSelected = selectedSize === size.id;
+                return (
+                  <div
+                    key={size.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-primary/10 border-primary shadow-sm'
+                        : 'bg-muted/50 border-transparent hover:border-primary/30'
+                    }`}
+                    onClick={() => {
+                      setSelectedSize(size.id);
+                      setSizeQuantities(prev => {
+                        const newMap = new Map(prev);
+                        newMap.set(size.id, 1);
+                        return newMap;
+                      });
+                    }}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <RadioGroupItem value={size.id} id={size.id} />
+                      <Label htmlFor={size.id} className="flex-1 cursor-pointer">
+                        <span className="font-semibold">{size.name}</span>
+                        {size.description && (
+                          <span className="text-xs text-muted-foreground block">{size.description}</span>
+                        )}
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-primary">
+                        R$ {size.price.toFixed(2)}
+                      </span>
+                      {isSelected && (
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSizeQuantities(prev => {
+                                const newMap = new Map(prev);
+                                const current = newMap.get(size.id) || 1;
+                                if (current > 1) {
+                                  newMap.set(size.id, current - 1);
+                                }
+                                return newMap;
+                              });
+                            }}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          <span className="text-xs font-semibold min-w-[1.5rem] text-center">
+                            {sizeQuantities.get(size.id) || 1}
+                          </span>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-6 w-6"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSizeQuantities(prev => {
+                                const newMap = new Map(prev);
+                                const current = newMap.get(size.id) || 1;
+                                newMap.set(size.id, current + 1);
+                                return newMap;
+                              });
+                            }}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
                       )}
-                    </Label>
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-primary">
-                    R$ {size.price.toFixed(2)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </RadioGroup>
           )}
           {!selectedSize && (
