@@ -1042,20 +1042,7 @@ export default function ProductAddonsManager({ productId, storeId, hideDeleteBut
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Adicional
               </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={() => {
-                  loadCustomTemplates();
-                  setIsImportDialogOpen(true);
-                }}
-                className="w-full sm:w-auto shrink-0 justify-start sm:justify-center"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Importar Templates</span>
-                <span className="sm:hidden">Templates</span>
-              </Button>
-              <Button 
+              <Button
                 size="sm" 
                 variant="outline"
                 onClick={() => {
