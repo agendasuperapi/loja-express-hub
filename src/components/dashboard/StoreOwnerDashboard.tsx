@@ -30,6 +30,7 @@ import { ProductSizesManager } from "./ProductSizesManager";
 import { ProductAddonsManagement, CategoriesTab, AddonsTab } from "./ProductAddonsManagement";
 import { ProductFlavorsManagement } from "./ProductFlavorsManagement";
 import { SizeCategoriesManager } from "./SizeCategoriesManager";
+import { StoreSizesManager } from "./StoreSizesManager";
 import { CombosManager } from "./CombosManager";
 import { EditOrderDialog } from "./EditOrderDialog";
 import { ReceiptDialog } from "./ReceiptDialog";
@@ -4092,13 +4093,21 @@ export const StoreOwnerDashboard = ({
 
                     <TabsContent value="variacoes">
                       <div className="space-y-6">
-                        <Tabs defaultValue="categorias" className="w-full">
-                          <TabsList className="grid w-full grid-cols-1 mb-6">
+                        <Tabs defaultValue="globais" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-6">
+                            <TabsTrigger value="globais" className="flex items-center gap-2">
+                              <Layers className="w-4 h-4" />
+                              Variações Globais
+                            </TabsTrigger>
                             <TabsTrigger value="categorias" className="flex items-center gap-2">
                               <FolderTree className="w-4 h-4" />
                               Categorias de Variações
                             </TabsTrigger>
                           </TabsList>
+
+                          <TabsContent value="globais">
+                            <StoreSizesManager storeId={myStore.id} />
+                          </TabsContent>
 
                           <TabsContent value="categorias">
                             <SizeCategoriesManager storeId={myStore.id} />
