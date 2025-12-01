@@ -3457,7 +3457,7 @@ export const StoreOwnerDashboard = ({
                         </TabsContent>
 
                         <TabsContent value="sizes" className="mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct && myStore && <ProductSizesManager productId={editingProduct.id} storeId={myStore.id} />}
+                          {editingProduct && myStore && <ProductSizesManager productId={editingProduct.id} storeId={myStore.id} hideDeleteButton={true} />}
                         </TabsContent>
 
                         <TabsContent value="addons" className="mt-4 min-h-[calc(90vh-250px)]">
@@ -3495,7 +3495,7 @@ export const StoreOwnerDashboard = ({
                                   </div>}
                               </div>
                                
-                              <ProductFlavorsManager productId={editingProduct.id} storeId={editingProduct.store_id} />
+                              <ProductFlavorsManager productId={editingProduct.id} storeId={editingProduct.store_id} hideDeleteButton={true} />
                             </>}
                         </TabsContent>
                       </Tabs>

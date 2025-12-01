@@ -24,6 +24,7 @@ import { useStoreSizes, type StoreSize } from '@/hooks/useStoreSizes';
 interface ProductSizesManagerProps {
   productId: string;
   storeId: string;
+  hideDeleteButton?: boolean;
 }
 interface SortableSizeItemProps {
   size: ProductSize;
@@ -33,12 +34,14 @@ interface SortableSizeItemProps {
     id: string;
     is_available: boolean;
   }) => void;
+  hideDeleteButton?: boolean;
 }
 function SortableSizeItem({
   size,
   onEdit,
   onDelete,
-  onToggleAvailability
+  onToggleAvailability,
+  hideDeleteButton
 }: SortableSizeItemProps) {
   const {
     attributes,
@@ -83,15 +86,18 @@ function SortableSizeItem({
         <Button variant="ghost" size="icon" onClick={() => onEdit(size)} className="h-8 w-8 sm:h-10 sm:w-10">
           <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onDelete(size.id)} className="h-8 w-8 sm:h-10 sm:w-10">
-          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-        </Button>
+        {!hideDeleteButton && (
+          <Button variant="ghost" size="icon" onClick={() => onDelete(size.id)} className="h-8 w-8 sm:h-10 sm:w-10">
+            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+          </Button>
+        )}
       </div>
     </div>;
 }
 export function ProductSizesManager({
   productId,
-  storeId
+  storeId,
+  hideDeleteButton
 }: ProductSizesManagerProps) {
   const {
     sizes,
@@ -519,6 +525,7 @@ export function ProductSizesManager({
                               onEdit={handleOpenDialog} 
                               onDelete={deleteSize} 
                               onToggleAvailability={toggleSizeAvailability}
+                              hideDeleteButton={hideDeleteButton}
                             />
                           ))}
                         </div>
@@ -550,6 +557,7 @@ export function ProductSizesManager({
                           onEdit={handleOpenDialog} 
                           onDelete={deleteSize} 
                           onToggleAvailability={toggleSizeAvailability}
+                          hideDeleteButton={hideDeleteButton}
                         />
                       ))}
                     </div>

@@ -47,6 +47,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface ProductFlavorsManagerProps {
   productId: string;
   storeId?: string;
+  hideDeleteButton?: boolean;
 }
 
 interface SortableFlavorItemProps {
@@ -55,9 +56,10 @@ interface SortableFlavorItemProps {
   onDelete: () => void;
   onToggleAvailability: () => void;
   isDeleting: boolean;
+  hideDeleteButton?: boolean;
 }
 
-const SortableFlavorItem = ({ flavor, onEdit, onDelete, onToggleAvailability, isDeleting }: SortableFlavorItemProps) => {
+const SortableFlavorItem = ({ flavor, onEdit, onDelete, onToggleAvailability, isDeleting, hideDeleteButton }: SortableFlavorItemProps) => {
   const {
     attributes,
     listeners,
@@ -115,12 +117,38 @@ const SortableFlavorItem = ({ flavor, onEdit, onDelete, onToggleAvailability, is
         >
           <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
+        {!hideDeleteButton && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10"
+                disabled={isDeleting}
+              >
+                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir sabor</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir este sabor? Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete}>Excluir</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
     </div>
   );
 };
 
-export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsManagerProps) => {
+export const ProductFlavorsManager = ({ productId, storeId, hideDeleteButton }: ProductFlavorsManagerProps) => {
   const { flavors, createFlavor, updateFlavor, deleteFlavor, isCreating, isDeleting } = useProductFlavors(productId);
   const { flavors: storeFlavors } = useStoreAddonsAndFlavors(storeId);
   const [isAdding, setIsAdding] = useState(false);
@@ -674,16 +702,17 @@ export const ProductFlavorsManager = ({ productId, storeId }: ProductFlavorsMana
                  items={filteredFlavors.map(f => f.id)}
                  strategy={verticalListSortingStrategy}
                >
-                 {filteredFlavors.map((flavor) => (
-                   <SortableFlavorItem
-                     key={flavor.id}
-                     flavor={flavor}
-                     onEdit={() => handleEdit(flavor)}
-                     onDelete={() => deleteFlavor(flavor.id)}
-                     onToggleAvailability={() => handleToggleAvailability(flavor)}
-                     isDeleting={isDeleting}
-                   />
-                 ))}
+                  {filteredFlavors.map((flavor) => (
+                    <SortableFlavorItem
+                      key={flavor.id}
+                      flavor={flavor}
+                      onEdit={() => handleEdit(flavor)}
+                      onDelete={() => deleteFlavor(flavor.id)}
+                      onToggleAvailability={() => handleToggleAvailability(flavor)}
+                      isDeleting={isDeleting}
+                      hideDeleteButton={hideDeleteButton}
+                    />
+                  ))}
                </SortableContext>
              </DndContext>
            ) : flavors && flavors.length > 0 ? (
