@@ -1525,6 +1525,9 @@ export default function ProductAddonsManager({ productId, storeId, hideDeleteBut
                         >
                           <FolderTree className="w-4 h-4" />
                           <span className="flex-1">{category.name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {categoryAddons.length} {categoryAddons.length === 1 ? 'adicional' : 'adicionais'}
+                          </Badge>
                           {expandedStoreAddonCategories.has(category.id) ? (
                             <ChevronUp className="w-4 h-4" />
                           ) : (
