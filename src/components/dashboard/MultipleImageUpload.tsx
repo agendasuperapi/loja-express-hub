@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Upload, X, Loader2, Star, StarOff } from 'lucide-react';
+import { Upload, X, Loader2, Star, StarOff, ZoomIn } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   DndContext,
   closestCenter,
@@ -41,9 +42,10 @@ interface SortableImageProps {
   image: ProductImage;
   onRemove: (id: string) => void;
   onSetPrimary: (id: string) => void;
+  onZoom: (imageUrl: string) => void;
 }
 
-function SortableImage({ image, onRemove, onSetPrimary }: SortableImageProps) {
+function SortableImage({ image, onRemove, onSetPrimary, onZoom }: SortableImageProps) {
   const {
     attributes,
     listeners,
@@ -61,32 +63,55 @@ function SortableImage({ image, onRemove, onSetPrimary }: SortableImageProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group cursor-move"
-      {...attributes}
-      {...listeners}
+      className="relative group"
     >
-      <div className="aspect-square w-32 rounded-lg overflow-hidden border-2 border-border bg-muted/30">
+      <div 
+        className="aspect-square w-32 rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          onZoom(image.image_url);
+        }}
+      >
         <img
           src={image.image_url}
           alt="Imagem do produto"
           className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        </div>
       </div>
       
       {image.is_primary && (
-        <Badge className="absolute top-1 left-1 bg-yellow-500 hover:bg-yellow-600">
+        <Badge className="absolute top-1 left-1 bg-yellow-500 hover:bg-yellow-600 z-10">
           <Star className="w-3 h-3 mr-1 fill-white" />
           Principal
         </Badge>
       )}
       
-      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <div 
+          className="cursor-move"
+          {...attributes}
+          {...listeners}
+        >
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            className="h-7 w-7 bg-background/80 backdrop-blur-sm"
+          >
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </Button>
+        </div>
         {!image.is_primary && (
           <Button
             type="button"
             size="icon"
             variant="secondary"
-            className="h-7 w-7"
+            className="h-7 w-7 bg-background/80 backdrop-blur-sm"
             onClick={(e) => {
               e.stopPropagation();
               onSetPrimary(image.id);
@@ -99,7 +124,7 @@ function SortableImage({ image, onRemove, onSetPrimary }: SortableImageProps) {
           type="button"
           size="icon"
           variant="destructive"
-          className="h-7 w-7"
+          className="h-7 w-7 bg-background/80 backdrop-blur-sm"
           onClick={(e) => {
             e.stopPropagation();
             onRemove(image.id);
@@ -119,6 +144,7 @@ export const MultipleImageUpload = ({
 }: MultipleImageUploadProps) => {
   const [images, setImages] = useState<ProductImage[]>(initialImages);
   const [uploading, setUploading] = useState(false);
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -362,7 +388,20 @@ export const MultipleImageUpload = ({
   };
 
   return (
-    <div className="space-y-4">
+    <>
+      <Dialog open={!!zoomedImage} onOpenChange={() => setZoomedImage(null)}>
+        <DialogContent className="max-w-4xl w-full p-2">
+          <div className="relative w-full h-[80vh]">
+            <img
+              src={zoomedImage || ''}
+              alt="Imagem ampliada"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="space-y-4">
       <div>
         <Label className="text-sm font-medium">Imagens do Produto</Label>
         <p className="text-xs text-muted-foreground mt-1">
@@ -387,6 +426,7 @@ export const MultipleImageUpload = ({
                   image={image}
                   onRemove={handleRemove}
                   onSetPrimary={handleSetPrimary}
+                  onZoom={setZoomedImage}
                 />
               ))}
             </div>
@@ -426,6 +466,7 @@ export const MultipleImageUpload = ({
           className="hidden"
         />
       </div>
-    </div>
+      </div>
+    </>
   );
 };
