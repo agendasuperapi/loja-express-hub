@@ -45,7 +45,11 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
   // Scroll control refs and states
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
-  const [showRightShadow, setShowRightShadow] = useState(false);
+  
+  // Check if content will overflow (based on column count)
+  const expectedWidth = 140 + (sizes.length * 100);
+  const initialShowRightShadow = expectedWidth > (typeof window !== 'undefined' ? window.innerWidth * 0.8 : 400);
+  const [showRightShadow, setShowRightShadow] = useState(initialShowRightShadow);
   const [showSwipeIndicator, setShowSwipeIndicator] = useState(true);
   const [isAutoScrolling, setIsAutoScrolling] = useState<'left' | 'right' | null>(null);
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,6 +70,15 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
     if (!element) return;
     
     const { scrollLeft, scrollWidth, clientWidth } = element;
+    
+    console.log('[ColorSizeVariants] Scroll check:', {
+      scrollLeft,
+      scrollWidth,
+      clientWidth,
+      hasOverflow: scrollWidth > clientWidth,
+      showRight: scrollLeft < scrollWidth - clientWidth - 5
+    });
+    
     setShowLeftShadow(scrollLeft > 5);
     setShowRightShadow(scrollLeft < scrollWidth - clientWidth - 5);
   }, []);
@@ -117,21 +130,38 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
     const element = scrollContainerRef.current;
     if (!element) return;
     
-    checkScroll();
+    // Pequeno delay para garantir que o conteúdo foi renderizado
+    const timer = setTimeout(() => {
+      checkScroll();
+    }, 100);
     
-    const resizeObserver = new ResizeObserver(checkScroll);
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce check
+      setTimeout(checkScroll, 50);
+    });
     resizeObserver.observe(element);
     element.addEventListener('scroll', checkScroll);
     
-    const timer = setTimeout(() => setShowSwipeIndicator(false), 4000);
+    const swipeTimer = setTimeout(() => setShowSwipeIndicator(false), 4000);
     
     return () => {
       resizeObserver.disconnect();
       element.removeEventListener('scroll', checkScroll);
       clearTimeout(timer);
+      clearTimeout(swipeTimer);
       if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
     };
-  }, [checkScroll]);
+  }, [checkScroll, colors.length, sizes.length]);
+
+  // Re-check scroll when colors/sizes data changes
+  useEffect(() => {
+    if (colors.length > 0 && sizes.length > 0) {
+      // Wait for DOM to update
+      requestAnimationFrame(() => {
+        setTimeout(checkScroll, 50);
+      });
+    }
+  }, [colors.length, sizes.length, checkScroll]);
 
   const handleGenerateAll = () => {
     if (colors.length === 0 || sizes.length === 0) {
@@ -283,7 +313,8 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
           style={{
             overscrollBehavior: 'contain',
             WebkitOverflowScrolling: 'touch',
-            scrollBehavior: isAutoScrolling ? 'auto' : 'smooth'
+            scrollBehavior: isAutoScrolling ? 'auto' : 'smooth',
+            scrollbarWidth: 'thin',
           }}
         >
           <div className="min-w-max pb-2 pr-2">
