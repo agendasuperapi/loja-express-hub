@@ -76,6 +76,64 @@ export type Database = {
         }
         Relationships: []
       }
+      color_size_variants: {
+        Row: {
+          color_id: string
+          created_at: string | null
+          id: string
+          is_available: boolean
+          price_adjustment: number | null
+          product_id: string
+          size_id: string
+          stock_quantity: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          color_id: string
+          created_at?: string | null
+          id?: string
+          is_available?: boolean
+          price_adjustment?: number | null
+          product_id: string
+          size_id: string
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          color_id?: string
+          created_at?: string | null
+          id?: string
+          is_available?: boolean
+          price_adjustment?: number | null
+          product_id?: string
+          size_id?: string
+          stock_quantity?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "color_size_variants_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "product_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "color_size_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "color_size_variants_size_id_fkey"
+            columns: ["size_id"]
+            isOneToOne: false
+            referencedRelation: "product_sizes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       combo_items: {
         Row: {
           combo_id: string
@@ -508,6 +566,61 @@ export type Database = {
             columns: ["order_item_id"]
             isOneToOne: false
             referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_item_variants: {
+        Row: {
+          color_id: string | null
+          color_name: string | null
+          created_at: string | null
+          id: string
+          order_item_id: string
+          size_id: string | null
+          size_name: string | null
+          variant_price_adjustment: number | null
+        }
+        Insert: {
+          color_id?: string | null
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          order_item_id: string
+          size_id?: string | null
+          size_name?: string | null
+          variant_price_adjustment?: number | null
+        }
+        Update: {
+          color_id?: string | null
+          color_name?: string | null
+          created_at?: string | null
+          id?: string
+          order_item_id?: string
+          size_id?: string | null
+          size_name?: string | null
+          variant_price_adjustment?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_variants_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "product_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_variants_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_variants_size_id_fkey"
+            columns: ["size_id"]
+            isOneToOne: false
+            referencedRelation: "product_sizes"
             referencedColumns: ["id"]
           },
         ]

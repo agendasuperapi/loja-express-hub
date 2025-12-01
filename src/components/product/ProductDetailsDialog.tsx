@@ -18,7 +18,8 @@ import { useAddonCategories } from "@/hooks/useAddonCategories";
 import { useSizeCategories } from "@/hooks/useSizeCategories";
 import { useProductImages } from "@/hooks/useProductImages";
 import { useProductColors } from "@/hooks/useProductColors";
-import { useState, useEffect, useRef } from "react";
+import { useColorSizeVariants } from "@/hooks/useColorSizeVariants";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from "framer-motion";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -69,6 +70,7 @@ export function ProductDetailsDialog({
   const {
     colors
   } = useProductColors(product?.id);
+  const { variants } = useColorSizeVariants(product?.id);
   const observationRef = useRef<HTMLTextAreaElement>(null);
   const drawerContentRef = useRef<HTMLDivElement>(null);
   const [isObservationModalOpen, setIsObservationModalOpen] = useState(false);
@@ -89,9 +91,58 @@ export function ProductDetailsDialog({
   const maxFlavors = product?.max_flavors || 1;
   const hasFlavors = product?.is_pizza && flavors && flavors.length > 0;
   const hasSizes = product?.has_sizes && sizes && sizes.length > 0;
-  const availableSizes = sizes?.filter(s => s.is_available) || [];
   const hasColors = product?.has_colors && colors && colors.length > 0;
-  const availableColors = colors?.filter(c => c.is_available) || [];
+  
+  // Filter colors and sizes based on variant availability
+  const availableColors = useMemo(() => {
+    if (!hasColors) return [];
+    const baseAvailable = colors?.filter(c => c.is_available) || [];
+    
+    // If no size selected or no sizes at all, show all available colors
+    if (!selectedSize || !hasSizes || variants.length === 0) {
+      return baseAvailable;
+    }
+    
+    // Filter colors that have available variants with the selected size
+    return baseAvailable.filter(color => {
+      const variant = variants.find(v => 
+        v.color_id === color.id && 
+        v.size_id === selectedSize
+      );
+      return variant?.is_available !== false;
+    });
+  }, [colors, selectedSize, variants, hasColors, hasSizes]);
+
+  const availableSizes = useMemo(() => {
+    if (!hasSizes) return [];
+    const baseAvailable = sizes?.filter(s => s.is_available) || [];
+    
+    // If no color selected or no colors at all, show all available sizes
+    if (!selectedColor || !hasColors || variants.length === 0) {
+      return baseAvailable;
+    }
+    
+    // Filter sizes that have available variants with the selected color
+    return baseAvailable.filter(size => {
+      const variant = variants.find(v => 
+        v.color_id === selectedColor && 
+        v.size_id === size.id
+      );
+      return variant?.is_available !== false;
+    });
+  }, [sizes, selectedColor, variants, hasSizes, hasColors]);
+  
+  // Check if current color+size combination is available
+  const isCurrentCombinationAvailable = useMemo(() => {
+    if (!selectedColor || !selectedSize || variants.length === 0) return true;
+    
+    const variant = variants.find(v => 
+      v.color_id === selectedColor && 
+      v.size_id === selectedSize
+    );
+    
+    return variant?.is_available !== false;
+  }, [selectedColor, selectedSize, variants]);
   
   useEffect(() => {
     if (!open) {
@@ -226,11 +277,31 @@ export function ProductDetailsDialog({
   }, 0) || 0;
   const total = (currentPrice + addonsTotal + flavorsTotal) * quantity;
   const handleAddToCart = () => {
+    // Validate color+size combination availability
+    if (hasColors && hasSizes && selectedColor && selectedSize && !isCurrentCombinationAvailable) {
+      toast({
+        title: "Combinação indisponível",
+        description: "A combinação de cor e tamanho selecionada não está disponível no momento",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Validate size selection if product has sizes
     if (hasSizes && !selectedSize) {
       toast({
         title: "Selecione um tamanho",
         description: "É necessário selecionar um tamanho para este produto",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate color selection if product has colors
+    if (hasColors && !selectedColor) {
+      toast({
+        title: "Selecione uma cor",
+        description: "É necessário selecionar uma cor para este produto",
         variant: "destructive"
       });
       return;
@@ -456,6 +527,18 @@ export function ProductDetailsDialog({
               );
             })}
           </div>
+          
+          {/* Warning for unavailable combination */}
+          {selectedColor && selectedSize && !isCurrentCombinationAvailable && (
+            <div className="p-3 bg-destructive/10 border-2 border-destructive/30 rounded-lg">
+              <p className="text-sm text-destructive font-medium">
+                ⚠️ Esta combinação de cor e tamanho não está disponível no momento
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Escolha outra cor ou tamanho para continuar
+              </p>
+            </div>
+          )}
         </div>
       )}
 
