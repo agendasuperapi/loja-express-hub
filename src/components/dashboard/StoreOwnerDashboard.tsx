@@ -3327,7 +3327,7 @@ export const StoreOwnerDashboard = ({
 
                       <Tabs value={activeProductTab} onValueChange={setActiveProductTab} className="w-full">
                         {/* Desktop: Tabs visuais */}
-                        <TabsList className="hidden md:grid md:grid-cols-3 w-full gap-1">
+                        <TabsList className="hidden md:flex w-full gap-1">
                           <TabsTrigger value="info">Informações</TabsTrigger>
                           <TabsTrigger value="sizes" disabled={!editingProduct}>
                             Variações {!editingProduct && <span className="text-xs ml-1">(salve primeiro)</span>}
