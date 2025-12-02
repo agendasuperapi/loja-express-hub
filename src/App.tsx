@@ -75,6 +75,14 @@ const App = () => (
               <Route path="/orders" element={<Orders />} />
               <Route path="/become-partner" element={<BecomePartner />} />
               <Route path="/login-lojista" element={<LoginLojista />} />
+              <Route 
+                path="/painel-afiliado" 
+                element={
+                  <ProtectedRoute>
+                    <AffiliateDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               <Route
                 path="/admin" 
                 element={
