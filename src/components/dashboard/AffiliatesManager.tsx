@@ -361,10 +361,20 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
         valid_from: newCouponData.valid_from,
         valid_until: newCouponData.valid_until || null,
         is_active: true,
+        applies_to: newCouponData.applies_to,
+        category_names: newCouponData.category_names,
+        product_ids: newCouponData.product_ids,
       }) as any;
 
       if (couponResult?.id) {
-        setFormData({ ...formData, coupon_id: couponResult.id });
+        // Aplicar automaticamente as configurações de escopo do cupom à comissão do afiliado
+        setFormData({ 
+          ...formData, 
+          coupon_id: couponResult.id,
+          commission_scope: newCouponData.applies_to,
+          commission_category_names: newCouponData.category_names,
+          commission_product_ids: newCouponData.product_ids,
+        });
         setNewCouponDialogOpen(false);
         setNewCouponData({
           code: '',
@@ -999,7 +1009,23 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                 <div className="flex gap-2">
                   <Select
                     value={formData.coupon_id || 'none'}
-                    onValueChange={(value) => setFormData({ ...formData, coupon_id: value === 'none' ? '' : value })}
+                    onValueChange={(value) => {
+                      const selectedCouponId = value === 'none' ? '' : value;
+                      const selectedCoupon = coupons.find(c => c.id === selectedCouponId) as any;
+                      
+                      // Se o cupom tem configurações de escopo, aplicar automaticamente à comissão
+                      if (selectedCoupon && selectedCoupon.applies_to) {
+                        setFormData({ 
+                          ...formData, 
+                          coupon_id: selectedCouponId,
+                          commission_scope: selectedCoupon.applies_to || 'all',
+                          commission_category_names: selectedCoupon.category_names || [],
+                          commission_product_ids: selectedCoupon.product_ids || [],
+                        });
+                      } else {
+                        setFormData({ ...formData, coupon_id: selectedCouponId });
+                      }
+                    }}
                   >
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Selecione um cupom" />

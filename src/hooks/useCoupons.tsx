@@ -18,6 +18,9 @@ export interface Coupon {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  applies_to?: 'all' | 'category' | 'product';
+  category_names?: string[];
+  product_ids?: string[];
 }
 
 export interface CouponValidation {
