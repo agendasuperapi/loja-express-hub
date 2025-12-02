@@ -2091,7 +2091,7 @@ export const StoreOwnerDashboard = ({
                         {/* Logo em Mobile / Nome em Desktop */}
                         <div className="flex flex-col items-center md:flex-row md:items-center justify-center md:justify-start gap-3">
                           <div className="flex flex-col items-center md:hidden gap-1">
-                            {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-16 w-16 object-contain rounded-lg" initial={{
+                            {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-20 w-20 object-contain rounded-lg" initial={{
                               opacity: 0,
                               scale: 0.8
                             }} animate={{
