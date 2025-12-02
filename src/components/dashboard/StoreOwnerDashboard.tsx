@@ -2100,7 +2100,7 @@ export const StoreOwnerDashboard = ({
                             }} transition={{
                               delay: 0.3
                             }} />}
-                            <span className="text-sm font-semibold text-muted-foreground">Dashboard Lojista</span>
+                            <span className="text-lg font-bold text-muted-foreground">Dashboard Lojista</span>
                           </div>
                           
                           <motion.h2 className="text-3xl font-bold gradient-text hidden md:block" initial={{
