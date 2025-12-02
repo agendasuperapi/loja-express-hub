@@ -65,10 +65,19 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
   // Filter coupons: only show coupons not linked to other affiliates
   const availableCoupons = coupons.filter((coupon) => {
-    // Check if coupon is already linked to another affiliate
-    const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
+    // Check if coupon is linked via legacy field (coupon_id)
+    const linkedViaLegacy = affiliates.find(a => a.coupon_id === coupon.id);
+    
+    // Check if coupon is linked via junction table (affiliate_coupons)
+    const linkedViaJunction = affiliates.find(a => 
+      a.affiliate_coupons?.some(ac => ac.coupon_id === coupon.id)
+    );
+    
+    const linkedAffiliate = linkedViaLegacy || linkedViaJunction;
+    
     // Allow if: not linked to any affiliate, OR linked to the affiliate being edited
-    return !linkedAffiliate || linkedAffiliate.id === editingAffiliate?.id;
+    if (!linkedAffiliate) return true;
+    return linkedAffiliate.id === editingAffiliate?.id;
   });
   const [commissionRules, setCommissionRules] = useState<AffiliateCommissionRule[]>([]);
   const [affiliateEarnings, setAffiliateEarnings] = useState<AffiliateEarning[]>([]);
