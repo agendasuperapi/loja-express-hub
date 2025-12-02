@@ -2487,6 +2487,8 @@ export type Database = {
           commission_type: string
           commission_value: number
           coupon_code: string
+          coupon_discount_type: string
+          coupon_discount_value: number
           pending_commission: number
           status: string
           store_affiliate_id: string
