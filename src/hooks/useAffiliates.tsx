@@ -11,7 +11,7 @@ export interface Affiliate {
   phone?: string | null;
   cpf_cnpj?: string | null;
   pix_key?: string | null;
-  coupon_id?: string | null;
+  coupon_id?: string | null; // Legacy field
   is_active: boolean;
   commission_enabled: boolean;
   default_commission_type: 'percentage' | 'fixed';
@@ -24,6 +24,16 @@ export interface Affiliate {
     discount_type: string;
     discount_value: number;
   } | null;
+  // Multiple coupons
+  affiliate_coupons?: Array<{
+    coupon_id: string;
+    coupon: {
+      id: string;
+      code: string;
+      discount_type: string;
+      discount_value: number;
+    };
+  }>;
 }
 
 export interface AffiliateCommissionRule {
@@ -90,7 +100,7 @@ export const useAffiliates = (storeId?: string) => {
     try {
       const { data, error } = await (supabase as any)
         .from('affiliates')
-        .select(`*, coupon:coupons(id, code, discount_type, discount_value)`)
+        .select(`*, coupon:coupons(id, code, discount_type, discount_value), affiliate_coupons(coupon_id, coupon:coupons(id, code, discount_type, discount_value))`)
         .eq('store_id', storeId)
         .order('created_at', { ascending: false });
 
@@ -107,28 +117,39 @@ export const useAffiliates = (storeId?: string) => {
     fetchAffiliates();
   }, [fetchAffiliates]);
 
-  const createAffiliate = async (affiliateData: Partial<Affiliate>) => {
+  const createAffiliate = async (affiliateData: Partial<Affiliate> & { coupon_ids?: string[] }) => {
     if (!storeId) return null;
     try {
+      const { coupon_ids, ...rest } = affiliateData;
       const { data, error } = await (supabase as any)
         .from('affiliates')
         .insert({
           store_id: storeId,
-          name: affiliateData.name,
-          email: affiliateData.email,
-          phone: affiliateData.phone,
-          cpf_cnpj: affiliateData.cpf_cnpj,
-          pix_key: affiliateData.pix_key,
-          coupon_id: affiliateData.coupon_id,
-          is_active: affiliateData.is_active ?? true,
-          commission_enabled: affiliateData.commission_enabled ?? true,
-          default_commission_type: affiliateData.default_commission_type || 'percentage',
-          default_commission_value: affiliateData.default_commission_value || 0,
+          name: rest.name,
+          email: rest.email,
+          phone: rest.phone,
+          cpf_cnpj: rest.cpf_cnpj,
+          pix_key: rest.pix_key,
+          coupon_id: coupon_ids?.[0] || rest.coupon_id, // Keep legacy field for backwards compatibility
+          is_active: rest.is_active ?? true,
+          commission_enabled: rest.commission_enabled ?? true,
+          default_commission_type: rest.default_commission_type || 'percentage',
+          default_commission_value: rest.default_commission_value || 0,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Insert multiple coupons into junction table
+      if (coupon_ids && coupon_ids.length > 0) {
+        const couponInserts = coupon_ids.map(couponId => ({
+          affiliate_id: data.id,
+          coupon_id: couponId,
+        }));
+        await (supabase as any).from('affiliate_coupons').insert(couponInserts);
+      }
+
       toast({ title: 'Afiliado criado!' });
       await fetchAffiliates();
       return data;
@@ -138,16 +159,37 @@ export const useAffiliates = (storeId?: string) => {
     }
   };
 
-  const updateAffiliate = async (id: string, updates: Partial<Affiliate>) => {
+  const updateAffiliate = async (id: string, updates: Partial<Affiliate> & { coupon_ids?: string[] }) => {
     try {
+      const { coupon_ids, ...rest } = updates;
+      const updateData = { ...rest };
+      if (coupon_ids) {
+        updateData.coupon_id = coupon_ids[0] || null; // Keep legacy field
+      }
+      
       const { data, error } = await (supabase as any)
         .from('affiliates')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
 
       if (error) throw error;
+
+      // Update junction table if coupon_ids provided
+      if (coupon_ids !== undefined) {
+        // Remove existing
+        await (supabase as any).from('affiliate_coupons').delete().eq('affiliate_id', id);
+        // Insert new
+        if (coupon_ids.length > 0) {
+          const couponInserts = coupon_ids.map(couponId => ({
+            affiliate_id: id,
+            coupon_id: couponId,
+          }));
+          await (supabase as any).from('affiliate_coupons').insert(couponInserts);
+        }
+      }
+
       toast({ title: 'Afiliado atualizado!' });
       await fetchAffiliates();
       return data;

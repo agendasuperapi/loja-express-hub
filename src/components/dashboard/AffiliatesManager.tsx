@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -93,7 +94,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     phone: '',
     cpf_cnpj: '',
     pix_key: '',
-    coupon_id: '',
+    coupon_ids: [] as string[],
     commission_enabled: true,
     default_commission_type: 'percentage' as 'percentage' | 'fixed',
     default_commission_value: 0,
@@ -175,7 +176,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       phone: '',
       cpf_cnpj: '',
       pix_key: '',
-      coupon_id: '',
+      coupon_ids: [],
       commission_enabled: true,
       default_commission_type: 'percentage',
       default_commission_value: 0,
@@ -190,13 +191,16 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
   const handleOpenDialog = (affiliate?: Affiliate) => {
     if (affiliate) {
       setEditingAffiliate(affiliate);
+      // Get coupon IDs from junction table or legacy field
+      const couponIds = affiliate.affiliate_coupons?.map(ac => ac.coupon_id) || 
+        (affiliate.coupon_id ? [affiliate.coupon_id] : []);
       setFormData({
         name: affiliate.name,
         email: affiliate.email,
         phone: affiliate.phone || '',
         cpf_cnpj: affiliate.cpf_cnpj || '',
         pix_key: affiliate.pix_key || '',
-        coupon_id: affiliate.coupon_id || '',
+        coupon_ids: couponIds,
         commission_enabled: affiliate.commission_enabled,
         default_commission_type: affiliate.default_commission_type,
         default_commission_value: affiliate.default_commission_value,
@@ -221,10 +225,10 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       return;
     }
 
-    if (!formData.coupon_id) {
+    if (formData.coupon_ids.length === 0) {
       toast({
         title: 'Cupom obrigatório',
-        description: 'Selecione ou crie um cupom para vincular ao afiliado.',
+        description: 'Selecione ou crie pelo menos um cupom para vincular ao afiliado.',
         variant: 'destructive',
       });
       return;
@@ -255,7 +259,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       phone: formData.phone,
       cpf_cnpj: formData.cpf_cnpj,
       pix_key: formData.pix_key,
-      coupon_id: formData.coupon_id || null,
+      coupon_ids: formData.coupon_ids,
       commission_enabled: formData.commission_enabled,
       default_commission_type: formData.default_commission_type,
       default_commission_value: formData.commission_scope === 'all' ? formData.default_commission_value : 0,
@@ -379,7 +383,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
         // Aplicar automaticamente as configurações de escopo do cupom à comissão do afiliado
         setFormData({ 
           ...formData, 
-          coupon_id: couponResult.id,
+          coupon_ids: [...formData.coupon_ids, couponResult.id],
           commission_scope: newCouponData.applies_to,
           commission_category_names: newCouponData.category_names,
           commission_product_ids: newCouponData.product_ids,
@@ -574,26 +578,35 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground truncate">{affiliate.email}</p>
-                          {affiliate.coupon && (
-                            <div className="flex items-center gap-2 mt-1">
-                              <Tag className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
-                                {affiliate.coupon.code}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6"
-                                onClick={() => handleCopyCode(affiliate.coupon!.code)}
-                              >
-                                {copiedCode === affiliate.coupon.code ? (
-                                  <Check className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <Copy className="h-3 w-3" />
-                                )}
-                              </Button>
-                            </div>
-                          )}
+                          {(() => {
+                            const affiliateCoupons = affiliate.affiliate_coupons?.map(ac => ac.coupon) || 
+                              (affiliate.coupon ? [affiliate.coupon] : []);
+                            if (affiliateCoupons.length === 0) return null;
+                            return (
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <Tag className="h-3 w-3 text-muted-foreground" />
+                                {affiliateCoupons.map((coupon) => (
+                                  <div key={coupon.id} className="flex items-center gap-1">
+                                    <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
+                                      {coupon.code}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5"
+                                      onClick={() => handleCopyCode(coupon.code)}
+                                    >
+                                      {copiedCode === coupon.code ? (
+                                        <Check className="h-3 w-3 text-green-600" />
+                                      ) : (
+                                        <Copy className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
                           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                             <Percent className="h-3 w-3" />
                             <span>
@@ -1014,61 +1027,48 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                 })()}
               </div>
               <div className="col-span-2">
-                <Label>Cupom Vinculado</Label>
+                <Label>Cupons Vinculados *</Label>
                 <div className="flex gap-2">
-                  <Select
-                    value={formData.coupon_id || 'none'}
-                    onValueChange={(value) => {
-                      const selectedCouponId = value === 'none' ? '' : value;
-                      const selectedCoupon = coupons.find(c => c.id === selectedCouponId) as any;
-                      
-                      // Se o cupom tem configurações de escopo, aplicar automaticamente à comissão
-                      if (selectedCoupon && selectedCoupon.applies_to) {
-                        setFormData({ 
-                          ...formData, 
-                          coupon_id: selectedCouponId,
-                          commission_scope: selectedCoupon.applies_to || 'all',
-                          commission_category_names: selectedCoupon.category_names || [],
-                          commission_product_ids: selectedCoupon.product_ids || [],
-                        });
-                      } else {
-                        setFormData({ ...formData, coupon_id: selectedCouponId });
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Selecione um cupom" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {coupons.length === 0 ? (
-                        <div className="py-2 px-3 text-sm text-muted-foreground text-center">
-                          Nenhum cupom cadastrado
-                        </div>
-                      ) : (
-                        coupons.map((coupon) => {
-                          const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
-                          const isLinkedToOther = linkedAffiliate && linkedAffiliate.id !== editingAffiliate?.id;
+                  <div className="flex-1 border rounded-md p-3 max-h-48 overflow-y-auto">
+                    {coupons.length === 0 ? (
+                      <div className="py-2 text-sm text-muted-foreground text-center">
+                        Nenhum cupom cadastrado
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {coupons.map((coupon) => {
+                          const isSelected = formData.coupon_ids.includes(coupon.id);
                           return (
-                            <SelectItem 
-                              key={coupon.id} 
-                              value={coupon.id}
-                              disabled={isLinkedToOther}
-                            >
-                              <div className="flex flex-col">
-                                <span>{coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})</span>
-                                {linkedAffiliate && (
-                                  <span className="text-xs text-muted-foreground">
-                                    Vinculado a: {linkedAffiliate.name}
-                                  </span>
-                                )}
-                              </div>
-                            </SelectItem>
+                            <div key={coupon.id} className="flex items-center gap-2">
+                              <Checkbox
+                                id={`coupon-${coupon.id}`}
+                                checked={isSelected}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setFormData({
+                                      ...formData,
+                                      coupon_ids: [...formData.coupon_ids, coupon.id],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      coupon_ids: formData.coupon_ids.filter(id => id !== coupon.id),
+                                    });
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`coupon-${coupon.id}`} className="text-sm flex-1 cursor-pointer">
+                                <span className="font-medium">{coupon.code}</span>
+                                <span className="text-muted-foreground ml-1">
+                                  ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
+                                </span>
+                              </label>
+                            </div>
                           );
-                        })
-                      )}
-                    </SelectContent>
-                  </Select>
+                        })}
+                      </div>
+                    )}
+                  </div>
                   <Dialog open={newCouponDialogOpen} onOpenChange={setNewCouponDialogOpen}>
                     <DialogTrigger asChild>
                       <Button type="button" size="icon" variant="outline">
