@@ -1115,7 +1115,7 @@ export default function ProductAddonsManager({ productId, storeId, hideDeleteBut
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 h-[90vh] overflow-y-auto">
         {/* Search and Filters */}
         {addons && addons.length > 0 && (
           <div className="space-y-3">
