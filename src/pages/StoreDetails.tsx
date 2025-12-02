@@ -120,6 +120,9 @@ export default function StoreDetails() {
   
   // Detect shared product from URL and open in popup
   const sharedProductShortId = searchParams.get('product');
+  
+  // Detect coupon from affiliate link
+  const affiliateCoupon = searchParams.get('cupom');
 
   // Open product in popup when URL has ?product=short_id
   useEffect(() => {
@@ -131,6 +134,23 @@ export default function StoreDetails() {
       }
     }
   }, [searchParams, products]);
+  
+  // Auto-apply affiliate coupon from URL
+  useEffect(() => {
+    if (affiliateCoupon && store?.id) {
+      // Store the coupon in localStorage for the cart to use
+      const couponKey = `affiliate_coupon_${store.id}`;
+      const existingCoupon = localStorage.getItem(couponKey);
+      
+      if (!existingCoupon) {
+        localStorage.setItem(couponKey, affiliateCoupon.toUpperCase());
+        sonnerToast.success('Cupom de desconto aplicado!', {
+          description: `O cupom ${affiliateCoupon.toUpperCase()} será usado automaticamente no seu pedido.`,
+          duration: 5000,
+        });
+      }
+    }
+  }, [affiliateCoupon, store?.id]);
 
   // Update sharedProduct for meta tags
   const sharedProduct = products?.find(p => p.short_id === sharedProductShortId);

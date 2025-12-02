@@ -21,6 +21,8 @@ interface AffiliateStore {
   commission_value: number;
   status: string;
   coupon_code?: string;
+  coupon_discount_type?: string;
+  coupon_discount_value?: number;
   total_sales: number;
   total_commission: number;
   pending_commission: number;

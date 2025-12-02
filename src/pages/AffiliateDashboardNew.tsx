@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
   Users,
@@ -19,7 +20,9 @@ import {
   Building2,
   Wallet,
   BarChart3,
-  User
+  User,
+  Link,
+  Ticket
 } from 'lucide-react';
 
 export default function AffiliateDashboardNew() {
@@ -179,7 +182,7 @@ export default function AffiliateDashboardNew() {
                 {affiliateStores.map((store) => (
                   <Card key={store.store_affiliate_id} className="overflow-hidden">
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
+                        <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {store.store_logo ? (
                             <img
@@ -195,9 +198,9 @@ export default function AffiliateDashboardNew() {
                           <div>
                             <CardTitle className="text-base">{store.store_name}</CardTitle>
                             <CardDescription>
-                              {store.commission_type === 'percentage'
-                                ? `${store.commission_value}% de comissão`
-                                : `${formatCurrency(store.commission_value)} por venda`}
+                              {store.coupon_code 
+                                ? `Cupom: ${store.coupon_code}`
+                                : 'Sem cupom vinculado'}
                             </CardDescription>
                           </div>
                         </div>
@@ -222,21 +225,69 @@ export default function AffiliateDashboardNew() {
                         </div>
                       </div>
 
-                      {store.coupon_code && (
+                      {store.coupon_code ? (
                         <>
                           <Separator />
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Seu cupom</p>
-                              <p className="font-mono font-bold text-lg">{store.coupon_code}</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <Ticket className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-medium">Seu cupom de desconto</span>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => copyToClipboard(store.coupon_code!, 'Cupom')}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
+                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="font-mono font-bold text-xl text-primary">{store.coupon_code}</p>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(store.coupon_code!, 'Cupom')}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              {store.coupon_discount_type && (
+                                <p className="text-xs text-muted-foreground">
+                                  {store.coupon_discount_type === 'percentage' 
+                                    ? `${store.coupon_discount_value}% de desconto`
+                                    : `${formatCurrency(store.coupon_discount_value || 0)} de desconto`}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <Link className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm font-medium">Link de afiliado</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                value={`https://ofertas.app/${store.store_slug}?cupom=${store.coupon_code}`}
+                                readOnly
+                                className="font-mono text-xs"
+                              />
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => copyToClipboard(
+                                  `https://ofertas.app/${store.store_slug}?cupom=${store.coupon_code}`,
+                                  'Link de afiliado'
+                                )}
+                              >
+                                <Copy className="h-4 w-4 mr-1" />
+                                Copiar
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Compartilhe este link. O cupom será aplicado automaticamente!
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Separator />
+                          <div className="p-3 bg-muted rounded-lg text-center">
+                            <Ticket className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-sm text-muted-foreground">
+                              Aguardando vinculação de cupom pelo lojista
+                            </p>
                           </div>
                         </>
                       )}

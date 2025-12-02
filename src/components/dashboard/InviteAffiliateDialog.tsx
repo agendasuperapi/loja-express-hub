@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { toast } from 'sonner';
 import { Loader2, Mail, UserPlus, Copy, CheckCircle } from 'lucide-react';
 
@@ -28,8 +28,6 @@ export function InviteAffiliateDialog({
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    commission_type: 'percentage' as 'percentage' | 'fixed',
-    commission_value: 10,
   });
 
   const handleSubmit = async () => {
@@ -47,8 +45,6 @@ export function InviteAffiliateDialog({
           store_name: storeName,
           email: formData.email,
           name: formData.name,
-          commission_type: formData.commission_type,
-          commission_value: formData.commission_value,
         }
       });
 
@@ -90,8 +86,6 @@ export function InviteAffiliateDialog({
     setFormData({
       email: '',
       name: '',
-      commission_type: 'percentage',
-      commission_value: 10,
     });
     onOpenChange(false);
     if (inviteLink) {
@@ -172,41 +166,9 @@ export function InviteAffiliateDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Tipo de comissão</Label>
-                <Select
-                  value={formData.commission_type}
-                  onValueChange={(value: 'percentage' | 'fixed') =>
-                    setFormData({ ...formData, commission_type: value })
-                  }
-                  disabled={isLoading}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="percentage">Porcentagem (%)</SelectItem>
-                    <SelectItem value="fixed">Valor fixo (R$)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="commission_value">Valor</Label>
-                <Input
-                  id="commission_value"
-                  type="number"
-                  min="0"
-                  step={formData.commission_type === 'percentage' ? '1' : '0.01'}
-                  value={formData.commission_value}
-                  onChange={(e) =>
-                    setFormData({ ...formData, commission_value: parseFloat(e.target.value) || 0 })
-                  }
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              As comissões do afiliado serão definidas pelo cupom vinculado a ele no gerenciador de afiliados.
+            </p>
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={handleClose} disabled={isLoading}>

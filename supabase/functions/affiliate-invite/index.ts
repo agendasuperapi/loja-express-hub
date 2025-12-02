@@ -33,9 +33,7 @@ serve(async (req) => {
         const { 
           store_id, 
           email, 
-          name, 
-          commission_type, 
-          commission_value,
+          name,
           coupon_id 
         } = body;
 
@@ -120,8 +118,8 @@ serve(async (req) => {
                 is_active: true,
                 invite_token: existingAccount.is_verified ? null : inviteToken,
                 invite_expires: existingAccount.is_verified ? null : inviteExpires.toISOString(),
-                default_commission_type: commission_type || "percentage",
-                default_commission_value: commission_value || 0,
+                default_commission_type: "percentage",
+                default_commission_value: 0,
                 coupon_id: coupon_id || null,
               })
               .eq("id", existingAffiliation.id);
@@ -175,8 +173,8 @@ serve(async (req) => {
             affiliate_account_id: affiliateAccount.id,
             store_id: store_id,
             coupon_id: coupon_id || null,
-            default_commission_type: commission_type || "percentage",
-            default_commission_value: commission_value || 0,
+            default_commission_type: "percentage",
+            default_commission_value: 0,
             invite_token: affiliateAccount.is_verified ? null : inviteToken,
             invite_expires: affiliateAccount.is_verified ? null : inviteExpires.toISOString(),
             status: affiliateAccount.is_verified ? "active" : "pending",

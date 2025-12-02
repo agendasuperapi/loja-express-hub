@@ -186,6 +186,8 @@ RETURNS TABLE (
   commission_value NUMERIC,
   status TEXT,
   coupon_code TEXT,
+  coupon_discount_type TEXT,
+  coupon_discount_value NUMERIC,
   total_sales NUMERIC,
   total_commission NUMERIC,
   pending_commission NUMERIC
@@ -206,6 +208,8 @@ BEGIN
     sa.default_commission_value as commission_value,
     sa.status,
     c.code as coupon_code,
+    c.discount_type::TEXT as coupon_discount_type,
+    c.discount_value as coupon_discount_value,
     COALESCE(SUM(ae.order_total), 0) as total_sales,
     COALESCE(SUM(ae.commission_amount), 0) as total_commission,
     COALESCE(SUM(CASE WHEN ae.status = 'pending' THEN ae.commission_amount ELSE 0 END), 0) as pending_commission
@@ -215,7 +219,7 @@ BEGIN
   LEFT JOIN affiliate_earnings ae ON ae.store_affiliate_id = sa.id
   WHERE sa.affiliate_account_id = p_affiliate_account_id
   AND sa.is_active = true
-  GROUP BY sa.id, s.id, s.name, s.slug, s.logo_url, sa.default_commission_type, sa.default_commission_value, sa.status, c.code;
+  GROUP BY sa.id, s.id, s.name, s.slug, s.logo_url, sa.default_commission_type, sa.default_commission_value, sa.status, c.code, c.discount_type, c.discount_value;
 END;
 $$;
 
