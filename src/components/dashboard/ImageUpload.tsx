@@ -42,6 +42,7 @@ export const ImageUpload = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Sincronizar previewUrl com currentImageUrl quando mudar
   useEffect(() => {
@@ -359,7 +360,8 @@ export const ImageUpload = ({
               <img
                 src={previewUrl}
                 alt="Preview"
-                className={`absolute inset-0 w-full h-full object-contain sm:object-cover transition-opacity ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                className={`absolute inset-0 w-full h-full object-contain sm:object-cover transition-opacity cursor-pointer hover:opacity-90 ${!imageLoaded ? 'opacity-0' : 'opacity-100'}`}
+                onClick={() => setShowImageModal(true)}
                 onLoad={() => {
                   setImageLoaded(true);
                   setImageError(false);
@@ -424,6 +426,24 @@ export const ImageUpload = ({
             <AlertDialogAction onClick={confirmRemove} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Remover
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showImageModal} onOpenChange={setShowImageModal}>
+        <AlertDialogContent className="max-w-[90vw] max-h-[90vh] p-2">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="sr-only">Visualizar Imagem</AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="relative w-full h-[80vh] flex items-center justify-center">
+            <img
+              src={previewUrl || ''}
+              alt="Visualização completa"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Fechar</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
