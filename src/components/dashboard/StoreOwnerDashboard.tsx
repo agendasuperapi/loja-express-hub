@@ -2150,13 +2150,13 @@ export const StoreOwnerDashboard = ({
                       delay: 0.5,
                       type: "spring"
                     }} className="flex flex-col items-center md:items-end gap-2">
+                      <Badge className={`${storeStatus.color} text-white text-sm px-4 py-1.5`}>
+                        {storeStatus.label}
+                      </Badge>
                       {onSignOut && <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={onSignOut}>
                           <LogOut className="w-3.5 h-3.5 mr-1.5" />
                           Sair
                         </Button>}
-                      <Badge className={`${storeStatus.color} text-white text-sm px-4 py-1.5`}>
-                        {storeStatus.label}
-                      </Badge>
                     </motion.div>
                   </div>
                 </CardContent>
