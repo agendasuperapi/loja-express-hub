@@ -3178,6 +3178,28 @@ export const StoreOwnerDashboard = ({
             <AffiliatesManager storeId={myStore.id} storeName={myStore.name} />
           </div>}
 
+        {/* Afiliados Relatórios Tab */}
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'afiliados-relatorios' && 'hidden')}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Relatórios de Afiliados
+                  </CardTitle>
+                  <CardDescription>
+                    Acompanhe o desempenho dos seus afiliados e comissões geradas
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-center py-8">
+                    Relatórios de afiliados em desenvolvimento...
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>}
+
         {/* WhatsApp Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6", activeTab !== 'whatsapp' && 'hidden')}>
             <motion.div initial={{

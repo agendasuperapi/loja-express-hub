@@ -20,6 +20,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName, isEmployee, employeePermissions, onSignOut }: DashboardSidebarProps) => {
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [afiliadosOpen, setAfiliadosOpen] = useState(false);
 
   const handleTabChange = (tab: string) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -53,6 +54,11 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     ...(hasPermission('reports') ? [{ id: 'relatorio-produtos-cadastrados', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('reports') ? [{ id: 'relatorio-pedidos', label: 'pedidos', icon: ShoppingCart }] : []),
   ];
+
+  const afiliadosSubItems = [
+    { id: 'afiliados', label: 'cadastro', icon: UserPlus },
+    { id: 'afiliados-relatorios', label: 'relatórios', icon: FileBarChart },
+  ];
   
   console.log('[DashboardSidebar] Cadastros SubItems:', {
     products: hasPermission('products', 'view'),
@@ -69,7 +75,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
     ...(relatoriosSubItems.length > 0 ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, hasSubmenu: true, show: true }] : []),
     ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
-    ...(!isEmployee ? [{ id: 'afiliados', label: 'afiliados', icon: UserPlus, show: true }] : []),
+    ...(!isEmployee ? [{ id: 'afiliados-menu', label: 'afiliados', icon: UserPlus, hasSubmenu: true, show: true }] : []),
     ...(hasPermission('settings', 'manage_whatsapp') ? [{ id: 'whatsapp', label: 'whatsapp', icon: MessageSquare, show: true }] : []),
     ...(hasPermission('settings') ? [{ id: 'result', label: 'configurações', icon: Settings, show: true }] : []),
   ].filter(item => item.show);
@@ -103,10 +109,10 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           
-          if (item.hasSubmenu) {
-            const isOpen = item.id === 'cadastros' ? cadastrosOpen : relatoriosOpen;
-            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : setRelatoriosOpen;
-            const subItems = item.id === 'cadastros' ? cadastrosSubItems : relatoriosSubItems;
+        if (item.hasSubmenu) {
+            const isOpen = item.id === 'cadastros' ? cadastrosOpen : item.id === 'afiliados-menu' ? afiliadosOpen : relatoriosOpen;
+            const setOpen = item.id === 'cadastros' ? setCadastrosOpen : item.id === 'afiliados-menu' ? setAfiliadosOpen : setRelatoriosOpen;
+            const subItems = item.id === 'cadastros' ? cadastrosSubItems : item.id === 'afiliados-menu' ? afiliadosSubItems : relatoriosSubItems;
             
             return (
               <div key={item.id}>
