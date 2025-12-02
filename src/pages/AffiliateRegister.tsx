@@ -22,6 +22,7 @@ export default function AffiliateRegister() {
     store_name: string;
     affiliate_name?: string;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -41,16 +42,21 @@ export default function AffiliateRegister() {
 
     try {
       const { data, error } = await supabase.functions.invoke('affiliate-invite', {
-        body: { action: 'verify', invite_token: token }
+        body: { action: 'verify', token: token }
       });
 
       if (error || !data?.valid) {
         setIsValidToken(false);
+        setErrorMessage(data?.error || 'Link de convite inválido');
       } else {
         setIsValidToken(true);
-        setInviteData(data.invite);
-        if (data.invite.affiliate_name) {
-          setName(data.invite.affiliate_name);
+        setInviteData({
+          email: data.affiliate?.email || '',
+          store_name: data.store?.name || '',
+          affiliate_name: data.affiliate?.name
+        });
+        if (data.affiliate?.name) {
+          setName(data.affiliate.name);
         }
       }
     } catch (err) {
@@ -112,7 +118,7 @@ export default function AffiliateRegister() {
             </div>
             <CardTitle className="text-2xl">Convite Inválido</CardTitle>
             <CardDescription>
-              Este link de convite é inválido ou já expirou.
+              {errorMessage || 'Este link de convite é inválido ou já expirou.'}
             </CardDescription>
           </CardHeader>
           <CardFooter className="flex flex-col gap-4">
