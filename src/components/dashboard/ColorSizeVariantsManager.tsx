@@ -262,111 +262,177 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
       {/* Matrix Grid */}
       <Card className="p-0 sm:p-4 relative">
-        {/* Left Shadow Indicator (Desktop only) */}
-        {!isMobile && (
+        {/* Desktop Grid View */}
+        <div className="hidden sm:block">
+          {/* Left Shadow Indicator (Desktop only) */}
           <div className={cn(
             "absolute left-0 top-0 bottom-0 w-8 pointer-events-none z-10 transition-opacity duration-300 bg-gradient-to-r from-card to-transparent",
             showLeftShadow ? "opacity-100" : "opacity-0"
           )} />
-        )}
-        
-        {/* Right Shadow Indicator (Desktop only) */}
-        {!isMobile && (
+          
+          {/* Right Shadow Indicator (Desktop only) */}
           <div className={cn(
             "absolute right-0 top-0 bottom-0 w-8 pointer-events-none z-10 transition-opacity duration-300 bg-gradient-to-l from-card to-transparent",
             showRightShadow ? "opacity-100" : "opacity-0"
           )} />
-        )}
-        
-        {/* Left Navigation Button (Desktop) */}
-        {!isMobile && showLeftShadow && (
-          <button
-            className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-primary/90 hover:bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg transition-all"
-            onClick={() => scrollContainerRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        )}
-        
-        {/* Right Navigation Button (Desktop) */}
-        {!isMobile && showRightShadow && (
-          <button
-            className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-primary/90 hover:bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg transition-all"
-            onClick={() => scrollContainerRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        )}
-        
-        {/* Swipe Indicator (Mobile) */}
-        {isMobile && showSwipeIndicator && showRightShadow && (
-          <div className="absolute bottom-4 right-4 z-20 pointer-events-none animate-fade-in">
-            <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
-              <MoveHorizontal className="h-4 w-4" />
-              <span className="text-xs font-semibold">Arraste →</span>
-            </div>
-          </div>
-        )}
-        
-        <div 
-          ref={scrollContainerRef}
-          className="w-full overflow-x-auto overflow-y-auto p-2 sm:p-0 [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-muted"
-          style={{
-            maxHeight: '60vh',
-            overscrollBehavior: 'contain',
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth',
-            touchAction: 'pan-x pan-y',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))',
-          }}
-        >
-          <div className="min-w-max pb-2">
-            {/* Header Row - Sizes */}
-            <div
-              className="grid gap-2 mb-2"
-              style={{ gridTemplateColumns: `minmax(120px, 140px) repeat(${sizes?.length || 0}, minmax(90px, 100px))` }}
+          
+          {/* Left Navigation Button (Desktop) */}
+          {showLeftShadow && (
+            <button
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-primary/90 hover:bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg transition-all"
+              onClick={() => scrollContainerRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
             >
-              <div className="font-semibold text-xs sm:text-sm p-2 bg-card">
-                Cor / Tamanho
-              </div>
-              {sizes.map((size) => (
-                <div
-                  key={size.id}
-                  className="font-semibold text-xs sm:text-sm p-2 text-center bg-muted rounded"
-                >
-                  <div className="truncate">{size.name}</div>
-                  <div className="text-[10px] sm:text-xs text-muted-foreground font-normal">
-                    +R$ {size.price.toFixed(2)}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Data Rows - Colors */}
-            {colors.map((color) => (
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+          )}
+          
+          {/* Right Navigation Button (Desktop) */}
+          {showRightShadow && (
+            <button
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-primary/90 hover:bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg transition-all"
+              onClick={() => scrollContainerRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          )}
+          
+          <div 
+            ref={scrollContainerRef}
+            className="w-full overflow-x-auto overflow-y-auto [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-muted"
+            style={{
+              maxHeight: '60vh',
+              overscrollBehavior: 'contain',
+              WebkitOverflowScrolling: 'touch',
+              scrollBehavior: 'smooth',
+              touchAction: 'pan-x pan-y',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))',
+            }}
+          >
+            <div className="min-w-max pb-2">
+              {/* Header Row - Sizes */}
               <div
-                key={color.id}
                 className="grid gap-2 mb-2"
                 style={{ gridTemplateColumns: `minmax(120px, 140px) repeat(${sizes?.length || 0}, minmax(90px, 100px))` }}
               >
-                {/* Color Label */}
-                <div className="flex items-center gap-2 p-2 bg-muted rounded">
-                  <div
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-border flex-shrink-0"
-                    style={{ backgroundColor: color.hex_code }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs sm:text-sm font-medium truncate">{color.name}</div>
-                    {color.price_adjustment !== 0 && (
-                      <div className="text-[10px] sm:text-xs text-muted-foreground">
-                        {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
-                      </div>
-                    )}
-                  </div>
+                <div className="font-semibold text-xs sm:text-sm p-2 bg-card">
+                  Cor / Tamanho
                 </div>
+                {sizes.map((size) => (
+                  <div
+                    key={size.id}
+                    className="font-semibold text-xs sm:text-sm p-2 text-center bg-muted rounded"
+                  >
+                    <div className="truncate">{size.name}</div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground font-normal">
+                      +R$ {size.price.toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                {/* Variant Cells */}
+              {/* Data Rows - Colors */}
+              {colors.map((color) => (
+                <div
+                  key={color.id}
+                  className="grid gap-2 mb-2"
+                  style={{ gridTemplateColumns: `minmax(120px, 140px) repeat(${sizes?.length || 0}, minmax(90px, 100px))` }}
+                >
+                  {/* Color Label */}
+                  <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                    <div
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-border flex-shrink-0"
+                      style={{ backgroundColor: color.hex_code }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs sm:text-sm font-medium truncate">{color.name}</div>
+                      {color.price_adjustment !== 0 && (
+                        <div className="text-[10px] sm:text-xs text-muted-foreground">
+                          {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Variant Cells */}
+                  {sizes.map((size) => {
+                    const key = `${color.id}-${size.id}`;
+                    const variant = variantMap.get(key);
+                    const isAvailable = variant?.is_available || false;
+
+                    return (
+                      <div
+                        key={size.id}
+                        className={cn(
+                          "border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all hover:border-primary/50 min-h-[80px]",
+                          isAvailable ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700' : 'bg-red-50 border-red-300 dark:bg-red-950 dark:border-red-700'
+                        )}
+                        onClick={() => handleToggleVariant(color.id, size.id)}
+                      >
+                        {isAvailable ? (
+                          <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <X className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        )}
+
+                        {variant && (
+                          <>
+                            {variant.stock_quantity !== null && (
+                              <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                                {variant.stock_quantity}
+                              </Badge>
+                            )}
+                            {variant.price_adjustment !== 0 && (
+                              <Badge variant="outline" className="text-[10px] sm:text-xs flex items-center gap-0.5">
+                                <DollarSign className="w-3 h-3" />
+                                {variant.price_adjustment > 0 ? '+' : ''}
+                                {variant.price_adjustment.toFixed(2)}
+                              </Badge>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 text-[10px] sm:text-xs mt-1 px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEdit(color.id, size.id);
+                              }}
+                            >
+                              Editar
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="sm:hidden p-2 space-y-4 max-h-[70vh] overflow-y-auto">
+          {colors.map((color) => (
+            <Card key={color.id} className="overflow-hidden">
+              {/* Color Header */}
+              <div className="flex items-center gap-3 p-3 bg-muted">
+                <div
+                  className="w-8 h-8 rounded border-2 border-border flex-shrink-0"
+                  style={{ backgroundColor: color.hex_code }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold truncate">{color.name}</div>
+                  {color.price_adjustment !== 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {color.price_adjustment > 0 ? '+' : ''}R$ {color.price_adjustment.toFixed(2)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Size Variants - Vertical Stack */}
+              <div className="p-2 space-y-2">
                 {sizes.map((size) => {
                   const key = `${color.id}-${size.id}`;
                   const variant = variantMap.get(key);
@@ -376,26 +442,34 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
                     <div
                       key={size.id}
                       className={cn(
-                        "border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all hover:border-primary/50 min-h-[80px]",
+                        "border-2 rounded p-3 cursor-pointer transition-all",
                         isAvailable ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700' : 'bg-red-50 border-red-300 dark:bg-red-950 dark:border-red-700'
                       )}
                       onClick={() => handleToggleVariant(color.id, size.id)}
                     >
-                      {isAvailable ? (
-                        <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-600 dark:text-red-400" />
-                      )}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{size.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            +R$ {size.price.toFixed(2)}
+                          </div>
+                        </div>
+                        {isAvailable ? (
+                          <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <X className="w-6 h-6 text-red-600 dark:text-red-400" />
+                        )}
+                      </div>
 
                       {variant && (
-                        <>
+                        <div className="flex items-center gap-2 flex-wrap">
                           {variant.stock_quantity !== null && (
-                            <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                              {variant.stock_quantity}
+                            <Badge variant="secondary" className="text-xs">
+                              Estoque: {variant.stock_quantity}
                             </Badge>
                           )}
                           {variant.price_adjustment !== 0 && (
-                            <Badge variant="outline" className="text-[10px] sm:text-xs hidden sm:flex items-center gap-0.5">
+                            <Badge variant="outline" className="text-xs flex items-center gap-1">
                               <DollarSign className="w-3 h-3" />
                               {variant.price_adjustment > 0 ? '+' : ''}
                               {variant.price_adjustment.toFixed(2)}
@@ -404,7 +478,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-6 text-[10px] sm:text-xs mt-1 px-2"
+                            className="h-7 text-xs ml-auto"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleOpenEdit(color.id, size.id);
@@ -412,14 +486,14 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
                           >
                             Editar
                           </Button>
-                        </>
+                        </div>
                       )}
                     </div>
                   );
                 })}
               </div>
-            ))}
-          </div>
+            </Card>
+          ))}
         </div>
       </Card>
 
