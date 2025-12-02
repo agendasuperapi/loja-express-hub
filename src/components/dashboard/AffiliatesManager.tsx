@@ -77,7 +77,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     default_commission_type: 'percentage' as 'percentage' | 'fixed',
     default_commission_value: 0,
     commission_scope: 'all' as 'all' | 'category' | 'product',
-    commission_category_name: '',
+    commission_category_names: [] as string[],
     commission_product_ids: [] as string[],
   });
 
@@ -141,7 +141,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       default_commission_type: 'percentage',
       default_commission_value: 0,
       commission_scope: 'all',
-      commission_category_name: '',
+      commission_category_names: [],
       commission_product_ids: [],
     });
     setProductSearch('');
@@ -162,7 +162,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
         default_commission_type: affiliate.default_commission_type,
         default_commission_value: affiliate.default_commission_value,
         commission_scope: 'all',
-        commission_category_name: '',
+        commission_category_names: [],
         commission_product_ids: [],
       });
     } else {
@@ -183,10 +183,10 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     }
 
     // Validação de escopo
-    if (formData.commission_enabled && formData.commission_scope === 'category' && !formData.commission_category_name) {
+    if (formData.commission_enabled && formData.commission_scope === 'category' && formData.commission_category_names.length === 0) {
       toast({
-        title: 'Selecione uma categoria',
-        description: 'Para comissão por categoria, selecione uma categoria.',
+        title: 'Selecione pelo menos uma categoria',
+        description: 'Para comissão por categoria, selecione pelo menos uma categoria.',
         variant: 'destructive',
       });
       return;
@@ -223,14 +223,17 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     // Se a comissão é por categoria ou produto, criar regra específica
     if (result && formData.commission_enabled && formData.commission_scope !== 'all') {
       if (formData.commission_scope === 'category') {
-        await createCommissionRule({
-          affiliate_id: result.id,
-          commission_type: formData.default_commission_type,
-          commission_value: formData.default_commission_value,
-          applies_to: 'category',
-          category_name: formData.commission_category_name,
-          product_id: null,
-        });
+        // Criar regra para cada categoria selecionada
+        for (const categoryName of formData.commission_category_names) {
+          await createCommissionRule({
+            affiliate_id: result.id,
+            commission_type: formData.default_commission_type,
+            commission_value: formData.default_commission_value,
+            applies_to: 'category',
+            category_name: categoryName,
+            product_id: null,
+          });
+        }
       } else if (formData.commission_scope === 'product') {
         // Criar regra para cada produto selecionado
         for (const productId of formData.commission_product_ids) {
@@ -946,7 +949,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                       onValueChange={(value: 'all' | 'category' | 'product') => setFormData({ 
                         ...formData, 
                         commission_scope: value,
-                        commission_category_name: '',
+                        commission_category_names: [],
                         commission_product_ids: []
                       })}
                     >
@@ -961,24 +964,58 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                     </Select>
                   </div>
                   {formData.commission_scope === 'category' && (
-                    <div className="col-span-2">
-                      <Label>Categoria</Label>
-                      <Select
-                        value={formData.commission_category_name || 'select'}
-                        onValueChange={(value) => setFormData({ ...formData, commission_category_name: value === 'select' ? '' : value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="select" disabled>Selecione a categoria</SelectItem>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.name}>
-                              {cat.name}
-                            </SelectItem>
+                    <div className="col-span-2 space-y-2">
+                      <Label>Categorias ({formData.commission_category_names.length} selecionadas)</Label>
+                      {formData.commission_category_names.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {formData.commission_category_names.map((categoryName) => (
+                            <Badge key={categoryName} variant="secondary" className="gap-1">
+                              {categoryName}
+                              <button
+                                type="button"
+                                onClick={() => setFormData({
+                                  ...formData,
+                                  commission_category_names: formData.commission_category_names.filter(name => name !== categoryName)
+                                })}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <XCircle className="h-3 w-3" />
+                              </button>
+                            </Badge>
                           ))}
-                        </SelectContent>
-                      </Select>
+                        </div>
+                      )}
+                      <ScrollArea className="h-[150px] border rounded-md p-2">
+                        <div className="space-y-1">
+                          {categories.map((cat) => {
+                            const isSelected = formData.commission_category_names.includes(cat.name);
+                            return (
+                              <div
+                                key={cat.id}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setFormData({
+                                      ...formData,
+                                      commission_category_names: formData.commission_category_names.filter(name => name !== cat.name)
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      commission_category_names: [...formData.commission_category_names, cat.name]
+                                    });
+                                  }
+                                }}
+                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-primary/10 border border-primary/30' : ''}`}
+                              >
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
+                                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                                </div>
+                                <span className="text-sm font-medium">{cat.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
                     </div>
                   )}
                   {formData.commission_scope === 'product' && (
