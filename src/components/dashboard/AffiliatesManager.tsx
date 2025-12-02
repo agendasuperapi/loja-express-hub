@@ -20,7 +20,7 @@ import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -383,6 +383,32 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     setCommissionRules(rules);
     setAffiliateEarnings(earnings);
     setAffiliateStats(stats);
+  };
+
+  const handleShowInviteLink = async (affiliate: Affiliate) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('affiliate-invite', {
+        body: {
+          action: 'send',
+          store_id: storeId,
+          store_name: storeName,
+          email: affiliate.email,
+          name: affiliate.name,
+        }
+      });
+
+      if (data?.success && data?.invite_token) {
+        const link = `${window.location.origin}/afiliado/cadastro?token=${data.invite_token}`;
+        setGeneratedInviteLink(link);
+        setCreatedAffiliateName(affiliate.name);
+        setInviteLinkDialogOpen(true);
+      } else {
+        toast({ title: 'Erro ao gerar link', description: 'Tente novamente.', variant: 'destructive' });
+      }
+    } catch (err) {
+      console.error('Error generating invite link:', err);
+      toast({ title: 'Erro ao gerar link', variant: 'destructive' });
+    }
   };
 
   const handleCopyCode = async (code: string) => {
@@ -756,9 +782,15 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                   <h3 className="text-lg font-semibold">{selectedAffiliate.name}</h3>
                   <p className="text-sm text-muted-foreground">{selectedAffiliate.email}</p>
                 </div>
-                <Button variant="outline" onClick={() => setSelectedAffiliate(null)}>
-                  Voltar
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => handleShowInviteLink(selectedAffiliate)}>
+                    <Link2 className="h-4 w-4 mr-1" />
+                    Link de Convite
+                  </Button>
+                  <Button variant="outline" onClick={() => setSelectedAffiliate(null)}>
+                    Voltar
+                  </Button>
+                </div>
               </div>
 
               {/* Stats do afiliado */}
