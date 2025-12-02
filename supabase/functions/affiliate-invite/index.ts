@@ -25,7 +25,7 @@ serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action;
 
-    console.log(`[affiliate-invite] Action: ${action}`);
+    console.log(`[affiliate-invite] Action: ${action}, body:`, JSON.stringify(body));
 
     switch (action) {
       case "send": {
@@ -37,11 +37,12 @@ serve(async (req) => {
           coupon_id 
         } = body;
 
-        console.log(`[affiliate-invite] Send action: email=${email}, store_id=${store_id}`);
+        console.log(`[affiliate-invite] Send action: email=${email}, store_id=${store_id}, name=${name}`);
 
         // Validar autorização
         const authHeader = req.headers.get("Authorization");
         if (!authHeader) {
+          console.log(`[affiliate-invite] No auth header`);
           return new Response(
             JSON.stringify({ error: "Não autorizado" }),
             { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -52,20 +53,26 @@ serve(async (req) => {
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
         if (authError || !user) {
+          console.log(`[affiliate-invite] Auth error:`, authError);
           return new Response(
             JSON.stringify({ error: "Não autorizado" }),
             { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
+        console.log(`[affiliate-invite] Authenticated user: ${user.id}`);
+
         // Verificar se é dono da loja
-        const { data: store } = await supabase
+        const { data: store, error: storeError } = await supabase
           .from("stores")
           .select("id, name, owner_id")
           .eq("id", store_id)
           .single();
 
+        console.log(`[affiliate-invite] Store lookup:`, store ? `found: ${store.name}` : 'not found', storeError?.message);
+
         if (!store || store.owner_id !== user.id) {
+          console.log(`[affiliate-invite] Store permission denied. Store owner: ${store?.owner_id}, user: ${user.id}`);
           return new Response(
             JSON.stringify({ error: "Sem permissão para esta loja" }),
             { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -73,6 +80,7 @@ serve(async (req) => {
         }
 
         if (!email || !name) {
+          console.log(`[affiliate-invite] Missing email or name`);
           return new Response(
             JSON.stringify({ error: "Email e nome são obrigatórios" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -80,28 +88,34 @@ serve(async (req) => {
         }
 
         const normalizedEmail = email.toLowerCase().trim();
+        console.log(`[affiliate-invite] Normalized email: ${normalizedEmail}`);
 
         // Verificar se já existe conta de afiliado com este email
         let affiliateAccount;
-        const { data: existingAccount } = await supabase
+        const { data: existingAccount, error: accountError } = await supabase
           .from("affiliate_accounts")
           .select("*")
           .eq("email", normalizedEmail)
           .single();
 
+        console.log(`[affiliate-invite] Existing account check:`, existingAccount ? `found: id=${existingAccount.id}, is_verified=${existingAccount.is_verified}` : 'not found', accountError?.message);
+
         if (existingAccount) {
           affiliateAccount = existingAccount;
 
           // Verificar se já é afiliado desta loja
-          const { data: existingAffiliation } = await supabase
+          const { data: existingAffiliation, error: affiliationError } = await supabase
             .from("store_affiliates")
             .select("*")
             .eq("affiliate_account_id", existingAccount.id)
             .eq("store_id", store_id)
             .single();
 
+          console.log(`[affiliate-invite] Existing affiliation check:`, existingAffiliation ? `found: id=${existingAffiliation.id}, status=${existingAffiliation.status}` : 'not found', affiliationError?.message);
+
           if (existingAffiliation) {
             if (existingAffiliation.status === "active") {
+              console.log(`[affiliate-invite] Affiliation already active`);
               return new Response(
                 JSON.stringify({ error: "Este afiliado já está vinculado à sua loja" }),
                 { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -113,28 +127,54 @@ serve(async (req) => {
             const inviteExpires = new Date();
             inviteExpires.setDate(inviteExpires.getDate() + 7); // 7 dias
 
-            await supabase
+            console.log(`[affiliate-invite] Reactivating affiliation: is_verified=${existingAccount.is_verified}, new_token=${inviteToken}, expires=${inviteExpires.toISOString()}`);
+
+            // IMPORTANTE: Sempre salvar o token, independente de is_verified
+            // O is_verified só importa na hora de verificar o convite
+            const { data: updatedAffiliation, error: updateError } = await supabase
               .from("store_affiliates")
               .update({
-                status: existingAccount.is_verified ? "active" : "pending",
+                status: "pending",
                 is_active: true,
-                invite_token: existingAccount.is_verified ? null : inviteToken,
-                invite_expires: existingAccount.is_verified ? null : inviteExpires.toISOString(),
+                invite_token: inviteToken,
+                invite_expires: inviteExpires.toISOString(),
                 default_commission_type: "percentage",
                 default_commission_value: 0,
                 coupon_id: coupon_id || null,
               })
-              .eq("id", existingAffiliation.id);
+              .eq("id", existingAffiliation.id)
+              .select()
+              .single();
 
-            console.log(`[affiliate-invite] Reactivated affiliation for: ${normalizedEmail}`);
+            if (updateError) {
+              console.error(`[affiliate-invite] Update affiliation error:`, updateError);
+              return new Response(
+                JSON.stringify({ error: "Erro ao atualizar afiliação" }),
+                { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              );
+            }
+
+            console.log(`[affiliate-invite] Affiliation updated successfully:`, {
+              id: updatedAffiliation.id,
+              invite_token: updatedAffiliation.invite_token,
+              invite_expires: updatedAffiliation.invite_expires,
+              status: updatedAffiliation.status
+            });
+
+            // Verificar se o token foi realmente salvo
+            const { data: verifyUpdate } = await supabase
+              .from("store_affiliates")
+              .select("invite_token, invite_expires")
+              .eq("id", existingAffiliation.id)
+              .single();
+
+            console.log(`[affiliate-invite] Verification after update:`, verifyUpdate);
 
             return new Response(
               JSON.stringify({ 
                 success: true, 
-                message: existingAccount.is_verified 
-                  ? "Afiliado vinculado com sucesso"
-                  : "Convite reenviado com sucesso",
-                invite_token: existingAccount.is_verified ? null : inviteToken,
+                message: "Convite reenviado com sucesso",
+                invite_token: inviteToken,
                 already_verified: existingAccount.is_verified,
               }),
               { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -142,6 +182,8 @@ serve(async (req) => {
           }
         } else {
           // Criar nova conta de afiliado (sem senha ainda)
+          console.log(`[affiliate-invite] Creating new affiliate account for: ${normalizedEmail}`);
+          
           const { data: newAccount, error: createError } = await supabase
             .from("affiliate_accounts")
             .insert({
@@ -161,6 +203,7 @@ serve(async (req) => {
             );
           }
 
+          console.log(`[affiliate-invite] New account created: id=${newAccount.id}, is_verified=${newAccount.is_verified}`);
           affiliateAccount = newAccount;
         }
 
@@ -169,7 +212,7 @@ serve(async (req) => {
         const inviteExpires = new Date();
         inviteExpires.setDate(inviteExpires.getDate() + 7); // 7 dias
 
-        console.log(`[affiliate-invite] Creating store_affiliate: is_verified=${affiliateAccount.is_verified}, token=${inviteToken}, expires=${inviteExpires.toISOString()}`);
+        console.log(`[affiliate-invite] Creating store_affiliate: account_id=${affiliateAccount.id}, is_verified=${affiliateAccount.is_verified}, token=${inviteToken}, expires=${inviteExpires.toISOString()}`);
 
         const { data: storeAffiliate, error: affiliateError } = await supabase
           .from("store_affiliates")
@@ -179,10 +222,10 @@ serve(async (req) => {
             coupon_id: coupon_id || null,
             default_commission_type: "percentage",
             default_commission_value: 0,
-            invite_token: affiliateAccount.is_verified ? null : inviteToken,
-            invite_expires: affiliateAccount.is_verified ? null : inviteExpires.toISOString(),
-            status: affiliateAccount.is_verified ? "active" : "pending",
-            accepted_at: affiliateAccount.is_verified ? new Date().toISOString() : null,
+            invite_token: inviteToken,
+            invite_expires: inviteExpires.toISOString(),
+            status: "pending",
+            accepted_at: null,
           })
           .select()
           .single();
@@ -195,19 +238,29 @@ serve(async (req) => {
           );
         }
 
-        console.log(`[affiliate-invite] Store affiliate created: id=${storeAffiliate.id}, invite_token=${storeAffiliate.invite_token}, invite_expires=${storeAffiliate.invite_expires}`);
+        console.log(`[affiliate-invite] Store affiliate created successfully:`, {
+          id: storeAffiliate.id,
+          invite_token: storeAffiliate.invite_token,
+          invite_expires: storeAffiliate.invite_expires,
+          status: storeAffiliate.status
+        });
 
-        // TODO: Enviar email com link de convite
+        // Verificar se o token foi realmente salvo no banco
+        const { data: verifyInsert } = await supabase
+          .from("store_affiliates")
+          .select("invite_token, invite_expires, status")
+          .eq("id", storeAffiliate.id)
+          .single();
+
+        console.log(`[affiliate-invite] Verification after insert:`, verifyInsert);
 
         return new Response(
           JSON.stringify({ 
             success: true, 
-            message: affiliateAccount.is_verified 
-              ? "Afiliado vinculado com sucesso"
-              : "Convite enviado com sucesso",
-            invite_token: affiliateAccount.is_verified ? null : inviteToken,
+            message: "Convite enviado com sucesso",
+            invite_token: inviteToken,
             store_affiliate_id: storeAffiliate.id,
-            already_verified: affiliateAccount.is_verified,
+            already_verified: false,
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -338,15 +391,28 @@ serve(async (req) => {
         // Verificar se token de convite é válido
         const { token } = body;
 
-        console.log(`[affiliate-invite] Verifying token: ${token}`);
+        console.log(`[affiliate-invite] ========== VERIFY ACTION ==========`);
+        console.log(`[affiliate-invite] Token received: "${token}"`);
+        console.log(`[affiliate-invite] Token length: ${token?.length}`);
 
         if (!token) {
+          console.log(`[affiliate-invite] ERROR: Token is empty or undefined`);
           return new Response(
             JSON.stringify({ valid: false, error: "Token não fornecido" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
+        // Primeiro, buscar TODOS os store_affiliates para debug
+        const { data: allAffiliates, error: allError } = await supabase
+          .from("store_affiliates")
+          .select("id, invite_token, invite_expires, status")
+          .not("invite_token", "is", null)
+          .limit(10);
+
+        console.log(`[affiliate-invite] All affiliates with tokens:`, JSON.stringify(allAffiliates, null, 2));
+
+        // Buscar especificamente pelo token
         const { data: storeAffiliate, error } = await supabase
           .from("store_affiliates")
           .select(`
@@ -357,17 +423,37 @@ serve(async (req) => {
           .eq("invite_token", token)
           .single();
 
-        console.log(`[affiliate-invite] Store affiliate found:`, storeAffiliate ? 'yes' : 'no', 'error:', error?.message);
+        console.log(`[affiliate-invite] Query result:`, {
+          found: !!storeAffiliate,
+          error: error?.message,
+          errorCode: error?.code
+        });
 
         if (error || !storeAffiliate) {
-          console.log(`[affiliate-invite] Token not found: ${token}`);
+          console.log(`[affiliate-invite] Token NOT found in database: "${token}"`);
+          
+          // Tentar buscar sem o join para ver se o problema é no join
+          const { data: simpleSearch, error: simpleError } = await supabase
+            .from("store_affiliates")
+            .select("*")
+            .eq("invite_token", token)
+            .single();
+          
+          console.log(`[affiliate-invite] Simple search result:`, {
+            found: !!simpleSearch,
+            data: simpleSearch,
+            error: simpleError?.message
+          });
+
           return new Response(
             JSON.stringify({ valid: false, error: "Convite não encontrado" }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        console.log(`[affiliate-invite] Affiliate data:`, {
+        console.log(`[affiliate-invite] Token FOUND! Affiliate data:`, {
+          store_affiliate_id: storeAffiliate.id,
+          affiliate_account_id: storeAffiliate.affiliate_account_id,
           is_verified: storeAffiliate.affiliate_accounts.is_verified,
           status: storeAffiliate.status,
           invite_expires: storeAffiliate.invite_expires,
@@ -376,7 +462,7 @@ serve(async (req) => {
 
         // Verificar se já está verificado
         if (storeAffiliate.affiliate_accounts.is_verified) {
-          console.log(`[affiliate-invite] Already verified`);
+          console.log(`[affiliate-invite] Affiliate already verified - should login instead`);
           return new Response(
             JSON.stringify({ valid: false, error: "Este convite já foi utilizado. Faça login na sua conta de afiliado." }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -389,7 +475,7 @@ serve(async (req) => {
           const now = new Date();
           console.log(`[affiliate-invite] Expiration check: expires=${expiresAt.toISOString()}, now=${now.toISOString()}, expired=${expiresAt < now}`);
           if (expiresAt < now) {
-            console.log(`[affiliate-invite] Token expired: ${token}, expires: ${storeAffiliate.invite_expires}`);
+            console.log(`[affiliate-invite] Token EXPIRED`);
             return new Response(
               JSON.stringify({ valid: false, error: "Convite expirado. Solicite um novo link ao lojista." }),
               { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -399,12 +485,14 @@ serve(async (req) => {
 
         // Verificar status
         if (storeAffiliate.status === "active") {
-          console.log(`[affiliate-invite] Status is active`);
+          console.log(`[affiliate-invite] Status is already active`);
           return new Response(
             JSON.stringify({ valid: false, error: "Este convite já foi aceito. Faça login na sua conta." }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+
+        console.log(`[affiliate-invite] Token VALID! Returning success`);
 
         return new Response(
           JSON.stringify({ 
@@ -460,7 +548,6 @@ serve(async (req) => {
           `)
           .eq("invite_token", invite_token)
           .gt("invite_expires", new Date().toISOString())
-          .eq("status", "pending")
           .single();
 
         if (inviteError || !storeAffiliate) {
@@ -489,12 +576,9 @@ serve(async (req) => {
           })
           .eq("id", storeAffiliate.id);
 
-        console.log(`[affiliate-invite] Invite accepted for store: ${storeAffiliate.stores.name}`);
-
         return new Response(
           JSON.stringify({ 
-            success: true, 
-            message: `Você agora é afiliado da loja ${storeAffiliate.stores.name}!`,
+            success: true,
             store: {
               id: storeAffiliate.stores.id,
               name: storeAffiliate.stores.name,
@@ -505,19 +589,19 @@ serve(async (req) => {
       }
 
       case "list-stores": {
-        // Listar lojas do afiliado
-        const { token } = body;
+        // Lista lojas vinculadas ao afiliado
+        const { affiliate_token } = body;
 
-        if (!token) {
+        if (!affiliate_token) {
           return new Response(
             JSON.stringify({ error: "Token não fornecido" }),
-            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
         // Validar sessão
         const { data: validation } = await supabase.rpc("validate_affiliate_session", {
-          session_token: token,
+          session_token: affiliate_token,
         });
 
         if (!validation || validation.length === 0 || !validation[0].is_valid) {
@@ -530,12 +614,12 @@ serve(async (req) => {
         const affiliateAccountId = validation[0].affiliate_id;
 
         // Buscar lojas usando a função do banco
-        const { data: stores, error } = await supabase.rpc("get_affiliate_stores", {
+        const { data: stores, error: storesError } = await supabase.rpc("get_affiliate_stores", {
           p_affiliate_account_id: affiliateAccountId,
         });
 
-        if (error) {
-          console.error("[affiliate-invite] List stores error:", error);
+        if (storesError) {
+          console.error("[affiliate-invite] Error fetching stores:", storesError);
           return new Response(
             JSON.stringify({ error: "Erro ao buscar lojas" }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -550,18 +634,18 @@ serve(async (req) => {
 
       case "stats": {
         // Estatísticas consolidadas do afiliado
-        const { token } = body;
+        const { affiliate_token } = body;
 
-        if (!token) {
+        if (!affiliate_token) {
           return new Response(
             JSON.stringify({ error: "Token não fornecido" }),
-            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
         // Validar sessão
         const { data: validation } = await supabase.rpc("validate_affiliate_session", {
-          session_token: token,
+          session_token: affiliate_token,
         });
 
         if (!validation || validation.length === 0 || !validation[0].is_valid) {
@@ -573,12 +657,13 @@ serve(async (req) => {
 
         const affiliateAccountId = validation[0].affiliate_id;
 
-        const { data: stats, error } = await supabase.rpc("get_affiliate_consolidated_stats", {
+        // Buscar estatísticas usando a função do banco
+        const { data: stats, error: statsError } = await supabase.rpc("get_affiliate_consolidated_stats", {
           p_affiliate_account_id: affiliateAccountId,
         });
 
-        if (error) {
-          console.error("[affiliate-invite] Stats error:", error);
+        if (statsError) {
+          console.error("[affiliate-invite] Error fetching stats:", statsError);
           return new Response(
             JSON.stringify({ error: "Erro ao buscar estatísticas" }),
             { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -586,7 +671,7 @@ serve(async (req) => {
         }
 
         return new Response(
-          JSON.stringify({ stats: stats?.[0] || {} }),
+          JSON.stringify({ stats: stats?.[0] || null }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
