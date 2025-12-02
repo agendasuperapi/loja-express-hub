@@ -410,6 +410,8 @@ export type Database = {
       }
       coupons: {
         Row: {
+          applies_to: string
+          category_names: string[] | null
           code: string
           created_at: string
           discount_type: Database["public"]["Enums"]["discount_type"]
@@ -418,6 +420,7 @@ export type Database = {
           is_active: boolean
           max_uses: number | null
           min_order_value: number | null
+          product_ids: string[] | null
           store_id: string
           updated_at: string
           used_count: number
@@ -425,6 +428,8 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
+          applies_to?: string
+          category_names?: string[] | null
           code: string
           created_at?: string
           discount_type: Database["public"]["Enums"]["discount_type"]
@@ -433,6 +438,7 @@ export type Database = {
           is_active?: boolean
           max_uses?: number | null
           min_order_value?: number | null
+          product_ids?: string[] | null
           store_id: string
           updated_at?: string
           used_count?: number
@@ -440,6 +446,8 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
+          applies_to?: string
+          category_names?: string[] | null
           code?: string
           created_at?: string
           discount_type?: Database["public"]["Enums"]["discount_type"]
@@ -448,6 +456,7 @@ export type Database = {
           is_active?: boolean
           max_uses?: number | null
           min_order_value?: number | null
+          product_ids?: string[] | null
           store_id?: string
           updated_at?: string
           used_count?: number
