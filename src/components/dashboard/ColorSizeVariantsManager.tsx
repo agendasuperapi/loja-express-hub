@@ -164,7 +164,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
   }, [colors?.length, sizes?.length, checkScroll]);
 
   const handleGenerateAll = () => {
-    if (colors.length === 0 || sizes.length === 0) {
+    if (!colors || !sizes || colors.length === 0 || sizes.length === 0) {
       return;
     }
 
