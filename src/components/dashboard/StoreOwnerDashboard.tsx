@@ -3364,214 +3364,238 @@ export const StoreOwnerDashboard = ({
                           </TabsTrigger>
                         </TabsList>
                         
-                        <TabsContent value="info" className="space-y-4 mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct ? (
-                            <MultipleImageUpload
-                              productId={editingProduct.id}
-                              images={productImages}
-                              onImagesChange={invalidateProductImages}
-                            />
-                          ) : (
-                            <ImageUpload 
-                              bucket="product-images" 
-                              folder="temp" 
-                              productId={editingProduct?.id} 
-                              currentImageUrl={productForm.image_url} 
-                              onUploadComplete={url => setProductForm({
-                                ...productForm,
-                                image_url: url
-                              })} 
-                              label="Imagem do Produto" 
-                              aspectRatio="aspect-video" 
-                            />
-                          )}
-                          <div>
-                            <Label>Nome *</Label>
-                            <Input value={productForm.name} onChange={e => setProductForm({
-                                  ...productForm,
-                                  name: e.target.value
-                                })} />
-                          </div>
-                          <div>
-                            <Label>Categoria *</Label>
-                            <div className="flex gap-2">
-                              <Select value={productForm.category} onValueChange={value => setProductForm({
+                        <TabsContent value="info" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="space-y-4 pr-4">
+                              {editingProduct ? (
+                                <MultipleImageUpload
+                                  productId={editingProduct.id}
+                                  images={productImages}
+                                  onImagesChange={invalidateProductImages}
+                                />
+                              ) : (
+                                <ImageUpload 
+                                  bucket="product-images" 
+                                  folder="temp" 
+                                  productId={editingProduct?.id} 
+                                  currentImageUrl={productForm.image_url} 
+                                  onUploadComplete={url => setProductForm({
                                     ...productForm,
-                                    category: value
-                                  })}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione uma categoria" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {categories.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '').map(cat => <SelectItem key={cat.id} value={cat.name}>
-                                        {cat.name}
-                                      </SelectItem>)}
-                                </SelectContent>
-                              </Select>
-                              <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-                                <Button variant="outline" size="icon" onClick={() => setIsCategoryDialogOpen(true)}>
-                                  <Plus className="w-4 h-4" />
-                                </Button>
-                                 <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
-                                  <ResponsiveDialogHeader>
-                                    <ResponsiveDialogTitle>Nova Categoria</ResponsiveDialogTitle>
-                                  </ResponsiveDialogHeader>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label>Nome da Categoria</Label>
-                                      <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas..." />
-                                    </div>
-                                    <Button onClick={async () => {
-                                          if (newCategoryName.trim()) {
-                                            await addCategory(newCategoryName.trim());
-                                            setNewCategoryName('');
-                                            setIsCategoryDialogOpen(false);
-                                          }
-                                        }} className="w-full">
-                                      Adicionar Categoria
-                                    </Button>
-                                    
-                                    {categories.length > 0 && <>
-                                        <Separator />
-                                        <div>
-                                          <Label className="text-sm font-semibold mb-2 block">Categorias Cadastradas</Label>
-                                          <div className="space-y-2 max-h-48 overflow-y-auto">
-                                            {categories.map(cat => <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                                <span className="text-sm">{cat.name}</span>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteCategory(cat.id)}>
-                                                  <X className="w-3 h-3" />
-                                                </Button>
-                                              </div>)}
-                                          </div>
-                                        </div>
-                                      </>}
-                                  </div>
-                                </ResponsiveDialogContent>
-                              </ResponsiveDialog>
-                            </div>
-                          </div>
-                          <div>
-                            <Label>Código Externo</Label>
-                            <Input value={productForm.external_code} onChange={e => setProductForm({
-                                  ...productForm,
-                                  external_code: e.target.value.trim()
-                                })} placeholder="Código único do produto (opcional)" />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Código personalizado para controle interno da sua loja.
-                            </p>
-                          </div>
-                          <div>
-                            <Label>Descrição</Label>
-                            {isMobileDevice ? <div className="min-h-[80px] p-3 border rounded-md bg-background cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
-                                  setTempDescription(productForm.description);
-                                  setIsDescriptionDialogOpen(true);
-                                }}>
-                                {productForm.description || <span className="text-muted-foreground text-sm">
-                                    Toque para adicionar descrição
-                                  </span>}
-                              </div> : <Textarea value={productForm.description} onChange={e => setProductForm({
-                                  ...productForm,
-                                  description: e.target.value
-                                })} rows={3} />}
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Preço *</Label>
-                              <Input type="number" step="0.01" min="0.01" value={productForm.price} onChange={e => setProductForm({
-                                    ...productForm,
-                                    price: parseFloat(e.target.value)
-                                  })} placeholder="Ex: 10.00" />
-                            </div>
-                            <div>
-                              <Label>Preço Promocional</Label>
-                              <Input type="number" step="0.01" min="0.01" value={productForm.promotional_price} onChange={e => setProductForm({
-                                    ...productForm,
-                                    promotional_price: parseFloat(e.target.value)
-                                  })} placeholder="Ex: 8.00" />
-                            </div>
-                          </div>
-                          <Separator />
-                          
-                          <div className="flex items-center gap-2">
-                            <Switch checked={productForm.is_available} onCheckedChange={checked => setProductForm({
-                                  ...productForm,
-                                  is_available: checked
-                                })} />
-                            <Label>Disponível</Label>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Switch id="is_featured" checked={productForm.is_featured || false} onCheckedChange={checked => setProductForm({
-                                  ...productForm,
-                                  is_featured: checked
-                                })} className="data-[state=checked]:bg-yellow-500" />
-                            <Label htmlFor="is_featured" className="flex items-center gap-2 cursor-pointer">
-                              <Star className={productForm.is_featured ? "h-4 w-4 fill-yellow-500 text-yellow-500" : "h-4 w-4 text-gray-400"} />
-                              Produto em Destaque
-                            </Label>
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="sizes" className="mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct && myStore && <ProductSizesManager productId={editingProduct.id} storeId={myStore.id} hideDeleteButton={true} />}
-                        </TabsContent>
-
-                        <TabsContent value="colors" className="mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct && myStore && (
-                            <ProductColorsManager 
-                              productId={editingProduct.id} 
-                              storeId={myStore.id}
-                              productImages={productImages}
-                            />
-                          )}
-                        </TabsContent>
-
-                        <TabsContent value="variants" className="mt-4 max-h-[calc(90vh-250px)] overflow-y-auto">
-                          {editingProduct && myStore && (
-                            <ColorSizeVariantsManager 
-                              productId={editingProduct.id} 
-                              storeId={myStore.id}
-                            />
-                          )}
-                        </TabsContent>
-
-                        <TabsContent value="addons" className="mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct && myStore && <ProductAddonsManager productId={editingProduct.id} storeId={myStore.id} hideDeleteButton={true} />}
-                        </TabsContent>
-
-                        <TabsContent value="flavors" className="mt-4 min-h-[calc(90vh-250px)]">
-                          {editingProduct && <>
-                              <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                      <Pizza className="w-4 h-4" />
-                                      <Label>Este produto permite múltiplos sabores</Label>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      Ative para permitir que clientes escolham mais de um sabor
-                                    </p>
-                                  </div>
-                                  <Switch checked={productForm.is_pizza} onCheckedChange={checked => setProductForm({
+                                    image_url: url
+                                  })} 
+                                  label="Imagem do Produto" 
+                                  aspectRatio="aspect-video" 
+                                />
+                              )}
+                              <div>
+                                <Label>Nome *</Label>
+                                <Input value={productForm.name} onChange={e => setProductForm({
                                       ...productForm,
-                                      is_pizza: checked
+                                      name: e.target.value
                                     })} />
-                                </div>
-
-                                {productForm.is_pizza && <div>
-                                    <Label>Número máximo de sabores</Label>
-                                    <Input type="number" min="1" max="4" value={productForm.max_flavors} onChange={e => setProductForm({
-                                      ...productForm,
-                                      max_flavors: parseInt(e.target.value) || 2
-                                    })} />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Define quantos sabores o cliente pode escolher (ex: 2 para meio a meio)
-                                    </p>
-                                  </div>}
                               </div>
-                               
-                              <ProductFlavorsManager productId={editingProduct.id} storeId={editingProduct.store_id} hideDeleteButton={true} />
-                            </>}
+                              <div>
+                                <Label>Categoria *</Label>
+                                <div className="flex gap-2">
+                                  <Select value={productForm.category} onValueChange={value => setProductForm({
+                                        ...productForm,
+                                        category: value
+                                      })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione uma categoria" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {categories.filter(cat => cat.is_active && cat.name && cat.name.trim() !== '').map(cat => <SelectItem key={cat.id} value={cat.name}>
+                                            {cat.name}
+                                          </SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                  <ResponsiveDialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                                    <Button variant="outline" size="icon" onClick={() => setIsCategoryDialogOpen(true)}>
+                                      <Plus className="w-4 h-4" />
+                                    </Button>
+                                     <ResponsiveDialogContent className="w-full max-w-full md:max-w-[80vw] lg:max-w-[50vw] max-h-[90vh] flex flex-col bg-background z-50">
+                                      <ResponsiveDialogHeader>
+                                        <ResponsiveDialogTitle>Nova Categoria</ResponsiveDialogTitle>
+                                      </ResponsiveDialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label>Nome da Categoria</Label>
+                                          <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas..." />
+                                        </div>
+                                        <Button onClick={async () => {
+                                              if (newCategoryName.trim()) {
+                                                await addCategory(newCategoryName.trim());
+                                                setNewCategoryName('');
+                                                setIsCategoryDialogOpen(false);
+                                              }
+                                            }} className="w-full">
+                                          Adicionar Categoria
+                                        </Button>
+                                        
+                                        {categories.length > 0 && <>
+                                            <Separator />
+                                            <div>
+                                              <Label className="text-sm font-semibold mb-2 block">Categorias Cadastradas</Label>
+                                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                {categories.map(cat => <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
+                                                    <span className="text-sm">{cat.name}</span>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteCategory(cat.id)}>
+                                                      <X className="w-3 h-3" />
+                                                    </Button>
+                                                  </div>)}
+                                              </div>
+                                            </div>
+                                          </>}
+                                      </div>
+                                    </ResponsiveDialogContent>
+                                  </ResponsiveDialog>
+                                </div>
+                              </div>
+                              <div>
+                                <Label>Código Externo</Label>
+                                <Input value={productForm.external_code} onChange={e => setProductForm({
+                                      ...productForm,
+                                      external_code: e.target.value.trim()
+                                    })} placeholder="Código único do produto (opcional)" />
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Código personalizado para controle interno da sua loja.
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Descrição</Label>
+                                {isMobileDevice ? <div className="min-h-[80px] p-3 border rounded-md bg-background cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => {
+                                      setTempDescription(productForm.description);
+                                      setIsDescriptionDialogOpen(true);
+                                    }}>
+                                    {productForm.description || <span className="text-muted-foreground text-sm">
+                                        Toque para adicionar descrição
+                                      </span>}
+                                  </div> : <Textarea value={productForm.description} onChange={e => setProductForm({
+                                      ...productForm,
+                                      description: e.target.value
+                                    })} rows={3} />}
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label>Preço *</Label>
+                                  <Input type="number" step="0.01" min="0.01" value={productForm.price} onChange={e => setProductForm({
+                                        ...productForm,
+                                        price: parseFloat(e.target.value)
+                                      })} placeholder="Ex: 10.00" />
+                                </div>
+                                <div>
+                                  <Label>Preço Promocional</Label>
+                                  <Input type="number" step="0.01" min="0.01" value={productForm.promotional_price} onChange={e => setProductForm({
+                                        ...productForm,
+                                        promotional_price: parseFloat(e.target.value)
+                                      })} placeholder="Ex: 8.00" />
+                                </div>
+                              </div>
+                              <Separator />
+                              
+                              <div className="flex items-center gap-2">
+                                <Switch checked={productForm.is_available} onCheckedChange={checked => setProductForm({
+                                      ...productForm,
+                                      is_available: checked
+                                    })} />
+                                <Label>Disponível</Label>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                <Switch id="is_featured" checked={productForm.is_featured || false} onCheckedChange={checked => setProductForm({
+                                      ...productForm,
+                                      is_featured: checked
+                                    })} className="data-[state=checked]:bg-yellow-500" />
+                                <Label htmlFor="is_featured" className="flex items-center gap-2 cursor-pointer">
+                                  <Star className={productForm.is_featured ? "h-4 w-4 fill-yellow-500 text-yellow-500" : "h-4 w-4 text-gray-400"} />
+                                  Produto em Destaque
+                                </Label>
+                              </div>
+                            </div>
+                          </ScrollArea>
+                        </TabsContent>
+
+                        <TabsContent value="sizes" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="pr-4">
+                              {editingProduct && myStore && <ProductSizesManager productId={editingProduct.id} storeId={myStore.id} hideDeleteButton={true} />}
+                            </div>
+                          </ScrollArea>
+                        </TabsContent>
+
+                        <TabsContent value="colors" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="pr-4">
+                              {editingProduct && myStore && (
+                                <ProductColorsManager 
+                                  productId={editingProduct.id} 
+                                  storeId={myStore.id}
+                                  productImages={productImages}
+                                />
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </TabsContent>
+
+                        <TabsContent value="variants" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="pr-4">
+                              {editingProduct && myStore && (
+                                <ColorSizeVariantsManager 
+                                  productId={editingProduct.id} 
+                                  storeId={myStore.id}
+                                />
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </TabsContent>
+
+                        <TabsContent value="addons" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="pr-4">
+                              {editingProduct && myStore && <ProductAddonsManager productId={editingProduct.id} storeId={myStore.id} hideDeleteButton={true} />}
+                            </div>
+                          </ScrollArea>
+                        </TabsContent>
+
+                        <TabsContent value="flavors" className="mt-4">
+                          <ScrollArea className="h-[calc(90vh-250px)]">
+                            <div className="pr-4">
+                              {editingProduct && <>
+                                  <div className="space-y-4 p-4 border rounded-lg bg-muted/30 mb-4">
+                                    <div className="flex items-center justify-between">
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <Pizza className="w-4 h-4" />
+                                          <Label>Este produto permite múltiplos sabores</Label>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                          Ative para permitir que clientes escolham mais de um sabor
+                                        </p>
+                                      </div>
+                                      <Switch checked={productForm.is_pizza} onCheckedChange={checked => setProductForm({
+                                          ...productForm,
+                                          is_pizza: checked
+                                        })} />
+                                    </div>
+
+                                    {productForm.is_pizza && <div>
+                                        <Label>Número máximo de sabores</Label>
+                                        <Input type="number" min="1" max="4" value={productForm.max_flavors} onChange={e => setProductForm({
+                                          ...productForm,
+                                          max_flavors: parseInt(e.target.value) || 2
+                                        })} />
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Define quantos sabores o cliente pode escolher (ex: 2 para meio a meio)
+                                        </p>
+                                      </div>}
+                                  </div>
+                                   
+                                  <ProductFlavorsManager productId={editingProduct.id} storeId={editingProduct.store_id} hideDeleteButton={true} />
+                                </>}
+                            </div>
+                          </ScrollArea>
                         </TabsContent>
                       </Tabs>
                     </div>
