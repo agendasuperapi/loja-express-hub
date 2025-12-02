@@ -6,9 +6,10 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "./ImageUpload";
+import { NotesModal } from "./NotesModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Edit } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReceiptDialogProps {
@@ -23,6 +24,7 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
   const [storeImageUrl, setStoreImageUrl] = useState(order?.store_image_url || '');
   const [paymentReceived, setPaymentReceived] = useState(order?.payment_received || false);
   const [paymentNotes, setPaymentNotes] = useState(order?.payment_notes || '');
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
 
   useEffect(() => {
     if (order) {
@@ -113,15 +115,40 @@ export const ReceiptDialog = ({ open, onOpenChange, order, onUpdate }: ReceiptDi
 
           <div>
             <Label htmlFor="payment-notes" className="text-sm sm:text-base">Observações de Pagamento</Label>
-            <Textarea
-              id="payment-notes"
-              value={paymentNotes}
-              onChange={(e) => setPaymentNotes(e.target.value)}
-              placeholder="Adicione observações sobre o pagamento..."
-              className="mt-2"
-              rows={isMobile ? 3 : 4}
-            />
+            {isMobile ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full mt-2 justify-start text-left h-auto min-h-[80px] whitespace-normal"
+                onClick={() => setNotesModalOpen(true)}
+              >
+                <div className="flex items-start gap-2 w-full">
+                  <Edit className="h-4 w-4 mt-1 flex-shrink-0" />
+                  <span className={paymentNotes ? "text-foreground" : "text-muted-foreground"}>
+                    {paymentNotes || "Adicione observações sobre o pagamento..."}
+                  </span>
+                </div>
+              </Button>
+            ) : (
+              <Textarea
+                id="payment-notes"
+                value={paymentNotes}
+                onChange={(e) => setPaymentNotes(e.target.value)}
+                placeholder="Adicione observações sobre o pagamento..."
+                className="mt-2"
+                rows={4}
+              />
+            )}
           </div>
+
+          <NotesModal
+            open={notesModalOpen}
+            onOpenChange={setNotesModalOpen}
+            value={paymentNotes}
+            onSave={setPaymentNotes}
+            title="Observações de Pagamento"
+            placeholder="Adicione observações sobre o pagamento..."
+          />
         </div>
 
         <ResponsiveDialogFooter>
