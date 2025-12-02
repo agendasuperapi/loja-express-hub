@@ -56,6 +56,12 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const productsQuery = useProducts(storeId);
   const products = productsQuery.data || [];
 
+  const [activeTab, setActiveTab] = useState('gerenciar');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
+  const [selectedAffiliate, setSelectedAffiliate] = useState<Affiliate | null>(null);
+
   // Filter coupons: only show coupons not linked to other affiliates
   const availableCoupons = coupons.filter((coupon) => {
     // Check if coupon is already linked to another affiliate
@@ -63,12 +69,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     // Allow if: not linked to any affiliate, OR linked to the affiliate being edited
     return !linkedAffiliate || linkedAffiliate.id === editingAffiliate?.id;
   });
-
-  const [activeTab, setActiveTab] = useState('gerenciar');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
-  const [selectedAffiliate, setSelectedAffiliate] = useState<Affiliate | null>(null);
   const [commissionRules, setCommissionRules] = useState<AffiliateCommissionRule[]>([]);
   const [affiliateEarnings, setAffiliateEarnings] = useState<AffiliateEarning[]>([]);
   const [affiliateStats, setAffiliateStats] = useState<AffiliateStats | null>(null);
