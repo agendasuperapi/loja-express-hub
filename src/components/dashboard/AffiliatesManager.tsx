@@ -1170,13 +1170,13 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                 <Label>Cupons Vinculados *</Label>
                 <div className="flex gap-2">
                   <div className="flex-1 border rounded-md p-3 max-h-48 overflow-y-auto">
-                    {coupons.length === 0 ? (
+                    {availableCoupons.length === 0 ? (
                       <div className="py-2 text-sm text-muted-foreground text-center">
-                        Nenhum cupom cadastrado
+                        Nenhum cupom disponível
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {coupons.map((coupon) => {
+                        {availableCoupons.map((coupon) => {
                           const isSelected = formData.coupon_ids.includes(coupon.id);
                           return (
                             <div key={coupon.id} className="flex items-center gap-2">
