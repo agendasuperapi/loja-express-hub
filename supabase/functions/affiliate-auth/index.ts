@@ -48,6 +48,10 @@ serve(async (req) => {
         // Completar registro via convite
         const { invite_token, password, name, phone, cpf_cnpj, pix_key } = body;
 
+        console.log(`[affiliate-auth] ========== REGISTER ACTION ==========`);
+        console.log(`[affiliate-auth] invite_token: ${invite_token}`);
+        console.log(`[affiliate-auth] invite_token length: ${invite_token?.length}`);
+
         if (!invite_token || !password) {
           return new Response(
             JSON.stringify({ error: "Token de convite e senha são obrigatórios" }),
@@ -62,7 +66,57 @@ serve(async (req) => {
           );
         }
 
-        // Buscar convite válido
+        // Primeiro, buscar SEM filtros restritivos para debug
+        const { data: debugAffiliate, error: debugError } = await supabase
+          .from("store_affiliates")
+          .select("id, invite_token, invite_expires, status, affiliate_account_id, is_active")
+          .eq("invite_token", invite_token)
+          .single();
+
+        console.log(`[affiliate-auth] Debug query result:`, JSON.stringify(debugAffiliate, null, 2));
+        console.log(`[affiliate-auth] Debug query error:`, debugError);
+
+        if (!debugAffiliate) {
+          console.log(`[affiliate-auth] Token NOT found in store_affiliates table`);
+          
+          // Listar todos os tokens existentes para debug
+          const { data: allTokens } = await supabase
+            .from("store_affiliates")
+            .select("invite_token, status, invite_expires")
+            .not("invite_token", "is", null)
+            .limit(10);
+          console.log(`[affiliate-auth] Existing tokens in DB:`, JSON.stringify(allTokens, null, 2));
+          
+          return new Response(
+            JSON.stringify({ error: "Convite não encontrado" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Verificar expiração manualmente
+        if (debugAffiliate.invite_expires) {
+          const expiresAt = new Date(debugAffiliate.invite_expires);
+          const now = new Date();
+          console.log(`[affiliate-auth] Expiration check: expires=${expiresAt.toISOString()}, now=${now.toISOString()}, expired=${expiresAt < now}`);
+          
+          if (expiresAt < now) {
+            return new Response(
+              JSON.stringify({ error: "Convite expirado. Solicite um novo convite ao lojista." }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+
+        // Verificar status manualmente - aceitar pending OU invited
+        console.log(`[affiliate-auth] Status check: status=${debugAffiliate.status}`);
+        if (debugAffiliate.status === "active") {
+          return new Response(
+            JSON.stringify({ error: "Este convite já foi utilizado. Faça login com suas credenciais." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Agora buscar com join para pegar dados do affiliate_account
         const { data: storeAffiliate, error: inviteError } = await supabase
           .from("store_affiliates")
           .select(`
@@ -70,14 +124,15 @@ serve(async (req) => {
             affiliate_accounts!inner(id, email, name, is_verified)
           `)
           .eq("invite_token", invite_token)
-          .gt("invite_expires", new Date().toISOString())
-          .eq("status", "pending")
           .single();
 
+        console.log(`[affiliate-auth] Full query result:`, JSON.stringify(storeAffiliate, null, 2));
+        console.log(`[affiliate-auth] Full query error:`, inviteError);
+
         if (inviteError || !storeAffiliate) {
-          console.error("[affiliate-auth] Invalid invite:", inviteError);
+          console.error("[affiliate-auth] Error fetching store_affiliate with join:", inviteError);
           return new Response(
-            JSON.stringify({ error: "Convite inválido ou expirado" }),
+            JSON.stringify({ error: "Erro ao buscar dados do convite" }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
