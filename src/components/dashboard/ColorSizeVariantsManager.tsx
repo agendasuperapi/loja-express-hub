@@ -364,16 +364,21 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
                       <div
                         key={size.id}
                         className={cn(
-                          "border-2 rounded p-2 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all hover:border-primary/50 min-h-[80px]",
+                          "border-2 rounded p-2 flex flex-col items-center justify-center gap-1 transition-all min-h-[80px]",
                           isAvailable ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700' : 'bg-red-50 border-red-300 dark:bg-red-950 dark:border-red-700'
                         )}
-                        onClick={() => handleToggleVariant(color.id, size.id)}
                       >
-                        {isAvailable ? (
-                          <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <X className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        )}
+                        <Button
+                          size="sm"
+                          variant={isAvailable ? "default" : "outline"}
+                          className={cn(
+                            "h-7 text-[10px] sm:text-xs px-2 w-full",
+                            isAvailable ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800" : "border-red-600 text-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-950"
+                          )}
+                          onClick={() => handleToggleVariant(color.id, size.id)}
+                        >
+                          {isAvailable ? "Desativar" : "Ativar"}
+                        </Button>
 
                         {variant && (
                           <>
@@ -442,23 +447,28 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
                     <div
                       key={size.id}
                       className={cn(
-                        "border-2 rounded p-3 cursor-pointer transition-all",
+                        "border-2 rounded p-3 transition-all",
                         isAvailable ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700' : 'bg-red-50 border-red-300 dark:bg-red-950 dark:border-red-700'
                       )}
-                      onClick={() => handleToggleVariant(color.id, size.id)}
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex-1">
                           <div className="font-semibold text-sm">{size.name}</div>
                           <div className="text-xs text-muted-foreground">
                             +R$ {size.price.toFixed(2)}
                           </div>
                         </div>
-                        {isAvailable ? (
-                          <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <X className="w-6 h-6 text-red-600 dark:text-red-400" />
-                        )}
+                        <Button
+                          size="sm"
+                          variant={isAvailable ? "default" : "outline"}
+                          className={cn(
+                            "h-8 text-xs",
+                            isAvailable ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800" : "border-red-600 text-red-600 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-red-950"
+                          )}
+                          onClick={() => handleToggleVariant(color.id, size.id)}
+                        >
+                          {isAvailable ? "Desativar" : "Ativar"}
+                        </Button>
                       </div>
 
                       {variant && (
