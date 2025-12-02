@@ -66,7 +66,7 @@ function SortableImage({ image, onRemove, onSetPrimary, onZoom }: SortableImageP
       className="relative group"
     >
       <div 
-        className="aspect-square w-full rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
+        className="aspect-[4/3] w-full rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
         onClick={(e) => {
           e.stopPropagation();
           onZoom(image.image_url);
