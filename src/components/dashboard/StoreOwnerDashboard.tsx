@@ -685,7 +685,11 @@ export const StoreOwnerDashboard = ({
     }).filter(product => {
       if (!productSearchTerm) return true;
       const searchLower = productSearchTerm.toLowerCase();
-      return product.name.toLowerCase().includes(searchLower) || product.description?.toLowerCase().includes(searchLower) || product.external_code?.toLowerCase().includes(searchLower);
+      return product.name.toLowerCase().includes(searchLower) || 
+             product.description?.toLowerCase().includes(searchLower) || 
+             product.external_code?.toLowerCase().includes(searchLower) ||
+             product.id?.toLowerCase().includes(searchLower) ||
+             product.short_id?.toLowerCase().includes(searchLower);
     }) || [];
 
     // Apply sorting
@@ -3279,7 +3283,7 @@ export const StoreOwnerDashboard = ({
                           {products.filter(p => {
                           const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
                           const matchesStatus = productStatusFilter === 'all' ? true : productStatusFilter === 'active' ? p.is_available : !p.is_available;
-                          const matchesSearch = !productSearchTerm || p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.description?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                          const matchesSearch = !productSearchTerm || p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.description?.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.external_code?.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.id?.toLowerCase().includes(productSearchTerm.toLowerCase()) || p.short_id?.toLowerCase().includes(productSearchTerm.toLowerCase());
                           return matchesCategory && matchesStatus && matchesSearch;
                         }).length}
                         </Badge>}
@@ -3621,7 +3625,7 @@ export const StoreOwnerDashboard = ({
                   {/* Search Input */}
                   <div className="relative flex-1 min-w-[250px] max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input placeholder="Buscar por nome do produto..." value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} className="pl-10 pr-10" />
+                    <Input placeholder="Buscar por nome, código externo ou ID..." value={productSearchTerm} onChange={e => setProductSearchTerm(e.target.value)} className="pl-10 pr-10" />
                     {productSearchTerm && <Button variant="ghost" size="sm" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0" onClick={() => setProductSearchTerm('')}>
                         <X className="w-4 h-4" />
                       </Button>}
