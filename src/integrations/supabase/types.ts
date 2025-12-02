@@ -61,6 +61,241 @@ export type Database = {
           },
         ]
       }
+      affiliate_commission_rules: {
+        Row: {
+          affiliate_id: string
+          applies_to: string
+          category_name: string | null
+          commission_type: string
+          commission_value: number
+          created_at: string
+          id: string
+          is_active: boolean
+          product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          applies_to?: string
+          category_name?: string | null
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          applies_to?: string
+          category_name?: string | null
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_commission_rules_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_commission_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_earnings: {
+        Row: {
+          affiliate_id: string
+          commission_amount: number
+          commission_type: string
+          commission_value: number
+          created_at: string
+          id: string
+          order_id: string
+          order_item_id: string | null
+          order_total: number
+          paid_at: string | null
+          status: string
+        }
+        Insert: {
+          affiliate_id: string
+          commission_amount?: number
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          id?: string
+          order_id: string
+          order_item_id?: string | null
+          order_total?: number
+          paid_at?: string | null
+          status?: string
+        }
+        Update: {
+          affiliate_id?: string
+          commission_amount?: number
+          commission_type?: string
+          commission_value?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          order_item_id?: string | null
+          order_total?: number
+          paid_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_earnings_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "order_complete_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_payments: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string
+          payment_method: string | null
+          payment_proof: string | null
+        }
+        Insert: {
+          affiliate_id: string
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: string | null
+          payment_proof?: string | null
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_method?: string | null
+          payment_proof?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_payments_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          commission_enabled: boolean
+          coupon_id: string | null
+          cpf_cnpj: string | null
+          created_at: string
+          default_commission_type: string
+          default_commission_value: number
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          pix_key: string | null
+          store_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          commission_enabled?: boolean
+          coupon_id?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          default_commission_type?: string
+          default_commission_value?: number
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          pix_key?: string | null
+          store_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          commission_enabled?: boolean
+          coupon_id?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          default_commission_type?: string
+          default_commission_value?: number
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          pix_key?: string | null
+          store_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliates_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
