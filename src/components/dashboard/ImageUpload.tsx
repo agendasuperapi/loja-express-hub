@@ -431,11 +431,11 @@ export const ImageUpload = ({
       </AlertDialog>
 
       <AlertDialog open={showImageModal} onOpenChange={setShowImageModal}>
-        <AlertDialogContent className="max-w-[90vw] max-h-[90vh] p-2">
+        <AlertDialogContent className="max-w-[50vw] max-h-[60vh] p-2">
           <AlertDialogHeader>
             <AlertDialogTitle className="sr-only">Visualizar Imagem</AlertDialogTitle>
           </AlertDialogHeader>
-          <div className="relative w-full h-[80vh] flex items-center justify-center">
+          <div className="relative w-full h-[50vh] flex items-center justify-center">
             <img
               src={previewUrl || ''}
               alt="Visualização completa"
