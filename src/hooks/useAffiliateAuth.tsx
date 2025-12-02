@@ -99,7 +99,7 @@ export function AffiliateAuthProvider({ children }: { children: ReactNode }) {
     try {
       // Fetch stores
       const { data: storesData } = await supabase.functions.invoke('affiliate-invite', {
-        body: { action: 'list-stores', token }
+        body: { action: 'list-stores', affiliate_token: token }
       });
       
       if (storesData?.stores) {
@@ -108,7 +108,7 @@ export function AffiliateAuthProvider({ children }: { children: ReactNode }) {
 
       // Fetch stats
       const { data: statsData } = await supabase.functions.invoke('affiliate-invite', {
-        body: { action: 'stats', token }
+        body: { action: 'stats', affiliate_token: token }
       });
       
       if (statsData?.stats) {
