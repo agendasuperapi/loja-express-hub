@@ -310,7 +310,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
         
         <div 
           ref={scrollContainerRef}
-          className="w-full overflow-y-auto overflow-x-auto p-2 sm:p-0"
+          className="w-full overflow-y-auto overflow-x-auto p-2 sm:p-0 [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-muted"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           style={{
@@ -319,9 +319,8 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
             WebkitOverflowScrolling: 'touch',
             scrollBehavior: isAutoScrolling ? 'auto' : 'smooth',
             touchAction: 'pan-x pan-y',
-            // Force scrollbar visibility in mobile
             scrollbarWidth: 'thin',
-            scrollbarColor: 'hsl(var(--primary)) transparent',
+            scrollbarColor: 'hsl(var(--primary)) hsl(var(--muted))',
           }}
         >
           <div className="min-w-max pb-2">
