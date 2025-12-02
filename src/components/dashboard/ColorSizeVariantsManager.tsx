@@ -242,8 +242,8 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2 sm:px-0">
+        <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Grid3x3 className="w-5 h-5" />
             Matriz de Variantes
@@ -255,7 +255,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
             {availableCount} de {totalPossible} combinações ativas
           </Badge>
         </div>
-        <Button onClick={handleGenerateAll} variant="outline" className="w-full sm:w-auto">
+        <Button onClick={handleGenerateAll} variant="outline" className="w-full sm:w-auto flex-shrink-0 whitespace-nowrap">
           Gerar Todas Combinações
         </Button>
       </div>
