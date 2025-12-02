@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import ProductPage from "./pages/ProductPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
