@@ -285,6 +285,80 @@ export const useOrders = () => {
       // 📵 Envio de WhatsApp pelo cliente desativado: será enviado automaticamente via banco de dados (trigger)
       console.log("📵 Envio de WhatsApp via cliente desativado. Banco de dados fará o envio automático após 3s.");
 
+      // 🎯 Registrar comissão de afiliado se o pedido tiver cupom vinculado a um afiliado
+      if (validatedData.couponCode) {
+        try {
+          // Buscar cupom pelo código
+          const { data: coupon } = await supabase
+            .from('coupons')
+            .select('id, discount_type, discount_value')
+            .eq('store_id', validatedData.storeId)
+            .ilike('code', validatedData.couponCode)
+            .single();
+
+          if (coupon) {
+            // Verificar se existe um store_affiliate com este cupom
+            const { data: storeAffiliate } = await supabase
+              .from('store_affiliates')
+              .select('id, affiliate_account_id, default_commission_type, default_commission_value')
+              .eq('store_id', validatedData.storeId)
+              .eq('coupon_id', coupon.id)
+              .eq('is_active', true)
+              .single();
+
+            if (storeAffiliate) {
+              // Calcular comissão baseada no desconto do cupom (comissão = mesmo valor do desconto dado)
+              const commissionType = storeAffiliate.default_commission_type || 'percentage';
+              const commissionValue = storeAffiliate.default_commission_value || couponDiscount;
+              let commissionAmount = 0;
+
+              if (commissionType === 'percentage') {
+                commissionAmount = (total * commissionValue) / 100;
+              } else {
+                commissionAmount = commissionValue;
+              }
+
+              // Buscar o affiliate_id antigo (se existir) para compatibilidade
+              const { data: legacyAffiliate } = await supabase
+                .from('affiliates')
+                .select('id')
+                .eq('store_id', validatedData.storeId)
+                .eq('coupon_id', coupon.id)
+                .eq('is_active', true)
+                .maybeSingle();
+
+              if (legacyAffiliate || storeAffiliate) {
+                // Inserir registro de comissão
+                const { error: earningsError } = await supabase
+                  .from('affiliate_earnings')
+                  .insert({
+                    affiliate_id: legacyAffiliate?.id || storeAffiliate.id,
+                    store_affiliate_id: storeAffiliate.id,
+                    order_id: createdOrder.id,
+                    order_total: total,
+                    commission_type: commissionType,
+                    commission_value: commissionValue,
+                    commission_amount: commissionAmount,
+                    status: 'pending'
+                  });
+
+                if (earningsError) {
+                  console.warn('⚠️ Erro ao registrar comissão de afiliado:', earningsError);
+                } else {
+                  console.log('✅ Comissão de afiliado registrada:', {
+                    storeAffiliateId: storeAffiliate.id,
+                    commissionAmount,
+                    orderId: createdOrder.id
+                  });
+                }
+              }
+            }
+          }
+        } catch (affiliateError) {
+          console.warn('⚠️ Erro ao processar afiliado:', affiliateError);
+          // Não falhar o pedido por causa de erro de afiliado
+        }
+      }
 
       return createdOrder;
     },
