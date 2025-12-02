@@ -18,11 +18,12 @@ import { useProducts } from '@/hooks/useProducts';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
+import { validatePixKey, detectPixKeyType } from '@/lib/pixValidation';
 
 interface AffiliatesManagerProps {
   storeId: string;
@@ -722,25 +723,99 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                 <Label>Telefone</Label>
                 <Input
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    // Apply mask (00) 00000-0000
+                    if (value.length > 0) {
+                      value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+                      value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                    }
+                    setFormData({ ...formData, phone: value });
+                  }}
                   placeholder="(00) 00000-0000"
+                  maxLength={15}
                 />
+                {formData.phone && formData.phone.replace(/\D/g, '').length > 0 && formData.phone.replace(/\D/g, '').length < 10 && (
+                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Telefone incompleto
+                  </p>
+                )}
               </div>
               <div>
                 <Label>CPF/CNPJ</Label>
                 <Input
                   value={formData.cpf_cnpj}
-                  onChange={(e) => setFormData({ ...formData, cpf_cnpj: e.target.value })}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 14) value = value.slice(0, 14);
+                    // Apply mask based on length
+                    if (value.length <= 11) {
+                      // CPF: 000.000.000-00
+                      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                    } else {
+                      // CNPJ: 00.000.000/0000-00
+                      value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                      value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                      value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                      value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                    }
+                    setFormData({ ...formData, cpf_cnpj: value });
+                  }}
                   placeholder="000.000.000-00"
+                  maxLength={18}
                 />
+                {formData.cpf_cnpj && (() => {
+                  const digits = formData.cpf_cnpj.replace(/\D/g, '');
+                  if (digits.length > 0 && digits.length < 11) {
+                    return (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        CPF incompleto
+                      </p>
+                    );
+                  }
+                  if (digits.length > 11 && digits.length < 14) {
+                    return (
+                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        CNPJ incompleto
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               <div className="col-span-2">
                 <Label>Chave PIX</Label>
                 <Input
                   value={formData.pix_key}
                   onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-                  placeholder="Chave para pagamento"
+                  placeholder="CPF, CNPJ, Email, Telefone ou Chave Aleatória"
                 />
+                {formData.pix_key && (() => {
+                  const validation = validatePixKey(formData.pix_key);
+                  if (validation.type === 'invalid') {
+                    return (
+                      <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                        <XCircle className="h-3 w-3" />
+                        {validation.message}
+                      </p>
+                    );
+                  }
+                  if (validation.type !== 'empty') {
+                    return (
+                      <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        {validation.message}
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
               <div className="col-span-2">
                 <Label>Cupom Vinculado</Label>
