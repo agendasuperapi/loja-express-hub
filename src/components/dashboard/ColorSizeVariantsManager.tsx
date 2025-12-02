@@ -151,17 +151,17 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
       clearTimeout(swipeTimer);
       if (scrollIntervalRef.current) clearInterval(scrollIntervalRef.current);
     };
-  }, [checkScroll, colors.length, sizes.length]);
+  }, [checkScroll, colors?.length, sizes?.length]);
 
   // Re-check scroll when colors/sizes data changes
   useEffect(() => {
-    if (colors.length > 0 && sizes.length > 0) {
+    if (colors && sizes && colors.length > 0 && sizes.length > 0) {
       // Wait for DOM to update
       requestAnimationFrame(() => {
         setTimeout(checkScroll, 50);
       });
     }
-  }, [colors.length, sizes.length, checkScroll]);
+  }, [colors?.length, sizes?.length, checkScroll]);
 
   const handleGenerateAll = () => {
     if (colors.length === 0 || sizes.length === 0) {
@@ -213,7 +213,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
     setEditingVariant(null);
   };
 
-  if (colors.length === 0) {
+  if (!colors || colors.length === 0) {
     return (
       <Card className="p-6 text-center">
         <p className="text-muted-foreground">
@@ -223,7 +223,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
     );
   }
 
-  if (sizes.length === 0) {
+  if (!sizes || sizes.length === 0) {
     return (
       <Card className="p-6 text-center">
         <p className="text-muted-foreground">
@@ -321,7 +321,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
             {/* Header Row - Sizes */}
             <div
               className="grid gap-1 sm:gap-2 mb-2"
-              style={{ gridTemplateColumns: `140px repeat(${sizes.length}, 100px)` }}
+              style={{ gridTemplateColumns: `140px repeat(${sizes?.length || 0}, 100px)` }}
             >
               <div className="font-semibold text-xs sm:text-sm p-1 sm:p-2">Cor / Tamanho</div>
               {sizes.map((size) => (
@@ -342,7 +342,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
               <div
                 key={color.id}
                 className="grid gap-1 sm:gap-2 mb-2"
-                style={{ gridTemplateColumns: `140px repeat(${sizes.length}, 100px)` }}
+                style={{ gridTemplateColumns: `140px repeat(${sizes?.length || 0}, 100px)` }}
               >
                 {/* Color Label */}
                 <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-2 bg-muted rounded">
