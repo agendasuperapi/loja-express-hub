@@ -3171,7 +3171,7 @@ export const StoreOwnerDashboard = ({
 
         {/* Afiliados Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'afiliados' && 'hidden')}>
-            <AffiliatesManager storeId={myStore.id} />
+            <AffiliatesManager storeId={myStore.id} storeName={myStore.name} />
           </div>}
 
         {/* WhatsApp Tab */}
