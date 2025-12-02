@@ -22,9 +22,8 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const url = new URL(req.url);
-    const action = url.pathname.split("/").pop();
     const body = await req.json().catch(() => ({}));
+    const action = body.action;
 
     console.log(`[affiliate-invite] Action: ${action}`);
 
