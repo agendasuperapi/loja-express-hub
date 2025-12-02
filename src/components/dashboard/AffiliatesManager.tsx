@@ -99,7 +99,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     default_commission_type: 'percentage' as 'percentage' | 'fixed',
     default_commission_value: 0,
     commission_scope: 'all' as 'all' | 'category' | 'product',
-    commission_category_names: [] as string[],
+    commission_categories: [] as { name: string; type: 'percentage' | 'fixed'; value: number }[],
     commission_product_ids: [] as string[],
   });
 
@@ -181,19 +181,30 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       default_commission_type: 'percentage',
       default_commission_value: 0,
       commission_scope: 'all',
-      commission_category_names: [],
+      commission_categories: [],
       commission_product_ids: [],
     });
     setProductSearch('');
     setEditingAffiliate(null);
   };
 
-  const handleOpenDialog = (affiliate?: Affiliate) => {
+  const handleOpenDialog = async (affiliate?: Affiliate) => {
     if (affiliate) {
       setEditingAffiliate(affiliate);
       // Get coupon IDs from junction table or legacy field
       const couponIds = affiliate.affiliate_coupons?.map(ac => ac.coupon_id) || 
         (affiliate.coupon_id ? [affiliate.coupon_id] : []);
+      
+      // Load existing commission rules
+      const existingRules = await getCommissionRules(affiliate.id);
+      const categoryRules = existingRules
+        .filter(r => r.applies_to === 'category' && r.category_name)
+        .map(r => ({
+          name: r.category_name!,
+          type: r.commission_type as 'percentage' | 'fixed',
+          value: r.commission_value,
+        }));
+      
       setFormData({
         name: affiliate.name,
         email: affiliate.email,
@@ -204,8 +215,8 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
         commission_enabled: affiliate.commission_enabled,
         default_commission_type: affiliate.default_commission_type,
         default_commission_value: affiliate.default_commission_value,
-        commission_scope: 'all',
-        commission_category_names: [],
+        commission_scope: categoryRules.length > 0 ? 'category' : 'all',
+        commission_categories: categoryRules,
         commission_product_ids: [],
       });
     } else {
@@ -235,7 +246,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     }
 
     // Validação de escopo
-    if (formData.commission_enabled && formData.commission_scope === 'category' && formData.commission_category_names.length === 0) {
+    if (formData.commission_enabled && formData.commission_scope === 'category' && formData.commission_categories.length === 0) {
       toast({
         title: 'Selecione pelo menos uma categoria',
         description: 'Para comissão por categoria, selecione pelo menos uma categoria.',
@@ -274,15 +285,23 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
 
     // Se a comissão é por categoria ou produto, criar regra específica
     if (result && formData.commission_enabled && formData.commission_scope !== 'all') {
+      // Delete existing rules first when editing
+      if (editingAffiliate) {
+        const existingRules = await getCommissionRules(editingAffiliate.id);
+        for (const rule of existingRules) {
+          await deleteCommissionRule(rule.id);
+        }
+      }
+      
       if (formData.commission_scope === 'category') {
-        // Criar regra para cada categoria selecionada
-        for (const categoryName of formData.commission_category_names) {
+        // Criar regra para cada categoria com sua comissão específica
+        for (const category of formData.commission_categories) {
           await createCommissionRule({
             affiliate_id: result.id,
-            commission_type: formData.default_commission_type,
-            commission_value: formData.default_commission_value,
+            commission_type: category.type,
+            commission_value: category.value,
             applies_to: 'category',
-            category_name: categoryName,
+            category_name: category.name,
             product_id: null,
           });
         }
@@ -381,11 +400,16 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
 
       if (couponResult?.id) {
         // Aplicar automaticamente as configurações de escopo do cupom à comissão do afiliado
+        const categoryConfigs = newCouponData.category_names.map(name => ({
+          name,
+          type: 'percentage' as const,
+          value: 10,
+        }));
         setFormData({ 
           ...formData, 
           coupon_ids: [...formData.coupon_ids, couponResult.id],
           commission_scope: newCouponData.applies_to,
-          commission_category_names: newCouponData.category_names,
+          commission_categories: categoryConfigs,
           commission_product_ids: newCouponData.product_ids,
         });
         setNewCouponDialogOpen(false);
@@ -1330,7 +1354,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                       onValueChange={(value: 'all' | 'category' | 'product') => setFormData({ 
                         ...formData, 
                         commission_scope: value,
-                        commission_category_names: [],
+                        commission_categories: [],
                         commission_product_ids: []
                       })}
                     >
@@ -1345,53 +1369,79 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                     </Select>
                   </div>
                   {formData.commission_scope === 'category' && (
-                    <div className="col-span-2 space-y-2">
-                      <Label>Categorias ({formData.commission_category_names.length} selecionadas)</Label>
-                      {formData.commission_category_names.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {formData.commission_category_names.map((categoryName) => (
-                            <Badge key={categoryName} variant="secondary" className="gap-1">
-                              {categoryName}
-                              <button
-                                type="button"
-                                onClick={() => setFormData({
-                                  ...formData,
-                                  commission_category_names: formData.commission_category_names.filter(name => name !== categoryName)
-                                })}
-                                className="ml-1 hover:text-destructive"
-                              >
-                                <XCircle className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      <ScrollArea className="h-[150px] border rounded-md p-2">
-                        <div className="space-y-1">
+                    <div className="col-span-2 space-y-3">
+                      <Label>Categorias e Comissões ({formData.commission_categories.length} selecionadas)</Label>
+                      <ScrollArea className="h-[250px] border rounded-md p-2">
+                        <div className="space-y-2">
                           {categories.map((cat) => {
-                            const isSelected = formData.commission_category_names.includes(cat.name);
+                            const categoryConfig = formData.commission_categories.find(c => c.name === cat.name);
+                            const isSelected = !!categoryConfig;
                             return (
                               <div
                                 key={cat.id}
-                                onClick={() => {
-                                  if (isSelected) {
-                                    setFormData({
-                                      ...formData,
-                                      commission_category_names: formData.commission_category_names.filter(name => name !== cat.name)
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      commission_category_names: [...formData.commission_category_names, cat.name]
-                                    });
-                                  }
-                                }}
-                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-primary/10 border border-primary/30' : ''}`}
+                                className={`p-3 rounded-md border ${isSelected ? 'bg-primary/5 border-primary/30' : 'border-border hover:bg-muted/50'}`}
                               >
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
-                                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                                <div className="flex items-center gap-3">
+                                  <Checkbox
+                                    checked={isSelected}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setFormData({
+                                          ...formData,
+                                          commission_categories: [
+                                            ...formData.commission_categories,
+                                            { name: cat.name, type: 'percentage', value: 10 }
+                                          ]
+                                        });
+                                      } else {
+                                        setFormData({
+                                          ...formData,
+                                          commission_categories: formData.commission_categories.filter(c => c.name !== cat.name)
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-sm font-medium flex-1">{cat.name}</span>
                                 </div>
-                                <span className="text-sm font-medium">{cat.name}</span>
+                                {isSelected && (
+                                  <div className="mt-3 ml-7 flex items-center gap-2">
+                                    <Select
+                                      value={categoryConfig.type}
+                                      onValueChange={(value: 'percentage' | 'fixed') => {
+                                        setFormData({
+                                          ...formData,
+                                          commission_categories: formData.commission_categories.map(c =>
+                                            c.name === cat.name ? { ...c, type: value } : c
+                                          )
+                                        });
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-[120px] h-8">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="percentage">%</SelectItem>
+                                        <SelectItem value="fixed">R$</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={categoryConfig.value}
+                                      onChange={(e) => {
+                                        setFormData({
+                                          ...formData,
+                                          commission_categories: formData.commission_categories.map(c =>
+                                            c.name === cat.name ? { ...c, value: Number(e.target.value) } : c
+                                          )
+                                        });
+                                      }}
+                                      className="w-[100px] h-8"
+                                      placeholder="Valor"
+                                    />
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
