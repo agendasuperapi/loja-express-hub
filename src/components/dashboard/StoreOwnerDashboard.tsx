@@ -64,6 +64,7 @@ import { OrderStatusManager } from "./OrderStatusManager";
 import { useOrderStatusNotification } from "@/hooks/useOrderStatusNotification";
 import { useNewOrderNotification } from "@/hooks/useNewOrderNotification";
 import { useWhatsAppDisconnectNotification } from "@/hooks/useWhatsAppDisconnectNotification";
+import { useAffiliateCommissionNotification } from "@/hooks/useAffiliateCommissionNotification";
 import { useWhatsAppAutoReconnect } from "@/hooks/useWhatsAppAutoReconnect";
 import { useOrderStatuses } from "@/hooks/useOrderStatuses";
 import { cn } from "@/lib/utils";
@@ -476,6 +477,9 @@ export const StoreOwnerDashboard = ({
   useNewOrderNotification(myStore?.id, {
     pauseInvalidations: isAnyModalOpen
   });
+
+  // Enable real-time affiliate commission notifications
+  useAffiliateCommissionNotification(myStore?.id);
 
   // Hook para reconexão automática do WhatsApp
   const reconnectStatus = useWhatsAppAutoReconnect(myStore?.id, {

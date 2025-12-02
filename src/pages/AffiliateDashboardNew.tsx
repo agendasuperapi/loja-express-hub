@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useAffiliateAuth } from '@/hooks/useAffiliateAuth';
+import { useAffiliateEarningsNotification } from '@/hooks/useAffiliateEarningsNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -36,6 +37,22 @@ export default function AffiliateDashboardNew() {
   } = useAffiliateAuth();
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+
+  // Extrair IDs dos store_affiliates para notificações em tempo real
+  const storeAffiliateIds = useMemo(() => 
+    affiliateStores.map(s => s.store_affiliate_id).filter(Boolean),
+    [affiliateStores]
+  );
+
+  // Hook de notificação de ganhos em tempo real
+  const handleNewEarning = useCallback(() => {
+    refreshData();
+  }, [refreshData]);
+
+  useAffiliateEarningsNotification({
+    storeAffiliateIds,
+    onNewEarning: handleNewEarning
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
