@@ -341,6 +341,10 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
       }
     }
 
+    // Salvar dados antes de resetar o form
+    const affiliateName = formData.name;
+    const affiliateEmail = formData.email;
+
     setDialogOpen(false);
     resetForm();
 
@@ -352,15 +356,15 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             action: 'send',
             store_id: storeId,
             store_name: storeName,
-            email: formData.email,
-            name: formData.name,
+            email: affiliateEmail,
+            name: affiliateName,
           }
         });
 
         if (data?.success && data?.invite_token) {
           const link = `${window.location.origin}/afiliado/cadastro?token=${data.invite_token}`;
           setGeneratedInviteLink(link);
-          setCreatedAffiliateName(formData.name);
+          setCreatedAffiliateName(affiliateName);
           setInviteLinkDialogOpen(true);
         }
       } catch (err) {
