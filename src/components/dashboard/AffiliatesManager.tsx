@@ -930,16 +930,31 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum</SelectItem>
-                    {availableCoupons.length === 0 ? (
+                    {coupons.length === 0 ? (
                       <div className="py-2 px-3 text-sm text-muted-foreground text-center">
-                        Nenhum cupom disponível
+                        Nenhum cupom cadastrado
                       </div>
                     ) : (
-                      availableCoupons.map((coupon) => (
-                        <SelectItem key={coupon.id} value={coupon.id}>
-                          {coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
-                        </SelectItem>
-                      ))
+                      coupons.map((coupon) => {
+                        const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
+                        const isLinkedToOther = linkedAffiliate && linkedAffiliate.id !== editingAffiliate?.id;
+                        return (
+                          <SelectItem 
+                            key={coupon.id} 
+                            value={coupon.id}
+                            disabled={isLinkedToOther}
+                          >
+                            <div className="flex flex-col">
+                              <span>{coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})</span>
+                              {linkedAffiliate && (
+                                <span className="text-xs text-muted-foreground">
+                                  Vinculado a: {linkedAffiliate.name}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      })
                     )}
                   </SelectContent>
                 </Select>
