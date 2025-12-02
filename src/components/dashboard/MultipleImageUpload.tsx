@@ -66,17 +66,18 @@ function SortableImage({ image, onRemove, onSetPrimary, onZoom }: SortableImageP
       className="relative group"
     >
       <div 
-        className="aspect-[4/3] w-full rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
+        className="aspect-[4/3] w-full rounded-lg overflow-hidden border-2 border-border bg-muted cursor-pointer hover:border-primary transition-colors"
         onClick={(e) => {
           e.stopPropagation();
           onZoom(image.image_url);
         }}
       >
-      <img
-        src={image.image_url}
-        alt="Imagem do produto"
-        className="w-full h-full object-contain md:object-cover"
-      />
+        <img
+          src={image.image_url}
+          alt="Imagem do produto"
+          className="w-full h-full object-contain md:object-cover"
+          loading="lazy"
+        />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
           <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
