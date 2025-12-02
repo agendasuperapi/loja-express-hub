@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from '@/hooks/use-toast';
 import { validatePixKey, detectPixKeyType } from '@/lib/pixValidation';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AffiliatesManagerProps {
   storeId: string;
@@ -76,6 +77,9 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [inviteLinkDialogOpen, setInviteLinkDialogOpen] = useState(false);
+  const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+  const [createdAffiliateName, setCreatedAffiliateName] = useState<string>('');
   const [newCouponDialogOpen, setNewCouponDialogOpen] = useState(false);
   const [newCouponData, setNewCouponData] = useState({
     code: '',
@@ -293,6 +297,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     };
 
     let result;
+    const isNewAffiliate = !editingAffiliate;
     if (editingAffiliate) {
       result = await updateAffiliate(editingAffiliate.id, affiliateData);
     } else {
@@ -338,6 +343,30 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
     setDialogOpen(false);
     resetForm();
+
+    // Gerar link de convite automaticamente para novos afiliados
+    if (isNewAffiliate && result) {
+      try {
+        const { data, error } = await supabase.functions.invoke('affiliate-invite', {
+          body: {
+            action: 'send',
+            store_id: storeId,
+            store_name: storeName,
+            email: formData.email,
+            name: formData.name,
+          }
+        });
+
+        if (data?.success && data?.invite_token) {
+          const link = `${window.location.origin}/afiliado/cadastro?token=${data.invite_token}`;
+          setGeneratedInviteLink(link);
+          setCreatedAffiliateName(formData.name);
+          setInviteLinkDialogOpen(true);
+        }
+      } catch (err) {
+        console.error('Error generating invite link:', err);
+      }
+    }
   };
 
   const handleViewDetails = async (affiliate: Affiliate) => {
@@ -1805,6 +1834,63 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             </Button>
             <Button onClick={handleRegisterPayment}>
               Registrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Link de Convite Gerado */}
+      <Dialog open={inviteLinkDialogOpen} onOpenChange={setInviteLinkDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Afiliado Cadastrado!
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+              <div>
+                <p className="font-medium text-green-800 dark:text-green-200">Convite criado com sucesso!</p>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  Envie o link abaixo para {createdAffiliateName}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Link de convite</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={generatedInviteLink || ''}
+                  readOnly
+                  className="font-mono text-xs"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => {
+                    if (generatedInviteLink) {
+                      navigator.clipboard.writeText(generatedInviteLink);
+                      toast({ title: 'Link copiado!' });
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Este link expira em 7 dias
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => {
+              setInviteLinkDialogOpen(false);
+              setGeneratedInviteLink(null);
+              setCreatedAffiliateName('');
+            }} className="w-full">
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
