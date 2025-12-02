@@ -2136,7 +2136,7 @@ export const StoreOwnerDashboard = ({
                             {storeStatusText}
                           </Badge>
                           {myStore?.id && <WhatsAppStatusIndicator storeId={myStore.id} />}
-                          <span className="text-xs text-muted-foreground">v 1.9</span>
+                          <span className="text-xs text-muted-foreground hidden md:inline">v 1.9</span>
                         </div>
                       </div>
                     </div>
@@ -2157,6 +2157,7 @@ export const StoreOwnerDashboard = ({
                           <LogOut className="w-3 h-3 mr-1.5" />
                           Sair
                         </Button>}
+                      <span className="text-xs text-muted-foreground md:hidden">v 1.9</span>
                     </motion.div>
                   </div>
                 </CardContent>
