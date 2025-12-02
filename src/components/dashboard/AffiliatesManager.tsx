@@ -234,10 +234,24 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       return;
     }
 
-    // Pegar a comissão do primeiro cupom selecionado
-    const firstCoupon = coupons.find(c => c.id === formData.coupon_ids[0]);
-    const commissionType = firstCoupon?.discount_type === 'percentage' ? 'percentage' : 'fixed';
-    const commissionValue = firstCoupon?.discount_value || 0;
+    // Validação de escopo
+    if (formData.commission_enabled && formData.commission_scope === 'category' && formData.commission_category_names.length === 0) {
+      toast({
+        title: 'Selecione pelo menos uma categoria',
+        description: 'Para comissão por categoria, selecione pelo menos uma categoria.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (formData.commission_enabled && formData.commission_scope === 'product' && formData.commission_product_ids.length === 0) {
+      toast({
+        title: 'Selecione pelo menos um produto',
+        description: 'Para comissão por produto, selecione pelo menos um produto.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const affiliateData = {
       name: formData.name,
@@ -247,8 +261,8 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       pix_key: formData.pix_key,
       coupon_ids: formData.coupon_ids,
       commission_enabled: formData.commission_enabled,
-      default_commission_type: commissionType as 'percentage' | 'fixed',
-      default_commission_value: commissionValue,
+      default_commission_type: formData.default_commission_type,
+      default_commission_value: formData.commission_scope === 'all' ? formData.default_commission_value : 0,
     };
 
     let result;
@@ -258,10 +272,37 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       result = await createAffiliate(affiliateData);
     }
 
-    if (result) {
-      setDialogOpen(false);
-      resetForm();
+    // Se a comissão é por categoria ou produto, criar regra específica
+    if (result && formData.commission_enabled && formData.commission_scope !== 'all') {
+      if (formData.commission_scope === 'category') {
+        // Criar regra para cada categoria selecionada
+        for (const categoryName of formData.commission_category_names) {
+          await createCommissionRule({
+            affiliate_id: result.id,
+            commission_type: formData.default_commission_type,
+            commission_value: formData.default_commission_value,
+            applies_to: 'category',
+            category_name: categoryName,
+            product_id: null,
+          });
+        }
+      } else if (formData.commission_scope === 'product') {
+        // Criar regra para cada produto selecionado
+        for (const productId of formData.commission_product_ids) {
+          await createCommissionRule({
+            affiliate_id: result.id,
+            commission_type: formData.default_commission_type,
+            commission_value: formData.default_commission_value,
+            applies_to: 'product',
+            category_name: null,
+            product_id: productId,
+          });
+        }
+      }
     }
+
+    setDialogOpen(false);
+    resetForm();
   };
 
   const handleViewDetails = async (affiliate: Affiliate) => {
@@ -1273,36 +1314,198 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
               <div className="col-span-2 flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div>
                   <Label>Comissão Ativa</Label>
-                  <p className="text-xs text-muted-foreground">O afiliado receberá comissão das vendas baseada nos cupons vinculados</p>
+                  <p className="text-xs text-muted-foreground">O afiliado receberá comissão das vendas</p>
                 </div>
                 <Switch
                   checked={formData.commission_enabled}
                   onCheckedChange={(checked) => setFormData({ ...formData, commission_enabled: checked })}
                 />
               </div>
-              {formData.commission_enabled && formData.coupon_ids.length > 0 && (
-                <div className="col-span-2 p-3 bg-muted/30 rounded-lg space-y-2">
-                  <Label className="text-sm font-medium">Comissões dos Cupons Vinculados</Label>
-                  <div className="space-y-1">
-                    {formData.coupon_ids.map((couponId) => {
-                      const coupon = coupons.find(c => c.id === couponId);
-                      if (!coupon) return null;
-                      return (
-                        <div key={couponId} className="flex items-center justify-between text-sm p-2 bg-background rounded border">
-                          <span className="font-mono font-medium">{coupon.code}</span>
-                          <Badge variant="secondary">
-                            {coupon.discount_type === 'percentage' 
-                              ? `${coupon.discount_value}%` 
-                              : formatCurrency(coupon.discount_value)}
-                          </Badge>
-                        </div>
-                      );
-                    })}
+              {formData.commission_enabled && (
+                <>
+                  <div className="col-span-2">
+                    <Label>Comissão aplica-se a</Label>
+                    <Select
+                      value={formData.commission_scope}
+                      onValueChange={(value: 'all' | 'category' | 'product') => setFormData({ 
+                        ...formData, 
+                        commission_scope: value,
+                        commission_category_names: [],
+                        commission_product_ids: []
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as vendas (Geral)</SelectItem>
+                        <SelectItem value="category">Por Categoria</SelectItem>
+                        <SelectItem value="product">Por Produto</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    A comissão do afiliado será baseada no desconto configurado em cada cupom.
-                  </p>
-                </div>
+                  {formData.commission_scope === 'category' && (
+                    <div className="col-span-2 space-y-2">
+                      <Label>Categorias ({formData.commission_category_names.length} selecionadas)</Label>
+                      {formData.commission_category_names.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {formData.commission_category_names.map((categoryName) => (
+                            <Badge key={categoryName} variant="secondary" className="gap-1">
+                              {categoryName}
+                              <button
+                                type="button"
+                                onClick={() => setFormData({
+                                  ...formData,
+                                  commission_category_names: formData.commission_category_names.filter(name => name !== categoryName)
+                                })}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <XCircle className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <ScrollArea className="h-[150px] border rounded-md p-2">
+                        <div className="space-y-1">
+                          {categories.map((cat) => {
+                            const isSelected = formData.commission_category_names.includes(cat.name);
+                            return (
+                              <div
+                                key={cat.id}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setFormData({
+                                      ...formData,
+                                      commission_category_names: formData.commission_category_names.filter(name => name !== cat.name)
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      commission_category_names: [...formData.commission_category_names, cat.name]
+                                    });
+                                  }
+                                }}
+                                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-primary/10 border border-primary/30' : ''}`}
+                              >
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
+                                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                                </div>
+                                <span className="text-sm font-medium">{cat.name}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
+                  {formData.commission_scope === 'product' && (
+                    <div className="col-span-2 space-y-2">
+                      <Label>Produtos ({formData.commission_product_ids.length} selecionados)</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={productSearch}
+                          onChange={(e) => setProductSearch(e.target.value)}
+                          placeholder="Buscar por nome, código interno ou externo..."
+                          className="pl-9"
+                        />
+                      </div>
+                      {formData.commission_product_ids.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {formData.commission_product_ids.map((productId) => {
+                            const product = products.find(p => p.id === productId);
+                            return (
+                              <Badge key={productId} variant="secondary" className="gap-1">
+                                {product?.name || productId}
+                                <button
+                                  type="button"
+                                  onClick={() => setFormData({
+                                    ...formData,
+                                    commission_product_ids: formData.commission_product_ids.filter(id => id !== productId)
+                                  })}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  <XCircle className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <ScrollArea className="h-[200px] border rounded-md p-2">
+                        {filteredProducts.length === 0 ? (
+                          <div className="py-4 text-sm text-muted-foreground text-center">
+                            Nenhum produto encontrado
+                          </div>
+                        ) : (
+                          <div className="space-y-1">
+                            {filteredProducts.map((product) => {
+                              const isSelected = formData.commission_product_ids.includes(product.id);
+                              return (
+                                <div
+                                  key={product.id}
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setFormData({
+                                        ...formData,
+                                        commission_product_ids: formData.commission_product_ids.filter(id => id !== product.id)
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        commission_product_ids: [...formData.commission_product_ids, product.id]
+                                      });
+                                    }
+                                  }}
+                                  className={`flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted/50 ${isSelected ? 'bg-primary/10 border border-primary/30' : ''}`}
+                                >
+                                  <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
+                                    {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{product.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {product.external_code && `Cód: ${product.external_code}`}
+                                      {product.external_code && product.short_id && ' • '}
+                                      {product.short_id && `ID: ${product.short_id}`}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </div>
+                  )}
+                  <div>
+                    <Label>Tipo de Comissão</Label>
+                    <Select
+                      value={formData.default_commission_type}
+                      onValueChange={(value: 'percentage' | 'fixed') => setFormData({ ...formData, default_commission_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percentage">Percentual (%)</SelectItem>
+                        <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Valor da Comissão</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.default_commission_value}
+                      onChange={(e) => setFormData({ ...formData, default_commission_value: Number(e.target.value) })}
+                      placeholder={formData.default_commission_type === 'percentage' ? '5' : '10.00'}
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>
