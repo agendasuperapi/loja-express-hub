@@ -290,8 +290,8 @@ export function ProductDetailsDialog({
     // Validate size selection if product has sizes
     if (hasSizes && !selectedSize) {
       toast({
-        title: "Selecione um tamanho",
-        description: "É necessário selecionar um tamanho para este produto",
+        title: "Selecione uma variação",
+        description: "É necessário selecionar uma variação para este produto",
         variant: "destructive"
       });
       return;
