@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCoupons, Coupon, DiscountType } from '@/hooks/useCoupons';
 import { useEmployeeAccess } from '@/hooks/useEmployeeAccess';
+import { useCategories } from '@/hooks/useCategories';
+import { useProducts } from '@/hooks/useProducts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +36,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Pencil, Trash2, Ticket, Calendar, DollarSign, Users, Copy, BarChart3 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Plus, Pencil, Trash2, Ticket, Calendar, DollarSign, Users, Copy, BarChart3, Search, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -57,10 +60,16 @@ const couponSchema = z.object({
 
 export function CouponsManager({ storeId }: CouponsManagerProps) {
   const { coupons, isLoading, createCoupon, updateCoupon, deleteCoupon, toggleCouponStatus } = useCoupons(storeId);
+  const { categories } = useCategories(storeId);
+  const { data: products = [] } = useProducts(storeId);
   const employeeAccess = useEmployeeAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const { toast } = useToast();
+
+  // Estados de busca
+  const [categorySearch, setCategorySearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
 
   // Verificar permissões
   const hasPermission = (action: string): boolean => {
@@ -83,7 +92,21 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
     valid_from: new Date().toISOString().split('T')[0],
     valid_until: '',
     is_active: true,
+    applies_to: 'all' as 'all' | 'category' | 'product',
+    category_names: [] as string[],
+    product_ids: [] as string[],
   });
+
+  // Filtros de busca
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories;
+    return categories.filter(c => c.name.toLowerCase().includes(categorySearch.toLowerCase()));
+  }, [categories, categorySearch]);
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return products;
+    return products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
+  }, [products, productSearch]);
 
   const resetForm = () => {
     setFormData({
@@ -95,13 +118,19 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
       valid_from: new Date().toISOString().split('T')[0],
       valid_until: '',
       is_active: true,
+      applies_to: 'all',
+      category_names: [],
+      product_ids: [],
     });
     setEditingCoupon(null);
+    setCategorySearch('');
+    setProductSearch('');
   };
 
   const handleOpenDialog = (coupon?: Coupon) => {
     if (coupon) {
       setEditingCoupon(coupon);
+      const couponAny = coupon as any;
       setFormData({
         code: coupon.code,
         discount_type: coupon.discount_type,
@@ -111,10 +140,15 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
         valid_from: coupon.valid_from.split('T')[0],
         valid_until: coupon.valid_until?.split('T')[0] || '',
         is_active: coupon.is_active,
+        applies_to: couponAny.applies_to || 'all',
+        category_names: couponAny.category_names || [],
+        product_ids: couponAny.product_ids || [],
       });
     } else {
       resetForm();
     }
+    setCategorySearch('');
+    setProductSearch('');
     setIsDialogOpen(true);
   };
 
@@ -146,23 +180,40 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
         return;
       }
 
-      if (editingCoupon) {
-        await updateCoupon(editingCoupon.id, {
-          ...validatedData,
-          is_active: formData.is_active,
+      // Validação de escopo
+      if (formData.applies_to === 'category' && formData.category_names.length === 0) {
+        toast({
+          title: 'Selecione pelo menos uma categoria',
+          description: 'Para cupom por categoria, selecione pelo menos uma categoria.',
+          variant: 'destructive',
         });
+        return;
+      }
+
+      if (formData.applies_to === 'product' && formData.product_ids.length === 0) {
+        toast({
+          title: 'Selecione pelo menos um produto',
+          description: 'Para cupom por produto, selecione pelo menos um produto.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const couponData = {
+        ...validatedData,
+        is_active: formData.is_active,
+        applies_to: formData.applies_to,
+        category_names: formData.category_names,
+        product_ids: formData.product_ids,
+      };
+
+      if (editingCoupon) {
+        await updateCoupon(editingCoupon.id, couponData as any);
       } else {
         await createCoupon({
           store_id: storeId,
-          code: validatedData.code,
-          discount_type: validatedData.discount_type,
-          discount_value: validatedData.discount_value,
-          min_order_value: validatedData.min_order_value,
-          max_uses: validatedData.max_uses,
-          valid_from: validatedData.valid_from,
-          valid_until: validatedData.valid_until,
-          is_active: formData.is_active,
-        });
+          ...couponData,
+        } as any);
       }
 
       handleCloseDialog();
@@ -334,6 +385,153 @@ export function CouponsManager({ storeId }: CouponsManagerProps) {
                     />
                   </div>
                 </div>
+
+                <div className="grid gap-2">
+                  <Label>Cupom aplica-se a</Label>
+                  <Select
+                    value={formData.applies_to}
+                    onValueChange={(value: 'all' | 'category' | 'product') => setFormData({ 
+                      ...formData, 
+                      applies_to: value,
+                      category_names: [],
+                      product_ids: []
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os produtos</SelectItem>
+                      <SelectItem value="category">Por Categoria</SelectItem>
+                      <SelectItem value="product">Por Produto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.applies_to === 'category' && (
+                  <div className="space-y-2">
+                    <Label>Categorias ({formData.category_names.length} selecionadas)</Label>
+                    {formData.category_names.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {formData.category_names.map((categoryName) => (
+                          <Badge key={categoryName} variant="secondary" className="flex items-center gap-1">
+                            {categoryName}
+                            <XCircle 
+                              className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                              onClick={() => setFormData({
+                                ...formData,
+                                category_names: formData.category_names.filter(c => c !== categoryName)
+                              })}
+                            />
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar categoria..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <ScrollArea className="h-32 border rounded-md p-2">
+                      <div className="space-y-2">
+                        {filteredCategories.map((category) => (
+                          <div key={category.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`cat-${category.id}`}
+                              checked={formData.category_names.includes(category.name)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    category_names: [...formData.category_names, category.name]
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    category_names: formData.category_names.filter(c => c !== category.name)
+                                  });
+                                }
+                              }}
+                              className="rounded border-input"
+                            />
+                            <Label htmlFor={`cat-${category.id}`} className="text-sm font-normal cursor-pointer">
+                              {category.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {formData.applies_to === 'product' && (
+                  <div className="space-y-2">
+                    <Label>Produtos ({formData.product_ids.length} selecionados)</Label>
+                    {formData.product_ids.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {formData.product_ids.map((productId) => {
+                          const product = products.find(p => p.id === productId);
+                          return (
+                            <Badge key={productId} variant="secondary" className="flex items-center gap-1">
+                              {product?.name || productId}
+                              <XCircle 
+                                className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                onClick={() => setFormData({
+                                  ...formData,
+                                  product_ids: formData.product_ids.filter(p => p !== productId)
+                                })}
+                              />
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar produto..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
+                    <ScrollArea className="h-32 border rounded-md p-2">
+                      <div className="space-y-2">
+                        {filteredProducts.map((product) => (
+                          <div key={product.id} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`prod-${product.id}`}
+                              checked={formData.product_ids.includes(product.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFormData({
+                                    ...formData,
+                                    product_ids: [...formData.product_ids, product.id]
+                                  });
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    product_ids: formData.product_ids.filter(p => p !== product.id)
+                                  });
+                                }
+                              }}
+                              className="rounded border-input"
+                            />
+                            <Label htmlFor={`prod-${product.id}`} className="text-sm font-normal cursor-pointer">
+                              {product.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
 
                 <div className="flex items-center space-x-2">
                   <Switch
