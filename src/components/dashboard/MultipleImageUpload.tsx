@@ -66,7 +66,7 @@ function SortableImage({ image, onRemove, onSetPrimary, onZoom }: SortableImageP
       className="relative group"
     >
       <div 
-        className="aspect-square w-32 rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
+        className="aspect-square w-full rounded-lg overflow-hidden border-2 border-border bg-muted/30 cursor-pointer hover:border-primary transition-colors"
         onClick={(e) => {
           e.stopPropagation();
           onZoom(image.image_url);
@@ -419,7 +419,7 @@ export const MultipleImageUpload = ({
             items={images.map(img => img.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex gap-2 flex-wrap">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
               {images.map((image) => (
                 <SortableImage
                   key={image.id}
