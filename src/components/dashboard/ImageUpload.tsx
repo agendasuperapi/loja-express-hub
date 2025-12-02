@@ -432,8 +432,16 @@ export const ImageUpload = ({
 
       <AlertDialog open={showImageModal} onOpenChange={setShowImageModal}>
         <AlertDialogContent className="max-w-[50vw] max-h-[60vh] p-2">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="sr-only">Visualizar Imagem</AlertDialogTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 z-50 bg-background/80 hover:bg-background"
+            onClick={() => setShowImageModal(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <AlertDialogHeader className="sr-only">
+            <AlertDialogTitle>Visualizar Imagem</AlertDialogTitle>
           </AlertDialogHeader>
           <div className="relative w-full h-[50vh] flex items-center justify-center">
             <img
@@ -442,9 +450,6 @@ export const ImageUpload = ({
               className="max-w-full max-h-full object-contain"
             />
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Fechar</AlertDialogCancel>
-          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
