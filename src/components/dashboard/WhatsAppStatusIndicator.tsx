@@ -19,7 +19,7 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
 
   if (status === 'loading') {
     return (
-      <Badge variant="outline" className="gap-2">
+      <Badge variant="outline" className="gap-2 px-3 py-1">
         <Loader2 className="w-3 h-3 animate-spin" />
         <span className="text-xs">Verificando...</span>
       </Badge>
@@ -28,7 +28,7 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
 
   if (status === 'connecting') {
     return (
-      <Badge variant="secondary" className="gap-2 bg-yellow-500 hover:bg-yellow-600 text-white">
+      <Badge variant="secondary" className="gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1">
         <Clock className="w-3 h-3" />
         <span className="text-xs">Conectando...</span>
       </Badge>
@@ -38,7 +38,7 @@ export const WhatsAppStatusIndicator = ({ storeId }: WhatsAppStatusIndicatorProp
   return (
     <Badge 
       variant={status === 'connected' ? "default" : "destructive"} 
-      className={`gap-2 ${status === 'connected' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+      className={`gap-2 px-3 py-1 ${status === 'connected' ? 'bg-green-600 hover:bg-green-700' : ''}`}
     >
       {status === 'connected' ? (
         <>
