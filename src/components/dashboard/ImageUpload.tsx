@@ -435,10 +435,10 @@ export const ImageUpload = ({
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 z-50 bg-background/80 hover:bg-background"
+            className="absolute top-2 right-2 z-50 bg-background/80 hover:bg-background h-10 w-10"
             onClick={() => setShowImageModal(false)}
           >
-            <X className="h-4 w-4" />
+            <X className="h-6 w-6" />
           </Button>
           <AlertDialogHeader className="sr-only">
             <AlertDialogTitle>Visualizar Imagem</AlertDialogTitle>
