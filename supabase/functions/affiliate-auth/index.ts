@@ -38,10 +38,23 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.pathname.split("/").pop();
+    const pathAction = url.pathname.split("/").pop();
     const body = await req.json().catch(() => ({}));
+    
+    // Action pode vir da URL (/affiliate-auth/register) ou do body ({ action: "register" })
+    const action = body.action || (pathAction !== "affiliate-auth" ? pathAction : null);
 
-    console.log(`[affiliate-auth] Action: ${action}`);
+    console.log(`[affiliate-auth] URL path: ${url.pathname}`);
+    console.log(`[affiliate-auth] Path action: ${pathAction}`);
+    console.log(`[affiliate-auth] Body action: ${body.action}`);
+    console.log(`[affiliate-auth] Final action: ${action}`);
+
+    if (!action) {
+      return new Response(
+        JSON.stringify({ error: "Ação não especificada. Envie 'action' no body da requisição." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     switch (action) {
       case "register": {
