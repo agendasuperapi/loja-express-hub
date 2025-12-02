@@ -327,9 +327,9 @@ export const ImageUpload = ({
   };
 
   const sizeClasses = {
-    sm: 'sm:max-w-[150px]',
-    md: 'sm:max-w-[220px]',
-    lg: 'sm:max-w-[350px]'
+    sm: 'sm:max-w-[120px]',
+    md: 'sm:max-w-[160px]',
+    lg: 'sm:max-w-[240px]'
   };
 
   return (
@@ -344,7 +344,7 @@ export const ImageUpload = ({
         
         {previewUrl ? (
           <div className="relative">
-            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto max-w-[180px] sm:max-w-none mx-auto sm:mx-0 min-h-[100px] md:min-h-[120px] rounded-lg overflow-hidden border border-border bg-muted/30 relative`}>
+            <div className={`${aspectRatio} ${sizeClasses[size]} w-full sm:w-auto max-w-[180px] mx-auto sm:mx-0 min-h-[100px] md:min-h-[120px] rounded-lg overflow-hidden border border-border bg-muted/30 relative`}>
               {!imageLoaded && !imageError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -388,7 +388,7 @@ export const ImageUpload = ({
             </Button>
           </div>
         ) : (
-          <div className={`${aspectRatio} ${sizeClasses[size]} max-w-[180px] sm:max-w-none mx-auto sm:mx-0 rounded-lg border-2 border-dashed border-border flex items-center justify-center`}>
+          <div className={`${aspectRatio} ${sizeClasses[size]} max-w-[180px] mx-auto sm:mx-0 rounded-lg border-2 border-dashed border-border flex items-center justify-center`}>
             <Label
               htmlFor={`upload-${bucket}-${folder}`}
               className="cursor-pointer flex flex-col items-center justify-center p-2 md:p-4 text-center"
