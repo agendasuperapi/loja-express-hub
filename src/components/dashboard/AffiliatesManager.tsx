@@ -48,7 +48,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     createPayment,
   } = useAffiliates(storeId);
   
-  const { coupons } = useCoupons(storeId);
+  const { coupons, createCoupon } = useCoupons(storeId);
   const { categories } = useCategories(storeId);
   const productsQuery = useProducts(storeId);
   const products = productsQuery.data || [];
@@ -72,6 +72,16 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [newCouponDialogOpen, setNewCouponDialogOpen] = useState(false);
+  const [newCouponData, setNewCouponData] = useState({
+    code: '',
+    discount_type: 'percentage' as 'percentage' | 'fixed',
+    discount_value: 10,
+    min_order_value: 0,
+    max_uses: null as number | null,
+    valid_from: new Date().toISOString().split('T')[0],
+    valid_until: '',
+  });
 
   // Form states
   const [formData, setFormData] = useState({
@@ -307,6 +317,47 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
     await deleteCommissionRule(ruleId);
     const rules = await getCommissionRules(selectedAffiliate.id);
     setCommissionRules(rules);
+  };
+
+  const handleCreateNewCoupon = async () => {
+    if (!newCouponData.code.trim()) {
+      toast({
+        title: 'Código obrigatório',
+        description: 'Informe o código do cupom',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const couponResult = await createCoupon({
+        store_id: storeId,
+        code: newCouponData.code.toUpperCase(),
+        discount_type: newCouponData.discount_type,
+        discount_value: newCouponData.discount_value,
+        min_order_value: newCouponData.min_order_value,
+        max_uses: newCouponData.max_uses,
+        valid_from: newCouponData.valid_from,
+        valid_until: newCouponData.valid_until || null,
+        is_active: true,
+      }) as any;
+
+      if (couponResult?.id) {
+        setFormData({ ...formData, coupon_id: couponResult.id });
+        setNewCouponDialogOpen(false);
+        setNewCouponData({
+          code: '',
+          discount_type: 'percentage',
+          discount_value: 10,
+          min_order_value: 0,
+          max_uses: null,
+          valid_from: new Date().toISOString().split('T')[0],
+          valid_until: '',
+        });
+      }
+    } catch (error) {
+      console.error('Error creating coupon:', error);
+    }
   };
 
   const handleRegisterPayment = async () => {
@@ -921,43 +972,141 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
               </div>
               <div className="col-span-2">
                 <Label>Cupom Vinculado</Label>
-                <Select
-                  value={formData.coupon_id || 'none'}
-                  onValueChange={(value) => setFormData({ ...formData, coupon_id: value === 'none' ? '' : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um cupom" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {coupons.length === 0 ? (
-                      <div className="py-2 px-3 text-sm text-muted-foreground text-center">
-                        Nenhum cupom cadastrado
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.coupon_id || 'none'}
+                    onValueChange={(value) => setFormData({ ...formData, coupon_id: value === 'none' ? '' : value })}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Selecione um cupom" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {coupons.length === 0 ? (
+                        <div className="py-2 px-3 text-sm text-muted-foreground text-center">
+                          Nenhum cupom cadastrado
+                        </div>
+                      ) : (
+                        coupons.map((coupon) => {
+                          const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
+                          const isLinkedToOther = linkedAffiliate && linkedAffiliate.id !== editingAffiliate?.id;
+                          return (
+                            <SelectItem 
+                              key={coupon.id} 
+                              value={coupon.id}
+                              disabled={isLinkedToOther}
+                            >
+                              <div className="flex flex-col">
+                                <span>{coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})</span>
+                                {linkedAffiliate && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Vinculado a: {linkedAffiliate.name}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Dialog open={newCouponDialogOpen} onOpenChange={setNewCouponDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button type="button" size="icon" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Novo Cupom</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Código do Cupom</Label>
+                          <Input
+                            value={newCouponData.code}
+                            onChange={(e) => setNewCouponData({ ...newCouponData, code: e.target.value.toUpperCase() })}
+                            placeholder="Ex: AFILIADO10"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Tipo de Desconto</Label>
+                            <Select
+                              value={newCouponData.discount_type}
+                              onValueChange={(value: 'percentage' | 'fixed') => setNewCouponData({ ...newCouponData, discount_type: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">Porcentagem (%)</SelectItem>
+                                <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Valor do Desconto</Label>
+                            <Input
+                              type="number"
+                              value={newCouponData.discount_value}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, discount_value: Number(e.target.value) })}
+                              min={0}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Pedido Mínimo (R$)</Label>
+                            <Input
+                              type="number"
+                              value={newCouponData.min_order_value}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, min_order_value: Number(e.target.value) })}
+                              min={0}
+                            />
+                          </div>
+                          <div>
+                            <Label>Máximo de Usos</Label>
+                            <Input
+                              type="number"
+                              value={newCouponData.max_uses || ''}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, max_uses: e.target.value ? Number(e.target.value) : null })}
+                              placeholder="Ilimitado"
+                              min={1}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Válido a partir de</Label>
+                            <Input
+                              type="date"
+                              value={newCouponData.valid_from}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, valid_from: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <Label>Válido até</Label>
+                            <Input
+                              type="date"
+                              value={newCouponData.valid_until}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, valid_until: e.target.value })}
+                              placeholder="Sem limite"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      coupons.map((coupon) => {
-                        const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
-                        const isLinkedToOther = linkedAffiliate && linkedAffiliate.id !== editingAffiliate?.id;
-                        return (
-                          <SelectItem 
-                            key={coupon.id} 
-                            value={coupon.id}
-                            disabled={isLinkedToOther}
-                          >
-                            <div className="flex flex-col">
-                              <span>{coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})</span>
-                              {linkedAffiliate && (
-                                <span className="text-xs text-muted-foreground">
-                                  Vinculado a: {linkedAffiliate.name}
-                                </span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        );
-                      })
-                    )}
-                  </SelectContent>
-                </Select>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setNewCouponDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleCreateNewCoupon}>
+                          Criar Cupom
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
               <div className="col-span-2 flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div>
