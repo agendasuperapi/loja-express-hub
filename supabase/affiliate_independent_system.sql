@@ -1,5 +1,6 @@
--- Sistema de Afiliados Independente - Migration
+-- Sistema de Afiliados Independente - Migration (Idempotente)
 -- Autenticação separada, múltiplas lojas
+-- Este script pode ser executado múltiplas vezes com segurança
 
 -- 1. Criar tabela de contas de afiliados (autenticação separada)
 CREATE TABLE IF NOT EXISTS public.affiliate_accounts (
@@ -68,9 +69,19 @@ CREATE INDEX IF NOT EXISTS idx_affiliate_sessions_token ON public.affiliate_sess
 CREATE INDEX IF NOT EXISTS idx_affiliate_sessions_account ON public.affiliate_sessions(affiliate_account_id);
 CREATE INDEX IF NOT EXISTS idx_affiliate_sessions_expires ON public.affiliate_sessions(expires_at);
 
--- 4. Atualizar tabela affiliate_earnings para incluir store_affiliate_id
-ALTER TABLE public.affiliate_earnings 
-ADD COLUMN IF NOT EXISTS store_affiliate_id UUID REFERENCES public.store_affiliates(id) ON DELETE SET NULL;
+-- 4. Adicionar coluna store_affiliate_id na tabela affiliate_earnings (se não existir)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+    AND table_name = 'affiliate_earnings' 
+    AND column_name = 'store_affiliate_id'
+  ) THEN
+    ALTER TABLE public.affiliate_earnings 
+    ADD COLUMN store_affiliate_id UUID REFERENCES public.store_affiliates(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- 5. Triggers para updated_at
 CREATE OR REPLACE FUNCTION update_affiliate_accounts_updated_at()
@@ -91,22 +102,23 @@ CREATE TRIGGER store_affiliates_updated_at
   BEFORE UPDATE ON public.store_affiliates
   FOR EACH ROW EXECUTE FUNCTION update_affiliate_accounts_updated_at();
 
--- 6. RLS Policies
+-- 6. RLS Policies (com DROP IF EXISTS para evitar duplicação)
 
 -- affiliate_accounts
 ALTER TABLE public.affiliate_accounts ENABLE ROW LEVEL SECURITY;
 
--- Política para leitura pública (necessário para login)
+DROP POLICY IF EXISTS "Public can check affiliate accounts for login" ON public.affiliate_accounts;
 CREATE POLICY "Public can check affiliate accounts for login" ON public.affiliate_accounts
   FOR SELECT USING (true);
 
--- Política para atualização pelo próprio afiliado (via edge function com service role)
+DROP POLICY IF EXISTS "Service role can manage affiliate accounts" ON public.affiliate_accounts;
 CREATE POLICY "Service role can manage affiliate accounts" ON public.affiliate_accounts
   FOR ALL USING (true);
 
 -- store_affiliates
 ALTER TABLE public.store_affiliates ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Store owners can manage their affiliates" ON public.store_affiliates;
 CREATE POLICY "Store owners can manage their affiliates" ON public.store_affiliates
   FOR ALL USING (
     EXISTS (
@@ -116,12 +128,18 @@ CREATE POLICY "Store owners can manage their affiliates" ON public.store_affilia
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can view active store affiliates" ON public.store_affiliates;
 CREATE POLICY "Anyone can view active store affiliates" ON public.store_affiliates
   FOR SELECT USING (status = 'active' AND is_active = true);
+
+DROP POLICY IF EXISTS "Affiliates can view their own store affiliations" ON public.store_affiliates;
+CREATE POLICY "Affiliates can view their own store affiliations" ON public.store_affiliates
+  FOR SELECT USING (true);
 
 -- affiliate_sessions
 ALTER TABLE public.affiliate_sessions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Service role can manage affiliate sessions" ON public.affiliate_sessions;
 CREATE POLICY "Service role can manage affiliate sessions" ON public.affiliate_sessions
   FOR ALL USING (true);
 
@@ -245,3 +263,81 @@ BEGIN
   RETURN deleted_count;
 END;
 $$;
+
+-- 11. Função para buscar conta de afiliado por email (para login)
+CREATE OR REPLACE FUNCTION public.get_affiliate_account_by_email(p_email TEXT)
+RETURNS TABLE (
+  id UUID,
+  email TEXT,
+  name TEXT,
+  password_hash TEXT,
+  is_active BOOLEAN,
+  is_verified BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    aa.id,
+    aa.email,
+    aa.name,
+    aa.password_hash,
+    aa.is_active,
+    aa.is_verified
+  FROM affiliate_accounts aa
+  WHERE LOWER(aa.email) = LOWER(p_email)
+  LIMIT 1;
+END;
+$$;
+
+-- 12. Função para criar sessão de afiliado
+CREATE OR REPLACE FUNCTION public.create_affiliate_session(
+  p_affiliate_account_id UUID,
+  p_token TEXT,
+  p_expires_at TIMESTAMPTZ,
+  p_user_agent TEXT DEFAULT NULL,
+  p_ip_address TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  session_id UUID;
+BEGIN
+  INSERT INTO affiliate_sessions (affiliate_account_id, token, expires_at, user_agent, ip_address)
+  VALUES (p_affiliate_account_id, p_token, p_expires_at, p_user_agent, p_ip_address)
+  RETURNING id INTO session_id;
+  
+  -- Atualizar last_login na conta
+  UPDATE affiliate_accounts SET last_login = now() WHERE id = p_affiliate_account_id;
+  
+  RETURN session_id;
+END;
+$$;
+
+-- 13. Função para invalidar sessão (logout)
+CREATE OR REPLACE FUNCTION public.invalidate_affiliate_session(p_token TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  DELETE FROM affiliate_sessions WHERE token = p_token;
+  RETURN FOUND;
+END;
+$$;
+
+-- 14. Grant permissions para funções serem chamadas por anon
+GRANT EXECUTE ON FUNCTION public.validate_affiliate_session(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_affiliate_stores(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_affiliate_consolidated_stats(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_affiliate_sessions() TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_affiliate_account_by_email(TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.create_affiliate_session(UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.invalidate_affiliate_session(TEXT) TO anon, authenticated;
