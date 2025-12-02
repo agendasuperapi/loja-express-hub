@@ -2401,6 +2401,16 @@ export type Database = {
       bytea_to_text: { Args: { data: string }; Returns: string }
       cleanup_expired_affiliate_sessions: { Args: never; Returns: number }
       confirm_user_email: { Args: { user_id: string }; Returns: boolean }
+      create_affiliate_session: {
+        Args: {
+          p_affiliate_account_id: string
+          p_expires_at: string
+          p_ip_address?: string
+          p_token: string
+          p_user_agent?: string
+        }
+        Returns: string
+      }
       create_order_rpc: {
         Args: {
           p_change_amount?: number
@@ -2447,6 +2457,17 @@ export type Database = {
           full_name: string
           id: string
           phone: string
+        }[]
+      }
+      get_affiliate_account_by_email: {
+        Args: { p_email: string }
+        Returns: {
+          email: string
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          name: string
+          password_hash: string
         }[]
       }
       get_affiliate_consolidated_stats: {
@@ -2649,6 +2670,10 @@ export type Database = {
       http_reset_curlopt: { Args: never; Returns: boolean }
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      invalidate_affiliate_session: {
+        Args: { p_token: string }
         Returns: boolean
       }
       is_store_employee: {
