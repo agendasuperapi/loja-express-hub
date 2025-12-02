@@ -181,6 +181,7 @@ serve(async (req) => {
           .from("store_affiliates")
           .update({
             status: "active",
+            is_active: true,
             accepted_at: new Date().toISOString(),
             invite_token: null,
             invite_expires: null,
