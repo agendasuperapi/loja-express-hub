@@ -221,6 +221,15 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
       return;
     }
 
+    if (!formData.coupon_id) {
+      toast({
+        title: 'Cupom obrigatório',
+        description: 'Selecione ou crie um cupom para vincular ao afiliado.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Validação de escopo
     if (formData.commission_enabled && formData.commission_scope === 'category' && formData.commission_category_names.length === 0) {
       toast({
