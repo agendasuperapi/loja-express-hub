@@ -54,14 +54,17 @@ export function InviteAffiliateDialog({
       }
 
       if (data?.success) {
-        if (data.already_registered) {
+        // Check both for backwards compatibility
+        if (data.already_verified || data.already_registered) {
           toast.success('Afiliado já existente vinculado à loja!');
           onOpenChange(false);
           onSuccess?.();
-        } else {
+        } else if (data.invite_token) {
           const link = `${window.location.origin}/afiliado/cadastro?token=${data.invite_token}`;
           setInviteLink(link);
           toast.success('Convite criado com sucesso!');
+        } else {
+          toast.error('Erro: token de convite não gerado');
         }
       } else {
         toast.error(data?.error || 'Erro ao criar convite');

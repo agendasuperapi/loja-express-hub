@@ -37,6 +37,8 @@ serve(async (req) => {
           coupon_id 
         } = body;
 
+        console.log(`[affiliate-invite] Send action: email=${email}, store_id=${store_id}`);
+
         // Validar autorização
         const authHeader = req.headers.get("Authorization");
         if (!authHeader) {
@@ -167,6 +169,8 @@ serve(async (req) => {
         const inviteExpires = new Date();
         inviteExpires.setDate(inviteExpires.getDate() + 7); // 7 dias
 
+        console.log(`[affiliate-invite] Creating store_affiliate: is_verified=${affiliateAccount.is_verified}, token=${inviteToken}, expires=${inviteExpires.toISOString()}`);
+
         const { data: storeAffiliate, error: affiliateError } = await supabase
           .from("store_affiliates")
           .insert({
@@ -191,7 +195,7 @@ serve(async (req) => {
           );
         }
 
-        console.log(`[affiliate-invite] Invite sent to: ${normalizedEmail} for store: ${store.name}`);
+        console.log(`[affiliate-invite] Store affiliate created: id=${storeAffiliate.id}, invite_token=${storeAffiliate.invite_token}, invite_expires=${storeAffiliate.invite_expires}`);
 
         // TODO: Enviar email com link de convite
 
@@ -334,6 +338,8 @@ serve(async (req) => {
         // Verificar se token de convite é válido
         const { token } = body;
 
+        console.log(`[affiliate-invite] Verifying token: ${token}`);
+
         if (!token) {
           return new Response(
             JSON.stringify({ valid: false, error: "Token não fornecido" }),
@@ -351,6 +357,8 @@ serve(async (req) => {
           .eq("invite_token", token)
           .single();
 
+        console.log(`[affiliate-invite] Store affiliate found:`, storeAffiliate ? 'yes' : 'no', 'error:', error?.message);
+
         if (error || !storeAffiliate) {
           console.log(`[affiliate-invite] Token not found: ${token}`);
           return new Response(
@@ -359,8 +367,16 @@ serve(async (req) => {
           );
         }
 
+        console.log(`[affiliate-invite] Affiliate data:`, {
+          is_verified: storeAffiliate.affiliate_accounts.is_verified,
+          status: storeAffiliate.status,
+          invite_expires: storeAffiliate.invite_expires,
+          now: new Date().toISOString()
+        });
+
         // Verificar se já está verificado
         if (storeAffiliate.affiliate_accounts.is_verified) {
+          console.log(`[affiliate-invite] Already verified`);
           return new Response(
             JSON.stringify({ valid: false, error: "Este convite já foi utilizado. Faça login na sua conta de afiliado." }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -370,7 +386,9 @@ serve(async (req) => {
         // Verificar se expirou
         if (storeAffiliate.invite_expires) {
           const expiresAt = new Date(storeAffiliate.invite_expires);
-          if (expiresAt < new Date()) {
+          const now = new Date();
+          console.log(`[affiliate-invite] Expiration check: expires=${expiresAt.toISOString()}, now=${now.toISOString()}, expired=${expiresAt < now}`);
+          if (expiresAt < now) {
             console.log(`[affiliate-invite] Token expired: ${token}, expires: ${storeAffiliate.invite_expires}`);
             return new Response(
               JSON.stringify({ valid: false, error: "Convite expirado. Solicite um novo link ao lojista." }),
@@ -381,6 +399,7 @@ serve(async (req) => {
 
         // Verificar status
         if (storeAffiliate.status === "active") {
+          console.log(`[affiliate-invite] Status is active`);
           return new Response(
             JSON.stringify({ valid: false, error: "Este convite já foi aceito. Faça login na sua conta." }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
