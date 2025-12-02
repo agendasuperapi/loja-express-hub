@@ -80,6 +80,7 @@ import { StorePreview } from "./StorePreview";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
+import { AffiliatesManager } from "./AffiliatesManager";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -3162,6 +3163,11 @@ export const StoreOwnerDashboard = ({
         {/* Funcionarios Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'funcionarios' && 'hidden')}>
             <EmployeesManager storeId={myStore.id} />
+          </div>}
+
+        {/* Afiliados Tab */}
+        {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'afiliados' && 'hidden')}>
+            <AffiliatesManager storeId={myStore.id} />
           </div>}
 
         {/* WhatsApp Tab */}
