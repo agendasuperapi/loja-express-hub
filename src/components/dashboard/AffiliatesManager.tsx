@@ -16,10 +16,11 @@ import { useAffiliates, Affiliate, AffiliateEarning, AffiliateCommissionRule, Af
 import { useCoupons } from '@/hooks/useCoupons';
 import { useCategories } from '@/hooks/useCategories';
 import { useProducts } from '@/hooks/useProducts';
+import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -28,9 +29,10 @@ import { validatePixKey, detectPixKeyType } from '@/lib/pixValidation';
 
 interface AffiliatesManagerProps {
   storeId: string;
+  storeName?: string;
 }
 
-export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
+export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesManagerProps) => {
   const { 
     affiliates, 
     isLoading, 
@@ -64,6 +66,7 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
 
   const [activeTab, setActiveTab] = useState('gerenciar');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
   const [selectedAffiliate, setSelectedAffiliate] = useState<Affiliate | null>(null);
   const [commissionRules, setCommissionRules] = useState<AffiliateCommissionRule[]>([]);
@@ -516,11 +519,25 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
             Gerencie seus afiliados e comissões
           </p>
         </div>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Afiliado
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setInviteDialogOpen(true)}>
+            <Mail className="h-4 w-4 mr-2" />
+            Convidar Afiliado
+          </Button>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Afiliado
+          </Button>
+        </div>
       </div>
+      
+      {/* Invite Dialog */}
+      <InviteAffiliateDialog
+        storeId={storeId}
+        storeName={storeName}
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

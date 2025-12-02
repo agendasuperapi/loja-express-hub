@@ -61,6 +61,63 @@ export type Database = {
           },
         ]
       }
+      affiliate_accounts: {
+        Row: {
+          avatar_url: string | null
+          cpf_cnpj: string | null
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          last_login: string | null
+          name: string
+          password_hash: string
+          phone: string | null
+          pix_key: string | null
+          reset_token: string | null
+          reset_token_expires: string | null
+          updated_at: string | null
+          verification_token: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_login?: string | null
+          name: string
+          password_hash: string
+          phone?: string | null
+          pix_key?: string | null
+          reset_token?: string | null
+          reset_token_expires?: string | null
+          updated_at?: string | null
+          verification_token?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_login?: string | null
+          name?: string
+          password_hash?: string
+          phone?: string | null
+          pix_key?: string | null
+          reset_token?: string | null
+          reset_token_expires?: string | null
+          updated_at?: string | null
+          verification_token?: string | null
+        }
+        Relationships: []
+      }
       affiliate_commission_rules: {
         Row: {
           affiliate_id: string
@@ -164,6 +221,7 @@ export type Database = {
           order_total: number
           paid_at: string | null
           status: string
+          store_affiliate_id: string | null
         }
         Insert: {
           affiliate_id: string
@@ -177,6 +235,7 @@ export type Database = {
           order_total?: number
           paid_at?: string | null
           status?: string
+          store_affiliate_id?: string | null
         }
         Update: {
           affiliate_id?: string
@@ -190,6 +249,7 @@ export type Database = {
           order_total?: number
           paid_at?: string | null
           status?: string
+          store_affiliate_id?: string | null
         }
         Relationships: [
           {
@@ -218,6 +278,13 @@ export type Database = {
             columns: ["order_item_id"]
             isOneToOne: false
             referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_earnings_store_affiliate_id_fkey"
+            columns: ["store_affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "store_affiliates"
             referencedColumns: ["id"]
           },
         ]
@@ -259,6 +326,47 @@ export type Database = {
             columns: ["affiliate_id"]
             isOneToOne: false
             referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliate_sessions: {
+        Row: {
+          affiliate_account_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          last_used_at: string | null
+          token: string
+          user_agent: string | null
+        }
+        Insert: {
+          affiliate_account_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          token: string
+          user_agent?: string | null
+        }
+        Update: {
+          affiliate_account_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_used_at?: string | null
+          token?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sessions_affiliate_account_id_fkey"
+            columns: ["affiliate_account_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -1811,6 +1919,82 @@ export type Database = {
           },
         ]
       }
+      store_affiliates: {
+        Row: {
+          accepted_at: string | null
+          affiliate_account_id: string
+          commission_enabled: boolean | null
+          coupon_id: string | null
+          created_at: string | null
+          default_commission_type: string
+          default_commission_value: number
+          id: string
+          invite_expires: string | null
+          invite_token: string | null
+          invited_at: string | null
+          is_active: boolean | null
+          status: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          affiliate_account_id: string
+          commission_enabled?: boolean | null
+          coupon_id?: string | null
+          created_at?: string | null
+          default_commission_type?: string
+          default_commission_value?: number
+          id?: string
+          invite_expires?: string | null
+          invite_token?: string | null
+          invited_at?: string | null
+          is_active?: boolean | null
+          status?: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          affiliate_account_id?: string
+          commission_enabled?: boolean | null
+          coupon_id?: string | null
+          created_at?: string | null
+          default_commission_type?: string
+          default_commission_value?: number
+          id?: string
+          invite_expires?: string | null
+          invite_token?: string | null
+          invited_at?: string | null
+          is_active?: boolean | null
+          status?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_affiliates_affiliate_account_id_fkey"
+            columns: ["affiliate_account_id"]
+            isOneToOne: false
+            referencedRelation: "affiliate_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_affiliates_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_affiliates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_employees: {
         Row: {
           created_at: string | null
@@ -2215,6 +2399,7 @@ export type Database = {
         Returns: undefined
       }
       bytea_to_text: { Args: { data: string }; Returns: string }
+      cleanup_expired_affiliate_sessions: { Args: never; Returns: number }
       confirm_user_email: { Args: { user_id: string }; Returns: boolean }
       create_order_rpc: {
         Args: {
@@ -2262,6 +2447,34 @@ export type Database = {
           full_name: string
           id: string
           phone: string
+        }[]
+      }
+      get_affiliate_consolidated_stats: {
+        Args: { p_affiliate_account_id: string }
+        Returns: {
+          paid_commission: number
+          pending_commission: number
+          total_commission: number
+          total_orders: number
+          total_sales: number
+          total_stores: number
+        }[]
+      }
+      get_affiliate_stores: {
+        Args: { p_affiliate_account_id: string }
+        Returns: {
+          commission_type: string
+          commission_value: number
+          coupon_code: string
+          pending_commission: number
+          status: string
+          store_affiliate_id: string
+          store_id: string
+          store_logo: string
+          store_name: string
+          store_slug: string
+          total_commission: number
+          total_sales: number
         }[]
       }
       get_all_users_admin: {
@@ -2469,6 +2682,15 @@ export type Database = {
               error: true
             } & "Could not choose the best candidate function between: public.urlencode(string => bytea), public.urlencode(string => varchar). Try renaming the parameters or the function itself in the database so function overloading can be resolved"
           }
+      validate_affiliate_session: {
+        Args: { session_token: string }
+        Returns: {
+          affiliate_id: string
+          email: string
+          is_valid: boolean
+          name: string
+        }[]
+      }
       validate_coupon: {
         Args: { p_code: string; p_order_total: number; p_store_id: string }
         Returns: {
