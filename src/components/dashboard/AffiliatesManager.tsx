@@ -375,6 +375,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
   const handleViewDetails = async (affiliate: Affiliate) => {
     setSelectedAffiliate(affiliate);
+    setActiveTab('comissoes');
     const [rules, earnings, stats] = await Promise.all([
       getCommissionRules(affiliate.id),
       getAffiliateEarnings(affiliate.id),
