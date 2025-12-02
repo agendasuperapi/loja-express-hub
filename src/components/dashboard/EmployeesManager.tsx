@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DynamicPermissionsForm } from './DynamicPermissionsForm';
+import { NotesModal } from './NotesModal';
 import { generateDefaultPermissions, mergePermissions } from '@/config/permissions';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Table,
   TableBody,
@@ -92,6 +94,8 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [formData, setFormData] = useState({
     employee_name: '',
     employee_email: '',
@@ -317,14 +321,39 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Informações adicionais sobre o funcionário..."
-                    rows={3}
-                  />
+                  {isMobile ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full justify-start text-left h-auto min-h-[60px] whitespace-normal"
+                      onClick={() => setNotesModalOpen(true)}
+                    >
+                      <div className="flex items-start gap-2 w-full">
+                        <Edit className="h-4 w-4 mt-1 flex-shrink-0" />
+                        <span className={formData.notes ? "text-foreground" : "text-muted-foreground"}>
+                          {formData.notes || "Informações adicionais sobre o funcionário..."}
+                        </span>
+                      </div>
+                    </Button>
+                  ) : (
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Informações adicionais sobre o funcionário..."
+                      rows={3}
+                    />
+                  )}
                 </div>
+
+                <NotesModal
+                  open={notesModalOpen}
+                  onOpenChange={setNotesModalOpen}
+                  value={formData.notes}
+                  onSave={(value) => setFormData({ ...formData, notes: value })}
+                  title="Observações"
+                  placeholder="Informações adicionais sobre o funcionário..."
+                />
               </div>
 
               <Separator />

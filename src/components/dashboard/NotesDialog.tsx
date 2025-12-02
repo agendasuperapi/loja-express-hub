@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotesModal } from "./NotesModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Edit } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface NotesDialogProps {
   open: boolean;
@@ -19,6 +21,9 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
   const [loading, setLoading] = useState(false);
   const [storeNotes, setStoreNotes] = useState(order?.store_notes || '');
   const [customerNotes, setCustomerNotes] = useState(order?.customer_notes || '');
+  const [customerNotesModalOpen, setCustomerNotesModalOpen] = useState(false);
+  const [storeNotesModalOpen, setStoreNotesModalOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (order) {
@@ -79,13 +84,29 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
           <div className="space-y-6 py-4">
             <div>
               <Label htmlFor="customer-notes" className="text-sm sm:text-base">Notas do Cliente</Label>
-              <Textarea
-                id="customer-notes"
-                value={customerNotes}
-                onChange={(e) => setCustomerNotes(e.target.value)}
-                placeholder="Observações do cliente sobre o pedido..."
-                className="mt-2 min-h-[60px] sm:min-h-[120px] text-base"
-              />
+              {isMobile ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2 justify-start text-left h-auto min-h-[80px] whitespace-normal"
+                  onClick={() => setCustomerNotesModalOpen(true)}
+                >
+                  <div className="flex items-start gap-2 w-full">
+                    <Edit className="h-4 w-4 mt-1 flex-shrink-0" />
+                    <span className={customerNotes ? "text-foreground" : "text-muted-foreground"}>
+                      {customerNotes || "Observações do cliente sobre o pedido..."}
+                    </span>
+                  </div>
+                </Button>
+              ) : (
+                <Textarea
+                  id="customer-notes"
+                  value={customerNotes}
+                  onChange={(e) => setCustomerNotes(e.target.value)}
+                  placeholder="Observações do cliente sobre o pedido..."
+                  className="mt-2 min-h-[60px] sm:min-h-[120px] text-base"
+                />
+              )}
               <p className="text-xs text-muted-foreground mt-2">
                 Notas enviadas pelo cliente no momento do pedido
               </p>
@@ -93,17 +114,51 @@ export const NotesDialog = ({ open, onOpenChange, order, onUpdate }: NotesDialog
 
             <div>
               <Label htmlFor="store-notes" className="text-sm sm:text-base">Notas Internas da Loja</Label>
-              <Textarea
-                id="store-notes"
-                value={storeNotes}
-                onChange={(e) => setStoreNotes(e.target.value)}
-                placeholder="Observações internas sobre este pedido..."
-                className="mt-2 min-h-[60px] sm:min-h-[120px] text-base"
-              />
+              {isMobile ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full mt-2 justify-start text-left h-auto min-h-[80px] whitespace-normal"
+                  onClick={() => setStoreNotesModalOpen(true)}
+                >
+                  <div className="flex items-start gap-2 w-full">
+                    <Edit className="h-4 w-4 mt-1 flex-shrink-0" />
+                    <span className={storeNotes ? "text-foreground" : "text-muted-foreground"}>
+                      {storeNotes || "Observações internas sobre este pedido..."}
+                    </span>
+                  </div>
+                </Button>
+              ) : (
+                <Textarea
+                  id="store-notes"
+                  value={storeNotes}
+                  onChange={(e) => setStoreNotes(e.target.value)}
+                  placeholder="Observações internas sobre este pedido..."
+                  className="mt-2 min-h-[60px] sm:min-h-[120px] text-base"
+                />
+              )}
               <p className="text-xs text-muted-foreground mt-2">
                 Notas internas da loja (não visíveis para o cliente)
               </p>
             </div>
+
+            <NotesModal
+              open={customerNotesModalOpen}
+              onOpenChange={setCustomerNotesModalOpen}
+              value={customerNotes}
+              onSave={setCustomerNotes}
+              title="Notas do Cliente"
+              placeholder="Observações do cliente sobre o pedido..."
+            />
+
+            <NotesModal
+              open={storeNotesModalOpen}
+              onOpenChange={setStoreNotesModalOpen}
+              value={storeNotes}
+              onSave={setStoreNotes}
+              title="Notas Internas da Loja"
+              placeholder="Observações internas sobre este pedido..."
+            />
           </div>
         </ScrollArea>
 
