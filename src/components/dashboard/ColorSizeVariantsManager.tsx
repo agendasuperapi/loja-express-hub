@@ -300,7 +300,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
             ref={scrollContainerRef}
             className="w-full overflow-x-auto overflow-y-auto [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar]:w-3 [&::-webkit-scrollbar-track]:bg-muted [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-muted"
             style={{
-              maxHeight: '60vh',
+              height: '90vh',
               overscrollBehavior: 'contain',
               WebkitOverflowScrolling: 'touch',
               scrollBehavior: 'smooth',
@@ -417,7 +417,7 @@ export const ColorSizeVariantsManager = ({ productId, storeId }: ColorSizeVarian
         </div>
 
         {/* Mobile Card View */}
-        <div className="sm:hidden p-2 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="sm:hidden p-2 space-y-4 h-[90vh] overflow-y-auto">
           {colors.map((color) => (
             <Card key={color.id} className="overflow-hidden">
               {/* Color Header */}
