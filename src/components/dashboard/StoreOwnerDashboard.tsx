@@ -2085,11 +2085,11 @@ export const StoreOwnerDashboard = ({
             }}>
               <Card className="border-gray-200/50 dark:border-gray-700/50 shadow-lg overflow-hidden relative bg-gradient-to-br from-gray-50 via-blue-50/50 to-gray-100 dark:from-gray-900 dark:via-blue-950/30 dark:to-gray-900 backdrop-blur-sm">
                 <CardContent className="p-6 relative z-10">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+                  <div className="flex flex-col md:flex-row items-center md:justify-between gap-4">
+                    <div className="flex flex-col items-center md:items-start">
+                      <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 mb-2">
                         {/* Logo em Mobile / Nome em Desktop */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center md:justify-start gap-3">
                           {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-16 w-16 object-contain rounded-lg md:hidden" initial={{
                             opacity: 0,
                             scale: 0.8
@@ -2114,7 +2114,7 @@ export const StoreOwnerDashboard = ({
                         </div>
                         
                         {/* Badges de Papel */}
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
                           {employeeAccess.isEmployee && <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
                               <User className="w-3 h-3 mr-1" />
                               Funcionário
@@ -2127,7 +2127,7 @@ export const StoreOwnerDashboard = ({
                         </div>
                         
                         {/* Status da Loja e WhatsApp */}
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
                           <Badge className={`${storeIsOpen ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white px-3 py-1`}>
                             <Clock className="w-3 h-3 mr-1" />
                             {storeStatusText}
@@ -2146,7 +2146,7 @@ export const StoreOwnerDashboard = ({
                     }} transition={{
                       delay: 0.5,
                       type: "spring"
-                    }} className="flex flex-col items-end gap-2">
+                    }} className="flex flex-col items-center md:items-end gap-2">
                       {onSignOut && <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={onSignOut}>
                           <LogOut className="w-3.5 h-3.5 mr-1.5" />
                           Sair
