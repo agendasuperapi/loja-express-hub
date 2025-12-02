@@ -1,4 +1,4 @@
-import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store, Truck, LogOut } from "lucide-react";
+import { Home, Package, ShoppingCart, MessageSquare, Settings, FolderOpen, FileBarChart, TrendingUp, Tag, FolderTree, UserCog, Users, Store, Truck, LogOut, UserPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ export const DashboardMobileSidebar = ({
   const [internalOpen, setInternalOpen] = useState(false);
   const [cadastrosOpen, setCadastrosOpen] = useState(false);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [afiliadosOpen, setAfiliadosOpen] = useState(false);
 
   // Use controlled ou uncontrolled state
   const open = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
@@ -75,6 +76,11 @@ export const DashboardMobileSidebar = ({
     ...(hasPermission('reports') ? [{ id: 'relatorio-produtos-vendidos', label: 'mais vendidos', icon: TrendingUp }] : []),
     ...(hasPermission('reports') ? [{ id: 'relatorio-produtos-cadastrados', label: 'produtos', icon: Package }] : []),
     ...(hasPermission('reports') ? [{ id: 'relatorio-pedidos', label: 'pedidos', icon: ShoppingCart }] : []),
+  ];
+
+  const afiliadosSubItems = [
+    { id: 'afiliados', label: 'cadastro', icon: UserPlus },
+    { id: 'afiliados-relatorios', label: 'relatórios', icon: FileBarChart },
   ];
 
   const handleNavigation = (tab: string) => {
@@ -197,6 +203,40 @@ export const DashboardMobileSidebar = ({
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pl-4 space-y-1 mt-1">
                   {cadastrosSubItems.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={activeTab === item.id ? 'default' : 'ghost'}
+                      className="w-full justify-start gap-3 h-10"
+                      onClick={() => handleNavigation(item.id)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span className="capitalize text-sm">{item.label}</span>
+                    </Button>
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {/* Afiliados */}
+            {!isEmployee && (
+              <Collapsible open={afiliadosOpen} onOpenChange={setAfiliadosOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between h-12"
+                  >
+                    <div className="flex items-center gap-3">
+                      <UserPlus className="w-5 h-5" />
+                      <span className="capitalize">Afiliados</span>
+                    </div>
+                    <ChevronDown className={cn(
+                      "w-4 h-4 transition-transform",
+                      afiliadosOpen && "rotate-180"
+                    )} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 space-y-1 mt-1">
+                  {afiliadosSubItems.map((item) => (
                     <Button
                       key={item.id}
                       variant={activeTab === item.id ? 'default' : 'ghost'}
