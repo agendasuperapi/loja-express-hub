@@ -75,7 +75,7 @@ function SortableImage({ image, onRemove, onSetPrimary, onZoom }: SortableImageP
         <img
           src={image.image_url}
           alt="Imagem do produto"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain bg-background"
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
           <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
