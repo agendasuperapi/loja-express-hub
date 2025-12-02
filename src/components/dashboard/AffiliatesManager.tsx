@@ -53,6 +53,14 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
   const productsQuery = useProducts(storeId);
   const products = productsQuery.data || [];
 
+  // Filter coupons: only show coupons not linked to other affiliates
+  const availableCoupons = coupons.filter((coupon) => {
+    // Check if coupon is already linked to another affiliate
+    const linkedAffiliate = affiliates.find(a => a.coupon_id === coupon.id);
+    // Allow if: not linked to any affiliate, OR linked to the affiliate being edited
+    return !linkedAffiliate || linkedAffiliate.id === editingAffiliate?.id;
+  });
+
   const [activeTab, setActiveTab] = useState('gerenciar');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAffiliate, setEditingAffiliate] = useState<Affiliate | null>(null);
@@ -922,11 +930,17 @@ export const AffiliatesManager = ({ storeId }: AffiliatesManagerProps) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum</SelectItem>
-                    {coupons.map((coupon) => (
-                      <SelectItem key={coupon.id} value={coupon.id}>
-                        {coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
-                      </SelectItem>
-                    ))}
+                    {availableCoupons.length === 0 ? (
+                      <div className="py-2 px-3 text-sm text-muted-foreground text-center">
+                        Nenhum cupom disponível
+                      </div>
+                    ) : (
+                      availableCoupons.map((coupon) => (
+                        <SelectItem key={coupon.id} value={coupon.id}>
+                          {coupon.code} ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
