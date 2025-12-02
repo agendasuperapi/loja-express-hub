@@ -2089,16 +2089,19 @@ export const StoreOwnerDashboard = ({
                     <div className="flex flex-col items-center md:items-start">
                       <div className="flex flex-col md:flex-row md:items-center items-center gap-2 md:gap-3 mb-2">
                         {/* Logo em Mobile / Nome em Desktop */}
-                        <div className="flex items-center justify-center md:justify-start gap-3">
-                          {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-16 w-16 object-contain rounded-lg md:hidden" initial={{
-                            opacity: 0,
-                            scale: 0.8
-                          }} animate={{
-                            opacity: 1,
-                            scale: 1
-                          }} transition={{
-                            delay: 0.3
-                          }} />}
+                        <div className="flex flex-col items-center md:flex-row md:items-center justify-center md:justify-start gap-3">
+                          <div className="flex flex-col items-center md:hidden gap-1">
+                            {myStore?.logo_url && <motion.img src={myStore.logo_url} alt={myStore.name} className="h-16 w-16 object-contain rounded-lg" initial={{
+                              opacity: 0,
+                              scale: 0.8
+                            }} animate={{
+                              opacity: 1,
+                              scale: 1
+                            }} transition={{
+                              delay: 0.3
+                            }} />}
+                            <span className="text-sm font-semibold text-muted-foreground">Dashboard Lojista</span>
+                          </div>
                           
                           <motion.h2 className="text-3xl font-bold gradient-text hidden md:block" initial={{
                             opacity: 0,
