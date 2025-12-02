@@ -171,7 +171,7 @@ export const useAffiliates = (storeId?: string) => {
         .from('affiliates')
         .update(updateData)
         .eq('id', id)
-        .select()
+        .select('*, email')
         .single();
 
       if (error) throw error;
@@ -187,6 +187,23 @@ export const useAffiliates = (storeId?: string) => {
             coupon_id: couponId,
           }));
           await (supabase as any).from('affiliate_coupons').insert(couponInserts);
+        }
+
+        // Sync coupon_id with store_affiliates table
+        if (data?.email) {
+          const { data: affiliateAccount } = await supabase
+            .from('affiliate_accounts')
+            .select('id')
+            .eq('email', data.email.toLowerCase())
+            .single();
+
+          if (affiliateAccount && data?.store_id) {
+            await (supabase as any)
+              .from('store_affiliates')
+              .update({ coupon_id: coupon_ids[0] || null })
+              .eq('affiliate_account_id', affiliateAccount.id)
+              .eq('store_id', data.store_id);
+          }
         }
       }
 

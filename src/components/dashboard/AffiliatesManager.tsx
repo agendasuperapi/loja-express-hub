@@ -367,6 +367,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             store_name: storeName,
             email: affiliateEmail,
             name: affiliateName,
+            coupon_id: formData.coupon_ids[0] || null,
           }
         });
 
