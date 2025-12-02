@@ -115,6 +115,42 @@ export type Database = {
           },
         ]
       }
+      affiliate_coupons: {
+        Row: {
+          affiliate_id: string
+          coupon_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          affiliate_id: string
+          coupon_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          affiliate_id?: string
+          coupon_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_coupons_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_coupons_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_earnings: {
         Row: {
           affiliate_id: string
