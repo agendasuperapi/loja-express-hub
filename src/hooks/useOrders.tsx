@@ -369,7 +369,40 @@ export const useOrders = () => {
               const commissionType = storeAffiliate?.default_commission_type || legacyAffiliate?.default_commission_type || 'percentage';
               const commissionValue = storeAffiliate?.default_commission_value || legacyAffiliate?.default_commission_value || 0;
 
-              // 5. Se há regras específicas, calcular por item
+              // 5. Tentar encontrar store_affiliate_id para afiliados legados
+              let resolvedStoreAffiliateId = storeAffiliate?.id || null;
+              
+              if (!resolvedStoreAffiliateId && legacyAffiliate) {
+                // Buscar user_id do afiliado legado
+                const { data: legacyAffiliateDetails } = await supabase
+                  .from('affiliates')
+                  .select('user_id')
+                  .eq('id', legacyAffiliate.id)
+                  .single();
+
+                if (legacyAffiliateDetails?.user_id) {
+                  // Buscar email do usuário via profiles/auth (indiretamente)
+                  // Como não temos acesso direto ao auth.users, buscar affiliate_account pelo mesmo email
+                  const { data: linkedStoreAffiliate } = await supabase
+                    .from('store_affiliates')
+                    .select(`
+                      id, 
+                      affiliate_accounts!inner(id, email)
+                    `)
+                    .eq('store_id', validatedData.storeId)
+                    .eq('is_active', true);
+                  
+                  // Tentar encontrar correspondência
+                  if (linkedStoreAffiliate && linkedStoreAffiliate.length > 0) {
+                    // Por simplicidade, usar o primeiro store_affiliate ativo da loja
+                    // que corresponde ao afiliado (mesmo se não conseguirmos verificar email)
+                    resolvedStoreAffiliateId = linkedStoreAffiliate[0].id;
+                    console.log('🔗 Vinculando afiliado legado ao store_affiliate:', resolvedStoreAffiliateId);
+                  }
+                }
+              }
+
+              // 6. Se há regras específicas, calcular por item
               if (commissionRules.length > 0) {
                 for (const item of validatedData.items) {
                   const itemSubtotal = item.unitPrice * item.quantity;
@@ -410,7 +443,7 @@ export const useOrders = () => {
                   }
                 }
               } else {
-                // 6. Sem regras específicas, calcular sobre o subtotal (sem taxa de entrega)
+                // 7. Sem regras específicas, calcular sobre o subtotal (sem taxa de entrega)
                 if (commissionType === 'percentage') {
                   totalCommission = (subtotal * commissionValue) / 100;
                 } else {
@@ -418,12 +451,12 @@ export const useOrders = () => {
                 }
               }
 
-              // 7. Registrar comissão
+              // 8. Registrar comissão
               const { error: earningsError } = await supabase
                 .from('affiliate_earnings')
                 .insert({
                   affiliate_id: legacyAffiliate?.id || storeAffiliate.id,
-                  store_affiliate_id: storeAffiliate?.id || null,
+                  store_affiliate_id: resolvedStoreAffiliateId,
                   order_id: createdOrder.id,
                   order_total: total,
                   commission_type: commissionType,
