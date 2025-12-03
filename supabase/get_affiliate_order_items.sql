@@ -1,6 +1,6 @@
 -- Função para buscar itens de um pedido com detalhes de comissão do afiliado
--- Suporta tanto sistema novo (store_affiliate_id) quanto legado (affiliate_id via affiliate_earnings)
--- CORRIGIDO: Usa orders.subtotal para distribuição proporcional (antes do desconto)
+-- ATUALIZADO: Calcula comissão sobre o valor COM DESCONTO do cupom
+-- Distribui o desconto proporcionalmente entre os itens
 CREATE OR REPLACE FUNCTION public.get_affiliate_order_items(
   p_order_id UUID,
   p_store_affiliate_id UUID DEFAULT NULL
@@ -13,6 +13,8 @@ RETURNS TABLE (
   quantity INT,
   unit_price NUMERIC,
   subtotal NUMERIC,
+  item_discount NUMERIC,
+  item_value_with_discount NUMERIC,
   commission_type TEXT,
   commission_source TEXT,
   commission_value NUMERIC,
@@ -27,15 +29,19 @@ DECLARE
   v_commission_value NUMERIC;
   v_total_commission NUMERIC;
   v_order_subtotal NUMERIC;
+  v_coupon_discount NUMERIC;
+  v_valor_base NUMERIC;
 BEGIN
-  -- Buscar subtotal do pedido da tabela orders (antes do desconto e sem taxa de entrega)
-  SELECT o.subtotal INTO v_order_subtotal
+  -- Buscar subtotal e desconto do pedido
+  SELECT o.subtotal, COALESCE(o.coupon_discount, 0) 
+  INTO v_order_subtotal, v_coupon_discount
   FROM orders o
   WHERE o.id = p_order_id;
 
+  -- Calcular valor base (com desconto)
+  v_valor_base := COALESCE(v_order_subtotal, 0) - v_coupon_discount;
+
   -- Buscar comissão do momento do pedido
-  -- Primeiro tenta pelo store_affiliate_id (sistema novo)
-  -- Se não encontrar e store_affiliate_id for NULL, busca pelo order_id apenas
   IF p_store_affiliate_id IS NOT NULL THEN
     SELECT 
       ae.commission_type,
@@ -46,7 +52,6 @@ BEGIN
     WHERE ae.order_id = p_order_id
     AND ae.store_affiliate_id = p_store_affiliate_id;
   ELSE
-    -- Buscar pelo order_id onde store_affiliate_id é NULL (sistema legado)
     SELECT 
       ae.commission_type,
       ae.commission_value,
@@ -65,9 +70,9 @@ BEGIN
     v_total_commission := 0;
   END IF;
 
-  -- Se não encontrou subtotal, usar 0
+  -- Se não encontrou subtotal, usar 1 para evitar divisão por zero
   IF v_order_subtotal IS NULL OR v_order_subtotal = 0 THEN
-    v_order_subtotal := 1; -- Evitar divisão por zero
+    v_order_subtotal := 1;
   END IF;
 
   RETURN QUERY
@@ -79,14 +84,17 @@ BEGIN
     oi.quantity::INT,
     oi.unit_price,
     oi.subtotal,
+    -- Desconto proporcional do item: (item.subtotal / order_subtotal) * coupon_discount
+    ROUND((oi.subtotal / v_order_subtotal) * v_coupon_discount, 2) as item_discount,
+    -- Valor do item com desconto
+    ROUND(oi.subtotal - ((oi.subtotal / v_order_subtotal) * v_coupon_discount), 2) as item_value_with_discount,
     v_commission_type::TEXT as commission_type,
     'pedido'::TEXT as commission_source,
     v_commission_value as commission_value,
-    -- Distribuir a comissão total proporcionalmente ao subtotal do item
-    -- Usa orders.subtotal (antes do desconto) para cálculo correto
+    -- Distribuir a comissão total proporcionalmente usando valor com desconto
     CASE 
-      WHEN v_order_subtotal > 0 THEN 
-        ROUND((oi.subtotal / v_order_subtotal) * v_total_commission, 2)
+      WHEN v_valor_base > 0 THEN 
+        ROUND((ROUND(oi.subtotal - ((oi.subtotal / v_order_subtotal) * v_coupon_discount), 2) / v_valor_base) * v_total_commission, 2)
       ELSE 
         0
     END as item_commission
