@@ -1,7 +1,6 @@
--- Trigger para criar comissão de afiliado automaticamente quando um pedido com cupom é criado
--- Este trigger é mais confiável que o código cliente pois roda com permissões de banco
+-- Trigger para processar comissão de afiliado automaticamente quando um pedido é criado
+-- ATUALIZADO: Calcula comissão sobre o valor COM DESCONTO (subtotal - coupon_discount)
 
--- Função que processa a comissão
 CREATE OR REPLACE FUNCTION public.process_affiliate_commission()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -17,6 +16,7 @@ DECLARE
   v_commission_amount NUMERIC;
   v_store_affiliate_id UUID;
   v_affiliate_id UUID;
+  v_valor_base NUMERIC;
 BEGIN
   -- Só processar se tiver cupom
   IF NEW.coupon_code IS NULL OR NEW.coupon_code = '' THEN
@@ -175,15 +175,18 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  -- Calcular comissão
+  -- NOVO: Calcular valor base = subtotal - desconto do cupom
+  v_valor_base := NEW.subtotal - COALESCE(NEW.coupon_discount, 0);
+
+  -- Calcular comissão sobre o valor COM DESCONTO
   IF v_commission_type = 'percentage' THEN
-    v_commission_amount := (NEW.subtotal * v_commission_value) / 100;
+    v_commission_amount := (v_valor_base * v_commission_value) / 100;
   ELSE
     v_commission_amount := v_commission_value;
   END IF;
 
-  RAISE NOTICE '[COMMISSION] Calculando comissão: tipo=%, valor=%, subtotal=%, comissão=%', 
-    v_commission_type, v_commission_value, NEW.subtotal, v_commission_amount;
+  RAISE NOTICE '[COMMISSION] Calculando comissão: tipo=%, valor=%, subtotal=%, desconto=%, valor_base=%, comissão=%', 
+    v_commission_type, v_commission_value, NEW.subtotal, COALESCE(NEW.coupon_discount, 0), v_valor_base, v_commission_amount;
 
   -- Se não temos affiliate_id mas temos store_affiliate_id, criar um placeholder
   IF v_affiliate_id IS NULL AND v_store_affiliate_id IS NOT NULL THEN
@@ -224,7 +227,7 @@ BEGIN
   END IF;
 
   -- Inserir comissão
-  -- CORRIGIDO: Usa NEW.subtotal ao invés de NEW.total para armazenar o valor base correto
+  -- ATUALIZADO: order_total armazena o valor COM DESCONTO (base da comissão)
   INSERT INTO affiliate_earnings (
     affiliate_id,
     store_affiliate_id,
@@ -238,15 +241,15 @@ BEGIN
     v_affiliate_id,
     v_store_affiliate_id,
     NEW.id,
-    NEW.subtotal,  -- Subtotal antes do desconto (valor base correto para comissão)
+    v_valor_base,  -- Valor com desconto (subtotal - coupon_discount)
     v_commission_type,
     v_commission_value,
     v_commission_amount,
     'pending'
   );
 
-  RAISE NOTICE '[COMMISSION] ✅ Comissão criada! affiliate_id=%, store_affiliate_id=%, amount=%', 
-    v_affiliate_id, v_store_affiliate_id, v_commission_amount;
+  RAISE NOTICE '[COMMISSION] ✅ Comissão criada! affiliate_id=%, store_affiliate_id=%, valor_base=%, amount=%', 
+    v_affiliate_id, v_store_affiliate_id, v_valor_base, v_commission_amount;
 
   RETURN NEW;
 EXCEPTION
@@ -256,23 +259,22 @@ EXCEPTION
 END;
 $$;
 
--- Remover trigger existente se houver
+-- Remover triggers existentes se houver
 DROP TRIGGER IF EXISTS process_affiliate_commission_trigger ON orders;
+DROP TRIGGER IF EXISTS process_affiliate_commission_update_trigger ON orders;
 
--- Criar trigger que executa após insert de pedido
+-- Criar trigger para INSERT
 CREATE TRIGGER process_affiliate_commission_trigger
   AFTER INSERT ON orders
   FOR EACH ROW
   EXECUTE FUNCTION process_affiliate_commission();
 
--- Também criar trigger para quando o pedido é atualizado com cupom
-DROP TRIGGER IF EXISTS process_affiliate_commission_update_trigger ON orders;
-
+-- Criar trigger para UPDATE (quando coupon_code é adicionado/alterado)
 CREATE TRIGGER process_affiliate_commission_update_trigger
-  AFTER UPDATE OF coupon_code ON orders
+  AFTER UPDATE ON orders
   FOR EACH ROW
   WHEN (OLD.coupon_code IS DISTINCT FROM NEW.coupon_code AND NEW.coupon_code IS NOT NULL)
   EXECUTE FUNCTION process_affiliate_commission();
 
--- Conceder permissões
-GRANT EXECUTE ON FUNCTION process_affiliate_commission() TO authenticated, anon, service_role;
+-- Garantir permissões
+GRANT EXECUTE ON FUNCTION public.process_affiliate_commission() TO authenticated, anon, service_role;
