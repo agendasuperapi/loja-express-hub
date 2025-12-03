@@ -1919,6 +1919,42 @@ export type Database = {
           },
         ]
       }
+      store_affiliate_coupons: {
+        Row: {
+          coupon_id: string
+          created_at: string | null
+          id: string
+          store_affiliate_id: string
+        }
+        Insert: {
+          coupon_id: string
+          created_at?: string | null
+          id?: string
+          store_affiliate_id: string
+        }
+        Update: {
+          coupon_id?: string
+          created_at?: string | null
+          id?: string
+          store_affiliate_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_affiliate_coupons_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_affiliate_coupons_store_affiliate_id_fkey"
+            columns: ["store_affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "store_affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_affiliates: {
         Row: {
           accepted_at: string | null
