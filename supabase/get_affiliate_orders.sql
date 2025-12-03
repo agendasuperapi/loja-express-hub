@@ -10,6 +10,8 @@ RETURNS TABLE (
   store_name TEXT,
   store_affiliate_id UUID,
   order_total NUMERIC,
+  order_subtotal NUMERIC,
+  coupon_discount NUMERIC,
   commission_amount NUMERIC,
   commission_status TEXT,
   coupon_code TEXT
@@ -30,6 +32,8 @@ BEGIN
     s.name::TEXT as store_name,
     ae.store_affiliate_id,
     ae.order_total,
+    o.subtotal as order_subtotal,
+    COALESCE(o.coupon_discount, 0) as coupon_discount,
     ae.commission_amount,
     ae.status::TEXT as commission_status,
     o.coupon_code::TEXT

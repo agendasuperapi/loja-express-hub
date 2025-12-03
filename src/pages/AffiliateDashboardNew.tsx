@@ -519,33 +519,46 @@ export default function AffiliateDashboardNew() {
                                       <p className="text-sm text-muted-foreground">Nenhum item encontrado</p>
                                     ) : (
                                       <div className="space-y-2">
-                                        {orderItems[order.order_id].map((item) => (
-                                          <div 
-                                            key={item.item_id} 
-                                            className="flex items-center justify-between py-2 px-3 bg-background rounded-lg border"
-                                          >
-                                            <div className="flex-1">
-                                              <p className="font-medium text-sm">{item.product_name}</p>
-                                              <p className="text-xs text-muted-foreground">
-                                                {item.quantity}x {formatCurrency(item.unit_price)} = {formatCurrency(item.subtotal)}
-                                              </p>
+                                        {orderItems[order.order_id].map((item) => {
+                                          // Calcular desconto proporcional do cupom para este item
+                                          const itemCouponDiscount = order.order_subtotal > 0 && order.coupon_discount > 0
+                                            ? (item.subtotal / order.order_subtotal) * order.coupon_discount
+                                            : 0;
+                                          
+                                          return (
+                                            <div 
+                                              key={item.item_id} 
+                                              className="flex items-center justify-between py-2 px-3 bg-background rounded-lg border"
+                                            >
+                                              <div className="flex-1">
+                                                <p className="font-medium text-sm">{item.product_name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {item.quantity}x {formatCurrency(item.unit_price)} = {formatCurrency(item.subtotal)}
+                                                  {itemCouponDiscount > 0 && (
+                                                    <span className="text-orange-500 ml-1">
+                                                      (-{formatCurrency(itemCouponDiscount)})
+                                                    </span>
+                                                  )}
+                                                </p>
+                                              </div>
+                                              <div className="flex items-center gap-3">
+                                                <Badge variant="secondary" className="text-xs">
+                                                  {item.commission_type === 'percentage' 
+                                                    ? `${item.commission_value}%` 
+                                                    : formatCurrency(item.commission_value)
+                                                  }
+                                                  {' '}
+                                                  {item.commission_source === 'pedido' ? 'Pedido' :
+                                                    item.commission_source === 'geral' ? 'Geral' : 
+                                                    item.commission_source === 'categoria' ? 'Categoria' : 'Produto'}
+                                                </Badge>
+                                                <span className="font-semibold text-green-600 text-sm whitespace-nowrap">
+                                                  {formatCurrency(item.item_commission)}
+                                                </span>
+                                              </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                              <Badge variant="secondary" className="text-xs">
-                                                {item.commission_type === 'percentage' 
-                                                  ? `${item.commission_value}%` 
-                                                  : formatCurrency(item.commission_value)
-                                                }
-                                                {' '}
-                                                {item.commission_source === 'geral' ? 'Geral' : 
-                                                  item.commission_source === 'categoria' ? 'Categoria' : 'Produto'}
-                                              </Badge>
-                                              <span className="font-semibold text-green-600 text-sm whitespace-nowrap">
-                                                {formatCurrency(item.item_commission)}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        ))}
+                                          );
+                                        })}
                                       </div>
                                     )}
                                   </div>

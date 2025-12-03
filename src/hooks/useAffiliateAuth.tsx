@@ -59,6 +59,8 @@ export interface AffiliateOrder {
   store_name: string;
   store_affiliate_id?: string;
   order_total: number;
+  order_subtotal: number;
+  coupon_discount: number;
   commission_amount: number;
   commission_status: string;
   coupon_code?: string;
