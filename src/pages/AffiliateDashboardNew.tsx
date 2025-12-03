@@ -451,6 +451,7 @@ export default function AffiliateDashboardNew() {
                           <TableHead>Data</TableHead>
                           <TableHead>Loja</TableHead>
                           <TableHead>Cliente</TableHead>
+                          <TableHead>Cupom</TableHead>
                           <TableHead className="text-right">Valor</TableHead>
                           <TableHead className="text-right">Comissão</TableHead>
                           <TableHead>Status</TableHead>
@@ -483,6 +484,11 @@ export default function AffiliateDashboardNew() {
                               </TableCell>
                               <TableCell>
                                 {order.customer_name}
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="font-mono text-xs">
+                                  {order.coupon_code || '-'}
+                                </Badge>
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap">
                                 {formatCurrency(order.order_total)}
