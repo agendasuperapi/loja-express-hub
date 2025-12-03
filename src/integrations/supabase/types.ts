@@ -2517,6 +2517,22 @@ export type Database = {
           total_stores: number
         }[]
       }
+      get_affiliate_orders: {
+        Args: { p_affiliate_account_id: string }
+        Returns: {
+          commission_amount: number
+          commission_status: string
+          coupon_code: string
+          customer_name: string
+          earning_id: string
+          order_date: string
+          order_id: string
+          order_number: string
+          order_total: number
+          store_id: string
+          store_name: string
+        }[]
+      }
       get_affiliate_stores: {
         Args: { p_affiliate_account_id: string }
         Returns: {
