@@ -288,18 +288,22 @@ export const useOrders = () => {
       // 🎯 Registrar comissão de afiliado se o pedido tiver cupom vinculado a um afiliado
       if (validatedData.couponCode) {
         try {
+          console.log('🔍 [AFFILIATE] Buscando afiliado para cupom:', validatedData.couponCode);
+          
           // Buscar cupom pelo código
-          const { data: coupon } = await supabase
+          const { data: coupon, error: couponError } = await supabase
             .from('coupons')
-            .select('id, discount_type, discount_value')
+            .select('id, discount_type, discount_value, code')
             .eq('store_id', validatedData.storeId)
             .ilike('code', validatedData.couponCode)
-            .single();
+            .maybeSingle();
+
+          console.log('📋 [AFFILIATE] Cupom encontrado:', coupon, 'Erro:', couponError);
 
           if (coupon) {
             // 1. Primeiro buscar na junction table store_affiliate_coupons
             let storeAffiliate: any = null;
-            const { data: sacData } = await supabase
+            const { data: sacData, error: sacError } = await supabase
               .from('store_affiliate_coupons')
               .select(`
                 store_affiliate_id,
@@ -308,25 +312,29 @@ export const useOrders = () => {
                 )
               `)
               .eq('coupon_id', coupon.id)
-              .single();
+              .maybeSingle();
+
+            console.log('🏪 [AFFILIATE] store_affiliate_coupons:', sacData, 'Erro:', sacError);
 
             if (sacData?.store_affiliates && (sacData.store_affiliates as any).store_id === validatedData.storeId && (sacData.store_affiliates as any).is_active) {
               storeAffiliate = sacData.store_affiliates;
+              console.log('✅ [AFFILIATE] Encontrado via store_affiliate_coupons:', storeAffiliate);
             } else {
               // 2. Fallback: buscar pelo coupon_id direto em store_affiliates (legacy)
-              const { data: saData } = await supabase
+              const { data: saData, error: saError } = await supabase
                 .from('store_affiliates')
                 .select('id, default_commission_type, default_commission_value')
                 .eq('store_id', validatedData.storeId)
                 .eq('coupon_id', coupon.id)
                 .eq('is_active', true)
                 .maybeSingle();
+              console.log('🏪 [AFFILIATE] store_affiliates legacy:', saData, 'Erro:', saError);
               storeAffiliate = saData;
             }
 
             // 3. Buscar na junction table affiliate_coupons (sistema legado - múltiplos cupons)
             let legacyAffiliate: any = null;
-            const { data: acData } = await supabase
+            const { data: acData, error: acError } = await supabase
               .from('affiliate_coupons')
               .select(`
                 affiliate_id,
@@ -337,21 +345,27 @@ export const useOrders = () => {
               .eq('coupon_id', coupon.id)
               .maybeSingle();
 
+            console.log('👤 [AFFILIATE] affiliate_coupons:', acData, 'Erro:', acError);
+
             if (acData?.affiliates && (acData.affiliates as any).store_id === validatedData.storeId && (acData.affiliates as any).is_active) {
               legacyAffiliate = acData.affiliates;
+              console.log('✅ [AFFILIATE] Encontrado via affiliate_coupons:', legacyAffiliate);
             }
 
             // 4. Fallback: buscar pelo coupon_id direto em affiliates (legacy - cupom único)
             if (!legacyAffiliate) {
-              const { data: affData } = await supabase
+              const { data: affData, error: affError } = await supabase
                 .from('affiliates')
                 .select('id, default_commission_type, default_commission_value')
                 .eq('store_id', validatedData.storeId)
                 .eq('coupon_id', coupon.id)
                 .eq('is_active', true)
                 .maybeSingle();
+              console.log('👤 [AFFILIATE] affiliates legacy:', affData, 'Erro:', affError);
               legacyAffiliate = affData;
             }
+            
+            console.log('📊 [AFFILIATE] Resumo - storeAffiliate:', storeAffiliate?.id, 'legacyAffiliate:', legacyAffiliate?.id);
 
             // 4. Buscar regras de comissão específicas (se existir affiliate legado)
             let commissionRules: any[] = [];
