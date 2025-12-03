@@ -297,60 +297,133 @@ export const useOrders = () => {
             .single();
 
           if (coupon) {
-            // Verificar se existe um store_affiliate com este cupom
-            const { data: storeAffiliate } = await supabase
-              .from('store_affiliates')
-              .select('id, affiliate_account_id, default_commission_type, default_commission_value')
-              .eq('store_id', validatedData.storeId)
+            // 1. Primeiro buscar na junction table store_affiliate_coupons
+            let storeAffiliate: any = null;
+            const { data: sacData } = await supabase
+              .from('store_affiliate_coupons')
+              .select(`
+                store_affiliate_id,
+                store_affiliates!inner(
+                  id, store_id, default_commission_type, default_commission_value, is_active
+                )
+              `)
               .eq('coupon_id', coupon.id)
-              .eq('is_active', true)
               .single();
 
-            if (storeAffiliate) {
-              // Calcular comissão baseada no desconto do cupom (comissão = mesmo valor do desconto dado)
-              const commissionType = storeAffiliate.default_commission_type || 'percentage';
-              const commissionValue = storeAffiliate.default_commission_value || couponDiscount;
-              let commissionAmount = 0;
-
-              if (commissionType === 'percentage') {
-                commissionAmount = (total * commissionValue) / 100;
-              } else {
-                commissionAmount = commissionValue;
-              }
-
-              // Buscar o affiliate_id antigo (se existir) para compatibilidade
-              const { data: legacyAffiliate } = await supabase
-                .from('affiliates')
-                .select('id')
+            if (sacData?.store_affiliates && (sacData.store_affiliates as any).store_id === validatedData.storeId && (sacData.store_affiliates as any).is_active) {
+              storeAffiliate = sacData.store_affiliates;
+            } else {
+              // 2. Fallback: buscar pelo coupon_id direto em store_affiliates (legacy)
+              const { data: saData } = await supabase
+                .from('store_affiliates')
+                .select('id, default_commission_type, default_commission_value')
                 .eq('store_id', validatedData.storeId)
                 .eq('coupon_id', coupon.id)
                 .eq('is_active', true)
                 .maybeSingle();
+              storeAffiliate = saData;
+            }
 
-              if (legacyAffiliate || storeAffiliate) {
-                // Inserir registro de comissão
-                const { error: earningsError } = await supabase
-                  .from('affiliate_earnings')
-                  .insert({
-                    affiliate_id: legacyAffiliate?.id || storeAffiliate.id,
-                    store_affiliate_id: storeAffiliate.id,
-                    order_id: createdOrder.id,
-                    order_total: total,
-                    commission_type: commissionType,
-                    commission_value: commissionValue,
-                    commission_amount: commissionAmount,
-                    status: 'pending'
-                  });
+            // 3. Buscar affiliate legado (para regras de comissão e compatibilidade)
+            const { data: legacyAffiliate } = await supabase
+              .from('affiliates')
+              .select('id, default_commission_type, default_commission_value')
+              .eq('store_id', validatedData.storeId)
+              .eq('coupon_id', coupon.id)
+              .eq('is_active', true)
+              .maybeSingle();
 
-                if (earningsError) {
-                  console.warn('⚠️ Erro ao registrar comissão de afiliado:', earningsError);
-                } else {
-                  console.log('✅ Comissão de afiliado registrada:', {
-                    storeAffiliateId: storeAffiliate.id,
-                    commissionAmount,
-                    orderId: createdOrder.id
-                  });
+            // 4. Buscar regras de comissão específicas (se existir affiliate legado)
+            let commissionRules: any[] = [];
+            if (legacyAffiliate) {
+              const { data: rules } = await supabase
+                .from('affiliate_commission_rules')
+                .select('*')
+                .eq('affiliate_id', legacyAffiliate.id)
+                .eq('is_active', true);
+              commissionRules = rules || [];
+            }
+
+            if (storeAffiliate || legacyAffiliate) {
+              let totalCommission = 0;
+              const commissionType = storeAffiliate?.default_commission_type || legacyAffiliate?.default_commission_type || 'percentage';
+              const commissionValue = storeAffiliate?.default_commission_value || legacyAffiliate?.default_commission_value || 0;
+
+              // 5. Se há regras específicas, calcular por item
+              if (commissionRules.length > 0) {
+                for (const item of validatedData.items) {
+                  const itemSubtotal = item.unitPrice * item.quantity;
+                  
+                  // Buscar produto para obter categoria
+                  const { data: product } = await supabase
+                    .from('products')
+                    .select('category')
+                    .eq('id', item.productId)
+                    .maybeSingle();
+                  
+                  // Verificar regra por produto (maior prioridade)
+                  const productRule = commissionRules.find((r: any) => 
+                    r.applies_to === 'product' && r.product_id === item.productId
+                  );
+                  
+                  // Verificar regra por categoria
+                  const categoryRule = commissionRules.find((r: any) => 
+                    r.applies_to === 'category' && r.category_name === product?.category
+                  );
+                  
+                  // Usar regra específica ou default
+                  const rule = productRule || categoryRule;
+                  
+                  if (rule) {
+                    if (rule.commission_type === 'percentage') {
+                      totalCommission += (itemSubtotal * rule.commission_value) / 100;
+                    } else {
+                      totalCommission += rule.commission_value;
+                    }
+                  } else {
+                    // Usar comissão default
+                    if (commissionType === 'percentage') {
+                      totalCommission += (itemSubtotal * commissionValue) / 100;
+                    } else {
+                      totalCommission += commissionValue;
+                    }
+                  }
                 }
+              } else {
+                // 6. Sem regras específicas, calcular sobre o subtotal (sem taxa de entrega)
+                if (commissionType === 'percentage') {
+                  totalCommission = (subtotal * commissionValue) / 100;
+                } else {
+                  totalCommission = commissionValue;
+                }
+              }
+
+              // 7. Registrar comissão
+              const { error: earningsError } = await supabase
+                .from('affiliate_earnings')
+                .insert({
+                  affiliate_id: legacyAffiliate?.id || storeAffiliate.id,
+                  store_affiliate_id: storeAffiliate?.id || null,
+                  order_id: createdOrder.id,
+                  order_total: total,
+                  commission_type: commissionType,
+                  commission_value: commissionValue,
+                  commission_amount: totalCommission,
+                  status: 'pending'
+                });
+
+              if (earningsError) {
+                console.warn('⚠️ Erro ao registrar comissão de afiliado:', earningsError);
+              } else {
+                console.log('✅ Comissão de afiliado registrada:', {
+                  affiliateId: legacyAffiliate?.id,
+                  storeAffiliateId: storeAffiliate?.id,
+                  commissionType,
+                  commissionValue,
+                  commissionAmount: totalCommission,
+                  rulesApplied: commissionRules.length,
+                  orderId: createdOrder.id
+                });
               }
             }
           }
