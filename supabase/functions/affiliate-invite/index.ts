@@ -245,6 +245,22 @@ serve(async (req) => {
           status: storeAffiliate.status
         });
 
+        // Insert into store_affiliate_coupons junction table if coupon_id provided
+        if (coupon_id) {
+          const { error: sacError } = await supabase
+            .from("store_affiliate_coupons")
+            .insert({
+              store_affiliate_id: storeAffiliate.id,
+              coupon_id: coupon_id,
+            });
+          
+          if (sacError) {
+            console.error("[affiliate-invite] store_affiliate_coupons insert error:", sacError);
+          } else {
+            console.log(`[affiliate-invite] store_affiliate_coupons inserted: store_affiliate_id=${storeAffiliate.id}, coupon_id=${coupon_id}`);
+          }
+        }
+
         // Verificar se o token foi realmente salvo no banco
         const { data: verifyInsert } = await supabase
           .from("store_affiliates")

@@ -148,6 +148,38 @@ export const useAffiliates = (storeId?: string) => {
           coupon_id: couponId,
         }));
         await (supabase as any).from('affiliate_coupons').insert(couponInserts);
+        
+        // Sync with store_affiliates system if affiliate_account exists
+        const { data: affiliateAccount } = await supabase
+          .from('affiliate_accounts')
+          .select('id')
+          .eq('email', rest.email?.toLowerCase() || '')
+          .maybeSingle();
+
+        if (affiliateAccount) {
+          const { data: storeAffiliate } = await (supabase as any)
+            .from('store_affiliates')
+            .select('id')
+            .eq('affiliate_account_id', affiliateAccount.id)
+            .eq('store_id', storeId)
+            .maybeSingle();
+
+          if (storeAffiliate) {
+            // Update legacy coupon_id field
+            await (supabase as any)
+              .from('store_affiliates')
+              .update({ coupon_id: coupon_ids[0] })
+              .eq('id', storeAffiliate.id);
+
+            // Sync store_affiliate_coupons junction table
+            const storeAffiliateInserts = coupon_ids.map(couponId => ({
+              store_affiliate_id: storeAffiliate.id,
+              coupon_id: couponId,
+            }));
+            await (supabase as any).from('store_affiliate_coupons').insert(storeAffiliateInserts);
+            console.log('✅ Synced coupons to store_affiliate_coupons:', storeAffiliateInserts);
+          }
+        }
       }
 
       toast({ title: 'Afiliado criado!' });
