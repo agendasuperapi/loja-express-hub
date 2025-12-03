@@ -277,11 +277,37 @@ export default function AffiliateDashboardNew() {
                                 
                                 {/* Discount info */}
                                 {coupon.discount_type && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {coupon.discount_type === 'percentage' 
-                                      ? `${coupon.discount_value}% de desconto`
-                                      : `${formatCurrency(coupon.discount_value || 0)} de desconto`}
-                                  </p>
+                                  <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">
+                                      {coupon.discount_type === 'percentage' 
+                                        ? `${coupon.discount_value}% de desconto`
+                                        : `${formatCurrency(coupon.discount_value || 0)} de desconto`}
+                                    </p>
+                                    {/* Scope info */}
+                                    <p className="text-xs text-muted-foreground/70">
+                                      {coupon.applies_to === 'all' || !coupon.applies_to ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Geral</Badge>
+                                          <span>Vale para todos os produtos</span>
+                                        </span>
+                                      ) : coupon.applies_to === 'categories' && coupon.category_names?.length ? (
+                                        <span className="inline-flex items-center gap-1 flex-wrap">
+                                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Categorias</Badge>
+                                          <span>{coupon.category_names.join(', ')}</span>
+                                        </span>
+                                      ) : coupon.applies_to === 'products' && coupon.product_ids?.length ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Produtos</Badge>
+                                          <span>{coupon.product_ids.length} produto(s) específico(s)</span>
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Geral</Badge>
+                                          <span>Vale para todos os produtos</span>
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
                                 )}
                                 
                                 {/* Individual affiliate link for this coupon */}

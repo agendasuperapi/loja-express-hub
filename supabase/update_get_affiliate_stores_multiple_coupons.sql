@@ -1,4 +1,4 @@
--- Update get_affiliate_stores function to return multiple coupons as JSONB array
+-- Update get_affiliate_stores function to return multiple coupons as JSONB array with scope info
 CREATE OR REPLACE FUNCTION public.get_affiliate_stores(p_affiliate_account_id UUID)
 RETURNS TABLE (
   store_affiliate_id UUID,
@@ -56,13 +56,16 @@ BEGIN
        LIMIT 1),
       legacy_c.discount_value
     ) as coupon_discount_value,
-    -- New: all coupons as JSONB array
+    -- New: all coupons as JSONB array with scope info
     COALESCE(
       (
         SELECT jsonb_agg(jsonb_build_object(
           'code', c.code,
           'discount_type', c.discount_type::TEXT,
-          'discount_value', c.discount_value
+          'discount_value', c.discount_value,
+          'applies_to', c.applies_to,
+          'category_names', c.category_names,
+          'product_ids', c.product_ids
         ))
         FROM store_affiliate_coupons sac
         JOIN coupons c ON c.id = sac.coupon_id
@@ -74,7 +77,10 @@ BEGIN
           jsonb_build_array(jsonb_build_object(
             'code', legacy_c.code,
             'discount_type', legacy_c.discount_type::TEXT,
-            'discount_value', legacy_c.discount_value
+            'discount_value', legacy_c.discount_value,
+            'applies_to', legacy_c.applies_to,
+            'category_names', legacy_c.category_names,
+            'product_ids', legacy_c.product_ids
           ))
         ELSE NULL
       END
@@ -88,7 +94,7 @@ BEGIN
   LEFT JOIN affiliate_earnings ae ON ae.store_affiliate_id = sa.id
   WHERE sa.affiliate_account_id = p_affiliate_account_id
   AND sa.is_active = true
-  GROUP BY sa.id, s.id, s.name, s.slug, s.logo_url, sa.default_commission_type, sa.default_commission_value, sa.status, legacy_c.id, legacy_c.code, legacy_c.discount_type, legacy_c.discount_value;
+  GROUP BY sa.id, s.id, s.name, s.slug, s.logo_url, sa.default_commission_type, sa.default_commission_value, sa.status, legacy_c.id, legacy_c.code, legacy_c.discount_type, legacy_c.discount_value, legacy_c.applies_to, legacy_c.category_names, legacy_c.product_ids;
 END;
 $$;
 

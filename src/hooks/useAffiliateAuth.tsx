@@ -15,6 +15,9 @@ interface AffiliateCoupon {
   code: string;
   discount_type: string;
   discount_value: number;
+  applies_to?: string;
+  category_names?: string[];
+  product_ids?: string[];
 }
 
 interface AffiliateStore {
