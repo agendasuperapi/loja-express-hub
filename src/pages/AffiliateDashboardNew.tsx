@@ -255,15 +255,16 @@ export default function AffiliateDashboardNew() {
                               </span>
                             </div>
                             
-                            {/* Render all coupons */}
+                            {/* Render all coupons with individual links */}
                             {(store.coupons && store.coupons.length > 0 
                               ? store.coupons 
                               : store.coupon_code 
                                 ? [{ code: store.coupon_code, discount_type: store.coupon_discount_type || '', discount_value: store.coupon_discount_value || 0 }]
                                 : []
                             ).map((coupon, idx) => (
-                              <div key={idx} className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                                <div className="flex items-center justify-between mb-2">
+                              <div key={idx} className="p-3 bg-primary/5 rounded-lg border border-primary/20 space-y-3">
+                                {/* Coupon code */}
+                                <div className="flex items-center justify-between">
                                   <p className="font-mono font-bold text-xl text-primary">{coupon.code}</p>
                                   <Button
                                     variant="ghost"
@@ -273,6 +274,8 @@ export default function AffiliateDashboardNew() {
                                     <Copy className="h-4 w-4" />
                                   </Button>
                                 </div>
+                                
+                                {/* Discount info */}
                                 {coupon.discount_type && (
                                   <p className="text-xs text-muted-foreground">
                                     {coupon.discount_type === 'percentage' 
@@ -280,33 +283,38 @@ export default function AffiliateDashboardNew() {
                                       : `${formatCurrency(coupon.discount_value || 0)} de desconto`}
                                   </p>
                                 )}
+                                
+                                {/* Individual affiliate link for this coupon */}
+                                <div className="pt-2 border-t border-primary/10">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Link className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-xs text-muted-foreground">Link de afiliado</span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      value={`https://ofertas.app/${store.store_slug}?cupom=${coupon.code}`}
+                                      readOnly
+                                      className="font-mono text-xs h-8"
+                                    />
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      className="h-8"
+                                      onClick={() => copyToClipboard(
+                                        `https://ofertas.app/${store.store_slug}?cupom=${coupon.code}`,
+                                        'Link de afiliado'
+                                      )}
+                                    >
+                                      <Copy className="h-3 w-3 mr-1" />
+                                      Copiar
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                             
-                            <div className="flex items-center gap-2">
-                              <Link className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm font-medium">Link de afiliado</span>
-                            </div>
-                            <div className="flex gap-2">
-                              <Input
-                                value={`https://ofertas.app/${store.store_slug}?cupom=${store.coupons?.[0]?.code || store.coupon_code}`}
-                                readOnly
-                                className="font-mono text-xs"
-                              />
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => copyToClipboard(
-                                  `https://ofertas.app/${store.store_slug}?cupom=${store.coupons?.[0]?.code || store.coupon_code}`,
-                                  'Link de afiliado'
-                                )}
-                              >
-                                <Copy className="h-4 w-4 mr-1" />
-                                Copiar
-                              </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Compartilhe este link. O cupom será aplicado automaticamente!
+                            <p className="text-xs text-muted-foreground text-center">
+                              Compartilhe o link. O cupom será aplicado automaticamente!
                             </p>
                           </div>
                         </>
