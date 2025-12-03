@@ -44,7 +44,7 @@ JOIN affiliates a ON a.id = ac.affiliate_id
 WHERE LOWER(a.email) = 'luanateste04@gmail.com';
 
 -- 5. Verificar affiliates.coupon_id (campo legado único)
-SELECT id, email, coupon_id, c.code
+SELECT a.id, a.email, a.coupon_id, c.code
 FROM affiliates a
 LEFT JOIN coupons c ON c.id = a.coupon_id
 WHERE LOWER(a.email) = 'luanateste04@gmail.com';
