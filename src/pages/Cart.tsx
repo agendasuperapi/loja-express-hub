@@ -276,6 +276,53 @@ export default function Cart() {
     loadUserProfile();
   }, [user]);
 
+  // Auto-apply affiliate coupon from localStorage
+  useEffect(() => {
+    const autoApplyAffiliateCoupon = async () => {
+      if (!cart.storeId || cart.couponCode) return;
+      
+      const couponKey = `affiliate_coupon_${cart.storeId}`;
+      const affiliateCoupon = localStorage.getItem(couponKey);
+      
+      if (!affiliateCoupon) return;
+      
+      console.log('🎫 Cupom de afiliado encontrado:', affiliateCoupon);
+      
+      // Preencher o campo de cupom automaticamente
+      setCouponInput(affiliateCoupon);
+      
+      // Tentar validar e aplicar automaticamente
+      try {
+        setIsValidatingCoupon(true);
+        const subtotal = getTotal();
+        const result = await validateCoupon(affiliateCoupon, subtotal);
+        
+        if (result.is_valid && result.discount_amount > 0) {
+          applyCoupon(affiliateCoupon, result.discount_amount);
+          setCouponInput("");
+          
+          // Limpar do localStorage após aplicar com sucesso
+          localStorage.removeItem(couponKey);
+          
+          toast({
+            title: "Cupom aplicado automaticamente!",
+            description: `Desconto de R$ ${result.discount_amount.toFixed(2)} aplicado ao seu pedido.`,
+          });
+        } else {
+          console.warn('⚠️ Cupom de afiliado inválido:', result);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao validar cupom de afiliado:', error);
+      } finally {
+        setIsValidatingCoupon(false);
+      }
+    };
+    
+    // Executar após um pequeno delay para garantir que o carrinho está carregado
+    const timer = setTimeout(autoApplyAffiliateCoupon, 500);
+    return () => clearTimeout(timer);
+  }, [cart.storeId, cart.couponCode, cart.items.length, getTotal, validateCoupon, applyCoupon]);
+
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) {
       toast({
