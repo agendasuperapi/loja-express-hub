@@ -2517,6 +2517,22 @@ export type Database = {
           total_stores: number
         }[]
       }
+      get_affiliate_order_items: {
+        Args: { p_order_id: string; p_store_affiliate_id: string }
+        Returns: {
+          commission_source: string
+          commission_type: string
+          commission_value: number
+          item_commission: number
+          item_id: string
+          product_category: string
+          product_id: string
+          product_name: string
+          quantity: number
+          subtotal: number
+          unit_price: number
+        }[]
+      }
       get_affiliate_orders: {
         Args: { p_affiliate_account_id: string }
         Returns: {
@@ -2529,6 +2545,7 @@ export type Database = {
           order_id: string
           order_number: string
           order_total: number
+          store_affiliate_id: string
           store_id: string
           store_name: string
         }[]
