@@ -746,7 +746,7 @@ serve(async (req) => {
         // Buscar itens de um pedido específico com detalhes de comissão
         const { affiliate_token, order_id, store_affiliate_id } = body;
 
-        console.log(`[affiliate-invite] order-details: order_id=${order_id}, store_affiliate_id=${store_affiliate_id}`);
+        console.log(`[affiliate-invite] order-details: order_id=${order_id}, store_affiliate_id=${store_affiliate_id || 'null (legacy)'}`);
 
         if (!affiliate_token) {
           return new Response(
@@ -768,9 +768,10 @@ serve(async (req) => {
         }
 
         // Buscar itens do pedido com comissões calculadas
+        // Suporta tanto store_affiliate_id (novo) quanto null (legado)
         const { data: items, error: itemsError } = await supabase.rpc("get_affiliate_order_items", {
           p_order_id: order_id,
-          p_store_affiliate_id: store_affiliate_id,
+          p_store_affiliate_id: store_affiliate_id || null,
         });
 
         console.log(`[affiliate-invite] order-details: found=${items?.length || 0} items, error=${itemsError?.message || 'none'}`);

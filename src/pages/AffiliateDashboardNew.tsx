@@ -108,16 +108,10 @@ export default function AffiliateDashboardNew() {
       return;
     }
 
-    // Carregar itens do pedido
-    if (!storeAffiliateId) {
-      console.warn('[toggleOrderExpansion] storeAffiliateId is undefined, cannot load items');
-      toast.error('Não foi possível carregar os itens: ID do afiliado não encontrado');
-      return;
-    }
-    
+    // Carregar itens do pedido - suporta pedidos legados (sem store_affiliate_id)
     setLoadingItems(prev => ({ ...prev, [orderId]: true }));
     try {
-      const items = await fetchOrderItems(orderId, storeAffiliateId);
+      const items = await fetchOrderItems(orderId, storeAffiliateId || null);
       setOrderItems(prev => ({ ...prev, [orderId]: items }));
       setExpandedOrders(prev => ({ ...prev, [orderId]: true }));
     } catch (err) {
@@ -345,7 +339,7 @@ export default function AffiliateDashboardNew() {
                                         : `${formatCurrency(coupon.discount_value || 0)} de desconto`}
                                     </p>
                                     {/* Scope info */}
-                                    <p className="text-xs text-muted-foreground/70">
+                                    <div className="text-xs text-muted-foreground/70">
                                       {coupon.applies_to === 'all' || !coupon.applies_to ? (
                                         <span className="inline-flex items-center gap-1">
                                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Geral</Badge>
@@ -367,7 +361,7 @@ export default function AffiliateDashboardNew() {
                                           <span>Vale para todos os produtos</span>
                                         </span>
                                       )}
-                                    </p>
+                                    </div>
                                   </div>
                                 )}
                                 

@@ -92,7 +92,7 @@ interface AffiliateAuthContextType {
   affiliateRegister: (token: string, password: string, name: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
   refreshData: () => Promise<void>;
   fetchAffiliateOrders: () => Promise<void>;
-  fetchOrderItems: (orderId: string, storeAffiliateId: string) => Promise<AffiliateOrderItem[]>;
+  fetchOrderItems: (orderId: string, storeAffiliateId: string | null) => Promise<AffiliateOrderItem[]>;
 }
 
 const AffiliateAuthContext = createContext<AffiliateAuthContextType | undefined>(undefined);
@@ -256,7 +256,7 @@ export function AffiliateAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const fetchOrderItems = async (orderId: string, storeAffiliateId: string): Promise<AffiliateOrderItem[]> => {
+  const fetchOrderItems = async (orderId: string, storeAffiliateId: string | null): Promise<AffiliateOrderItem[]> => {
     const token = getStoredToken();
     if (!token) return [];
 

@@ -1,8 +1,8 @@
 -- Função para buscar itens de um pedido com detalhes de comissão do afiliado
--- Busca a comissão registrada no momento do pedido (affiliate_earnings) ao invés da configuração atual
+-- Suporta tanto sistema novo (store_affiliate_id) quanto legado (affiliate_id via affiliate_earnings)
 CREATE OR REPLACE FUNCTION public.get_affiliate_order_items(
   p_order_id UUID,
-  p_store_affiliate_id UUID
+  p_store_affiliate_id UUID DEFAULT NULL
 )
 RETURNS TABLE (
   item_id UUID,
@@ -27,16 +27,32 @@ DECLARE
   v_total_commission NUMERIC;
   v_order_total NUMERIC;
 BEGIN
-  -- Buscar comissão do momento do pedido (não a configuração atual!)
-  SELECT 
-    ae.commission_type,
-    ae.commission_value,
-    ae.commission_amount,
-    ae.order_total
-  INTO v_commission_type, v_commission_value, v_total_commission, v_order_total
-  FROM affiliate_earnings ae
-  WHERE ae.order_id = p_order_id
-  AND ae.store_affiliate_id = p_store_affiliate_id;
+  -- Buscar comissão do momento do pedido
+  -- Primeiro tenta pelo store_affiliate_id (sistema novo)
+  -- Se não encontrar e store_affiliate_id for NULL, busca pelo order_id apenas
+  IF p_store_affiliate_id IS NOT NULL THEN
+    SELECT 
+      ae.commission_type,
+      ae.commission_value,
+      ae.commission_amount,
+      ae.order_total
+    INTO v_commission_type, v_commission_value, v_total_commission, v_order_total
+    FROM affiliate_earnings ae
+    WHERE ae.order_id = p_order_id
+    AND ae.store_affiliate_id = p_store_affiliate_id;
+  ELSE
+    -- Buscar pelo order_id onde store_affiliate_id é NULL (sistema legado)
+    SELECT 
+      ae.commission_type,
+      ae.commission_value,
+      ae.commission_amount,
+      ae.order_total
+    INTO v_commission_type, v_commission_value, v_total_commission, v_order_total
+    FROM affiliate_earnings ae
+    WHERE ae.order_id = p_order_id
+    AND ae.store_affiliate_id IS NULL
+    LIMIT 1;
+  END IF;
 
   -- Se não encontrou earning, usar valores padrão
   IF v_commission_type IS NULL THEN
@@ -72,3 +88,6 @@ BEGIN
   ORDER BY oi.created_at;
 END;
 $$;
+
+-- Garantir permissões
+GRANT EXECUTE ON FUNCTION public.get_affiliate_order_items(UUID, UUID) TO anon, authenticated, service_role;
