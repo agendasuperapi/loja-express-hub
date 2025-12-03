@@ -324,14 +324,34 @@ export const useOrders = () => {
               storeAffiliate = saData;
             }
 
-            // 3. Buscar affiliate legado (para regras de comissão e compatibilidade)
-            const { data: legacyAffiliate } = await supabase
-              .from('affiliates')
-              .select('id, default_commission_type, default_commission_value')
-              .eq('store_id', validatedData.storeId)
+            // 3. Buscar na junction table affiliate_coupons (sistema legado - múltiplos cupons)
+            let legacyAffiliate: any = null;
+            const { data: acData } = await supabase
+              .from('affiliate_coupons')
+              .select(`
+                affiliate_id,
+                affiliates!inner(
+                  id, store_id, default_commission_type, default_commission_value, is_active
+                )
+              `)
               .eq('coupon_id', coupon.id)
-              .eq('is_active', true)
               .maybeSingle();
+
+            if (acData?.affiliates && (acData.affiliates as any).store_id === validatedData.storeId && (acData.affiliates as any).is_active) {
+              legacyAffiliate = acData.affiliates;
+            }
+
+            // 4. Fallback: buscar pelo coupon_id direto em affiliates (legacy - cupom único)
+            if (!legacyAffiliate) {
+              const { data: affData } = await supabase
+                .from('affiliates')
+                .select('id, default_commission_type, default_commission_value')
+                .eq('store_id', validatedData.storeId)
+                .eq('coupon_id', coupon.id)
+                .eq('is_active', true)
+                .maybeSingle();
+              legacyAffiliate = affData;
+            }
 
             // 4. Buscar regras de comissão específicas (se existir affiliate legado)
             let commissionRules: any[] = [];
