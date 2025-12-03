@@ -2518,7 +2518,7 @@ export type Database = {
         }[]
       }
       get_affiliate_order_items: {
-        Args: { p_order_id: string; p_store_affiliate_id: string }
+        Args: { p_order_id: string; p_store_affiliate_id?: string }
         Returns: {
           commission_source: string
           commission_type: string
