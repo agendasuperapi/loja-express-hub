@@ -2539,11 +2539,13 @@ export type Database = {
           commission_amount: number
           commission_status: string
           coupon_code: string
+          coupon_discount: number
           customer_name: string
           earning_id: string
           order_date: string
           order_id: string
           order_number: string
+          order_subtotal: number
           order_total: number
           store_affiliate_id: string
           store_id: string
