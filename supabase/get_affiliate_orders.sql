@@ -1,4 +1,7 @@
 -- Função para buscar pedidos com comissões do afiliado
+-- DROP e recria a função para evitar conflitos de assinatura
+DROP FUNCTION IF EXISTS public.get_affiliate_orders(UUID);
+
 CREATE OR REPLACE FUNCTION public.get_affiliate_orders(p_affiliate_account_id UUID)
 RETURNS TABLE (
   earning_id UUID,
@@ -33,7 +36,7 @@ BEGIN
     ae.store_affiliate_id,
     ae.order_total,
     o.subtotal as order_subtotal,
-    COALESCE(o.coupon_discount, 0) as coupon_discount,
+    COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
     ae.commission_amount,
     ae.status::TEXT as commission_status,
     o.coupon_code::TEXT
@@ -46,3 +49,6 @@ BEGIN
   ORDER BY o.created_at DESC;
 END;
 $$;
+
+-- Garantir permissões
+GRANT EXECUTE ON FUNCTION public.get_affiliate_orders(UUID) TO anon, authenticated, service_role;
