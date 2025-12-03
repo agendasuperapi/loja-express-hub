@@ -33,7 +33,7 @@ export default function Cart() {
   const { user, signUp, signIn } = useAuth();
   const { cart, updateQuantity, removeFromCart, getTotal, clearCart, updateCartItem, applyCoupon, removeCoupon } = useCart();
   const { createOrder, isCreating, orders } = useOrders();
-  const { validateCoupon } = useCoupons(cart.storeId || undefined);
+  const { validateCoupon, validateCouponWithScope } = useCoupons(cart.storeId || undefined);
   const { zones: deliveryZones } = useDeliveryZones(cart.storeId || undefined);
   const { data: pickupLocations = [] } = usePickupLocations(cart.storeId || undefined);
   const isMobile = useIsMobile();
@@ -291,11 +291,10 @@ export default function Cart() {
       // Preencher o campo de cupom automaticamente
       setCouponInput(affiliateCoupon);
       
-      // Tentar validar e aplicar automaticamente
+      // Tentar validar e aplicar automaticamente com escopo
       try {
         setIsValidatingCoupon(true);
-        const subtotal = getTotal();
-        const result = await validateCoupon(affiliateCoupon, subtotal);
+        const result = await validateCouponWithScope(affiliateCoupon, cart.items);
         
         if (result.is_valid && result.discount_amount > 0) {
           applyCoupon(affiliateCoupon, result.discount_amount);
@@ -321,7 +320,7 @@ export default function Cart() {
     // Executar após um pequeno delay para garantir que o carrinho está carregado
     const timer = setTimeout(autoApplyAffiliateCoupon, 500);
     return () => clearTimeout(timer);
-  }, [cart.storeId, cart.couponCode, cart.items.length, getTotal, validateCoupon, applyCoupon]);
+  }, [cart.storeId, cart.couponCode, cart.items.length, getTotal, validateCouponWithScope, applyCoupon]);
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) {
@@ -336,8 +335,8 @@ export default function Cart() {
     setIsValidatingCoupon(true);
     
     try {
-      const subtotal = getTotal();
-      const result = await validateCoupon(couponInput.trim().toUpperCase(), subtotal);
+      // Usar validação com escopo que considera categoria/produto
+      const result = await validateCouponWithScope(couponInput.trim().toUpperCase(), cart.items);
       
       if (result.is_valid && result.discount_amount > 0) {
         applyCoupon(couponInput.trim().toUpperCase(), result.discount_amount);

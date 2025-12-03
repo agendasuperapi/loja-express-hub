@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { CartItem } from '@/contexts/CartContext';
+import { calculateEligibleSubtotal, calculateDiscount } from '@/lib/couponUtils';
 
 export type DiscountType = 'percentage' | 'fixed';
 
@@ -29,6 +31,9 @@ export interface CouponValidation {
   discount_value: number | null;
   discount_amount: number;
   error_message: string | null;
+  applies_to?: 'all' | 'category' | 'product';
+  category_names?: string[];
+  product_ids?: string[];
 }
 
 export const useCoupons = (storeId: string | undefined) => {
@@ -64,6 +69,213 @@ export const useCoupons = (storeId: string | undefined) => {
     }
   };
 
+  /**
+   * Validação de cupom com escopo (categoria/produto)
+   * Usa os itens do carrinho para calcular o desconto correto
+   */
+  const validateCouponWithScope = async (
+    code: string,
+    items: CartItem[]
+  ): Promise<CouponValidation> => {
+    if (!storeId) {
+      return {
+        is_valid: false,
+        discount_type: null,
+        discount_value: null,
+        discount_amount: 0,
+        error_message: 'Loja não identificada',
+      };
+    }
+
+    try {
+      // 1. Buscar cupom completo com dados de escopo
+      const { data: coupon, error } = await supabase
+        .from('coupons')
+        .select('*')
+        .eq('store_id', storeId)
+        .ilike('code', code)
+        .eq('is_active', true)
+        .single();
+
+      if (error || !coupon) {
+        toast({
+          title: 'Cupom inválido',
+          description: 'Cupom não encontrado ou inativo',
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: 'Cupom não encontrado ou inativo',
+        };
+      }
+
+      // 2. Validar período
+      const now = new Date();
+      if (new Date(coupon.valid_from) > now) {
+        toast({
+          title: 'Cupom inválido',
+          description: 'Este cupom ainda não está ativo',
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: 'Este cupom ainda não está ativo',
+        };
+      }
+
+      if (coupon.valid_until && new Date(coupon.valid_until) < now) {
+        toast({
+          title: 'Cupom expirado',
+          description: 'Este cupom já expirou',
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: 'Este cupom já expirou',
+        };
+      }
+
+      // 3. Validar usos máximos
+      if (coupon.max_uses && coupon.used_count >= coupon.max_uses) {
+        toast({
+          title: 'Cupom esgotado',
+          description: 'Este cupom atingiu o limite de usos',
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: 'Este cupom atingiu o limite de usos',
+        };
+      }
+
+      // 4. Buscar categorias dos produtos se necessário
+      let itemsWithCategory = items;
+      const appliesTo = (coupon.applies_to || 'all') as 'all' | 'category' | 'product';
+      
+      if (appliesTo === 'category' && items.length > 0) {
+        const productIds = items.map(item => item.productId);
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, category')
+          .in('id', productIds);
+
+        if (products) {
+          itemsWithCategory = items.map(item => ({
+            ...item,
+            category: products.find(p => p.id === item.productId)?.category || ''
+          }));
+        }
+      }
+
+      // 5. Calcular subtotal elegível
+      const { eligibleSubtotal, eligibleItems } = calculateEligibleSubtotal(
+        itemsWithCategory,
+        {
+          appliesTo,
+          categoryNames: coupon.category_names || [],
+          productIds: coupon.product_ids || []
+        }
+      );
+
+      console.log('🎫 Cupom validação:', {
+        code,
+        appliesTo,
+        categoryNames: coupon.category_names,
+        productIds: coupon.product_ids,
+        eligibleSubtotal,
+        eligibleItemsCount: eligibleItems.length
+      });
+
+      if (eligibleSubtotal === 0) {
+        toast({
+          title: 'Cupom não aplicável',
+          description: 'Nenhum item no carrinho é elegível para este cupom',
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: 'Nenhum item no carrinho é elegível para este cupom',
+        };
+      }
+
+      // 6. Validar valor mínimo (baseado no subtotal elegível)
+      const minOrderValue = coupon.min_order_value || 0;
+      if (eligibleSubtotal < minOrderValue) {
+        toast({
+          title: 'Valor mínimo não atingido',
+          description: `Valor mínimo de R$ ${minOrderValue.toFixed(2)} para itens elegíveis`,
+          variant: 'destructive',
+        });
+        return {
+          is_valid: false,
+          discount_type: null,
+          discount_value: null,
+          discount_amount: 0,
+          error_message: `Valor mínimo de R$ ${minOrderValue.toFixed(2)} para itens elegíveis`,
+        };
+      }
+
+      // 7. Calcular desconto
+      const discountAmount = calculateDiscount(
+        eligibleSubtotal,
+        coupon.discount_type as DiscountType,
+        coupon.discount_value
+      );
+
+      console.log('✅ Cupom válido:', {
+        discountType: coupon.discount_type,
+        discountValue: coupon.discount_value,
+        discountAmount,
+        eligibleSubtotal
+      });
+
+      return {
+        is_valid: true,
+        discount_type: coupon.discount_type as DiscountType,
+        discount_value: coupon.discount_value,
+        discount_amount: discountAmount,
+        error_message: null,
+        applies_to: appliesTo,
+        category_names: coupon.category_names || [],
+        product_ids: coupon.product_ids || []
+      };
+
+    } catch (error: any) {
+      console.error('Erro ao validar cupom:', error);
+      toast({
+        title: 'Erro ao validar cupom',
+        description: 'Tente novamente mais tarde',
+        variant: 'destructive',
+      });
+      return {
+        is_valid: false,
+        discount_type: null,
+        discount_value: null,
+        discount_amount: 0,
+        error_message: 'Erro ao validar cupom',
+      };
+    }
+  };
+
+  /**
+   * Validação simples de cupom (legado - usa apenas o total)
+   * Mantido para compatibilidade com código existente
+   */
   const validateCoupon = async (
     code: string,
     orderTotal: number
@@ -226,6 +438,7 @@ export const useCoupons = (storeId: string | undefined) => {
     isLoading,
     fetchCoupons,
     validateCoupon,
+    validateCouponWithScope,
     createCoupon,
     updateCoupon,
     deleteCoupon,

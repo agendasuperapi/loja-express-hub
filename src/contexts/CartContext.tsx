@@ -73,6 +73,7 @@ export interface CartItem {
   flavors?: CartFlavor[];
   size?: CartSize;
   color?: CartColor;
+  category?: string; // Categoria do produto para validação de cupom com escopo
 }
 
 export interface Cart {
