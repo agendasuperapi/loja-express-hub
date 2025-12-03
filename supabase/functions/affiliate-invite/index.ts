@@ -721,6 +721,12 @@ serve(async (req) => {
         });
 
         console.log(`[affiliate-invite] orders: found=${orders?.length || 0}, error=${ordersError?.message || 'none'}`);
+        
+        // Debug: mostrar se store_affiliate_id está presente nos pedidos
+        if (orders && orders.length > 0) {
+          console.log(`[affiliate-invite] orders: first order sample:`, JSON.stringify(orders[0]));
+          console.log(`[affiliate-invite] orders: store_affiliate_id values:`, orders.map((o: any) => o.store_affiliate_id));
+        }
 
         if (ordersError) {
           console.error("[affiliate-invite] Error fetching orders:", ordersError);
