@@ -2525,6 +2525,7 @@ export type Database = {
           coupon_code: string
           coupon_discount_type: string
           coupon_discount_value: number
+          coupons: Json
           pending_commission: number
           status: string
           store_affiliate_id: string
