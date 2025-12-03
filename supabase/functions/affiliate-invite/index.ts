@@ -736,6 +736,53 @@ serve(async (req) => {
         );
       }
 
+      case "order-details": {
+        // Buscar itens de um pedido específico com detalhes de comissão
+        const { affiliate_token, order_id, store_affiliate_id } = body;
+
+        console.log(`[affiliate-invite] order-details: order_id=${order_id}, store_affiliate_id=${store_affiliate_id}`);
+
+        if (!affiliate_token) {
+          return new Response(
+            JSON.stringify({ error: "Token não fornecido" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Validar sessão
+        const { data: validation } = await supabase.rpc("validate_affiliate_session", {
+          session_token: affiliate_token,
+        });
+
+        if (!validation || validation.length === 0 || !validation[0].is_valid) {
+          return new Response(
+            JSON.stringify({ error: "Sessão inválida" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Buscar itens do pedido com comissões calculadas
+        const { data: items, error: itemsError } = await supabase.rpc("get_affiliate_order_items", {
+          p_order_id: order_id,
+          p_store_affiliate_id: store_affiliate_id,
+        });
+
+        console.log(`[affiliate-invite] order-details: found=${items?.length || 0} items, error=${itemsError?.message || 'none'}`);
+
+        if (itemsError) {
+          console.error("[affiliate-invite] Error fetching order items:", itemsError);
+          return new Response(
+            JSON.stringify({ error: "Erro ao buscar itens do pedido" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({ items: items || [] }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: "Ação não reconhecida" }),

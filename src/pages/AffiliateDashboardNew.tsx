@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useAffiliateAuth } from '@/hooks/useAffiliateAuth';
+import { useAffiliateAuth, AffiliateOrderItem } from '@/hooks/useAffiliateAuth';
 import { useAffiliateEarningsNotification } from '@/hooks/useAffiliateEarningsNotification';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,10 @@ import {
   User,
   Link,
   Ticket,
-  ShoppingBag
+  ShoppingBag,
+  ChevronDown,
+  ChevronUp,
+  Package
 } from 'lucide-react';
 
 export default function AffiliateDashboardNew() {
@@ -37,10 +40,14 @@ export default function AffiliateDashboardNew() {
     affiliateOrders,
     isLoading,
     affiliateLogout,
-    refreshData
+    refreshData,
+    fetchOrderItems
   } = useAffiliateAuth();
 
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  const [orderItems, setOrderItems] = useState<Record<string, AffiliateOrderItem[]>>({});
+  const [loadingItems, setLoadingItems] = useState<Record<string, boolean>>({});
 
   // Extrair IDs dos store_affiliates para notificações em tempo real
   const storeAffiliateIds = useMemo(() => 
@@ -83,6 +90,36 @@ export default function AffiliateDashboardNew() {
   const handleLogout = async () => {
     await affiliateLogout();
     toast.success('Logout realizado com sucesso');
+  };
+
+  const toggleOrderExpansion = async (orderId: string, storeAffiliateId: string | undefined) => {
+    const isExpanded = expandedOrders[orderId];
+    
+    if (isExpanded) {
+      setExpandedOrders(prev => ({ ...prev, [orderId]: false }));
+      return;
+    }
+
+    // Se já temos os itens, apenas expandir
+    if (orderItems[orderId]) {
+      setExpandedOrders(prev => ({ ...prev, [orderId]: true }));
+      return;
+    }
+
+    // Carregar itens do pedido
+    if (!storeAffiliateId) return;
+    
+    setLoadingItems(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const items = await fetchOrderItems(orderId, storeAffiliateId);
+      setOrderItems(prev => ({ ...prev, [orderId]: items }));
+      setExpandedOrders(prev => ({ ...prev, [orderId]: true }));
+    } catch (err) {
+      console.error('Erro ao carregar itens:', err);
+      toast.error('Erro ao carregar itens do pedido');
+    } finally {
+      setLoadingItems(prev => ({ ...prev, [orderId]: false }));
+    }
   };
 
   const selectedStore = affiliateStores.find(s => s.store_id === selectedStoreId);
@@ -403,6 +440,7 @@ export default function AffiliateDashboardNew() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-10"></TableHead>
                           <TableHead>Pedido</TableHead>
                           <TableHead>Data</TableHead>
                           <TableHead>Loja</TableHead>
@@ -414,41 +452,102 @@ export default function AffiliateDashboardNew() {
                       </TableHeader>
                       <TableBody>
                         {affiliateOrders.map((order) => (
-                          <TableRow key={order.earning_id}>
-                            <TableCell className="font-mono font-medium">
-                              #{order.order_number}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                              {formatDate(order.order_date)}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {order.store_name}
-                            </TableCell>
-                            <TableCell>
-                              {order.customer_name}
-                            </TableCell>
-                            <TableCell className="text-right whitespace-nowrap">
-                              {formatCurrency(order.order_total)}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold text-green-600 whitespace-nowrap">
-                              {formatCurrency(order.commission_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={order.commission_status === 'paid' ? 'default' : 'secondary'}
-                                className={order.commission_status === 'paid' 
-                                  ? 'bg-green-500/10 text-green-600 border-green-500/20' 
-                                  : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
-                                }
-                              >
-                                {order.commission_status === 'paid' ? (
-                                  <><CheckCircle className="h-3 w-3 mr-1" /> Pago</>
+                          <>
+                            <TableRow 
+                              key={order.earning_id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => toggleOrderExpansion(order.order_id, order.store_affiliate_id)}
+                            >
+                              <TableCell className="w-10">
+                                {loadingItems[order.order_id] ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                ) : expandedOrders[order.order_id] ? (
+                                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
                                 ) : (
-                                  <><Clock className="h-3 w-3 mr-1" /> Pendente</>
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                 )}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
+                              </TableCell>
+                              <TableCell className="font-mono font-medium">
+                                #{order.order_number}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                {formatDate(order.order_date)}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {order.store_name}
+                              </TableCell>
+                              <TableCell>
+                                {order.customer_name}
+                              </TableCell>
+                              <TableCell className="text-right whitespace-nowrap">
+                                {formatCurrency(order.order_total)}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold text-green-600 whitespace-nowrap">
+                                {formatCurrency(order.commission_amount)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge 
+                                  variant={order.commission_status === 'paid' ? 'default' : 'secondary'}
+                                  className={order.commission_status === 'paid' 
+                                    ? 'bg-green-500/10 text-green-600 border-green-500/20' 
+                                    : 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20'
+                                  }
+                                >
+                                  {order.commission_status === 'paid' ? (
+                                    <><CheckCircle className="h-3 w-3 mr-1" /> Pago</>
+                                  ) : (
+                                    <><Clock className="h-3 w-3 mr-1" /> Pendente</>
+                                  )}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                            {/* Linha expandida com itens */}
+                            {expandedOrders[order.order_id] && orderItems[order.order_id] && (
+                              <TableRow key={`${order.earning_id}-items`}>
+                                <TableCell colSpan={8} className="bg-muted/30 p-0">
+                                  <div className="py-3 px-4 space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                                      <Package className="h-4 w-4" />
+                                      Itens do Pedido
+                                    </div>
+                                    {orderItems[order.order_id].length === 0 ? (
+                                      <p className="text-sm text-muted-foreground">Nenhum item encontrado</p>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        {orderItems[order.order_id].map((item) => (
+                                          <div 
+                                            key={item.item_id} 
+                                            className="flex items-center justify-between py-2 px-3 bg-background rounded-lg border"
+                                          >
+                                            <div className="flex-1">
+                                              <p className="font-medium text-sm">{item.product_name}</p>
+                                              <p className="text-xs text-muted-foreground">
+                                                {item.quantity}x {formatCurrency(item.unit_price)} = {formatCurrency(item.subtotal)}
+                                              </p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                              <Badge variant="secondary" className="text-xs">
+                                                {item.commission_type === 'percentage' 
+                                                  ? `${item.commission_value}%` 
+                                                  : formatCurrency(item.commission_value)
+                                                }
+                                                {' '}
+                                                {item.commission_source === 'geral' ? 'Geral' : 
+                                                  item.commission_source === 'categoria' ? 'Categoria' : 'Produto'}
+                                              </Badge>
+                                              <span className="font-semibold text-green-600 text-sm whitespace-nowrap">
+                                                {formatCurrency(item.item_commission)}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </>
                         ))}
                       </TableBody>
                     </Table>

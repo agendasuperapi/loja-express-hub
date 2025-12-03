@@ -57,10 +57,25 @@ export interface AffiliateOrder {
   order_date: string;
   store_id: string;
   store_name: string;
+  store_affiliate_id?: string;
   order_total: number;
   commission_amount: number;
   commission_status: string;
   coupon_code?: string;
+}
+
+export interface AffiliateOrderItem {
+  item_id: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+  commission_type: string;
+  commission_source: string;
+  commission_value: number;
+  item_commission: number;
 }
 
 interface AffiliateAuthContextType {
@@ -75,6 +90,7 @@ interface AffiliateAuthContextType {
   affiliateRegister: (token: string, password: string, name: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
   refreshData: () => Promise<void>;
   fetchAffiliateOrders: () => Promise<void>;
+  fetchOrderItems: (orderId: string, storeAffiliateId: string) => Promise<AffiliateOrderItem[]>;
 }
 
 const AffiliateAuthContext = createContext<AffiliateAuthContextType | undefined>(undefined);
@@ -238,6 +254,27 @@ export function AffiliateAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const fetchOrderItems = async (orderId: string, storeAffiliateId: string): Promise<AffiliateOrderItem[]> => {
+    const token = getStoredToken();
+    if (!token) return [];
+
+    try {
+      const { data } = await supabase.functions.invoke('affiliate-invite', {
+        body: { 
+          action: 'order-details', 
+          affiliate_token: token,
+          order_id: orderId,
+          store_affiliate_id: storeAffiliateId
+        }
+      });
+      
+      return data?.items || [];
+    } catch (err) {
+      console.error('Error fetching order items:', err);
+      return [];
+    }
+  };
+
   return (
     <AffiliateAuthContext.Provider
       value={{
@@ -251,7 +288,8 @@ export function AffiliateAuthProvider({ children }: { children: ReactNode }) {
         affiliateLogout,
         affiliateRegister,
         refreshData,
-        fetchAffiliateOrders
+        fetchAffiliateOrders,
+        fetchOrderItems
       }}
     >
       {children}
