@@ -66,7 +66,7 @@ affiliate_info AS (
   
   -- Via store_affiliate_coupons
   SELECT 
-    COALESCE(a.id, sa.id::text)::uuid as affiliate_id,
+    COALESCE(a.id, sa.id) as affiliate_id,
     sa.default_commission_type,
     sa.default_commission_value,
     sa.id as store_affiliate_id,
@@ -75,7 +75,7 @@ affiliate_info AS (
   JOIN store_affiliates sa ON sa.id = sac.store_affiliate_id
   JOIN coupon_info ci ON sac.coupon_id = ci.coupon_id
   LEFT JOIN affiliate_accounts aa ON aa.id = sa.affiliate_account_id
-  LEFT JOIN affiliates a ON LOWER(a.email) = LOWER(aa.email)
+  LEFT JOIN affiliates a ON LOWER(a.email) = LOWER(aa.email) AND a.store_id = sa.store_id
   WHERE sa.is_active = true
 )
 SELECT * FROM affiliate_info LIMIT 1;
