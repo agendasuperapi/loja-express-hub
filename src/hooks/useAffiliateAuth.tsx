@@ -11,6 +11,12 @@ interface AffiliateUser {
   avatar_url?: string;
 }
 
+interface AffiliateCoupon {
+  code: string;
+  discount_type: string;
+  discount_value: number;
+}
+
 interface AffiliateStore {
   store_affiliate_id: string;
   store_id: string;
@@ -20,9 +26,12 @@ interface AffiliateStore {
   commission_type: string;
   commission_value: number;
   status: string;
+  // Legacy single coupon fields (backwards compatibility)
   coupon_code?: string;
   coupon_discount_type?: string;
   coupon_discount_value?: number;
+  // New: array of all coupons
+  coupons?: AffiliateCoupon[];
   total_sales: number;
   total_commission: number;
   pending_commission: number;

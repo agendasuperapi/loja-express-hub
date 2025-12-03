@@ -242,33 +242,46 @@ export default function AffiliateDashboardNew() {
                         </div>
                       </div>
 
-                      {store.coupon_code ? (
+                      {(store.coupons && store.coupons.length > 0) || store.coupon_code ? (
                         <>
                           <Separator />
                           <div className="space-y-3">
                             <div className="flex items-center gap-2">
                               <Ticket className="h-4 w-4 text-primary" />
-                              <span className="text-sm font-medium">Seu cupom de desconto</span>
+                              <span className="text-sm font-medium">
+                                {(store.coupons?.length || 1) > 1 
+                                  ? `Seus cupons de desconto (${store.coupons?.length})` 
+                                  : 'Seu cupom de desconto'}
+                              </span>
                             </div>
-                            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                              <div className="flex items-center justify-between mb-2">
-                                <p className="font-mono font-bold text-xl text-primary">{store.coupon_code}</p>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => copyToClipboard(store.coupon_code!, 'Cupom')}
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
+                            
+                            {/* Render all coupons */}
+                            {(store.coupons && store.coupons.length > 0 
+                              ? store.coupons 
+                              : store.coupon_code 
+                                ? [{ code: store.coupon_code, discount_type: store.coupon_discount_type || '', discount_value: store.coupon_discount_value || 0 }]
+                                : []
+                            ).map((coupon, idx) => (
+                              <div key={idx} className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="font-mono font-bold text-xl text-primary">{coupon.code}</p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyToClipboard(coupon.code, 'Cupom')}
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                {coupon.discount_type && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {coupon.discount_type === 'percentage' 
+                                      ? `${coupon.discount_value}% de desconto`
+                                      : `${formatCurrency(coupon.discount_value || 0)} de desconto`}
+                                  </p>
+                                )}
                               </div>
-                              {store.coupon_discount_type && (
-                                <p className="text-xs text-muted-foreground">
-                                  {store.coupon_discount_type === 'percentage' 
-                                    ? `${store.coupon_discount_value}% de desconto`
-                                    : `${formatCurrency(store.coupon_discount_value || 0)} de desconto`}
-                                </p>
-                              )}
-                            </div>
+                            ))}
                             
                             <div className="flex items-center gap-2">
                               <Link className="h-4 w-4 text-muted-foreground" />
@@ -276,7 +289,7 @@ export default function AffiliateDashboardNew() {
                             </div>
                             <div className="flex gap-2">
                               <Input
-                                value={`https://ofertas.app/${store.store_slug}?cupom=${store.coupon_code}`}
+                                value={`https://ofertas.app/${store.store_slug}?cupom=${store.coupons?.[0]?.code || store.coupon_code}`}
                                 readOnly
                                 className="font-mono text-xs"
                               />
@@ -284,7 +297,7 @@ export default function AffiliateDashboardNew() {
                                 variant="default"
                                 size="sm"
                                 onClick={() => copyToClipboard(
-                                  `https://ofertas.app/${store.store_slug}?cupom=${store.coupon_code}`,
+                                  `https://ofertas.app/${store.store_slug}?cupom=${store.coupons?.[0]?.code || store.coupon_code}`,
                                   'Link de afiliado'
                                 )}
                               >

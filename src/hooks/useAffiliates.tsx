@@ -178,9 +178,9 @@ export const useAffiliates = (storeId?: string) => {
 
       // Update junction table if coupon_ids provided
       if (coupon_ids !== undefined) {
-        // Remove existing
+        // Remove existing from affiliate_coupons
         await (supabase as any).from('affiliate_coupons').delete().eq('affiliate_id', id);
-        // Insert new
+        // Insert new into affiliate_coupons
         if (coupon_ids.length > 0) {
           const couponInserts = coupon_ids.map(couponId => ({
             affiliate_id: id,
@@ -189,7 +189,7 @@ export const useAffiliates = (storeId?: string) => {
           await (supabase as any).from('affiliate_coupons').insert(couponInserts);
         }
 
-        // Sync coupon_id with store_affiliates table
+        // Sync with store_affiliates table AND store_affiliate_coupons junction table
         if (data?.email) {
           const { data: affiliateAccount } = await supabase
             .from('affiliate_accounts')
@@ -198,11 +198,36 @@ export const useAffiliates = (storeId?: string) => {
             .single();
 
           if (affiliateAccount && data?.store_id) {
-            await (supabase as any)
+            // Get the store_affiliate record
+            const { data: storeAffiliate } = await (supabase as any)
               .from('store_affiliates')
-              .update({ coupon_id: coupon_ids[0] || null })
+              .select('id')
               .eq('affiliate_account_id', affiliateAccount.id)
-              .eq('store_id', data.store_id);
+              .eq('store_id', data.store_id)
+              .single();
+
+            if (storeAffiliate) {
+              // Update legacy coupon_id field
+              await (supabase as any)
+                .from('store_affiliates')
+                .update({ coupon_id: coupon_ids[0] || null })
+                .eq('id', storeAffiliate.id);
+
+              // Clear old store_affiliate_coupons entries
+              await (supabase as any)
+                .from('store_affiliate_coupons')
+                .delete()
+                .eq('store_affiliate_id', storeAffiliate.id);
+
+              // Insert new store_affiliate_coupons entries
+              if (coupon_ids.length > 0) {
+                const storeAffiliateInserts = coupon_ids.map(couponId => ({
+                  store_affiliate_id: storeAffiliate.id,
+                  coupon_id: couponId,
+                }));
+                await (supabase as any).from('store_affiliate_coupons').insert(storeAffiliateInserts);
+              }
+            }
           }
         }
       }
