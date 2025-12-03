@@ -34,7 +34,7 @@ SELECT
   a.email as affiliate_email,
   a.default_commission_type,
   a.default_commission_value,
-  NULL as store_affiliate_id
+  NULL::uuid as store_affiliate_id
 FROM coupons c
 JOIN affiliate_coupons ac ON ac.coupon_id = c.id
 JOIN affiliates a ON a.id = ac.affiliate_id
@@ -54,7 +54,7 @@ SELECT
   a.email as affiliate_email,
   a.default_commission_type,
   a.default_commission_value,
-  NULL as store_affiliate_id
+  NULL::uuid as store_affiliate_id
 FROM affiliates a
 JOIN coupons c ON c.id = a.coupon_id
 WHERE a.store_id = '6bc45f44-067a-4008-b6b5-767851233975'
@@ -68,7 +68,7 @@ SELECT
   c.discount_type,
   c.discount_value,
   'store_affiliate_coupons' as fonte,
-  NULL as affiliate_id,
+  NULL::uuid as affiliate_id,
   aa.email as affiliate_email,
   sa.default_commission_type,
   sa.default_commission_value,
