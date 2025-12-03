@@ -165,10 +165,14 @@ export const useAffiliates = (storeId?: string) => {
             .maybeSingle();
 
           if (storeAffiliate) {
-            // Update legacy coupon_id field
+            // Update legacy coupon_id field AND sync commission values
             await (supabase as any)
               .from('store_affiliates')
-              .update({ coupon_id: coupon_ids[0] })
+              .update({ 
+                coupon_id: coupon_ids[0],
+                default_commission_type: rest.default_commission_type || 'percentage',
+                default_commission_value: rest.default_commission_value || 0
+              })
               .eq('id', storeAffiliate.id);
 
             // Sync store_affiliate_coupons junction table
@@ -177,7 +181,7 @@ export const useAffiliates = (storeId?: string) => {
               coupon_id: couponId,
             }));
             await (supabase as any).from('store_affiliate_coupons').insert(storeAffiliateInserts);
-            console.log('✅ Synced coupons to store_affiliate_coupons:', storeAffiliateInserts);
+            console.log('✅ Synced coupons and commission to store_affiliates:', { coupon_ids, commission_type: rest.default_commission_type, commission_value: rest.default_commission_value });
           }
         }
       }
@@ -239,11 +243,20 @@ export const useAffiliates = (storeId?: string) => {
               .single();
 
             if (storeAffiliate) {
-              // Update legacy coupon_id field
+              // Update legacy coupon_id field AND sync commission values
               await (supabase as any)
                 .from('store_affiliates')
-                .update({ coupon_id: coupon_ids[0] || null })
+                .update({ 
+                  coupon_id: coupon_ids[0] || null,
+                  default_commission_type: rest.default_commission_type || data.default_commission_type || 'percentage',
+                  default_commission_value: rest.default_commission_value ?? data.default_commission_value ?? 0
+                })
                 .eq('id', storeAffiliate.id);
+
+              console.log('✅ Synced commission to store_affiliates:', { 
+                commission_type: rest.default_commission_type || data.default_commission_type, 
+                commission_value: rest.default_commission_value ?? data.default_commission_value 
+              });
 
               // Clear old store_affiliate_coupons entries
               await (supabase as any)
