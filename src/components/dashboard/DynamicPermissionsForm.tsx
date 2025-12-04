@@ -75,6 +75,16 @@ export const DynamicPermissionsForm = ({
     return directPermsEnabled && subgroupPermsEnabled;
   };
 
+  const handleAllowAllGlobal = () => {
+    modules.forEach(module => {
+      handleAllowAll(module);
+    });
+  };
+
+  const areAllGlobalPermissionsEnabled = (): boolean => {
+    return modules.every(module => areAllPermissionsEnabled(module));
+  };
+
   const renderPermissionSwitch = (
     moduleKey: string,
     permKey: string,
@@ -215,14 +225,29 @@ export const DynamicPermissionsForm = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 p-4 bg-primary/10 rounded-lg border border-primary/20">
-        <Shield className="h-5 w-5 text-primary" />
-        <div>
-          <h3 className="font-semibold text-sm">Sistema de Permissões Dinâmico</h3>
-          <p className="text-xs text-muted-foreground">
-            Ative ou desative menus inteiros usando o toggle principal de cada módulo
-          </p>
+      <div className="flex items-center justify-between gap-2 p-4 bg-primary/10 rounded-lg border border-primary/20">
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-primary" />
+          <div>
+            <h3 className="font-semibold text-sm">Sistema de Permissões Dinâmico</h3>
+            <p className="text-xs text-muted-foreground">
+              Ative ou desative menus inteiros usando o toggle principal de cada módulo
+            </p>
+          </div>
         </div>
+        
+        {!areAllGlobalPermissionsEnabled() && (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleAllowAllGlobal}
+            className="shrink-0"
+          >
+            <CheckCheck className="h-4 w-4 mr-1" />
+            Permitir tudo
+          </Button>
+        )}
       </div>
 
       {modules.map((module, index) => (
