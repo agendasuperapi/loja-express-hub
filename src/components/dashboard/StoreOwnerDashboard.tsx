@@ -3440,7 +3440,12 @@ export const StoreOwnerDashboard = ({
                                         </div>
                                         <Button onClick={async () => {
                                               if (newCategoryName.trim()) {
-                                                await addCategory(newCategoryName.trim());
+                                                const categoryName = newCategoryName.trim();
+                                                await addCategory(categoryName);
+                                                setProductForm(prev => ({
+                                                  ...prev,
+                                                  category: categoryName
+                                                }));
                                                 setNewCategoryName('');
                                                 setIsCategoryDialogOpen(false);
                                               }
