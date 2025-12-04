@@ -105,6 +105,61 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
     password: '',
     permissions: generateDefaultPermissions(),
   });
+  const [formErrors, setFormErrors] = useState({
+    employee_email: '',
+    employee_phone: '',
+  });
+
+  // Validação de email
+  const validateEmail = (email: string): string => {
+    if (!email.trim()) return 'Email é obrigatório';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return 'Email inválido';
+    if (email.length > 255) return 'Email deve ter no máximo 255 caracteres';
+    return '';
+  };
+
+  // Validação de telefone brasileiro
+  const validatePhone = (phone: string): string => {
+    if (!phone.trim()) return ''; // Telefone não é obrigatório
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length > 0 && (cleanPhone.length < 10 || cleanPhone.length > 11)) {
+      return 'Telefone deve ter 10 ou 11 dígitos';
+    }
+    return '';
+  };
+
+  // Formatar telefone
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 6) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    if (numbers.length <= 10) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  const handleEmailChange = (value: string) => {
+    setFormData({ ...formData, employee_email: value });
+    setFormErrors({ ...formErrors, employee_email: '' });
+  };
+
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setFormData({ ...formData, employee_phone: formatted });
+    setFormErrors({ ...formErrors, employee_phone: '' });
+  };
+
+  const validateForm = (): boolean => {
+    const emailError = validateEmail(formData.employee_email);
+    const phoneError = validatePhone(formData.employee_phone);
+    
+    setFormErrors({
+      employee_email: emailError,
+      employee_phone: phoneError,
+    });
+    
+    return !emailError && !phoneError;
+  };
 
   useEffect(() => {
     fetchActivityLogs();
@@ -112,6 +167,10 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
     
     console.log('[EmployeesManager] handleSubmit - formData:', formData);
     
@@ -167,11 +226,13 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       password: '',
       permissions: generateDefaultPermissions(),
     });
+    setFormErrors({ employee_email: '', employee_phone: '' });
     setEditingEmployee(null);
   };
 
   const handleEdit = (employee: any) => {
     setEditingEmployee(employee);
+    setFormErrors({ employee_email: '', employee_phone: '' });
     setFormData({
       employee_name: employee.employee_name,
       employee_email: employee.employee_email,
@@ -284,10 +345,15 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                       id="employee_email"
                       type="email"
                       value={formData.employee_email}
-                      onChange={(e) => setFormData({ ...formData, employee_email: e.target.value })}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      onBlur={() => setFormErrors({ ...formErrors, employee_email: validateEmail(formData.employee_email) })}
                       required
                       disabled={!!editingEmployee}
+                      className={formErrors.employee_email ? 'border-destructive' : ''}
                     />
+                    {formErrors.employee_email && (
+                      <p className="text-xs text-destructive">{formErrors.employee_email}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -295,9 +361,15 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
                     <Input
                       id="employee_phone"
                       value={formData.employee_phone}
-                      onChange={(e) => setFormData({ ...formData, employee_phone: e.target.value })}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      onBlur={() => setFormErrors({ ...formErrors, employee_phone: validatePhone(formData.employee_phone) })}
                       placeholder="(11) 99999-9999"
+                      maxLength={15}
+                      className={formErrors.employee_phone ? 'border-destructive' : ''}
                     />
+                    {formErrors.employee_phone && (
+                      <p className="text-xs text-destructive">{formErrors.employee_phone}</p>
+                    )}
                   </div>
                 </div>
 
