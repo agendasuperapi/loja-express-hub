@@ -164,12 +164,30 @@ export const useCoupons = (storeId: string | undefined) => {
       let itemsWithCategory = items;
       const appliesTo = (coupon.applies_to || 'all') as 'all' | 'category' | 'product';
       
+      console.log('🎫 ═══════════════════════════════════════════════');
+      console.log('🎫 VALIDAÇÃO DE CUPOM INICIADA');
+      console.log('🎫 ═══════════════════════════════════════════════');
+      console.log('📋 Código do cupom:', code.toUpperCase());
+      console.log('🏷️ Tipo de desconto:', coupon.discount_type);
+      console.log('💰 Valor do desconto:', coupon.discount_value, coupon.discount_type === 'percentage' ? '%' : 'R$');
+      console.log('🎯 Escopo do cupom:', appliesTo);
+      console.log('📦 Total de itens no carrinho:', items.length);
+      
+      if (appliesTo === 'category') {
+        console.log('📂 Categorias elegíveis:', coupon.category_names?.join(', ') || 'Nenhuma');
+      }
+      if (appliesTo === 'product') {
+        console.log('🛍️ Produtos elegíveis (IDs):', coupon.product_ids?.join(', ') || 'Nenhum');
+      }
+      
       if (appliesTo === 'category' && items.length > 0) {
         const productIds = items.map(item => item.productId);
         const { data: products } = await supabase
           .from('products')
           .select('id, category')
           .in('id', productIds);
+
+        console.log('🔍 Categorias buscadas do banco:', products?.map(p => `${p.id}: "${p.category}"`));
 
         if (products) {
           itemsWithCategory = items.map(item => ({
@@ -178,6 +196,46 @@ export const useCoupons = (storeId: string | undefined) => {
           }));
         }
       }
+
+      // Log detalhado de cada item
+      console.log('');
+      console.log('📦 ─────────────────────────────────────────────');
+      console.log('📦 ANÁLISE DE CADA ITEM:');
+      console.log('📦 ─────────────────────────────────────────────');
+      
+      const normalizedCouponCategories = (coupon.category_names || []).map(c => c.toLowerCase().trim());
+      
+      itemsWithCategory.forEach((item, index) => {
+        const itemCategory = ((item as any).category || '').toLowerCase().trim();
+        let isEligible = false;
+        let reason = '';
+        
+        if (appliesTo === 'all') {
+          isEligible = true;
+          reason = 'Cupom aplica a todos os produtos';
+        } else if (appliesTo === 'product') {
+          isEligible = (coupon.product_ids || []).includes(item.productId);
+          reason = isEligible 
+            ? 'Product ID está na lista de elegíveis' 
+            : `Product ID "${item.productId}" NÃO está na lista`;
+        } else if (appliesTo === 'category') {
+          isEligible = normalizedCouponCategories.includes(itemCategory);
+          reason = isEligible 
+            ? `Categoria "${itemCategory}" está na lista de elegíveis` 
+            : `Categoria "${itemCategory}" NÃO está em [${normalizedCouponCategories.join(', ')}]`;
+        }
+        
+        const itemSubtotal = (item.size ? item.size.price : (item.promotionalPrice || item.price)) * item.quantity;
+        
+        console.log(`  📍 Item ${index + 1}: ${item.productName}`);
+        console.log(`     └─ Categoria: "${(item as any).category || 'N/A'}"`);
+        console.log(`     └─ Product ID: ${item.productId}`);
+        console.log(`     └─ Quantidade: ${item.quantity}`);
+        console.log(`     └─ Subtotal: R$ ${itemSubtotal.toFixed(2)}`);
+        console.log(`     └─ Elegível: ${isEligible ? '✅ SIM' : '❌ NÃO'}`);
+        console.log(`     └─ Motivo: ${reason}`);
+        console.log('');
+      });
 
       // 5. Calcular subtotal elegível
       const { eligibleSubtotal, eligibleItems } = calculateEligibleSubtotal(
@@ -189,14 +247,14 @@ export const useCoupons = (storeId: string | undefined) => {
         }
       );
 
-      console.log('🎫 Cupom validação:', {
-        code,
-        appliesTo,
-        categoryNames: coupon.category_names,
-        productIds: coupon.product_ids,
-        eligibleSubtotal,
-        eligibleItemsCount: eligibleItems.length
-      });
+      console.log('💰 ─────────────────────────────────────────────');
+      console.log('💰 RESUMO DA ELEGIBILIDADE:');
+      console.log('💰 ─────────────────────────────────────────────');
+      console.log(`   Itens elegíveis: ${eligibleItems.length} de ${items.length}`);
+      console.log(`   Subtotal elegível: R$ ${eligibleSubtotal.toFixed(2)}`);
+      console.log(`   Subtotal total: R$ ${items.reduce((sum, item) => {
+        return sum + (item.size ? item.size.price : (item.promotionalPrice || item.price)) * item.quantity;
+      }, 0).toFixed(2)}`);
 
       if (eligibleSubtotal === 0) {
         toast({
@@ -237,12 +295,22 @@ export const useCoupons = (storeId: string | undefined) => {
         coupon.discount_value
       );
 
-      console.log('✅ Cupom válido:', {
-        discountType: coupon.discount_type,
-        discountValue: coupon.discount_value,
-        discountAmount,
-        eligibleSubtotal
-      });
+      console.log('');
+      console.log('🧮 ─────────────────────────────────────────────');
+      console.log('🧮 CÁLCULO DO DESCONTO:');
+      console.log('🧮 ─────────────────────────────────────────────');
+      console.log(`   Tipo: ${coupon.discount_type}`);
+      console.log(`   Valor configurado: ${coupon.discount_value}${coupon.discount_type === 'percentage' ? '%' : ' R$'}`);
+      console.log(`   Base de cálculo (subtotal elegível): R$ ${eligibleSubtotal.toFixed(2)}`);
+      if (coupon.discount_type === 'percentage') {
+        console.log(`   Cálculo: R$ ${eligibleSubtotal.toFixed(2)} × ${coupon.discount_value}% = R$ ${discountAmount.toFixed(2)}`);
+      } else {
+        console.log(`   Desconto fixo aplicado: R$ ${discountAmount.toFixed(2)}`);
+      }
+      console.log('');
+      console.log('✅ ═══════════════════════════════════════════════');
+      console.log('✅ CUPOM VÁLIDO - DESCONTO FINAL: R$', discountAmount.toFixed(2));
+      console.log('✅ ═══════════════════════════════════════════════');
 
       return {
         is_valid: true,

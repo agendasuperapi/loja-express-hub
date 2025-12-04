@@ -15,6 +15,11 @@ export const calculateEligibleSubtotal = (
 ): { eligibleSubtotal: number; eligibleItems: CartItem[] } => {
   const { appliesTo, categoryNames, productIds } = scope;
 
+  // Normalizar nomes de categorias para comparação (case-insensitive, sem espaços extras)
+  const normalizedCategoryNames = categoryNames.map(cat => 
+    cat.toLowerCase().trim()
+  );
+
   // Se aplica a todos, retorna o subtotal total
   if (appliesTo === 'all') {
     const eligibleSubtotal = items.reduce((sum, item) => {
@@ -26,13 +31,13 @@ export const calculateEligibleSubtotal = (
   // Filtrar itens elegíveis
   const eligibleItems = items.filter(item => {
     if (appliesTo === 'product') {
-      return productIds.includes(item.productId);
+      const isEligible = productIds.includes(item.productId);
+      return isEligible;
     }
     if (appliesTo === 'category') {
-      const itemCategory = (item as any).category || '';
-      return categoryNames.some(cat => 
-        cat.toLowerCase() === itemCategory.toLowerCase()
-      );
+      const itemCategory = ((item as any).category || '').toLowerCase().trim();
+      const isEligible = normalizedCategoryNames.includes(itemCategory);
+      return isEligible;
     }
     return false;
   });
