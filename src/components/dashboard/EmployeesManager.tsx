@@ -211,8 +211,13 @@ export const EmployeesManager = ({ storeId }: EmployeesManagerProps) => {
       
       setIsDialogOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving employee:', error);
+      
+      // Mostrar erro no campo de email se já existir
+      if (error.message?.includes('EMAIL_EXISTS') || error.message?.includes('já está cadastrado')) {
+        setFormErrors(prev => ({ ...prev, employee_email: 'Este email já está em uso. Use outro email.' }));
+      }
     }
   };
 
