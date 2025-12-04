@@ -754,15 +754,13 @@ export default function Cart() {
   
         console.log('✅ Order created successfully, clearing cart...');
         
-        // Clear cart and navigate after successful order
-        clearCart();
+        // Clear cart and AWAIT completion before navigating
+        await clearCart();
         console.log('🗑️ Cart cleared successfully');
         
-        // Small delay to ensure state updates
-        setTimeout(() => {
-          console.log('➡️ Navigating to orders page...');
-          navigate('/orders', { state: { fromCheckout: true } });
-        }, 100);
+        // Navigate to orders page
+        console.log('➡️ Navigating to orders page...');
+        navigate('/orders', { state: { fromCheckout: true } });
         
       } catch (error) {
         console.error('❌ Order creation failed:', error);

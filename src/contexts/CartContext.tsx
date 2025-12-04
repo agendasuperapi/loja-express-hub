@@ -116,7 +116,7 @@ interface CartContextType {
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   updateCartItem: (itemId: string, observation: string, addons: CartAddon[], flavors?: CartFlavor[]) => void;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   getTotal: () => number;
   getItemCount: () => number;
   applyCoupon: (code: string, discount: number) => void;
@@ -151,6 +151,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   
   // Ref para rastrear storeIds que foram limpos (evita re-save do debounce)
   const clearedStoresRef = useRef<Set<string>>(new Set());
+  
+  // Ref para pular o próximo save após carregar do banco (evita re-save imediato)
+  const skipNextSaveRef = useRef(false);
   
   const [multiCart, setMultiCart] = useState<MultiStoreCart>(() => {
     const stored = localStorage.getItem(MULTI_CART_STORAGE_KEY);
@@ -220,15 +223,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const dbCarts = await loadCartsFromDatabase();
       
       if (dbCarts && dbCarts.length > 0) {
-        const mergedCarts = mergeWithLocalCarts(dbCarts, multiCart.carts);
-        const totalRecovered = dbCarts.reduce((sum, cart) => sum + cart.items.length, 0);
+        // Filtrar carrinhos que foram cleared recentemente
+        const filteredDbCarts = dbCarts.filter(cart => !clearedStoresRef.current.has(cart.store_id));
         
-        setMultiCart(prev => ({
-          ...prev,
-          carts: mergedCarts
-        }));
-        
-        // Toast de recuperação removido a pedido do usuário
+        if (filteredDbCarts.length > 0) {
+          // Marcar para pular próximo save (evita re-save imediato após merge)
+          skipNextSaveRef.current = true;
+          
+          const mergedCarts = mergeWithLocalCarts(filteredDbCarts, multiCart.carts);
+          
+          setMultiCart(prev => ({
+            ...prev,
+            carts: mergedCarts
+          }));
+          
+          // Reset flag após debounce time (3 segundos é mais que o debounce de 2s)
+          setTimeout(() => {
+            skipNextSaveRef.current = false;
+          }, 3000);
+        }
       }
       
       setIsInitialized(true);
@@ -251,6 +264,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const debouncedSaveToDatabase = useDebounce(
     useCallback((carts: Record<string, Cart>) => {
       if (!user) return;
+      
+      // IMPORTANTE: Verificar se devemos pular este save (após merge do banco)
+      if (skipNextSaveRef.current) {
+        console.log('⏭️ Skipping save due to skipNextSave flag');
+        return;
+      }
       
       // Save each non-empty cart
       Object.entries(carts).forEach(([storeId, cart]) => {
@@ -547,7 +566,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(async (): Promise<void> => {
     console.log('🗑️ CartProvider: clearing active cart');
     if (!multiCart.activeStoreId) {
       console.warn('⚠️ clearCart called but no active store');
@@ -557,16 +576,28 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const storeIdToRemove = multiCart.activeStoreId;
     console.log('🗑️ Removing cart for store:', storeIdToRemove);
     
-    // IMPORTANTE: Marcar esta loja como "cleared" para evitar re-save do debounce
+    // IMPORTANTE: Marcar esta loja como "cleared" ANTES de qualquer operação
     clearedStoresRef.current.add(storeIdToRemove);
     console.log('🚫 Store marked as cleared:', storeIdToRemove);
     
-    // Remover da lista após 5 segundos (tempo suficiente para debounce de 2s)
-    setTimeout(() => {
-      clearedStoresRef.current.delete(storeIdToRemove);
-      console.log('✅ Store removed from cleared list:', storeIdToRemove);
-    }, 5000);
+    // Deletar do banco PRIMEIRO e aguardar completar (se usuário logado)
+    if (user) {
+      try {
+        await deleteCartFromDatabase(storeIdToRemove);
+        console.log('✅ Cart deleted from database');
+      } catch (err) {
+        console.error('❌ Failed to delete cart from database:', err);
+        // Tentar novamente
+        try {
+          await deleteCartFromDatabase(storeIdToRemove);
+          console.log('✅ Cart deleted on retry');
+        } catch (e) {
+          console.error('❌ Retry also failed:', e);
+        }
+      }
+    }
     
+    // Só DEPOIS limpar o estado local
     setMultiCart((prev) => {
       const { [storeIdToRemove]: removed, ...remainingCarts } = prev.carts;
       
@@ -582,23 +613,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return newState;
     });
     
-    // Delete from database if user is logged in (with retry)
-    if (user) {
-      deleteCartFromDatabase(storeIdToRemove)
-        .then(() => {
-          console.log('✅ Cart deleted from database');
-        })
-        .catch((err) => {
-          console.error('❌ Failed to delete cart, retrying...', err);
-          // Retry once after 1 second
-          setTimeout(() => {
-            deleteCartFromDatabase(storeIdToRemove)
-              .then(() => console.log('✅ Cart deleted on retry'))
-              .catch((e) => console.error('❌ Retry also failed:', e));
-          }, 1000);
-        });
-    }
-  };
+    // Manter na lista de cleared por mais tempo (10 segundos para evitar race conditions)
+    setTimeout(() => {
+      clearedStoresRef.current.delete(storeIdToRemove);
+      console.log('✅ Store removed from cleared list:', storeIdToRemove);
+    }, 10000);
+  }, [multiCart.activeStoreId, user, deleteCartFromDatabase]);
 
   const getTotal = () => {
     const total = cart.items.reduce((sum, item) => {
