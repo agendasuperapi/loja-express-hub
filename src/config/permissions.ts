@@ -173,6 +173,40 @@ export const PERMISSION_MODULES: PermissionModule[] = [
       { key: 'edit', label: 'Editar', description: 'Conectar e desconectar WhatsApp', defaultValue: false },
     ],
   },
+  {
+    key: 'affiliates',
+    label: 'Afiliados',
+    description: 'Gerenciamento de afiliados e comissões',
+    permissions: [
+      { key: 'enabled', label: 'Menu Ativo', description: 'Acesso ao menu de afiliados', defaultValue: false },
+      { key: 'view', label: 'Visualizar', description: 'Ver lista de afiliados', defaultValue: false },
+      { key: 'create', label: 'Criar', description: 'Cadastrar novos afiliados', defaultValue: false },
+      { key: 'update', label: 'Editar', description: 'Editar afiliados existentes', defaultValue: false },
+      { key: 'delete', label: 'Excluir', description: 'Remover afiliados', defaultValue: false },
+      { key: 'toggle_status', label: 'Ativar/Desativar', description: 'Ativar ou desativar afiliados', defaultValue: false },
+    ],
+    subgroups: [
+      {
+        key: 'commissions',
+        label: 'Comissões',
+        description: 'Gerenciamento de comissões',
+        permissions: [
+          { key: 'view_commissions', label: 'Ver Comissões', description: 'Visualizar comissões e ganhos', defaultValue: false },
+          { key: 'manage_commission_rules', label: 'Gerenciar Regras', description: 'Criar e excluir regras de comissão', defaultValue: false },
+          { key: 'create_payments', label: 'Criar Pagamentos', description: 'Registrar pagamentos para afiliados', defaultValue: false },
+        ],
+      },
+      {
+        key: 'invites',
+        label: 'Convites',
+        description: 'Links de convite para afiliados',
+        permissions: [
+          { key: 'generate_invite_link', label: 'Gerar Link', description: 'Gerar link de convite para afiliados', defaultValue: false },
+          { key: 'view_reports', label: 'Ver Relatórios', description: 'Acessar relatórios de afiliados', defaultValue: false },
+        ],
+      },
+    ],
+  },
 ];
 
 /**

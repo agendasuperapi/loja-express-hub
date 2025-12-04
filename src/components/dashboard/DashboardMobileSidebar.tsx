@@ -218,7 +218,7 @@ export const DashboardMobileSidebar = ({
             )}
 
             {/* Afiliados */}
-            {!isEmployee && (
+            {hasPermission('affiliates', 'enabled') && (
               <Collapsible open={afiliadosOpen} onOpenChange={setAfiliadosOpen}>
                 <CollapsibleTrigger asChild>
                   <Button

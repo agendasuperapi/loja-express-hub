@@ -75,7 +75,7 @@ export const DashboardSidebar = ({ activeTab, onTabChange, storeLogo, storeName,
     ...(hasPermission('orders') ? [{ id: 'pedidos', label: 'pedidos', icon: ShoppingCart, show: true }] : []),
     ...(relatoriosSubItems.length > 0 ? [{ id: 'relatorios', label: 'relatórios', icon: FileBarChart, hasSubmenu: true, show: true }] : []),
     ...(cadastrosSubItems.length > 0 ? [{ id: 'cadastros', label: 'cadastros', icon: FolderOpen, hasSubmenu: true, show: true }] : []),
-    ...(!isEmployee ? [{ id: 'afiliados-menu', label: 'afiliados', icon: UserPlus, hasSubmenu: true, show: true }] : []),
+    ...(hasPermission('affiliates', 'enabled') ? [{ id: 'afiliados-menu', label: 'afiliados', icon: UserPlus, hasSubmenu: true, show: true }] : []),
     ...(hasPermission('settings', 'manage_whatsapp') ? [{ id: 'whatsapp', label: 'whatsapp', icon: MessageSquare, show: true }] : []),
     ...(hasPermission('settings') ? [{ id: 'result', label: 'configurações', icon: Settings, show: true }] : []),
   ].filter(item => item.show);
