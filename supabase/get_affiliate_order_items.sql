@@ -1,5 +1,5 @@
 -- Função para buscar itens de um pedido com detalhes de comissão do afiliado
--- ATUALIZADO v3: Fallback melhorado para sempre calcular comissão proporcional corretamente
+-- ATUALIZADO v4: Sempre retorna commission_value do affiliate_earnings (a % original)
 -- Garante que itens mostrem comissão mesmo quando affiliate_item_earnings não existe
 
 DROP FUNCTION IF EXISTS public.get_affiliate_order_items(UUID, UUID);
@@ -40,7 +40,7 @@ DECLARE
   v_valor_base NUMERIC;
   v_items_count INT;
 BEGIN
-  -- Buscar earning_id do pedido
+  -- Buscar earning_id do pedido (SEMPRE pega commission_type e commission_value do affiliate_earnings)
   IF p_store_affiliate_id IS NOT NULL THEN
     SELECT ae.id, ae.commission_type, ae.commission_value, ae.commission_amount
     INTO v_earning_id, v_commission_type, v_commission_value, v_total_commission
@@ -59,6 +59,25 @@ BEGIN
   -- Se não encontrou earning, retornar vazio
   IF v_earning_id IS NULL THEN
     RETURN;
+  END IF;
+
+  -- Garantir valores padrão
+  IF v_commission_type IS NULL THEN
+    v_commission_type := 'percentage';
+  END IF;
+  
+  IF v_commission_value IS NULL OR v_commission_value = 0 THEN
+    -- Tentar buscar da store_affiliates se não tiver no affiliate_earnings
+    SELECT sa.default_commission_type, sa.default_commission_value
+    INTO v_commission_type, v_commission_value
+    FROM affiliate_earnings ae
+    JOIN store_affiliates sa ON sa.id = ae.store_affiliate_id
+    WHERE ae.id = v_earning_id;
+    
+    -- Se ainda for null/0, usar valor padrão
+    IF v_commission_value IS NULL OR v_commission_value = 0 THEN
+      v_commission_value := 10; -- Valor padrão de 10%
+    END IF;
   END IF;
 
   -- Verificar se existem registros em affiliate_item_earnings com comissão > 0
@@ -83,12 +102,12 @@ BEGIN
       aie.item_value_with_discount,
       aie.is_coupon_eligible,
       aie.coupon_scope::TEXT,
-      aie.commission_type::TEXT,
+      v_commission_type::TEXT as commission_type, -- SEMPRE usa o tipo do affiliate_earnings
       CASE 
         WHEN aie.is_coupon_eligible THEN 'com_desconto'
         ELSE 'sem_desconto'
       END::TEXT as commission_source,
-      aie.commission_value,
+      v_commission_value as commission_value, -- SEMPRE usa o valor do affiliate_earnings (a %)
       aie.commission_amount as item_commission
     FROM affiliate_item_earnings aie
     JOIN order_items oi ON oi.id = aie.order_item_id
@@ -102,12 +121,6 @@ BEGIN
     FROM orders o
     WHERE o.id = p_order_id;
 
-    -- Contar itens do pedido
-    SELECT COUNT(*) INTO v_items_count
-    FROM order_items oi
-    WHERE oi.order_id = p_order_id
-    AND oi.deleted_at IS NULL;
-
     -- Garantir valores válidos
     IF v_order_subtotal IS NULL OR v_order_subtotal <= 0 THEN
       v_order_subtotal := 1;
@@ -116,12 +129,7 @@ BEGIN
     v_valor_base := v_order_subtotal - v_coupon_discount;
     
     IF v_valor_base <= 0 THEN
-      v_valor_base := v_order_subtotal; -- Usar subtotal se valor base for 0
-    END IF;
-
-    IF v_commission_type IS NULL THEN
-      v_commission_type := 'percentage';
-      v_commission_value := 0;
+      v_valor_base := v_order_subtotal;
     END IF;
 
     IF v_total_commission IS NULL THEN
@@ -146,7 +154,7 @@ BEGIN
       v_commission_type::TEXT as commission_type,
       'proporcional'::TEXT as commission_source,
       v_commission_value as commission_value,
-      -- IMPORTANTE: Distribuir comissão total proporcionalmente pelo subtotal de cada item
+      -- Distribuir comissão total proporcionalmente pelo subtotal de cada item
       CASE 
         WHEN v_total_commission > 0 AND v_order_subtotal > 0 THEN 
           ROUND((oi.subtotal / v_order_subtotal) * v_total_commission, 2)
