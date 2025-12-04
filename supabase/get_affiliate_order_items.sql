@@ -113,11 +113,11 @@ BEGIN
   -- 5. Se AINDA não tem, deixa NULL (não inventa valor!)
   -- v_commission_value permanece NULL
 
-  -- Verificar se existem registros em affiliate_item_earnings com comissão > 0
+  -- Verificar se existem registros em affiliate_item_earnings (com comissão configurada)
   SELECT EXISTS(
     SELECT 1 FROM affiliate_item_earnings 
     WHERE earning_id = v_earning_id 
-    AND commission_amount > 0
+    AND (commission_amount > 0 OR commission_value > 0)
   ) INTO v_has_item_earnings;
 
   -- Se há registros detalhados COM comissão, usar eles
@@ -135,12 +135,14 @@ BEGIN
       aie.item_value_with_discount,
       aie.is_coupon_eligible,
       aie.coupon_scope::TEXT,
-      v_commission_type::TEXT as commission_type,
+      -- Usa o valor do item se disponível, senão o global da hierarquia
+      COALESCE(NULLIF(aie.commission_type, ''), v_commission_type, 'percentage')::TEXT as commission_type,
       CASE 
         WHEN aie.is_coupon_eligible THEN 'com_desconto'
         ELSE 'sem_desconto'
       END::TEXT as commission_source,
-      v_commission_value as commission_value, -- Usa o valor encontrado na hierarquia
+      -- Usa a comissão do próprio item se disponível, senão a global
+      COALESCE(NULLIF(aie.commission_value, 0), v_commission_value, 0) as commission_value,
       aie.commission_amount as item_commission
     FROM affiliate_item_earnings aie
     JOIN order_items oi ON oi.id = aie.order_item_id
