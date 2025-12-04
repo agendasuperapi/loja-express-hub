@@ -655,6 +655,9 @@ export default function Cart() {
       }
   
       if (deliveryType === 'pickup' && pickupLocations.length > 1 && !selectedPickupLocation) {
+        pickupLocationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightPickupLocation(true);
+        setTimeout(() => setHighlightPickupLocation(false), 2500);
         toast({
           title: "Local de retirada",
           description: "Por favor, selecione o local onde deseja retirar seu pedido.",
