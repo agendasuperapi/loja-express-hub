@@ -1,6 +1,6 @@
 -- Função para buscar itens de um pedido com detalhes de comissão do afiliado
--- ATUALIZADO v4: Sempre retorna commission_value do affiliate_earnings (a % original)
--- Garante que itens mostrem comissão mesmo quando affiliate_item_earnings não existe
+-- ATUALIZADO v5: Hierarquia completa de busca de comissão SEM fallback fixo de 10%
+-- Ordem: affiliate_earnings -> store_affiliates -> affiliates -> engenharia reversa -> NULL
 
 DROP FUNCTION IF EXISTS public.get_affiliate_order_items(UUID, UUID);
 
@@ -31,6 +31,8 @@ SET search_path TO 'public'
 AS $$
 DECLARE
   v_earning_id UUID;
+  v_affiliate_id UUID;
+  v_store_affiliate_id UUID;
   v_has_item_earnings BOOLEAN;
   v_commission_type TEXT;
   v_commission_value NUMERIC;
@@ -38,18 +40,17 @@ DECLARE
   v_order_subtotal NUMERIC;
   v_coupon_discount NUMERIC;
   v_valor_base NUMERIC;
-  v_items_count INT;
 BEGIN
-  -- Buscar earning_id do pedido (SEMPRE pega commission_type e commission_value do affiliate_earnings)
+  -- Buscar earning_id e dados de comissão do affiliate_earnings
   IF p_store_affiliate_id IS NOT NULL THEN
-    SELECT ae.id, ae.commission_type, ae.commission_value, ae.commission_amount
-    INTO v_earning_id, v_commission_type, v_commission_value, v_total_commission
+    SELECT ae.id, ae.affiliate_id, ae.store_affiliate_id, ae.commission_type, ae.commission_value, ae.commission_amount
+    INTO v_earning_id, v_affiliate_id, v_store_affiliate_id, v_commission_type, v_commission_value, v_total_commission
     FROM affiliate_earnings ae
     WHERE ae.order_id = p_order_id
     AND ae.store_affiliate_id = p_store_affiliate_id;
   ELSE
-    SELECT ae.id, ae.commission_type, ae.commission_value, ae.commission_amount
-    INTO v_earning_id, v_commission_type, v_commission_value, v_total_commission
+    SELECT ae.id, ae.affiliate_id, ae.store_affiliate_id, ae.commission_type, ae.commission_value, ae.commission_amount
+    INTO v_earning_id, v_affiliate_id, v_store_affiliate_id, v_commission_type, v_commission_value, v_total_commission
     FROM affiliate_earnings ae
     WHERE ae.order_id = p_order_id
     ORDER BY (ae.store_affiliate_id IS NULL) DESC
@@ -61,24 +62,56 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Garantir valores padrão
-  IF v_commission_type IS NULL THEN
+  -- Garantir tipo padrão
+  IF v_commission_type IS NULL OR v_commission_type = '' THEN
     v_commission_type := 'percentage';
   END IF;
   
-  IF v_commission_value IS NULL OR v_commission_value = 0 THEN
-    -- Tentar buscar da store_affiliates se não tiver no affiliate_earnings
+  -- HIERARQUIA DE BUSCA DA COMISSÃO (sem fallback fixo!)
+  
+  -- 1. Já temos do affiliate_earnings? Se sim, usar
+  -- (já foi carregado acima)
+  
+  -- 2. Se não tem, buscar da store_affiliates
+  IF (v_commission_value IS NULL OR v_commission_value = 0) AND v_store_affiliate_id IS NOT NULL THEN
     SELECT sa.default_commission_type, sa.default_commission_value
     INTO v_commission_type, v_commission_value
-    FROM affiliate_earnings ae
-    JOIN store_affiliates sa ON sa.id = ae.store_affiliate_id
-    WHERE ae.id = v_earning_id;
+    FROM store_affiliates sa
+    WHERE sa.id = v_store_affiliate_id;
     
-    -- Se ainda for null/0, usar valor padrão
-    IF v_commission_value IS NULL OR v_commission_value = 0 THEN
-      v_commission_value := 10; -- Valor padrão de 10%
+    IF v_commission_type IS NULL OR v_commission_type = '' THEN
+      v_commission_type := 'percentage';
     END IF;
   END IF;
+  
+  -- 3. Se ainda não tem, buscar da tabela affiliates (sistema legado)
+  IF (v_commission_value IS NULL OR v_commission_value = 0) AND v_affiliate_id IS NOT NULL THEN
+    SELECT a.default_commission_type, a.default_commission_value
+    INTO v_commission_type, v_commission_value
+    FROM affiliates a
+    WHERE a.id = v_affiliate_id;
+    
+    IF v_commission_type IS NULL OR v_commission_type = '' THEN
+      v_commission_type := 'percentage';
+    END IF;
+  END IF;
+  
+  -- 4. Último recurso REAL: Engenharia reversa (calcular % a partir dos valores)
+  IF (v_commission_value IS NULL OR v_commission_value = 0) AND v_total_commission IS NOT NULL AND v_total_commission > 0 THEN
+    -- Buscar subtotal do pedido para calcular
+    SELECT o.subtotal INTO v_order_subtotal
+    FROM orders o
+    WHERE o.id = p_order_id;
+    
+    IF v_order_subtotal IS NOT NULL AND v_order_subtotal > 0 THEN
+      -- Calcular a porcentagem: (comissão / subtotal) * 100
+      v_commission_value := ROUND((v_total_commission / v_order_subtotal) * 100, 2);
+      v_commission_type := 'percentage';
+    END IF;
+  END IF;
+  
+  -- 5. Se AINDA não tem, deixa NULL (não inventa valor!)
+  -- v_commission_value permanece NULL
 
   -- Verificar se existem registros em affiliate_item_earnings com comissão > 0
   SELECT EXISTS(
@@ -102,12 +135,12 @@ BEGIN
       aie.item_value_with_discount,
       aie.is_coupon_eligible,
       aie.coupon_scope::TEXT,
-      v_commission_type::TEXT as commission_type, -- SEMPRE usa o tipo do affiliate_earnings
+      v_commission_type::TEXT as commission_type,
       CASE 
         WHEN aie.is_coupon_eligible THEN 'com_desconto'
         ELSE 'sem_desconto'
       END::TEXT as commission_source,
-      v_commission_value as commission_value, -- SEMPRE usa o valor do affiliate_earnings (a %)
+      v_commission_value as commission_value, -- Usa o valor encontrado na hierarquia
       aie.commission_amount as item_commission
     FROM affiliate_item_earnings aie
     JOIN order_items oi ON oi.id = aie.order_item_id
