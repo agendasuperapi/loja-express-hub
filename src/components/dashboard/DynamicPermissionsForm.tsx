@@ -2,9 +2,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EmployeePermissions } from '@/hooks/useStoreEmployees';
 import { useDynamicPermissions } from '@/hooks/useDynamicPermissions';
-import { Shield, AlertCircle, XCircle } from 'lucide-react';
+import { Shield, AlertCircle, XCircle, CheckCheck } from 'lucide-react';
 import { PermissionModule } from '@/config/permissions';
 
 interface DynamicPermissionsFormProps {
@@ -41,6 +42,37 @@ export const DynamicPermissionsForm = ({
         });
       });
     }
+  };
+
+  const handleAllowAll = (module: PermissionModule) => {
+    // Ativa a permissão 'enabled' do módulo
+    onPermissionChange(module.key, 'enabled', true);
+    
+    // Ativa todas as permissões diretas do módulo
+    module.permissions.forEach(perm => {
+      onPermissionChange(module.key, perm.key, true);
+    });
+    
+    // Ativa todas as permissões dos subgrupos
+    module.subgroups?.forEach(subgroup => {
+      subgroup.permissions.forEach(perm => {
+        onPermissionChange(module.key, perm.key, true);
+      });
+    });
+  };
+
+  const areAllPermissionsEnabled = (module: PermissionModule): boolean => {
+    // Verifica permissões diretas
+    const directPermsEnabled = module.permissions.every(
+      perm => getPermissionValue(module.key, perm.key)
+    );
+    
+    // Verifica permissões dos subgrupos
+    const subgroupPermsEnabled = module.subgroups?.every(subgroup =>
+      subgroup.permissions.every(perm => getPermissionValue(module.key, perm.key))
+    ) ?? true;
+    
+    return directPermsEnabled && subgroupPermsEnabled;
   };
 
   const renderPermissionSwitch = (
@@ -86,6 +118,20 @@ export const DynamicPermissionsForm = ({
           
           {/* Toggle Principal do Módulo */}
           <div className="flex items-center gap-2">
+            {/* Botão Permitir Tudo - só aparece quando módulo está ativo */}
+            {isModuleEnabled && !areAllPermissionsEnabled(module) && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleAllowAll(module)}
+                className="h-7 text-xs"
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Permitir tudo
+              </Button>
+            )}
+            
             <Label className={`text-sm ${isModuleEnabled ? 'text-primary' : 'text-muted-foreground'}`}>
               {isModuleEnabled ? 'Ativo' : 'Inativo'}
             </Label>
