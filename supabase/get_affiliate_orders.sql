@@ -1,5 +1,6 @@
 -- Função para buscar pedidos com comissões do afiliado
 -- Suporta tanto o sistema novo (store_affiliates) quanto o legado (affiliates)
+-- Usa DISTINCT ON para evitar duplicação de pedidos
 DROP FUNCTION IF EXISTS public.get_affiliate_orders(UUID);
 
 CREATE OR REPLACE FUNCTION public.get_affiliate_orders(p_affiliate_account_id UUID)
@@ -29,94 +30,107 @@ BEGIN
   -- Buscar email do affiliate_account para usar nas queries
   SELECT email INTO v_email FROM affiliate_accounts WHERE id = p_affiliate_account_id;
   
-  RAISE NOTICE '[get_affiliate_orders] affiliate_account_id: %, email: %', p_affiliate_account_id, v_email;
-
   RETURN QUERY
   
-  -- Sistema novo: via store_affiliates (store_affiliate_id preenchido)
-  SELECT 
-    ae.id as earning_id,
-    ae.order_id,
-    o.order_number::TEXT,
-    o.customer_name::TEXT,
-    o.created_at as order_date,
-    o.store_id,
-    s.name::TEXT as store_name,
-    ae.store_affiliate_id,
-    ae.order_total,
-    o.subtotal as order_subtotal,
-    COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
-    ae.commission_amount,
-    ae.status::TEXT as commission_status,
-    o.coupon_code::TEXT
-  FROM affiliate_earnings ae
-  JOIN store_affiliates sa ON sa.id = ae.store_affiliate_id
-  JOIN orders o ON o.id = ae.order_id
-  JOIN stores s ON s.id = o.store_id
-  WHERE sa.affiliate_account_id = p_affiliate_account_id
-  AND sa.is_active = true
-  
-  UNION ALL
-  
-  -- Sistema legado: via email do afiliado (compara affiliate.email com affiliate_account.email)
-  SELECT 
-    ae.id as earning_id,
-    ae.order_id,
-    o.order_number::TEXT,
-    o.customer_name::TEXT,
-    o.created_at as order_date,
-    o.store_id,
-    s.name::TEXT as store_name,
-    ae.store_affiliate_id,
-    ae.order_total,
-    o.subtotal as order_subtotal,
-    COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
-    ae.commission_amount,
-    ae.status::TEXT as commission_status,
-    o.coupon_code::TEXT
-  FROM affiliate_earnings ae
-  JOIN affiliates a ON a.id = ae.affiliate_id
-  JOIN orders o ON o.id = ae.order_id
-  JOIN stores s ON s.id = o.store_id
-  WHERE LOWER(a.email) = LOWER(v_email)
-  AND a.is_active = true
-  AND ae.store_affiliate_id IS NULL  -- Apenas os que NÃO estão no sistema novo
-  
-  UNION ALL
-  
-  -- Sistema legado alternativo: via user_id (para afiliados vinculados a auth.users)
-  SELECT 
-    ae.id as earning_id,
-    ae.order_id,
-    o.order_number::TEXT,
-    o.customer_name::TEXT,
-    o.created_at as order_date,
-    o.store_id,
-    s.name::TEXT as store_name,
-    ae.store_affiliate_id,
-    ae.order_total,
-    o.subtotal as order_subtotal,
-    COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
-    ae.commission_amount,
-    ae.status::TEXT as commission_status,
-    o.coupon_code::TEXT
-  FROM affiliate_earnings ae
-  JOIN affiliates a ON a.id = ae.affiliate_id
-  JOIN orders o ON o.id = ae.order_id
-  JOIN stores s ON s.id = o.store_id
-  JOIN auth.users u ON u.id = a.user_id
-  WHERE LOWER(u.email) = LOWER(v_email)
-  AND a.is_active = true
-  AND ae.store_affiliate_id IS NULL
-  AND a.user_id IS NOT NULL
-  -- Evitar duplicatas com a query anterior
-  AND NOT EXISTS (
-    SELECT 1 FROM affiliates a2 
-    WHERE LOWER(a2.email) = LOWER(v_email) 
-    AND a2.id = a.id
-  )
-  
-  ORDER BY order_date DESC;
+  -- Usar DISTINCT ON para eliminar duplicatas por order_id
+  SELECT DISTINCT ON (combined.order_id)
+    combined.earning_id,
+    combined.order_id,
+    combined.order_number,
+    combined.customer_name,
+    combined.order_date,
+    combined.store_id,
+    combined.store_name,
+    combined.store_affiliate_id,
+    combined.order_total,
+    combined.order_subtotal,
+    combined.coupon_discount,
+    combined.commission_amount,
+    combined.commission_status,
+    combined.coupon_code
+  FROM (
+    -- Sistema novo: via store_affiliates
+    SELECT 
+      ae.id as earning_id,
+      ae.order_id,
+      o.order_number::TEXT,
+      o.customer_name::TEXT,
+      o.created_at as order_date,
+      o.store_id,
+      s.name::TEXT as store_name,
+      ae.store_affiliate_id,
+      ae.order_total,
+      o.subtotal as order_subtotal,
+      COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
+      ae.commission_amount,
+      ae.status::TEXT as commission_status,
+      o.coupon_code::TEXT,
+      1 as priority -- Maior prioridade para sistema novo
+    FROM affiliate_earnings ae
+    JOIN store_affiliates sa ON sa.id = ae.store_affiliate_id
+    JOIN orders o ON o.id = ae.order_id
+    JOIN stores s ON s.id = o.store_id
+    WHERE sa.affiliate_account_id = p_affiliate_account_id
+    AND sa.is_active = true
+    
+    UNION ALL
+    
+    -- Sistema legado: via email do afiliado
+    SELECT 
+      ae.id as earning_id,
+      ae.order_id,
+      o.order_number::TEXT,
+      o.customer_name::TEXT,
+      o.created_at as order_date,
+      o.store_id,
+      s.name::TEXT as store_name,
+      ae.store_affiliate_id,
+      ae.order_total,
+      o.subtotal as order_subtotal,
+      COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
+      ae.commission_amount,
+      ae.status::TEXT as commission_status,
+      o.coupon_code::TEXT,
+      2 as priority
+    FROM affiliate_earnings ae
+    JOIN affiliates a ON a.id = ae.affiliate_id
+    JOIN orders o ON o.id = ae.order_id
+    JOIN stores s ON s.id = o.store_id
+    WHERE LOWER(a.email) = LOWER(v_email)
+    AND a.is_active = true
+    AND ae.store_affiliate_id IS NULL
+    
+    UNION ALL
+    
+    -- Sistema legado alternativo: via user_id
+    SELECT 
+      ae.id as earning_id,
+      ae.order_id,
+      o.order_number::TEXT,
+      o.customer_name::TEXT,
+      o.created_at as order_date,
+      o.store_id,
+      s.name::TEXT as store_name,
+      ae.store_affiliate_id,
+      ae.order_total,
+      o.subtotal as order_subtotal,
+      COALESCE(o.coupon_discount, 0::NUMERIC) as coupon_discount,
+      ae.commission_amount,
+      ae.status::TEXT as commission_status,
+      o.coupon_code::TEXT,
+      3 as priority
+    FROM affiliate_earnings ae
+    JOIN affiliates a ON a.id = ae.affiliate_id
+    JOIN orders o ON o.id = ae.order_id
+    JOIN stores s ON s.id = o.store_id
+    JOIN auth.users u ON u.id = a.user_id
+    WHERE LOWER(u.email) = LOWER(v_email)
+    AND a.is_active = true
+    AND ae.store_affiliate_id IS NULL
+    AND a.user_id IS NOT NULL
+    AND LOWER(a.email) != LOWER(v_email)
+  ) combined
+  ORDER BY combined.order_id, combined.priority ASC, combined.order_date DESC;
 END;
 $$;
 
