@@ -1,8 +1,7 @@
 -- Função para buscar itens de um pedido com detalhes de comissão do afiliado
--- ATUALIZADO v2: Lê diretamente de affiliate_item_earnings quando disponível
--- Fallback para cálculo proporcional para pedidos antigos
+-- ATUALIZADO v3: Fallback melhorado para sempre calcular comissão proporcional corretamente
+-- Garante que itens mostrem comissão mesmo quando affiliate_item_earnings não existe
 
--- Dropar função existente para alterar tipo de retorno
 DROP FUNCTION IF EXISTS public.get_affiliate_order_items(UUID, UUID);
 
 CREATE OR REPLACE FUNCTION public.get_affiliate_order_items(
@@ -39,6 +38,7 @@ DECLARE
   v_order_subtotal NUMERIC;
   v_coupon_discount NUMERIC;
   v_valor_base NUMERIC;
+  v_items_count INT;
 BEGIN
   -- Buscar earning_id do pedido
   IF p_store_affiliate_id IS NOT NULL THEN
@@ -56,12 +56,19 @@ BEGIN
     LIMIT 1;
   END IF;
 
-  -- Verificar se existem registros em affiliate_item_earnings
+  -- Se não encontrou earning, retornar vazio
+  IF v_earning_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- Verificar se existem registros em affiliate_item_earnings com comissão > 0
   SELECT EXISTS(
-    SELECT 1 FROM affiliate_item_earnings WHERE earning_id = v_earning_id
+    SELECT 1 FROM affiliate_item_earnings 
+    WHERE earning_id = v_earning_id 
+    AND commission_amount > 0
   ) INTO v_has_item_earnings;
 
-  -- Se há registros detalhados, usar eles
+  -- Se há registros detalhados COM comissão, usar eles
   IF v_has_item_earnings THEN
     RETURN QUERY
     SELECT 
@@ -88,23 +95,37 @@ BEGIN
     WHERE aie.earning_id = v_earning_id
     ORDER BY oi.created_at;
   ELSE
-    -- Fallback: Cálculo proporcional para pedidos antigos
+    -- Fallback: Cálculo proporcional para pedidos antigos ou sem item_earnings
     -- Buscar subtotal e desconto do pedido
     SELECT o.subtotal, COALESCE(o.coupon_discount, 0) 
     INTO v_order_subtotal, v_coupon_discount
     FROM orders o
     WHERE o.id = p_order_id;
 
-    v_valor_base := COALESCE(v_order_subtotal, 0) - v_coupon_discount;
+    -- Contar itens do pedido
+    SELECT COUNT(*) INTO v_items_count
+    FROM order_items oi
+    WHERE oi.order_id = p_order_id
+    AND oi.deleted_at IS NULL;
+
+    -- Garantir valores válidos
+    IF v_order_subtotal IS NULL OR v_order_subtotal <= 0 THEN
+      v_order_subtotal := 1;
+    END IF;
+
+    v_valor_base := v_order_subtotal - v_coupon_discount;
+    
+    IF v_valor_base <= 0 THEN
+      v_valor_base := v_order_subtotal; -- Usar subtotal se valor base for 0
+    END IF;
 
     IF v_commission_type IS NULL THEN
       v_commission_type := 'percentage';
       v_commission_value := 0;
-      v_total_commission := 0;
     END IF;
 
-    IF v_order_subtotal IS NULL OR v_order_subtotal = 0 THEN
-      v_order_subtotal := 1;
+    IF v_total_commission IS NULL THEN
+      v_total_commission := 0;
     END IF;
 
     RETURN QUERY
@@ -116,16 +137,19 @@ BEGIN
       oi.quantity::INT,
       oi.unit_price,
       oi.subtotal,
+      -- Desconto proporcional do item
       ROUND((oi.subtotal / v_order_subtotal) * v_coupon_discount, 2) as item_discount,
+      -- Valor com desconto
       ROUND(oi.subtotal - ((oi.subtotal / v_order_subtotal) * v_coupon_discount), 2) as item_value_with_discount,
-      true as is_coupon_eligible, -- Pedidos antigos assumem todos elegíveis
+      true as is_coupon_eligible,
       'all'::TEXT as coupon_scope,
       v_commission_type::TEXT as commission_type,
-      'pedido'::TEXT as commission_source,
+      'proporcional'::TEXT as commission_source,
       v_commission_value as commission_value,
+      -- IMPORTANTE: Distribuir comissão total proporcionalmente pelo subtotal de cada item
       CASE 
-        WHEN v_valor_base > 0 THEN 
-          ROUND((ROUND(oi.subtotal - ((oi.subtotal / v_order_subtotal) * v_coupon_discount), 2) / v_valor_base) * v_total_commission, 2)
+        WHEN v_total_commission > 0 AND v_order_subtotal > 0 THEN 
+          ROUND((oi.subtotal / v_order_subtotal) * v_total_commission, 2)
         ELSE 
           0
       END as item_commission
