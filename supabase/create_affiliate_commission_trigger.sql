@@ -1,5 +1,6 @@
 -- Trigger para processar comissão de afiliado automaticamente quando um pedido é criado
--- ATUALIZADO: Calcula comissão sobre o valor COM DESCONTO (subtotal - coupon_discount)
+-- ATUALIZADO v2: Calcula comissão POR ITEM considerando o escopo do cupom (all, category, product)
+-- Itens fora do escopo do cupom pagam comissão sobre valor CHEIO (sem desconto)
 
 CREATE OR REPLACE FUNCTION public.process_affiliate_commission()
 RETURNS TRIGGER
@@ -13,10 +14,20 @@ DECLARE
   v_store_affiliate RECORD;
   v_commission_type TEXT;
   v_commission_value NUMERIC;
-  v_commission_amount NUMERIC;
+  v_total_commission NUMERIC := 0;
   v_store_affiliate_id UUID;
   v_affiliate_id UUID;
-  v_valor_base NUMERIC;
+  v_earning_id UUID;
+  v_item RECORD;
+  v_product RECORD;
+  v_is_eligible BOOLEAN;
+  v_item_discount NUMERIC;
+  v_item_value_with_discount NUMERIC;
+  v_item_commission NUMERIC;
+  v_eligible_subtotal NUMERIC := 0;
+  v_coupon_scope TEXT;
+  v_category_names TEXT[];
+  v_product_ids UUID[];
 BEGIN
   -- Só processar se tiver cupom
   IF NEW.coupon_code IS NULL OR NEW.coupon_code = '' THEN
@@ -31,8 +42,8 @@ BEGIN
 
   RAISE NOTICE '[COMMISSION] Processando comissão para pedido % com cupom %', NEW.id, NEW.coupon_code;
 
-  -- Buscar o cupom
-  SELECT id, code, discount_type, discount_value 
+  -- Buscar o cupom COM escopo
+  SELECT id, code, discount_type, discount_value, applies_to, category_names, product_ids
   INTO v_coupon
   FROM coupons 
   WHERE store_id = NEW.store_id 
@@ -44,7 +55,12 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  RAISE NOTICE '[COMMISSION] Cupom encontrado: % (ID: %)', v_coupon.code, v_coupon.id;
+  v_coupon_scope := COALESCE(v_coupon.applies_to, 'all');
+  v_category_names := COALESCE(v_coupon.category_names, '{}');
+  v_product_ids := COALESCE(v_coupon.product_ids, '{}');
+
+  RAISE NOTICE '[COMMISSION] Cupom encontrado: % (ID: %) - Escopo: %, Categorias: %, Produtos: %', 
+    v_coupon.code, v_coupon.id, v_coupon_scope, v_category_names, v_product_ids;
 
   -- MÉTODO 1: Buscar via store_affiliate_coupons (sistema novo - múltiplos cupons)
   SELECT 
@@ -64,7 +80,6 @@ BEGIN
   IF v_store_affiliate.store_affiliate_id IS NOT NULL THEN
     RAISE NOTICE '[COMMISSION] Afiliado encontrado via store_affiliate_coupons: %', v_store_affiliate.store_affiliate_id;
     
-    -- Buscar affiliate_id legado pelo email
     SELECT a.id INTO v_affiliate_id
     FROM affiliates a
     JOIN affiliate_accounts aa ON LOWER(aa.email) = LOWER(a.email)
@@ -77,12 +92,9 @@ BEGIN
     v_commission_value := v_store_affiliate.default_commission_value;
   END IF;
 
-  -- MÉTODO 2: Buscar via store_affiliates.coupon_id (sistema novo - cupom único legado)
+  -- MÉTODO 2: Buscar via store_affiliates.coupon_id
   IF v_store_affiliate_id IS NULL THEN
-    SELECT 
-      sa.id,
-      sa.default_commission_type,
-      sa.default_commission_value
+    SELECT sa.id, sa.default_commission_type, sa.default_commission_value
     INTO v_store_affiliate
     FROM store_affiliates sa
     WHERE sa.coupon_id = v_coupon.id
@@ -91,12 +103,10 @@ BEGIN
     LIMIT 1;
 
     IF v_store_affiliate.id IS NOT NULL THEN
-      RAISE NOTICE '[COMMISSION] Afiliado encontrado via store_affiliates.coupon_id: %', v_store_affiliate.id;
       v_store_affiliate_id := v_store_affiliate.id;
       v_commission_type := v_store_affiliate.default_commission_type;
       v_commission_value := v_store_affiliate.default_commission_value;
       
-      -- Buscar affiliate_id legado
       SELECT a.id INTO v_affiliate_id
       FROM affiliates a
       JOIN store_affiliates sa ON sa.id = v_store_affiliate_id
@@ -107,12 +117,9 @@ BEGIN
     END IF;
   END IF;
 
-  -- MÉTODO 3: Buscar via affiliate_coupons (sistema legado - múltiplos cupons)
+  -- MÉTODO 3: Buscar via affiliate_coupons (sistema legado)
   IF v_affiliate_id IS NULL THEN
-    SELECT 
-      a.id,
-      a.default_commission_type,
-      a.default_commission_value
+    SELECT a.id, a.default_commission_type, a.default_commission_value
     INTO v_affiliate
     FROM affiliate_coupons ac
     JOIN affiliates a ON a.id = ac.affiliate_id
@@ -122,12 +129,10 @@ BEGIN
     LIMIT 1;
 
     IF v_affiliate.id IS NOT NULL THEN
-      RAISE NOTICE '[COMMISSION] Afiliado encontrado via affiliate_coupons: %', v_affiliate.id;
       v_affiliate_id := v_affiliate.id;
       v_commission_type := v_affiliate.default_commission_type;
       v_commission_value := v_affiliate.default_commission_value;
       
-      -- Tentar encontrar store_affiliate correspondente
       SELECT sa.id INTO v_store_affiliate_id
       FROM store_affiliates sa
       JOIN affiliate_accounts aa ON aa.id = sa.affiliate_account_id
@@ -141,10 +146,7 @@ BEGIN
 
   -- MÉTODO 4: Buscar via affiliates.coupon_id (sistema legado - cupom único)
   IF v_affiliate_id IS NULL THEN
-    SELECT 
-      a.id,
-      a.default_commission_type,
-      a.default_commission_value
+    SELECT a.id, a.default_commission_type, a.default_commission_value
     INTO v_affiliate
     FROM affiliates a
     WHERE a.coupon_id = v_coupon.id
@@ -153,12 +155,10 @@ BEGIN
     LIMIT 1;
 
     IF v_affiliate.id IS NOT NULL THEN
-      RAISE NOTICE '[COMMISSION] Afiliado encontrado via affiliates.coupon_id: %', v_affiliate.id;
       v_affiliate_id := v_affiliate.id;
       v_commission_type := v_affiliate.default_commission_type;
       v_commission_value := v_affiliate.default_commission_value;
       
-      -- Tentar encontrar store_affiliate correspondente
       SELECT sa.id INTO v_store_affiliate_id
       FROM store_affiliates sa
       JOIN affiliate_accounts aa ON aa.id = sa.affiliate_account_id
@@ -175,22 +175,8 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  -- NOVO: Calcular valor base = subtotal - desconto do cupom
-  v_valor_base := NEW.subtotal - COALESCE(NEW.coupon_discount, 0);
-
-  -- Calcular comissão sobre o valor COM DESCONTO
-  IF v_commission_type = 'percentage' THEN
-    v_commission_amount := (v_valor_base * v_commission_value) / 100;
-  ELSE
-    v_commission_amount := v_commission_value;
-  END IF;
-
-  RAISE NOTICE '[COMMISSION] Calculando comissão: tipo=%, valor=%, subtotal=%, desconto=%, valor_base=%, comissão=%', 
-    v_commission_type, v_commission_value, NEW.subtotal, COALESCE(NEW.coupon_discount, 0), v_valor_base, v_commission_amount;
-
-  -- Se não temos affiliate_id mas temos store_affiliate_id, criar um placeholder
+  -- Garantir affiliate_id
   IF v_affiliate_id IS NULL AND v_store_affiliate_id IS NOT NULL THEN
-    -- Buscar ou criar affiliate_id baseado no store_affiliate
     SELECT a.id INTO v_affiliate_id
     FROM affiliates a
     JOIN store_affiliates sa ON sa.id = v_store_affiliate_id
@@ -199,21 +185,15 @@ BEGIN
     AND a.store_id = NEW.store_id
     LIMIT 1;
     
-    -- Se ainda não existe, usar o store_affiliate_id como fallback
     IF v_affiliate_id IS NULL THEN
-      -- Criar um registro em affiliates baseado no affiliate_account
-      INSERT INTO affiliates (
-        store_id, name, email, default_commission_type, default_commission_value, is_active
-      )
-      SELECT 
-        NEW.store_id, aa.name, aa.email, sa.default_commission_type, sa.default_commission_value, true
+      INSERT INTO affiliates (store_id, name, email, default_commission_type, default_commission_value, is_active)
+      SELECT NEW.store_id, aa.name, aa.email, sa.default_commission_type, sa.default_commission_value, true
       FROM store_affiliates sa
       JOIN affiliate_accounts aa ON aa.id = sa.affiliate_account_id
       WHERE sa.id = v_store_affiliate_id
       ON CONFLICT DO NOTHING
       RETURNING id INTO v_affiliate_id;
       
-      -- Se o insert falhou (já existe), buscar novamente
       IF v_affiliate_id IS NULL THEN
         SELECT a.id INTO v_affiliate_id
         FROM affiliates a
@@ -226,30 +206,106 @@ BEGIN
     END IF;
   END IF;
 
-  -- Inserir comissão
-  -- ATUALIZADO: order_total armazena o valor COM DESCONTO (base da comissão)
-  INSERT INTO affiliate_earnings (
-    affiliate_id,
-    store_affiliate_id,
-    order_id,
-    order_total,
-    commission_type,
-    commission_value,
-    commission_amount,
-    status
-  ) VALUES (
-    v_affiliate_id,
-    v_store_affiliate_id,
-    NEW.id,
-    v_valor_base,  -- Valor com desconto (subtotal - coupon_discount)
-    v_commission_type,
-    v_commission_value,
-    v_commission_amount,
-    'pending'
-  );
+  -- Calcular subtotal elegível para desconto
+  FOR v_item IN 
+    SELECT oi.id, oi.product_id, oi.product_name, oi.subtotal, oi.quantity, oi.unit_price
+    FROM order_items oi 
+    WHERE oi.order_id = NEW.id AND oi.deleted_at IS NULL
+  LOOP
+    -- Buscar categoria do produto
+    SELECT category INTO v_product FROM products WHERE id = v_item.product_id;
+    
+    -- Verificar elegibilidade baseada no escopo do cupom
+    v_is_eligible := false;
+    IF v_coupon_scope = 'all' THEN
+      v_is_eligible := true;
+    ELSIF v_coupon_scope = 'category' AND v_product.category IS NOT NULL THEN
+      v_is_eligible := v_product.category = ANY(v_category_names);
+    ELSIF v_coupon_scope = 'product' THEN
+      v_is_eligible := v_item.product_id = ANY(v_product_ids);
+    END IF;
+    
+    IF v_is_eligible THEN
+      v_eligible_subtotal := v_eligible_subtotal + v_item.subtotal;
+    END IF;
+  END LOOP;
 
-  RAISE NOTICE '[COMMISSION] ✅ Comissão criada! affiliate_id=%, store_affiliate_id=%, valor_base=%, amount=%', 
-    v_affiliate_id, v_store_affiliate_id, v_valor_base, v_commission_amount;
+  RAISE NOTICE '[COMMISSION] Subtotal elegível para desconto: % de total %', v_eligible_subtotal, NEW.subtotal;
+
+  -- Criar registro principal de earnings (com total 0, será atualizado no final)
+  INSERT INTO affiliate_earnings (
+    affiliate_id, store_affiliate_id, order_id, order_total,
+    commission_type, commission_value, commission_amount, status
+  ) VALUES (
+    v_affiliate_id, v_store_affiliate_id, NEW.id, NEW.subtotal - COALESCE(NEW.coupon_discount, 0),
+    v_commission_type, v_commission_value, 0, 'pending'
+  )
+  RETURNING id INTO v_earning_id;
+
+  -- Processar cada item individualmente
+  FOR v_item IN 
+    SELECT oi.id, oi.product_id, oi.product_name, oi.subtotal, oi.quantity, oi.unit_price
+    FROM order_items oi 
+    WHERE oi.order_id = NEW.id AND oi.deleted_at IS NULL
+  LOOP
+    -- Buscar categoria do produto
+    SELECT category INTO v_product FROM products WHERE id = v_item.product_id;
+    
+    -- Verificar elegibilidade baseada no escopo do cupom
+    v_is_eligible := false;
+    IF v_coupon_scope = 'all' THEN
+      v_is_eligible := true;
+    ELSIF v_coupon_scope = 'category' AND v_product.category IS NOT NULL THEN
+      v_is_eligible := v_product.category = ANY(v_category_names);
+    ELSIF v_coupon_scope = 'product' THEN
+      v_is_eligible := v_item.product_id = ANY(v_product_ids);
+    END IF;
+    
+    -- Calcular desconto do item
+    -- Só itens elegíveis recebem desconto proporcional
+    IF v_is_eligible AND v_eligible_subtotal > 0 THEN
+      v_item_discount := (v_item.subtotal / v_eligible_subtotal) * COALESCE(NEW.coupon_discount, 0);
+    ELSE
+      v_item_discount := 0;
+    END IF;
+    
+    -- Valor do item para cálculo da comissão
+    v_item_value_with_discount := v_item.subtotal - v_item_discount;
+    
+    -- Calcular comissão sobre o valor (com ou sem desconto)
+    IF v_commission_type = 'percentage' THEN
+      v_item_commission := (v_item_value_with_discount * v_commission_value) / 100;
+    ELSE
+      -- Comissão fixa: distribuir proporcionalmente
+      v_item_commission := (v_item.subtotal / NEW.subtotal) * v_commission_value;
+    END IF;
+    
+    v_total_commission := v_total_commission + v_item_commission;
+    
+    RAISE NOTICE '[COMMISSION] Item %: eligible=%, subtotal=%, discount=%, value_after=%, commission=%', 
+      v_item.product_name, v_is_eligible, v_item.subtotal, v_item_discount, v_item_value_with_discount, v_item_commission;
+    
+    -- Inserir detalhes do item
+    INSERT INTO affiliate_item_earnings (
+      earning_id, order_item_id, product_id, product_name, product_category,
+      item_subtotal, item_discount, item_value_with_discount,
+      is_coupon_eligible, coupon_scope,
+      commission_type, commission_value, commission_amount
+    ) VALUES (
+      v_earning_id, v_item.id, v_item.product_id, v_item.product_name, v_product.category,
+      v_item.subtotal, v_item_discount, v_item_value_with_discount,
+      v_is_eligible, v_coupon_scope,
+      v_commission_type, v_commission_value, v_item_commission
+    );
+  END LOOP;
+
+  -- Atualizar total da comissão
+  UPDATE affiliate_earnings 
+  SET commission_amount = v_total_commission
+  WHERE id = v_earning_id;
+
+  RAISE NOTICE '[COMMISSION] ✅ Comissão criada! earning_id=%, affiliate_id=%, store_affiliate_id=%, total=%', 
+    v_earning_id, v_affiliate_id, v_store_affiliate_id, v_total_commission;
 
   RETURN NEW;
 EXCEPTION

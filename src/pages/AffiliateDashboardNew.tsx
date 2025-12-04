@@ -509,7 +509,7 @@ export default function AffiliateDashboardNew() {
                             {/* Linha expandida com itens */}
                             {expandedOrders[order.order_id] && orderItems[order.order_id] && (
                               <TableRow key={`${order.earning_id}-items`}>
-                                <TableCell colSpan={8} className="bg-muted/30 p-0">
+                                <TableCell colSpan={9} className="bg-muted/30 p-0">
                                   <div className="py-3 px-4 space-y-2">
                                     <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
                                       <Package className="h-4 w-4" />
@@ -520,10 +520,7 @@ export default function AffiliateDashboardNew() {
                                     ) : (
                                       <div className="space-y-2">
                                         {orderItems[order.order_id].map((item) => {
-                                          // Calcular desconto proporcional do cupom para este item
-                                          const itemCouponDiscount = order.order_subtotal > 0 && order.coupon_discount > 0
-                                            ? (item.subtotal / order.order_subtotal) * order.coupon_discount
-                                            : 0;
+                                          const itemDiscount = item.item_discount || 0;
                                           
                                           return (
                                             <div 
@@ -531,12 +528,29 @@ export default function AffiliateDashboardNew() {
                                               className="flex items-center justify-between py-2 px-3 bg-background rounded-lg border"
                                             >
                                               <div className="flex-1">
-                                                <p className="font-medium text-sm">{item.product_name}</p>
+                                                <div className="flex items-center gap-2">
+                                                  <p className="font-medium text-sm">{item.product_name}</p>
+                                                  {/* Badge de elegibilidade do cupom */}
+                                                  {item.is_coupon_eligible ? (
+                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 border-green-500/20">
+                                                      Com desconto
+                                                    </Badge>
+                                                  ) : (
+                                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-500/10 text-gray-500 border-gray-500/20">
+                                                      Sem desconto
+                                                    </Badge>
+                                                  )}
+                                                </div>
                                                 <p className="text-xs text-muted-foreground">
                                                   {item.quantity}x {formatCurrency(item.unit_price)} = {formatCurrency(item.subtotal)}
-                                                  {itemCouponDiscount > 0 && (
+                                                  {itemDiscount > 0 && (
                                                     <span className="text-orange-500 ml-1">
-                                                      (-{formatCurrency(itemCouponDiscount)})
+                                                      (-{formatCurrency(itemDiscount)})
+                                                    </span>
+                                                  )}
+                                                  {item.item_value_with_discount !== undefined && item.item_value_with_discount !== item.subtotal && (
+                                                    <span className="text-green-600 ml-1">
+                                                      = {formatCurrency(item.item_value_with_discount)}
                                                     </span>
                                                   )}
                                                 </p>
@@ -547,10 +561,6 @@ export default function AffiliateDashboardNew() {
                                                     ? `${item.commission_value}%` 
                                                     : formatCurrency(item.commission_value)
                                                   }
-                                                  {' '}
-                                                  {item.commission_source === 'pedido' ? 'Pedido' :
-                                                    item.commission_source === 'geral' ? 'Geral' : 
-                                                    item.commission_source === 'categoria' ? 'Categoria' : 'Produto'}
                                                 </Badge>
                                                 <span className="font-semibold text-green-600 text-sm whitespace-nowrap">
                                                   {formatCurrency(item.item_commission)}

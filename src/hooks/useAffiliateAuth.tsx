@@ -74,6 +74,10 @@ export interface AffiliateOrderItem {
   quantity: number;
   unit_price: number;
   subtotal: number;
+  item_discount: number;
+  item_value_with_discount: number;
+  is_coupon_eligible: boolean;
+  coupon_scope: string;
   commission_type: string;
   commission_source: string;
   commission_value: number;
