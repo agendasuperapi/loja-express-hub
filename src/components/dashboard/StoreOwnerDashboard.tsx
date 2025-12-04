@@ -753,10 +753,17 @@ export const StoreOwnerDashboard = ({
     return sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3 text-primary" /> : <ArrowDown className="w-3 h-3 text-primary" />;
   };
 
-  // Drag and drop sensors
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, {
-    coordinateGetter: sortableKeyboardCoordinates
-  }));
+  // Drag and drop sensors - activationConstraint evita interferir com cliques
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Requer 8px de movimento antes de iniciar o drag
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates
+    })
+  );
 
   // Handle drag end for product reordering by category
   const handleDragEnd = (event: DragEndEvent) => {
