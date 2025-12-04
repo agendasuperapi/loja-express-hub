@@ -47,6 +47,7 @@ BEGIN
 
   -- Buscar comissão do momento do pedido
   IF p_store_affiliate_id IS NOT NULL THEN
+    -- Busca específica por store_affiliate_id
     SELECT 
       ae.commission_type,
       ae.commission_value,
@@ -56,6 +57,8 @@ BEGIN
     WHERE ae.order_id = p_order_id
     AND ae.store_affiliate_id = p_store_affiliate_id;
   ELSE
+    -- Fallback: busca qualquer registro de comissão para este pedido
+    -- Primeiro tenta por store_affiliate_id IS NULL, depois pega qualquer um
     SELECT 
       ae.commission_type,
       ae.commission_value,
@@ -63,7 +66,7 @@ BEGIN
     INTO v_commission_type, v_commission_value, v_total_commission
     FROM affiliate_earnings ae
     WHERE ae.order_id = p_order_id
-    AND ae.store_affiliate_id IS NULL
+    ORDER BY (ae.store_affiliate_id IS NULL) DESC -- Prioriza registros legados
     LIMIT 1;
   END IF;
 
