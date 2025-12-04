@@ -50,8 +50,9 @@ export const useProductManagement = (storeId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-products', storeId] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-products', storeId] });
+      await queryClient.refetchQueries({ queryKey: ['my-products', storeId] });
       toast({
         title: 'Produto criado!',
         description: 'O produto foi adicionado ao seu cardápio.',
@@ -264,6 +265,7 @@ export const useProductManagement = (storeId?: string) => {
   return {
     products: productsQuery.data,
     isLoading: productsQuery.isLoading,
+    refetchProducts: productsQuery.refetch,
     createProduct: createProductMutation.mutate,
     updateProduct: updateProductMutation.mutate,
     toggleProductAvailability: toggleProductAvailabilityMutation.mutate,
