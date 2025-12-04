@@ -1,6 +1,7 @@
 -- Função para buscar pedidos com comissões do afiliado
 -- Suporta tanto o sistema novo (store_affiliates) quanto o legado (affiliates)
 -- Usa DISTINCT ON para evitar duplicação de pedidos
+-- v2: Prioriza registros com comissão > 0
 DROP FUNCTION IF EXISTS public.get_affiliate_orders(UUID);
 
 CREATE OR REPLACE FUNCTION public.get_affiliate_orders(p_affiliate_account_id UUID)
@@ -33,6 +34,7 @@ BEGIN
   RETURN QUERY
   
   -- Usar DISTINCT ON para eliminar duplicatas por order_id
+  -- Prioriza: 1) registros com comissão > 0, 2) sistema novo, 3) data mais recente
   SELECT DISTINCT ON (combined.order_id)
     combined.earning_id,
     combined.order_id,
@@ -65,7 +67,7 @@ BEGIN
       ae.commission_amount,
       ae.status::TEXT as commission_status,
       o.coupon_code::TEXT,
-      1 as priority -- Maior prioridade para sistema novo
+      1 as priority
     FROM affiliate_earnings ae
     JOIN store_affiliates sa ON sa.id = ae.store_affiliate_id
     JOIN orders o ON o.id = ae.order_id
@@ -130,7 +132,11 @@ BEGIN
     AND a.user_id IS NOT NULL
     AND LOWER(a.email) != LOWER(v_email)
   ) combined
-  ORDER BY combined.order_id, combined.priority ASC, combined.order_date DESC;
+  -- IMPORTANTE: Prioriza registros com comissão > 0 antes da prioridade do sistema
+  ORDER BY combined.order_id, 
+           CASE WHEN combined.commission_amount > 0 THEN 0 ELSE 1 END ASC,
+           combined.priority ASC, 
+           combined.order_date DESC;
 END;
 $$;
 
