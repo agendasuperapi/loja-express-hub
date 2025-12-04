@@ -540,21 +540,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     console.log('🗑️ CartProvider: clearing active cart');
-    if (!multiCart.activeStoreId) return;
+    if (!multiCart.activeStoreId) {
+      console.warn('⚠️ clearCart called but no active store');
+      return;
+    }
 
     const storeIdToRemove = multiCart.activeStoreId;
+    console.log('🗑️ Removing cart for store:', storeIdToRemove);
     
     setMultiCart((prev) => {
       const { [storeIdToRemove]: removed, ...remainingCarts } = prev.carts;
-      return {
+      
+      const newState = {
         carts: remainingCarts,
         activeStoreId: null
       };
+      
+      // Update localStorage immediately to prevent race conditions
+      localStorage.setItem(MULTI_CART_STORAGE_KEY, JSON.stringify(newState));
+      console.log('✅ Cart cleared from localStorage');
+      
+      return newState;
     });
     
     // Delete from database if user is logged in
     if (user) {
-      deleteCartFromDatabase(storeIdToRemove);
+      deleteCartFromDatabase(storeIdToRemove).then(() => {
+        console.log('✅ Cart deleted from database');
+      });
     }
   };
 
