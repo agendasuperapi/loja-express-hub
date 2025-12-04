@@ -120,14 +120,14 @@ export function ResponsiveDialogFooter({ children, className }: ResponsiveDialog
 
   if (isMobile) {
     return (
-      <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 sticky bottom-0 bg-background pb-safe px-4", className)}>
+      <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 sticky bottom-0 bg-background pb-safe px-4 border-t border-border mt-auto", className)}>
         {children}
       </div>
     )
   }
 
   return (
-    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4", className)}>
+    <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 sticky bottom-0 bg-background pb-4 border-t border-border mt-auto", className)}>
       {children}
     </div>
   )
