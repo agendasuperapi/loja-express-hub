@@ -3491,21 +3491,6 @@ export const StoreOwnerDashboard = ({
                                             }} className="w-full">
                                           Adicionar Categoria
                                         </Button>
-                                        
-                                        {categories.length > 0 && <>
-                                            <Separator />
-                                            <div>
-                                              <Label className="text-sm font-semibold mb-2 block">Categorias Cadastradas</Label>
-                                              <div className="space-y-2 max-h-48 overflow-y-auto">
-                                                {categories.map(cat => <div key={cat.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
-                                                    <span className="text-sm">{cat.name}</span>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteCategory(cat.id)}>
-                                                      <X className="w-3 h-3" />
-                                                    </Button>
-                                                  </div>)}
-                                              </div>
-                                            </div>
-                                          </>}
                                       </div>
                                     </ResponsiveDialogContent>
                                   </ResponsiveDialog>
