@@ -49,7 +49,8 @@ export const useWhatsAppStatus = (
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const checkConnectionStatus = useCallback(async (forceCheck = false) => {
-    if (!storeId || checkingRef.current) return;
+    // Não fazer requisições se não tiver storeId, permissão ou já estiver verificando
+    if (!storeId || !hasPermission || checkingRef.current) return;
 
     // Verificar visibilidade da página antes de fazer requisições
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden' && !forceCheck) {
@@ -154,7 +155,7 @@ export const useWhatsAppStatus = (
     } finally {
       checkingRef.current = false;
     }
-  }, [storeId, cacheTime]);
+  }, [storeId, cacheTime, hasPermission]);
 
   // Verificar permissões apenas uma vez
   useEffect(() => {
@@ -206,8 +207,18 @@ export const useWhatsAppStatus = (
 
   // Configurar polling se habilitado
   useEffect(() => {
-    if (!hasPermission || !storeId || disablePolling) {
+    // Não fazer nada se não tiver storeId
+    if (!storeId) return;
+    
+    // Se não tem permissão, definir status apropriado
+    if (!hasPermission) {
       setStatus('no-permission');
+      return;
+    }
+    
+    // Se polling está desabilitado, apenas verificar uma vez
+    if (disablePolling) {
+      checkConnectionStatus();
       return;
     }
 
