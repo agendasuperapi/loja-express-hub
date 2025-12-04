@@ -400,7 +400,6 @@ export const StoreOwnerDashboard = ({
     message: ''
   });
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  
   const {
     images: productImages,
     invalidateImages: invalidateProductImages
@@ -693,11 +692,7 @@ export const StoreOwnerDashboard = ({
     }).filter(product => {
       if (!productSearchTerm) return true;
       const searchLower = productSearchTerm.toLowerCase();
-      return product.name.toLowerCase().includes(searchLower) || 
-             product.description?.toLowerCase().includes(searchLower) || 
-             product.external_code?.toLowerCase().includes(searchLower) ||
-             product.id?.toLowerCase().includes(searchLower) ||
-             product.short_id?.toLowerCase().includes(searchLower);
+      return product.name.toLowerCase().includes(searchLower) || product.description?.toLowerCase().includes(searchLower) || product.external_code?.toLowerCase().includes(searchLower) || product.id?.toLowerCase().includes(searchLower) || product.short_id?.toLowerCase().includes(searchLower);
     }) || [];
 
     // Apply sorting
@@ -1438,28 +1433,19 @@ export const StoreOwnerDashboard = ({
     if (productForm.external_code && productForm.external_code.trim()) {
       try {
         // Primeiro verificar se existe um produto DELETADO com este código
-        const deletedProduct = await checkDeletedProductByExternalCode(
-          productForm.external_code.trim(),
-          myStore.id
-        );
-        
+        const deletedProduct = await checkDeletedProductByExternalCode(productForm.external_code.trim(), myStore.id);
         if (deletedProduct) {
           // Produto deletado encontrado - perguntar se deseja restaurar
           setDeletedProductToRestore(deletedProduct);
           setIsRestoreDialogOpen(true);
           return;
         }
-        
+
         // Depois verificar se existe um produto ATIVO com este código
         const {
           data,
           error
-        } = await (supabase.from('products').select('id') as any)
-          .eq('store_id', myStore.id)
-          .eq('external_code', productForm.external_code.trim())
-          .is('deleted_at', null)
-          .limit(1)
-          .single();
+        } = await (supabase.from('products').select('id') as any).eq('store_id', myStore.id).eq('external_code', productForm.external_code.trim()).is('deleted_at', null).limit(1).single();
         if (data && !error) {
           toast({
             title: 'Código externo já existe',
@@ -2163,11 +2149,9 @@ export const StoreOwnerDashboard = ({
                           </div>
                           
                           {/* WhatsApp em mobile abaixo dos badges */}
-                          {myStore?.id && (
-                            <div className="md:hidden">
+                          {myStore?.id && <div className="md:hidden">
                               <WhatsAppStatusIndicator storeId={myStore.id} />
-                            </div>
-                          )}
+                            </div>}
                         </div>
                         
                         {/* Status da Loja e WhatsApp */}
@@ -2177,11 +2161,9 @@ export const StoreOwnerDashboard = ({
                             {storeStatusText}
                           </Badge>
                           {/* WhatsApp apenas em desktop */}
-                          {myStore?.id && (
-                            <div className="hidden md:block">
+                          {myStore?.id && <div className="hidden md:block">
                               <WhatsAppStatusIndicator storeId={myStore.id} />
-                            </div>
-                          )}
+                            </div>}
                           <span className="text-xs text-muted-foreground hidden md:inline">v 1.9</span>
                         </div>
                       </div>
@@ -3203,7 +3185,15 @@ export const StoreOwnerDashboard = ({
 
         {/* Afiliados Relatórios Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'afiliados-relatorios' && 'hidden')}>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <motion.div initial={{
+              opacity: 0,
+              y: 20
+            }} animate={{
+              opacity: 1,
+              y: 0
+            }} transition={{
+              duration: 0.5
+            }}>
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -3286,35 +3276,19 @@ export const StoreOwnerDashboard = ({
 
               {/* Desktop: Buttons */}
               <div className="hidden md:flex flex-wrap gap-2">
-                <Button
-                  variant={productSectionTab === 'lista' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('lista')}
-                  className="flex items-center gap-2"
-                >
+                <Button variant={productSectionTab === 'lista' ? 'default' : 'outline'} onClick={() => setProductSectionTab('lista')} className="flex items-center gap-2">
                   <Package className="w-4 h-4" />
                   Lista de Produtos
                 </Button>
-                <Button
-                  variant={productSectionTab === 'categorias' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('categorias')}
-                  className="flex items-center gap-2"
-                >
+                <Button variant={productSectionTab === 'categorias' ? 'default' : 'outline'} onClick={() => setProductSectionTab('categorias')} className="flex items-center gap-2">
                   <FolderTree className="w-4 h-4" />
                   Categorias de Produtos
                 </Button>
-                <Button
-                  variant={productSectionTab === 'combos' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('combos')}
-                  className="flex items-center gap-2"
-                >
+                <Button variant={productSectionTab === 'combos' ? 'default' : 'outline'} onClick={() => setProductSectionTab('combos')} className="flex items-center gap-2">
                   <ShoppingBag className="w-4 h-4" />
                   Combos
                 </Button>
-                <Button
-                  variant={productSectionTab === 'edit' ? 'default' : 'outline'}
-                  onClick={() => setProductSectionTab('edit')}
-                  className="flex items-center gap-2"
-                >
+                <Button variant={productSectionTab === 'edit' ? 'default' : 'outline'} onClick={() => setProductSectionTab('edit')} className="flex items-center gap-2">
                   <Edit className="w-4 h-4" />
                   Adicionais & Sabores
                 </Button>
@@ -3366,11 +3340,9 @@ export const StoreOwnerDashboard = ({
                     <ResponsiveDialogTitle>
                       {editingProduct ? 'Editar Produto' : 'Novo Produto'}
                     </ResponsiveDialogTitle>
-                    {editingProduct && (
-                      <ResponsiveDialogDescription>
+                    {editingProduct && <ResponsiveDialogDescription>
                         {editingProduct.name}
-                      </ResponsiveDialogDescription>
-                    )}
+                      </ResponsiveDialogDescription>}
                   </ResponsiveDialogHeader>
                   
                   <ScrollArea className="flex-1 px-4 md:px-6 max-h-[90vh] h-[60vh]">
@@ -3426,26 +3398,10 @@ export const StoreOwnerDashboard = ({
                         <TabsContent value="info" className="mt-4">
                           <ScrollArea className="h-[calc(90vh-250px)]">
                             <div className="space-y-4 pr-4">
-                              {editingProduct ? (
-                                <MultipleImageUpload
-                                  productId={editingProduct.id}
-                                  images={productImages}
-                                  onImagesChange={invalidateProductImages}
-                                />
-                              ) : (
-                                <ImageUpload 
-                                  bucket="product-images" 
-                                  folder="temp" 
-                                  productId={editingProduct?.id} 
-                                  currentImageUrl={productForm.image_url} 
-                                  onUploadComplete={url => setProductForm({
+                              {editingProduct ? <MultipleImageUpload productId={editingProduct.id} images={productImages} onImagesChange={invalidateProductImages} /> : <ImageUpload bucket="product-images" folder="temp" productId={editingProduct?.id} currentImageUrl={productForm.image_url} onUploadComplete={url => setProductForm({
                                     ...productForm,
                                     image_url: url
-                                  })} 
-                                  label="Imagem do Produto" 
-                                  aspectRatio="aspect-video" 
-                                />
-                              )}
+                                  })} label="Imagem do Produto" aspectRatio="aspect-video" />}
                               <div>
                                 <Label>Nome *</Label>
                                 <Input value={productForm.name} onChange={e => setProductForm({
@@ -3480,7 +3436,7 @@ export const StoreOwnerDashboard = ({
                                       <div className="space-y-4">
                                         <div>
                                           <Label>Nome da Categoria</Label>
-                                          <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hambúrgueres, Bebidas..." />
+                                          <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Hamb\xFArgueres, Bebidas, Ofertas..." />
                                         </div>
                                         <Button onClick={async () => {
                                               if (newCategoryName.trim()) {
@@ -3571,13 +3527,7 @@ export const StoreOwnerDashboard = ({
                         <TabsContent value="colors" className="mt-4">
                           <ScrollArea className="h-[calc(90vh-250px)]">
                             <div className="pr-4">
-                              {editingProduct && myStore && (
-                                <ProductColorsManager 
-                                  productId={editingProduct.id} 
-                                  storeId={myStore.id}
-                                  productImages={productImages}
-                                />
-                              )}
+                              {editingProduct && myStore && <ProductColorsManager productId={editingProduct.id} storeId={myStore.id} productImages={productImages} />}
                             </div>
                           </ScrollArea>
                         </TabsContent>
@@ -3585,12 +3535,7 @@ export const StoreOwnerDashboard = ({
                         <TabsContent value="variants" className="mt-4">
                           <ScrollArea className="h-[calc(90vh-250px)]">
                             <div className="pr-4">
-                              {editingProduct && myStore && (
-                                <ColorSizeVariantsManager 
-                                  productId={editingProduct.id} 
-                                  storeId={myStore.id}
-                                />
-                              )}
+                              {editingProduct && myStore && <ColorSizeVariantsManager productId={editingProduct.id} storeId={myStore.id} />}
                             </div>
                           </ScrollArea>
                         </TabsContent>
@@ -4267,35 +4212,19 @@ export const StoreOwnerDashboard = ({
 
             {/* Navegação de Relatórios - Botões para Desktop */}
             <div className="hidden md:flex flex-wrap gap-2 mb-6">
-              <Button
-                variant={activeTab === 'relatorio-clientes' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('relatorio-clientes')}
-                className="flex items-center gap-2"
-              >
+              <Button variant={activeTab === 'relatorio-clientes' ? 'default' : 'outline'} onClick={() => setActiveTab('relatorio-clientes')} className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Clientes
               </Button>
-              <Button
-                variant={activeTab === 'relatorio-produtos-vendidos' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('relatorio-produtos-vendidos')}
-                className="flex items-center gap-2"
-              >
+              <Button variant={activeTab === 'relatorio-produtos-vendidos' ? 'default' : 'outline'} onClick={() => setActiveTab('relatorio-produtos-vendidos')} className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Mais Vendidos
               </Button>
-              <Button
-                variant={activeTab === 'relatorio-produtos-cadastrados' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('relatorio-produtos-cadastrados')}
-                className="flex items-center gap-2"
-              >
+              <Button variant={activeTab === 'relatorio-produtos-cadastrados' ? 'default' : 'outline'} onClick={() => setActiveTab('relatorio-produtos-cadastrados')} className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
                 Produtos
               </Button>
-              <Button
-                variant={activeTab === 'relatorio-pedidos' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('relatorio-pedidos')}
-                className="flex items-center gap-2"
-              >
+              <Button variant={activeTab === 'relatorio-pedidos' ? 'default' : 'outline'} onClick={() => setActiveTab('relatorio-pedidos')} className="flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4" />
                 Pedidos
               </Button>
@@ -4386,67 +4315,35 @@ export const StoreOwnerDashboard = ({
 
                 {/* Desktop: Buttons */}
                 <div className="hidden md:flex flex-wrap gap-2">
-                  <Button
-                    variant={profileSettingsTab === 'personal' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('personal')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'personal' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('personal')} className="flex items-center gap-2">
                     <User className="w-4 h-4" />
                     Dados Pessoais
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'settings' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('settings')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'settings' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('settings')} className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     Loja
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'entregas' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('entregas')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'entregas' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('entregas')} className="flex items-center gap-2">
                     <Truck className="w-4 h-4" />
                     Entregas
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'pix' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('pix')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'pix' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('pix')} className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4" />
                     PIX
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'order-status' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('order-status')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'order-status' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('order-status')} className="flex items-center gap-2">
                     <Menu className="w-4 h-4" />
                     Status dos Pedidos
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'notifications' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('notifications')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'notifications' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('notifications')} className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     Permissões
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'layout' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('layout')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'layout' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('layout')} className="flex items-center gap-2">
                     <LayoutGrid className="w-4 h-4" />
                     Layout
                   </Button>
-                  <Button
-                    variant={profileSettingsTab === 'security' ? 'default' : 'outline'}
-                    onClick={() => setProfileSettingsTab('security')}
-                    className="flex items-center gap-2"
-                  >
+                  <Button variant={profileSettingsTab === 'security' ? 'default' : 'outline'} onClick={() => setProfileSettingsTab('security')} className="flex items-center gap-2">
                     <Lock className="w-4 h-4" />
                     Segurança
                   </Button>
