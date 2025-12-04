@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -149,6 +149,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   
   const [isInitialized, setIsInitialized] = useState(false);
   
+  // Ref para rastrear storeIds que foram limpos (evita re-save do debounce)
+  const clearedStoresRef = useRef<Set<string>>(new Set());
+  
   const [multiCart, setMultiCart] = useState<MultiStoreCart>(() => {
     const stored = localStorage.getItem(MULTI_CART_STORAGE_KEY);
     if (stored) {
@@ -251,6 +254,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       
       // Save each non-empty cart
       Object.entries(carts).forEach(([storeId, cart]) => {
+        // IMPORTANTE: Verificar se esta loja foi cleared recentemente
+        if (clearedStoresRef.current.has(storeId)) {
+          console.log('⏭️ Skipping save for cleared store:', storeId);
+          return;
+        }
+        
         if (cart.items.length > 0) {
           saveCartToDatabase(cart, storeId);
         }
@@ -548,6 +557,16 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const storeIdToRemove = multiCart.activeStoreId;
     console.log('🗑️ Removing cart for store:', storeIdToRemove);
     
+    // IMPORTANTE: Marcar esta loja como "cleared" para evitar re-save do debounce
+    clearedStoresRef.current.add(storeIdToRemove);
+    console.log('🚫 Store marked as cleared:', storeIdToRemove);
+    
+    // Remover da lista após 5 segundos (tempo suficiente para debounce de 2s)
+    setTimeout(() => {
+      clearedStoresRef.current.delete(storeIdToRemove);
+      console.log('✅ Store removed from cleared list:', storeIdToRemove);
+    }, 5000);
+    
     setMultiCart((prev) => {
       const { [storeIdToRemove]: removed, ...remainingCarts } = prev.carts;
       
@@ -563,11 +582,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return newState;
     });
     
-    // Delete from database if user is logged in
+    // Delete from database if user is logged in (with retry)
     if (user) {
-      deleteCartFromDatabase(storeIdToRemove).then(() => {
-        console.log('✅ Cart deleted from database');
-      });
+      deleteCartFromDatabase(storeIdToRemove)
+        .then(() => {
+          console.log('✅ Cart deleted from database');
+        })
+        .catch((err) => {
+          console.error('❌ Failed to delete cart, retrying...', err);
+          // Retry once after 1 second
+          setTimeout(() => {
+            deleteCartFromDatabase(storeIdToRemove)
+              .then(() => console.log('✅ Cart deleted on retry'))
+              .catch((e) => console.error('❌ Retry also failed:', e));
+          }, 1000);
+        });
     }
   };
 

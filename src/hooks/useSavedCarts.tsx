@@ -107,28 +107,28 @@ export const useSavedCarts = () => {
   /**
    * Remove um carrinho salvo do banco de dados
    * Usado após finalizar um pedido
+   * @returns Promise<void> - Propaga erros para permitir retry
    */
-  const deleteCartFromDatabase = useCallback(async (storeId: string) => {
-    if (!user) return;
-
-    try {
-      console.log('🗑️ Deleting saved cart for store:', storeId);
-
-      const { error } = await supabase
-        .from('saved_carts' as any)
-        .delete()
-        .eq('user_id', user.id)
-        .eq('store_id', storeId);
-
-      if (error) {
-        console.error('❌ Error deleting cart:', error);
-        throw error;
-      }
-
-      console.log('✅ Cart deleted successfully');
-    } catch (error) {
-      console.error('❌ Failed to delete cart from database:', error);
+  const deleteCartFromDatabase = useCallback(async (storeId: string): Promise<void> => {
+    if (!user) {
+      console.log('⚠️ User not logged in, skipping cart deletion');
+      return;
     }
+
+    console.log('🗑️ Deleting saved cart for store:', storeId);
+
+    const { error } = await supabase
+      .from('saved_carts' as any)
+      .delete()
+      .eq('user_id', user.id)
+      .eq('store_id', storeId);
+
+    if (error) {
+      console.error('❌ Error deleting cart:', error);
+      throw error; // Propagar erro para permitir retry
+    }
+
+    console.log('✅ Cart deleted successfully from database');
   }, [user]);
 
   /**
