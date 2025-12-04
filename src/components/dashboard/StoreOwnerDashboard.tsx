@@ -3935,7 +3935,7 @@ export const StoreOwnerDashboard = ({
                                 })} onToggleFeatured={(id, isFeatured) => toggleProductFeatured({
                                   id,
                                   is_featured: isFeatured
-                                })} onDuplicate={openDuplicateDialog} />)}
+                                })} onDuplicate={openDuplicateDialog} onDelete={deleteProduct} />)}
                                   </div>
                                 </SortableContext>
                               </DndContext>
@@ -3975,7 +3975,7 @@ export const StoreOwnerDashboard = ({
                           })} onToggleFeatured={(id, isFeatured) => toggleProductFeatured({
                             id,
                             is_featured: isFeatured
-                          })} onDuplicate={openDuplicateDialog} />)}
+                          })} onDuplicate={openDuplicateDialog} onDelete={deleteProduct} />)}
                             </div>
                           </div>;
                     })}

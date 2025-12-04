@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Edit, GripVertical, Copy, Star } from 'lucide-react';
+import { Edit, GripVertical, Copy, Star, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -19,6 +19,7 @@ interface SortableProductCardProps {
   onToggleAvailability: (id: string, isAvailable: boolean) => void;
   onToggleFeatured?: (id: string, isFeatured: boolean) => void;
   onDuplicate: (product: any) => void;
+  onDelete?: (id: string) => void;
 }
 
 export const SortableProductCard = ({
@@ -30,8 +31,10 @@ export const SortableProductCard = ({
   onToggleAvailability,
   onToggleFeatured,
   onDuplicate,
+  onDelete,
 }: SortableProductCardProps) => {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const {
     attributes,
@@ -122,6 +125,19 @@ export const SortableProductCard = ({
                           </span>
                         </div>
                         
+                        {/* Botão Excluir - apenas para produtos inativos */}
+                        {!product.is_available && onDelete && hasPermission('products', 'delete') && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setShowDeleteDialog(true)}
+                            className="hover-scale text-destructive hover:text-destructive hover:bg-destructive/10"
+                            title="Excluir produto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                        
                         <Button
                           size="sm"
                           variant="ghost"
@@ -164,6 +180,29 @@ export const SortableProductCard = ({
               setShowDuplicateDialog(false);
             }}>
               Duplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Produto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o produto "{product.name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                onDelete?.(product.id);
+                setShowDeleteDialog(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
