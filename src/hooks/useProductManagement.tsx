@@ -24,17 +24,25 @@ export const useProductManagement = (storeId?: string) => {
   const productsQuery = useQuery({
     queryKey: ['my-products', storeId],
     queryFn: async () => {
+      console.log('[useProductManagement] Fetching products for store:', storeId);
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('store_id', storeId!)
-        .is('deleted_at', null) // Filter out soft-deleted products
         .order('category', { ascending: true })
         .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error('[useProductManagement] Error fetching products:', error);
+        throw error;
+      }
+      
+      // Filter out soft-deleted products if deleted_at column exists
+      const filteredData = data?.filter(p => !(p as any).deleted_at) || [];
+      console.log('[useProductManagement] Products fetched:', filteredData.length);
+      return filteredData;
     },
     enabled: !!storeId,
   });
