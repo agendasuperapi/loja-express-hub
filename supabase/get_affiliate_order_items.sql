@@ -115,9 +115,9 @@ BEGIN
 
   -- Verificar se existem registros em affiliate_item_earnings (com comissão configurada)
   SELECT EXISTS(
-    SELECT 1 FROM affiliate_item_earnings 
-    WHERE earning_id = v_earning_id 
-    AND (commission_amount > 0 OR commission_value > 0)
+    SELECT 1 FROM affiliate_item_earnings aie_check
+    WHERE aie_check.earning_id = v_earning_id 
+    AND (aie_check.commission_amount > 0 OR aie_check.commission_value > 0)
   ) INTO v_has_item_earnings;
 
   -- Se há registros detalhados COM comissão, usar eles
