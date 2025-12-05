@@ -2045,7 +2045,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
       {/* Modal: Selecionar Produtos para Regra de Comissão */}
       <Dialog open={ruleProductsModalOpen} onOpenChange={setRuleProductsModalOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Selecionar Produtos</DialogTitle>
             <DialogDescription>
