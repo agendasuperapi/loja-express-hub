@@ -78,3 +78,74 @@ export const calculateDiscount = (
 
   return Math.min(discountValue, eligibleSubtotal);
 };
+
+/**
+ * Verifica se um item é elegível para desconto com base no escopo do cupom
+ */
+export const isItemEligible = (
+  item: CartItem,
+  appliesTo: 'all' | 'category' | 'product',
+  categoryNames: string[],
+  productIds: string[]
+): boolean => {
+  if (appliesTo === 'all') return true;
+  
+  if (appliesTo === 'product') {
+    return productIds.includes(item.productId);
+  }
+  
+  if (appliesTo === 'category') {
+    const itemCategory = ((item as any).category || '').toLowerCase().trim();
+    const normalizedCategoryNames = categoryNames.map(cat => cat.toLowerCase().trim());
+    return normalizedCategoryNames.includes(itemCategory);
+  }
+  
+  return false;
+};
+
+/**
+ * Calcula o desconto para um item específico do carrinho
+ */
+export const calculateItemDiscount = (
+  item: CartItem,
+  totalDiscount: number,
+  discountType: 'percentage' | 'fixed',
+  discountValue: number,
+  appliesTo: 'all' | 'category' | 'product',
+  categoryNames: string[],
+  productIds: string[],
+  allItems: CartItem[]
+): { isEligible: boolean; discount: number } => {
+  // Verificar se o item é elegível
+  const isEligible = isItemEligible(item, appliesTo, categoryNames, productIds);
+  
+  if (!isEligible) {
+    return { isEligible: false, discount: 0 };
+  }
+  
+  const itemSubtotal = calculateItemSubtotal(item);
+  
+  // Para porcentagem: aplicar % diretamente ao subtotal do item
+  if (discountType === 'percentage') {
+    const discount = (itemSubtotal * discountValue) / 100;
+    return { isEligible: true, discount };
+  }
+  
+  // Para valor fixo: distribuir proporcionalmente entre itens elegíveis
+  const eligibleItems = allItems.filter(i => 
+    isItemEligible(i, appliesTo, categoryNames, productIds)
+  );
+  
+  const totalEligibleSubtotal = eligibleItems.reduce((sum, i) => 
+    sum + calculateItemSubtotal(i), 0
+  );
+  
+  if (totalEligibleSubtotal <= 0) {
+    return { isEligible: true, discount: 0 };
+  }
+  
+  // Desconto proporcional = (subtotal do item / subtotal total elegível) * desconto total
+  const proportionalDiscount = (itemSubtotal / totalEligibleSubtotal) * Math.min(discountValue, totalEligibleSubtotal);
+  
+  return { isEligible: true, discount: proportionalDiscount };
+};

@@ -83,6 +83,12 @@ export interface Cart {
   storeSlug: string | null;
   couponCode: string | null;
   couponDiscount: number;
+  // Campos para escopo do cupom (para calcular desconto por item)
+  couponAppliesTo?: 'all' | 'category' | 'product';
+  couponCategoryNames?: string[];
+  couponProductIds?: string[];
+  couponDiscountType?: 'percentage' | 'fixed';
+  couponDiscountValue?: number;
 }
 
 export interface MultiStoreCart {
@@ -119,7 +125,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   getTotal: () => number;
   getItemCount: () => number;
-  applyCoupon: (code: string, discount: number) => void;
+  applyCoupon: (code: string, discount: number, appliesTo?: 'all' | 'category' | 'product', categoryNames?: string[], productIds?: string[], discountType?: 'percentage' | 'fixed', discountValue?: number) => void;
   removeCoupon: () => void;
   validateAndSyncCart: (targetStoreId?: string) => Promise<void>;
 }
@@ -637,7 +643,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return count;
   };
 
-  const applyCoupon = (code: string, discount: number) => {
+  const applyCoupon = (
+    code: string, 
+    discount: number,
+    appliesTo?: 'all' | 'category' | 'product',
+    categoryNames?: string[],
+    productIds?: string[],
+    discountType?: 'percentage' | 'fixed',
+    discountValue?: number
+  ) => {
     if (!multiCart.activeStoreId) return;
 
     setMultiCart(prev => {
@@ -651,7 +665,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           [prev.activeStoreId!]: {
             ...storeCart,
             couponCode: code,
-            couponDiscount: discount
+            couponDiscount: discount,
+            couponAppliesTo: appliesTo,
+            couponCategoryNames: categoryNames,
+            couponProductIds: productIds,
+            couponDiscountType: discountType,
+            couponDiscountValue: discountValue
           }
         }
       };
@@ -672,7 +691,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           [prev.activeStoreId!]: {
             ...storeCart,
             couponCode: null,
-            couponDiscount: 0
+            couponDiscount: 0,
+            couponAppliesTo: undefined,
+            couponCategoryNames: undefined,
+            couponProductIds: undefined,
+            couponDiscountType: undefined,
+            couponDiscountValue: undefined
           }
         }
       };

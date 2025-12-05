@@ -21,7 +21,8 @@ import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { usePickupLocations } from "@/hooks/usePickupLocations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin, Eye, EyeOff, CheckCircle, Percent } from "lucide-react";
+import { calculateItemDiscount, calculateItemSubtotal } from "@/lib/couponUtils";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
 import { EditCartItemDialog } from "@/components/cart/EditCartItemDialog";
@@ -297,7 +298,15 @@ export default function Cart() {
         const result = await validateCouponWithScope(affiliateCoupon, cart.items);
         
         if (result.is_valid && result.discount_amount > 0) {
-          applyCoupon(affiliateCoupon, result.discount_amount);
+          applyCoupon(
+            affiliateCoupon, 
+            result.discount_amount,
+            result.applies_to as 'all' | 'category' | 'product',
+            result.category_names,
+            result.product_ids,
+            result.discount_type as 'percentage' | 'fixed',
+            result.discount_value
+          );
           setCouponInput("");
           
           // Limpar do localStorage após aplicar com sucesso
@@ -362,7 +371,15 @@ export default function Cart() {
               antigo: cart.couponDiscount,
               novo: result.discount_amount
             });
-            applyCoupon(cart.couponCode, result.discount_amount);
+            applyCoupon(
+              cart.couponCode, 
+              result.discount_amount,
+              result.applies_to as 'all' | 'category' | 'product',
+              result.category_names,
+              result.product_ids,
+              result.discount_type as 'percentage' | 'fixed',
+              result.discount_value
+            );
             toast({
               title: "Desconto atualizado",
               description: `Novo desconto: R$ ${result.discount_amount.toFixed(2)}`,
@@ -405,7 +422,15 @@ export default function Cart() {
       const result = await validateCouponWithScope(couponInput.trim().toUpperCase(), cart.items);
       
       if (result.is_valid && result.discount_amount > 0) {
-        applyCoupon(couponInput.trim().toUpperCase(), result.discount_amount);
+        applyCoupon(
+          couponInput.trim().toUpperCase(), 
+          result.discount_amount,
+          result.applies_to as 'all' | 'category' | 'product',
+          result.category_names,
+          result.product_ids,
+          result.discount_type as 'percentage' | 'fixed',
+          result.discount_value
+        );
         setCouponInput("");
         toast({
           title: "Cupom aplicado!",
@@ -1016,6 +1041,35 @@ export default function Cart() {
                           ) : null}
                         </p>
                         
+                        {/* Mostrar desconto do cupom para este item */}
+                        {cart.couponCode && cart.couponDiscountType && cart.couponDiscountValue && (() => {
+                          const itemDiscountInfo = calculateItemDiscount(
+                            item,
+                            cart.couponDiscount || 0,
+                            cart.couponDiscountType,
+                            cart.couponDiscountValue,
+                            cart.couponAppliesTo || 'all',
+                            cart.couponCategoryNames || [],
+                            cart.couponProductIds || [],
+                            cart.items
+                          );
+                          
+                          if (!itemDiscountInfo.isEligible || itemDiscountInfo.discount <= 0) return null;
+                          
+                          return (
+                            <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 mb-2 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md w-fit">
+                              <Tag className="w-3 h-3" />
+                              <span className="font-medium">
+                                -{cart.couponDiscountType === 'percentage' ? `${cart.couponDiscountValue}%` : `R$ ${itemDiscountInfo.discount.toFixed(2)}`}
+                                {cart.couponDiscountType === 'percentage' && (
+                                  <span className="text-muted-foreground ml-1">
+                                    (R$ {itemDiscountInfo.discount.toFixed(2)})
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          );
+                        })()}
                         <div className="flex items-center justify-between flex-wrap gap-2">
                           <div className="flex items-center gap-1.5 sm:gap-2">
                             <Button
