@@ -20,7 +20,7 @@ import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package, ChevronDown, ChevronRight
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package, ChevronDown, ChevronRight, Pencil, X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -45,6 +45,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     getCommissionRules,
     createCommissionRule,
     deleteCommissionRule,
+    updateCommissionRule,
     getAffiliateEarnings,
     updateEarningStatus,
     getAffiliateStats,
@@ -90,6 +91,11 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [collapsedRuleCategories, setCollapsedRuleCategories] = useState<Set<string>>(new Set());
   const [selectedRuleIds, setSelectedRuleIds] = useState<Set<string>>(new Set());
   const [rulesSearchTerm, setRulesSearchTerm] = useState('');
+  
+  // Estados para edição de regra inline
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
+  const [editingRuleValue, setEditingRuleValue] = useState<number>(0);
+  const [editingRuleType, setEditingRuleType] = useState<'percentage' | 'fixed'>('percentage');
   
   // Default Commission states
   const [defaultCommissionEnabled, setDefaultCommissionEnabled] = useState(true);
@@ -501,6 +507,28 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     await deleteCommissionRule(ruleId);
     const rules = await getCommissionRules(selectedAffiliate.id);
     setCommissionRules(rules);
+  };
+
+  const handleSaveRuleEdit = async (ruleId: string) => {
+    if (editingRuleValue <= 0) {
+      toast({
+        title: "Valor inválido",
+        description: "O valor da comissão deve ser maior que zero.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const result = await updateCommissionRule(ruleId, {
+      commission_type: editingRuleType,
+      commission_value: editingRuleValue,
+    });
+    
+    if (result && selectedAffiliate) {
+      const rules = await getCommissionRules(selectedAffiliate.id);
+      setCommissionRules(rules);
+      setEditingRuleId(null);
+    }
   };
 
   const handleCreateNewCoupon = async () => {
@@ -2166,19 +2194,76 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                                             {rule.product?.name || 'Produto'}
                                           </span>
                                         </div>
-                                        <Badge variant="outline" className="shrink-0">
-                                          {rule.commission_type === 'percentage'
-                                            ? `${rule.commission_value}%`
-                                            : formatCurrency(rule.commission_value)}
-                                        </Badge>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 text-destructive shrink-0"
-                                          onClick={() => handleDeleteRule(rule.id)}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
+                                        
+                                        {/* Modo de Edição ou Visualização */}
+                                        {editingRuleId === rule.id ? (
+                                          <div className="flex items-center gap-2">
+                                            <Input
+                                              type="number"
+                                              value={editingRuleValue}
+                                              onChange={(e) => setEditingRuleValue(Number(e.target.value))}
+                                              className="w-20 h-8 text-sm"
+                                              min={0}
+                                              step={editingRuleType === 'percentage' ? 1 : 0.01}
+                                            />
+                                            <Select
+                                              value={editingRuleType}
+                                              onValueChange={(v) => setEditingRuleType(v as 'percentage' | 'fixed')}
+                                            >
+                                              <SelectTrigger className="w-16 h-8">
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="percentage">%</SelectItem>
+                                                <SelectItem value="fixed">R$</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8 text-green-600"
+                                              onClick={() => handleSaveRuleEdit(rule.id)}
+                                            >
+                                              <Check className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8"
+                                              onClick={() => setEditingRuleId(null)}
+                                            >
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <Badge variant="outline" className="shrink-0">
+                                              {rule.commission_type === 'percentage'
+                                                ? `${rule.commission_value}%`
+                                                : formatCurrency(rule.commission_value)}
+                                            </Badge>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8 text-muted-foreground hover:text-primary shrink-0"
+                                              onClick={() => {
+                                                setEditingRuleId(rule.id);
+                                                setEditingRuleValue(rule.commission_value);
+                                                setEditingRuleType(rule.commission_type as 'percentage' | 'fixed');
+                                              }}
+                                            >
+                                              <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-8 w-8 text-destructive shrink-0"
+                                              onClick={() => handleDeleteRule(rule.id)}
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                          </>
+                                        )}
                                       </div>
                                     ))}
                                   </div>

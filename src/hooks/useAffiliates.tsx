@@ -352,6 +352,26 @@ export const useAffiliates = (storeId?: string) => {
     } catch { return false; }
   };
 
+  const updateCommissionRule = async (id: string, updates: Partial<AffiliateCommissionRule>) => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('affiliate_commission_rules')
+        .update({
+          commission_type: updates.commission_type,
+          commission_value: updates.commission_value,
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      toast({ title: 'Regra atualizada!' });
+      return data;
+    } catch (error: any) {
+      toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' });
+      return null;
+    }
+  };
+
   const getAffiliateEarnings = async (affiliateId: string) => {
     try {
       const { data, error } = await (supabase as any)
@@ -451,7 +471,7 @@ export const useAffiliates = (storeId?: string) => {
   return {
     affiliates, isLoading, fetchAffiliates, createAffiliate, updateAffiliate, deleteAffiliate,
     toggleAffiliateStatus, toggleCommission, getCommissionRules, createCommissionRule, deleteCommissionRule,
-    getAffiliateEarnings, updateEarningStatus, getAffiliatePayments, createPayment, getAffiliateStats, getAllStoreEarnings,
+    updateCommissionRule, getAffiliateEarnings, updateEarningStatus, getAffiliatePayments, createPayment, getAffiliateStats, getAllStoreEarnings,
   };
 };
 
