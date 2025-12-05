@@ -20,7 +20,7 @@ import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package, ChevronDown, ChevronRight, Pencil, X
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package, ChevronDown, ChevronRight, Pencil, X, Save
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -2224,7 +2224,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                                               className="h-8 w-8 text-green-600"
                                               onClick={() => handleSaveRuleEdit(rule.id)}
                                             >
-                                              <Check className="h-4 w-4" />
+                                              <Save className="h-4 w-4" />
                                             </Button>
                                             <Button
                                               variant="ghost"
