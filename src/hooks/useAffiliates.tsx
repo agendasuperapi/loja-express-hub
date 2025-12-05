@@ -16,6 +16,7 @@ export interface Affiliate {
   commission_enabled: boolean;
   default_commission_type: 'percentage' | 'fixed';
   default_commission_value: number;
+  use_default_commission: boolean; // When true, applies default commission to products without specific rules
   created_at: string;
   updated_at: string;
   coupon?: {
@@ -135,6 +136,7 @@ export const useAffiliates = (storeId?: string) => {
           commission_enabled: rest.commission_enabled ?? true,
           default_commission_type: rest.default_commission_type || 'percentage',
           default_commission_value: rest.default_commission_value || 0,
+          use_default_commission: rest.use_default_commission ?? true,
         })
         .select()
         .single();
@@ -171,7 +173,8 @@ export const useAffiliates = (storeId?: string) => {
               .update({ 
                 coupon_id: coupon_ids[0],
                 default_commission_type: rest.default_commission_type || 'percentage',
-                default_commission_value: rest.default_commission_value || 0
+                default_commission_value: rest.default_commission_value || 0,
+                use_default_commission: rest.use_default_commission ?? true
               })
               .eq('id', storeAffiliate.id);
 
@@ -181,7 +184,7 @@ export const useAffiliates = (storeId?: string) => {
               coupon_id: couponId,
             }));
             await (supabase as any).from('store_affiliate_coupons').insert(storeAffiliateInserts);
-            console.log('✅ Synced coupons and commission to store_affiliates:', { coupon_ids, commission_type: rest.default_commission_type, commission_value: rest.default_commission_value });
+            console.log('✅ Synced coupons and commission to store_affiliates:', { coupon_ids, commission_type: rest.default_commission_type, commission_value: rest.default_commission_value, use_default: rest.use_default_commission });
           }
         }
       }
@@ -249,13 +252,15 @@ export const useAffiliates = (storeId?: string) => {
                 .update({ 
                   coupon_id: coupon_ids[0] || null,
                   default_commission_type: rest.default_commission_type || data.default_commission_type || 'percentage',
-                  default_commission_value: rest.default_commission_value ?? data.default_commission_value ?? 0
+                  default_commission_value: rest.default_commission_value ?? data.default_commission_value ?? 0,
+                  use_default_commission: rest.use_default_commission ?? data.use_default_commission ?? true
                 })
                 .eq('id', storeAffiliate.id);
 
               console.log('✅ Synced commission to store_affiliates:', { 
                 commission_type: rest.default_commission_type || data.default_commission_type, 
-                commission_value: rest.default_commission_value ?? data.default_commission_value 
+                commission_value: rest.default_commission_value ?? data.default_commission_value,
+                use_default: rest.use_default_commission ?? data.use_default_commission
               });
 
               // Clear old store_affiliate_coupons entries
