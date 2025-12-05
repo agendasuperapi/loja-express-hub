@@ -1845,161 +1845,173 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
           </DialogHeader>
           
           {selectedAffiliate && (
-            <div className="flex-1 overflow-auto space-y-4">
-              {/* Stats do afiliado */}
-              {affiliateStats && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Total Vendas</p>
-                      <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalSales)}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Total Comissões</p>
-                      <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalEarnings)}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Pendente</p>
-                      <p className="text-xl font-bold text-amber-600">{formatCurrency(affiliateStats.pendingEarnings)}</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-4">
-                      <p className="text-sm text-muted-foreground">Pedidos</p>
-                      <p className="text-xl font-bold">{affiliateStats.totalOrders}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-
-              {/* Regras de comissão */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">Regras de Comissão</CardTitle>
-                    <CardDescription>Comissões específicas por categoria ou produto</CardDescription>
+            <Tabs defaultValue="resumo" className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="w-full justify-start">
+                <TabsTrigger value="resumo">Resumo</TabsTrigger>
+                <TabsTrigger value="regras">Regras de Comissão</TabsTrigger>
+                <TabsTrigger value="historico">Histórico</TabsTrigger>
+              </TabsList>
+              
+              {/* Aba Resumo */}
+              <TabsContent value="resumo" className="flex-1 overflow-auto mt-4">
+                {affiliateStats && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <p className="text-sm text-muted-foreground">Total Vendas</p>
+                        <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalSales)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-4">
+                        <p className="text-sm text-muted-foreground">Total Comissões</p>
+                        <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalEarnings)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-4">
+                        <p className="text-sm text-muted-foreground">Pendente</p>
+                        <p className="text-xl font-bold text-amber-600">{formatCurrency(affiliateStats.pendingEarnings)}</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="pt-4">
+                        <p className="text-sm text-muted-foreground">Pedidos</p>
+                        <p className="text-xl font-bold">{affiliateStats.totalOrders}</p>
+                      </CardContent>
+                    </Card>
                   </div>
-                  <Button size="sm" onClick={() => setRuleDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar Regra
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {commissionRules.map((rule) => (
-                      <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge>
-                              {rule.applies_to === 'category' ? 'Categoria' : 'Produto'}
-                            </Badge>
-                            <span className="text-sm">
-                              {rule.applies_to === 'category' 
-                                ? rule.category_name 
-                                : rule.product?.name || 'Produto'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">
-                              {rule.commission_type === 'percentage'
-                                ? `${rule.commission_value}%`
-                                : formatCurrency(rule.commission_value)}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => handleDeleteRule(rule.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                )}
+              </TabsContent>
+              
+              {/* Aba Regras de Comissão */}
+              <TabsContent value="regras" className="flex-1 overflow-auto mt-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">Regras de Comissão</CardTitle>
+                      <CardDescription>Comissões específicas por categoria ou produto</CardDescription>
+                    </div>
+                    <Button size="sm" onClick={() => setRuleDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Adicionar Regra
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {commissionRules.map((rule) => (
+                        <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge>
+                                {rule.applies_to === 'category' ? 'Categoria' : 'Produto'}
+                              </Badge>
+                              <span className="text-sm">
+                                {rule.applies_to === 'category' 
+                                  ? rule.category_name 
+                                  : rule.product?.name || 'Produto'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">
+                                {rule.commission_type === 'percentage'
+                                  ? `${rule.commission_value}%`
+                                  : formatCurrency(rule.commission_value)}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive"
+                                onClick={() => handleDeleteRule(rule.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                    {commissionRules.length === 0 && (
-                      <p className="text-sm text-muted-foreground text-center py-4">
-                        Nenhuma regra de comissão específica configurada
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Histórico de comissões */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">Histórico de Comissões</CardTitle>
-                    <CardDescription>Todas as comissões geradas</CardDescription>
-                  </div>
-                  <Button size="sm" onClick={() => setPaymentDialogOpen(true)}>
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    Registrar Pagamento
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[250px]">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Pedido</TableHead>
-                          <TableHead>Data</TableHead>
-                          <TableHead>Valor Venda</TableHead>
-                          <TableHead>Comissão</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Ações</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {affiliateEarnings.map((earning) => (
-                          <TableRow key={earning.id}>
-                            <TableCell className="font-mono text-sm">
-                              #{earning.order?.order_number || '-'}
-                            </TableCell>
-                            <TableCell className="text-sm">
-                              {format(new Date(earning.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                            </TableCell>
-                            <TableCell>{formatCurrency(earning.order_total)}</TableCell>
-                            <TableCell className="font-semibold text-green-600">
-                              {formatCurrency(earning.commission_amount)}
-                            </TableCell>
-                            <TableCell>{getStatusBadge(earning.status)}</TableCell>
-                            <TableCell>
-                              <Select
-                                value={earning.status}
-                                onValueChange={(value) => updateEarningStatus(earning.id, value as any)}
-                              >
-                                <SelectTrigger className="w-[120px] h-8">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pendente</SelectItem>
-                                  <SelectItem value="approved">Aprovada</SelectItem>
-                                  <SelectItem value="paid">Paga</SelectItem>
-                                  <SelectItem value="cancelled">Cancelada</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {affiliateEarnings.length === 0 && (
+                      ))}
+                      {commissionRules.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhuma regra de comissão específica configurada
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              {/* Aba Histórico */}
+              <TabsContent value="historico" className="flex-1 overflow-auto mt-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">Histórico de Comissões</CardTitle>
+                      <CardDescription>Todas as comissões geradas</CardDescription>
+                    </div>
+                    <Button size="sm" onClick={() => setPaymentDialogOpen(true)}>
+                      <CreditCard className="h-4 w-4 mr-1" />
+                      Registrar Pagamento
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px]">
+                      <Table>
+                        <TableHeader>
                           <TableRow>
-                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                              Nenhuma comissão registrada
-                            </TableCell>
+                            <TableHead>Pedido</TableHead>
+                            <TableHead>Data</TableHead>
+                            <TableHead>Valor Venda</TableHead>
+                            <TableHead>Comissão</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Ações</TableHead>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
+                        </TableHeader>
+                        <TableBody>
+                          {affiliateEarnings.map((earning) => (
+                            <TableRow key={earning.id}>
+                              <TableCell className="font-mono text-sm">
+                                #{earning.order?.order_number || '-'}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {format(new Date(earning.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                              </TableCell>
+                              <TableCell>{formatCurrency(earning.order_total)}</TableCell>
+                              <TableCell className="font-semibold text-green-600">
+                                {formatCurrency(earning.commission_amount)}
+                              </TableCell>
+                              <TableCell>{getStatusBadge(earning.status)}</TableCell>
+                              <TableCell>
+                                <Select
+                                  value={earning.status}
+                                  onValueChange={(value) => updateEarningStatus(earning.id, value as any)}
+                                >
+                                  <SelectTrigger className="w-[120px] h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pendente</SelectItem>
+                                    <SelectItem value="approved">Aprovada</SelectItem>
+                                    <SelectItem value="paid">Paga</SelectItem>
+                                    <SelectItem value="cancelled">Cancelada</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {affiliateEarnings.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                Nenhuma comissão registrada
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           )}
           
           <DialogFooter>
