@@ -122,8 +122,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [ruleFormData, setRuleFormData] = useState({
     commission_type: 'percentage' as 'percentage' | 'fixed',
     commission_value: 0,
-    applies_to: 'category' as 'category' | 'product',
-    category_name: '',
+    applies_to: 'product' as 'product',
     product_id: '',
   });
 
@@ -411,8 +410,9 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     await createCommissionRule({
       affiliate_id: selectedAffiliate.id,
       ...ruleFormData,
-      category_name: ruleFormData.applies_to === 'category' ? ruleFormData.category_name : null,
-      product_id: ruleFormData.applies_to === 'product' ? ruleFormData.product_id : null,
+      applies_to: 'product',
+      category_name: null,
+      product_id: ruleFormData.product_id,
     });
 
     const rules = await getCommissionRules(selectedAffiliate.id);
@@ -421,8 +421,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     setRuleFormData({
       commission_type: 'percentage',
       commission_value: 0,
-      applies_to: 'category',
-      category_name: '',
+      applies_to: 'product',
       product_id: '',
     });
   };
@@ -824,13 +823,9 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                       <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Badge>
-                              {rule.applies_to === 'category' ? 'Categoria' : 'Produto'}
-                            </Badge>
+                            <Badge>Produto</Badge>
                             <span className="text-sm">
-                              {rule.applies_to === 'category' 
-                                ? rule.category_name 
-                                : rule.product?.name || 'Produto'}
+                              {rule.product?.name || 'Produto'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1487,83 +1482,46 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             <DialogTitle>Nova Regra de Comissão</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
-              <Label>Aplica-se a</Label>
+            <div className="space-y-2">
+              <Label>Produto</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={ruleProductSearch}
+                  onChange={(e) => setRuleProductSearch(e.target.value)}
+                  placeholder="Buscar por nome, código interno ou externo..."
+                  className="pl-9"
+                />
+              </div>
               <Select
-                value={ruleFormData.applies_to}
-                onValueChange={(value: 'category' | 'product') => setRuleFormData({ ...ruleFormData, applies_to: value })}
+                value={ruleFormData.product_id}
+                onValueChange={(value) => setRuleFormData({ ...ruleFormData, product_id: value })}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione o produto" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="category">Categoria</SelectItem>
-                  <SelectItem value="product">Produto</SelectItem>
+                <SelectContent className="max-h-[300px]">
+                  {filteredRuleProducts.length === 0 ? (
+                    <div className="py-2 px-3 text-sm text-muted-foreground text-center">
+                      Nenhum produto encontrado
+                    </div>
+                  ) : (
+                    filteredRuleProducts.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        <div className="flex flex-col">
+                          <span>{product.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {product.external_code && `Cód: ${product.external_code}`}
+                            {product.external_code && product.short_id && ' • '}
+                            {product.short_id && `ID: ${product.short_id}`}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
-            {ruleFormData.applies_to === 'category' && (
-              <div>
-                <Label>Categoria</Label>
-                <Select
-                  value={ruleFormData.category_name}
-                  onValueChange={(value) => setRuleFormData({ ...ruleFormData, category_name: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {ruleFormData.applies_to === 'product' && (
-              <div className="space-y-2">
-                <Label>Produto</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={ruleProductSearch}
-                    onChange={(e) => setRuleProductSearch(e.target.value)}
-                    placeholder="Buscar por nome, código interno ou externo..."
-                    className="pl-9"
-                  />
-                </div>
-                <Select
-                  value={ruleFormData.product_id}
-                  onValueChange={(value) => setRuleFormData({ ...ruleFormData, product_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o produto" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {filteredRuleProducts.length === 0 ? (
-                      <div className="py-2 px-3 text-sm text-muted-foreground text-center">
-                        Nenhum produto encontrado
-                      </div>
-                    ) : (
-                      filteredRuleProducts.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          <div className="flex flex-col">
-                            <span>{product.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {product.external_code && `Cód: ${product.external_code}`}
-                              {product.external_code && product.short_id && ' • '}
-                              {product.short_id && `ID: ${product.short_id}`}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Tipo</Label>
@@ -1903,13 +1861,9 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                         <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Badge>
-                                {rule.applies_to === 'category' ? 'Categoria' : 'Produto'}
-                              </Badge>
+                              <Badge>Produto</Badge>
                               <span className="text-sm">
-                                {rule.applies_to === 'category' 
-                                  ? rule.category_name 
-                                  : rule.product?.name || 'Produto'}
+                                {rule.product?.name || 'Produto'}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
