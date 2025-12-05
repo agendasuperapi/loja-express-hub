@@ -20,7 +20,7 @@ import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -86,6 +86,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
   const [ruleProductsModalOpen, setRuleProductsModalOpen] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [inviteLinkDialogOpen, setInviteLinkDialogOpen] = useState(false);
   const [productsModalOpen, setProductsModalOpen] = useState(false);
@@ -2125,10 +2126,46 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                       return (
                         <div key={category} className="border rounded-lg overflow-hidden">
                           {/* Category Header */}
-                          <div className="flex items-center gap-3 p-3 bg-muted/50 border-b">
+                          <div 
+                            className="flex items-center gap-3 p-3 bg-muted/50 border-b cursor-pointer"
+                            onClick={() => {
+                              setCollapsedCategories(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(category)) {
+                                  newSet.delete(category);
+                                } else {
+                                  newSet.add(category);
+                                }
+                                return newSet;
+                              });
+                            }}
+                          >
+                            <button
+                              type="button"
+                              className="p-0.5 hover:bg-muted rounded transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCollapsedCategories(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(category)) {
+                                    newSet.delete(category);
+                                  } else {
+                                    newSet.add(category);
+                                  }
+                                  return newSet;
+                                });
+                              }}
+                            >
+                              {collapsedCategories.has(category) ? (
+                                <ChevronRight className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
                             <Checkbox
                               checked={allSelectableSelected}
                               disabled={selectableProducts.length === 0}
+                              onClick={(e) => e.stopPropagation()}
                               onCheckedChange={(checked) => {
                                 if (checked) {
                                   const newIds = [...new Set([...ruleFormData.product_ids, ...selectableProducts.map(p => p.id)])];
@@ -2151,58 +2188,60 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                           </div>
                           
                           {/* Category Products */}
-                          <div className="p-1.5 space-y-0.5">
-                            {categoryProducts.map((product) => {
-                              const isSelected = ruleFormData.product_ids.includes(product.id);
-                              const hasExistingRule = commissionRules.some(r => r.product_id === product.id);
-                              
-                              return (
-                                <label
-                                  key={product.id}
-                                  className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${
-                                    isSelected 
-                                      ? 'bg-primary/10 border border-primary/30' 
-                                      : 'hover:bg-muted/50 border border-transparent'
-                                  } ${hasExistingRule ? 'opacity-50' : ''}`}
-                                >
-                                  <Checkbox
-                                    checked={isSelected}
-                                    disabled={hasExistingRule}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setRuleFormData({
-                                          ...ruleFormData,
-                                          product_ids: [...ruleFormData.product_ids, product.id]
-                                        });
-                                      } else {
-                                        setRuleFormData({
-                                          ...ruleFormData,
-                                          product_ids: ruleFormData.product_ids.filter(id => id !== product.id)
-                                        });
-                                      }
-                                    }}
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-medium text-sm truncate">{product.name}</span>
-                                      {hasExistingRule && (
-                                        <Badge variant="outline" className="text-xs">Já tem regra</Badge>
-                                      )}
+                          {!collapsedCategories.has(category) && (
+                            <div className="p-1.5 space-y-0.5">
+                              {categoryProducts.map((product) => {
+                                const isSelected = ruleFormData.product_ids.includes(product.id);
+                                const hasExistingRule = commissionRules.some(r => r.product_id === product.id);
+                                
+                                return (
+                                  <label
+                                    key={product.id}
+                                    className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${
+                                      isSelected 
+                                        ? 'bg-primary/10 border border-primary/30' 
+                                        : 'hover:bg-muted/50 border border-transparent'
+                                    } ${hasExistingRule ? 'opacity-50' : ''}`}
+                                  >
+                                    <Checkbox
+                                      checked={isSelected}
+                                      disabled={hasExistingRule}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setRuleFormData({
+                                            ...ruleFormData,
+                                            product_ids: [...ruleFormData.product_ids, product.id]
+                                          });
+                                        } else {
+                                          setRuleFormData({
+                                            ...ruleFormData,
+                                            product_ids: ruleFormData.product_ids.filter(id => id !== product.id)
+                                          });
+                                        }
+                                      }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-sm truncate">{product.name}</span>
+                                        {hasExistingRule && (
+                                          <Badge variant="outline" className="text-xs">Já tem regra</Badge>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        {product.external_code && <span>Cód: {product.external_code}</span>}
+                                        {product.external_code && product.short_id && <span>•</span>}
+                                        {product.short_id && <span>ID: {product.short_id}</span>}
+                                        <span>•</span>
+                                        <span className="font-medium text-foreground">
+                                          R$ {(product.promotional_price || product.price).toFixed(2)}
+                                        </span>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      {product.external_code && <span>Cód: {product.external_code}</span>}
-                                      {product.external_code && product.short_id && <span>•</span>}
-                                      {product.short_id && <span>ID: {product.short_id}</span>}
-                                      <span>•</span>
-                                      <span className="font-medium text-foreground">
-                                        R$ {(product.promotional_price || product.price).toFixed(2)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </label>
-                              );
-                            })}
-                          </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     });
