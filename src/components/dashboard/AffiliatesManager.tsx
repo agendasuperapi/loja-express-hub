@@ -1789,7 +1789,8 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             <Tabs defaultValue="resumo" className="flex-1 flex flex-col overflow-hidden">
               <TabsList className="w-full justify-start">
                 <TabsTrigger value="resumo">Resumo</TabsTrigger>
-                <TabsTrigger value="regras">Regras de Comissão</TabsTrigger>
+                <TabsTrigger value="regras">Comissão Padrão</TabsTrigger>
+                <TabsTrigger value="regras-especificas">Regras Específicas</TabsTrigger>
                 <TabsTrigger value="historico">Histórico</TabsTrigger>
               </TabsList>
               
@@ -1952,8 +1953,10 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                     </CardContent>
                   )}
                 </Card>
-                
-                {/* Seção Regras Específicas */}
+              </TabsContent>
+              
+              {/* Aba Regras Específicas */}
+              <TabsContent value="regras-especificas" className="flex-1 overflow-auto mt-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
