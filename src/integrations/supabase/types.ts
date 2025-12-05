@@ -456,6 +456,7 @@ export type Database = {
           pix_key: string | null
           store_id: string
           updated_at: string
+          use_default_commission: boolean
           user_id: string | null
         }
         Insert: {
@@ -473,6 +474,7 @@ export type Database = {
           pix_key?: string | null
           store_id: string
           updated_at?: string
+          use_default_commission?: boolean
           user_id?: string | null
         }
         Update: {
@@ -490,6 +492,7 @@ export type Database = {
           pix_key?: string | null
           store_id?: string
           updated_at?: string
+          use_default_commission?: boolean
           user_id?: string | null
         }
         Relationships: [
@@ -2041,6 +2044,7 @@ export type Database = {
           status: string
           store_id: string
           updated_at: string | null
+          use_default_commission: boolean
         }
         Insert: {
           accepted_at?: string | null
@@ -2058,6 +2062,7 @@ export type Database = {
           status?: string
           store_id: string
           updated_at?: string | null
+          use_default_commission?: boolean
         }
         Update: {
           accepted_at?: string | null
@@ -2075,6 +2080,7 @@ export type Database = {
           status?: string
           store_id?: string
           updated_at?: string | null
+          use_default_commission?: boolean
         }
         Relationships: [
           {
