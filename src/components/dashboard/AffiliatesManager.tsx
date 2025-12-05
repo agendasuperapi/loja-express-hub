@@ -85,6 +85,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [allEarnings, setAllEarnings] = useState<any[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
+  const [ruleProductsModalOpen, setRuleProductsModalOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [inviteLinkDialogOpen, setInviteLinkDialogOpen] = useState(false);
   const [productsModalOpen, setProductsModalOpen] = useState(false);
@@ -1923,15 +1924,15 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
           setRuleProductSearch('');
         }
       }}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Regra de Comissão</DialogTitle>
             <DialogDescription>
-              Selecione os produtos e defina a comissão que será aplicada a todos.
+              Defina a comissão e selecione os produtos.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          <div className="space-y-4">
             {/* Commission Settings */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -1968,17 +1969,32 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             </div>
 
             {/* Product Selection Section */}
-            <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label>Produtos</Label>
                 <span className="text-sm text-muted-foreground">
-                  {ruleFormData.product_ids.length} de {filteredRuleProducts.length} selecionado(s)
+                  {ruleFormData.product_ids.length} selecionado(s)
                 </span>
               </div>
               
+              {/* Button to open product selection modal */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start h-auto min-h-10 py-2"
+                onClick={() => setRuleProductsModalOpen(true)}
+              >
+                <Package className="h-4 w-4 mr-2 shrink-0" />
+                <span className="truncate">
+                  {ruleFormData.product_ids.length === 0 
+                    ? 'Selecionar produtos...' 
+                    : `${ruleFormData.product_ids.length} produto(s) selecionado(s)`}
+                </span>
+              </Button>
+
               {/* Selected Products Badges */}
               {ruleFormData.product_ids.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-2 bg-muted/50 rounded-md">
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-muted/50 rounded-md">
                   {ruleFormData.product_ids.map((productId) => {
                     const product = products.find(p => p.id === productId);
                     return (
@@ -2003,105 +2019,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                   })}
                 </div>
               )}
-
-              {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={ruleProductSearch}
-                  onChange={(e) => setRuleProductSearch(e.target.value)}
-                  placeholder="Buscar por nome, código interno ou externo..."
-                  className="pl-9"
-                />
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const allProductIds = filteredRuleProducts.map(p => p.id);
-                    setRuleFormData({ ...ruleFormData, product_ids: allProductIds });
-                  }}
-                >
-                  <Check className="h-3.5 w-3.5 mr-1" />
-                  Selecionar Todos
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRuleFormData({ ...ruleFormData, product_ids: [] })}
-                >
-                  <XCircle className="h-3.5 w-3.5 mr-1" />
-                  Limpar Seleção
-                </Button>
-              </div>
-
-              {/* Products List */}
-              <ScrollArea className="flex-1 border rounded-md">
-                <div className="p-2 space-y-1">
-                  {filteredRuleProducts.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Nenhum produto encontrado</p>
-                    </div>
-                  ) : (
-                    filteredRuleProducts.map((product) => {
-                      const isSelected = ruleFormData.product_ids.includes(product.id);
-                      const hasExistingRule = commissionRules.some(r => r.product_id === product.id);
-                      
-                      return (
-                        <label
-                          key={product.id}
-                          className={`flex items-center gap-3 p-2.5 rounded-md cursor-pointer transition-colors ${
-                            isSelected 
-                              ? 'bg-primary/10 border border-primary/30' 
-                              : 'hover:bg-muted/50 border border-transparent'
-                          } ${hasExistingRule ? 'opacity-50' : ''}`}
-                        >
-                          <Checkbox
-                            checked={isSelected}
-                            disabled={hasExistingRule}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setRuleFormData({
-                                  ...ruleFormData,
-                                  product_ids: [...ruleFormData.product_ids, product.id]
-                                });
-                              } else {
-                                setRuleFormData({
-                                  ...ruleFormData,
-                                  product_ids: ruleFormData.product_ids.filter(id => id !== product.id)
-                                });
-                              }
-                            }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm truncate">{product.name}</span>
-                              {hasExistingRule && (
-                                <Badge variant="outline" className="text-xs">Já tem regra</Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              {product.external_code && <span>Cód: {product.external_code}</span>}
-                              {product.external_code && product.short_id && <span>•</span>}
-                              {product.short_id && <span>ID: {product.short_id}</span>}
-                              <span>•</span>
-                              <span className="font-medium text-foreground">
-                                R$ {(product.promotional_price || product.price).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
-              </ScrollArea>
             </div>
             
             {/* Info Message */}
@@ -2121,6 +2038,136 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             >
               <Plus className="h-4 w-4 mr-1" />
               Adicionar {ruleFormData.product_ids.length > 0 && `(${ruleFormData.product_ids.length})`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Selecionar Produtos para Regra de Comissão */}
+      <Dialog open={ruleProductsModalOpen} onOpenChange={setRuleProductsModalOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Selecionar Produtos</DialogTitle>
+            <DialogDescription>
+              Escolha os produtos que receberão a regra de comissão.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={ruleProductSearch}
+                onChange={(e) => setRuleProductSearch(e.target.value)}
+                placeholder="Buscar por nome, código interno ou externo..."
+                className="pl-9"
+              />
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const allProductIds = filteredRuleProducts
+                      .filter(p => !commissionRules.some(r => r.product_id === p.id))
+                      .map(p => p.id);
+                    setRuleFormData({ ...ruleFormData, product_ids: allProductIds });
+                  }}
+                >
+                  <Check className="h-3.5 w-3.5 mr-1" />
+                  Selecionar Todos
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRuleFormData({ ...ruleFormData, product_ids: [] })}
+                >
+                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                  Limpar
+                </Button>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {ruleFormData.product_ids.length} selecionado(s)
+              </span>
+            </div>
+
+            {/* Products List */}
+            <ScrollArea className="flex-1 border rounded-md">
+              <div className="p-2 space-y-1">
+                {filteredRuleProducts.length === 0 ? (
+                  <div className="py-8 text-center text-muted-foreground">
+                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Nenhum produto encontrado</p>
+                  </div>
+                ) : (
+                  filteredRuleProducts.map((product) => {
+                    const isSelected = ruleFormData.product_ids.includes(product.id);
+                    const hasExistingRule = commissionRules.some(r => r.product_id === product.id);
+                    
+                    return (
+                      <label
+                        key={product.id}
+                        className={`flex items-center gap-3 p-2.5 rounded-md cursor-pointer transition-colors ${
+                          isSelected 
+                            ? 'bg-primary/10 border border-primary/30' 
+                            : 'hover:bg-muted/50 border border-transparent'
+                        } ${hasExistingRule ? 'opacity-50' : ''}`}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          disabled={hasExistingRule}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setRuleFormData({
+                                ...ruleFormData,
+                                product_ids: [...ruleFormData.product_ids, product.id]
+                              });
+                            } else {
+                              setRuleFormData({
+                                ...ruleFormData,
+                                product_ids: ruleFormData.product_ids.filter(id => id !== product.id)
+                              });
+                            }
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm truncate">{product.name}</span>
+                            {hasExistingRule && (
+                              <Badge variant="outline" className="text-xs">Já tem regra</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {product.external_code && <span>Cód: {product.external_code}</span>}
+                            {product.external_code && product.short_id && <span>•</span>}
+                            {product.short_id && <span>ID: {product.short_id}</span>}
+                            <span>•</span>
+                            <span className="font-medium text-foreground">
+                              R$ {(product.promotional_price || product.price).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+          
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setRuleProductsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setRuleProductsModalOpen(false)}>
+              <Check className="h-4 w-4 mr-1" />
+              Confirmar ({ruleFormData.product_ids.length})
             </Button>
           </DialogFooter>
         </DialogContent>
