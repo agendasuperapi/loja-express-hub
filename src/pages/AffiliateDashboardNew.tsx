@@ -29,7 +29,11 @@ import {
   ShoppingBag,
   ChevronDown,
   ChevronUp,
-  Package
+  Package,
+  Target,
+  Settings,
+  Ban,
+  Calculator
 } from 'lucide-react';
 
 export default function AffiliateDashboardNew() {
@@ -555,7 +559,44 @@ export default function AffiliateDashboardNew() {
                                                   )}
                                                 </p>
                                               </div>
-                                              <div className="flex items-center gap-3">
+                                              <div className="flex items-center gap-2 flex-wrap justify-end">
+                                                {/* Badge de origem da comissão */}
+                                                {item.commission_source === 'specific_product' && (
+                                                  <Badge 
+                                                    variant="outline" 
+                                                    className="text-[10px] px-1.5 py-0 bg-purple-500/10 text-purple-600 border-purple-500/20"
+                                                  >
+                                                    <Target className="h-3 w-3 mr-1" />
+                                                    Regra específica
+                                                  </Badge>
+                                                )}
+                                                {item.commission_source === 'default' && (
+                                                  <Badge 
+                                                    variant="outline" 
+                                                    className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                                  >
+                                                    <Settings className="h-3 w-3 mr-1" />
+                                                    Padrão
+                                                  </Badge>
+                                                )}
+                                                {item.commission_source === 'none' && (
+                                                  <Badge 
+                                                    variant="outline" 
+                                                    className="text-[10px] px-1.5 py-0 bg-gray-500/10 text-gray-500 border-gray-500/20"
+                                                  >
+                                                    <Ban className="h-3 w-3 mr-1" />
+                                                    Sem comissão
+                                                  </Badge>
+                                                )}
+                                                {item.commission_source === 'proporcional' && (
+                                                  <Badge 
+                                                    variant="outline" 
+                                                    className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 border-orange-500/20"
+                                                  >
+                                                    <Calculator className="h-3 w-3 mr-1" />
+                                                    Proporcional
+                                                  </Badge>
+                                                )}
                                                 <Badge variant="secondary" className="text-xs">
                                                   {item.commission_type === 'percentage' 
                                                     ? `${item.commission_value}%` 
