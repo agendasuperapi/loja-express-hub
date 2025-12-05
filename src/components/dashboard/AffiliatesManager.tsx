@@ -1477,11 +1477,11 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
       {/* Dialog: Adicionar Regra de Comissão */}
       <Dialog open={ruleDialogOpen} onOpenChange={setRuleDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md h-[70vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova Regra de Comissão</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-auto">
             <div className="space-y-2">
               <Label>Produto</Label>
               <div className="relative">
