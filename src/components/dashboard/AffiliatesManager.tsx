@@ -996,459 +996,478 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
       {/* Dialog: Criar/Editar Afiliado */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingAffiliate ? 'Editar Afiliado' : 'Novo Afiliado'}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-                <Label>Nome *</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Nome completo"
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Email *</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 11) value = value.slice(0, 11);
-                    // Apply mask (00) 00000-0000
-                    if (value.length > 0) {
-                      value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-                      value = value.replace(/(\d{5})(\d)/, '$1-$2');
-                    }
-                    setFormData({ ...formData, phone: value });
-                  }}
-                  placeholder="(00) 00000-0000"
-                  maxLength={15}
-                />
-                {formData.phone && formData.phone.replace(/\D/g, '').length > 0 && formData.phone.replace(/\D/g, '').length < 10 && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    Telefone incompleto
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label>CPF/CNPJ</Label>
-                <Input
-                  value={formData.cpf_cnpj}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 14) value = value.slice(0, 14);
-                    // Apply mask based on length
-                    if (value.length <= 11) {
-                      // CPF: 000.000.000-00
-                      value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                      value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                    } else {
-                      // CNPJ: 00.000.000/0000-00
-                      value = value.replace(/^(\d{2})(\d)/, '$1.$2');
-                      value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
-                      value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
-                      value = value.replace(/(\d{4})(\d)/, '$1-$2');
-                    }
-                    setFormData({ ...formData, cpf_cnpj: value });
-                  }}
-                  placeholder="000.000.000-00"
-                  maxLength={18}
-                />
-                {formData.cpf_cnpj && (() => {
-                  const digits = formData.cpf_cnpj.replace(/\D/g, '');
-                  if (digits.length > 0 && digits.length < 11) {
-                    return (
+          <Tabs defaultValue="dados" className="flex-1 overflow-hidden flex flex-col">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="dados">Dados</TabsTrigger>
+              <TabsTrigger value="cupons">Cupons</TabsTrigger>
+              <TabsTrigger value="comissoes">Comissões</TabsTrigger>
+            </TabsList>
+            
+            {/* Aba Dados Básicos */}
+            <TabsContent value="dados" className="flex-1 overflow-auto mt-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label>Nome *</Label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Nome completo"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Email *</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                  <div>
+                    <Label>Telefone</Label>
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length > 11) value = value.slice(0, 11);
+                        if (value.length > 0) {
+                          value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+                          value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                        }
+                        setFormData({ ...formData, phone: value });
+                      }}
+                      placeholder="(00) 00000-0000"
+                      maxLength={15}
+                    />
+                    {formData.phone && formData.phone.replace(/\D/g, '').length > 0 && formData.phone.replace(/\D/g, '').length < 10 && (
                       <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
-                        CPF incompleto
+                        Telefone incompleto
                       </p>
-                    );
-                  }
-                  if (digits.length > 11 && digits.length < 14) {
-                    return (
-                      <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                        <AlertCircle className="h-3 w-3" />
-                        CNPJ incompleto
-                      </p>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-              <div className="col-span-2">
-                <Label>Chave PIX</Label>
-                <Input
-                  value={formData.pix_key}
-                  onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-                  placeholder="CPF, CNPJ, Email, Telefone ou Chave Aleatória"
-                />
-                {formData.pix_key && (() => {
-                  const validation = validatePixKey(formData.pix_key);
-                  if (validation.type === 'invalid') {
-                    return (
-                      <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                        <XCircle className="h-3 w-3" />
-                        {validation.message}
-                      </p>
-                    );
-                  }
-                  if (validation.type !== 'empty') {
-                    return (
-                      <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        {validation.message}
-                      </p>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-              <div className="col-span-2">
-                <Label>Cupons Vinculados *</Label>
-                <div className="flex gap-2">
-                  <div className="flex-1 border rounded-md p-3 max-h-48 overflow-y-auto">
-                    {availableCoupons.length === 0 ? (
-                      <div className="py-2 text-sm text-muted-foreground text-center">
-                        Nenhum cupom disponível
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {availableCoupons.map((coupon) => {
-                          const isSelected = formData.coupon_ids.includes(coupon.id);
-                          return (
-                            <div key={coupon.id} className="flex items-center gap-2">
-                              <Checkbox
-                                id={`coupon-${coupon.id}`}
-                                checked={isSelected}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setFormData({
-                                      ...formData,
-                                      coupon_ids: [...formData.coupon_ids, coupon.id],
-                                    });
-                                  } else {
-                                    setFormData({
-                                      ...formData,
-                                      coupon_ids: formData.coupon_ids.filter(id => id !== coupon.id),
-                                    });
-                                  }
-                                }}
-                              />
-                              <label htmlFor={`coupon-${coupon.id}`} className="text-sm flex-1 cursor-pointer">
-                                <span className="font-medium">{coupon.code}</span>
-                                <span className="text-muted-foreground ml-1">
-                                  ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
-                                </span>
-                              </label>
-                            </div>
-                          );
-                        })}
-                      </div>
                     )}
                   </div>
-                  <Dialog open={newCouponDialogOpen} onOpenChange={setNewCouponDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button type="button" size="icon" variant="outline">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Novo Cupom</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Código do Cupom</Label>
-                          <Input
-                            value={newCouponData.code}
-                            onChange={(e) => setNewCouponData({ ...newCouponData, code: e.target.value.toUpperCase() })}
-                            placeholder="Ex: AFILIADO10"
-                          />
+                  <div>
+                    <Label>CPF/CNPJ</Label>
+                    <Input
+                      value={formData.cpf_cnpj}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length > 14) value = value.slice(0, 14);
+                        if (value.length <= 11) {
+                          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                          value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                        } else {
+                          value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                          value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                          value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                          value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                        }
+                        setFormData({ ...formData, cpf_cnpj: value });
+                      }}
+                      placeholder="000.000.000-00"
+                      maxLength={18}
+                    />
+                    {formData.cpf_cnpj && (() => {
+                      const digits = formData.cpf_cnpj.replace(/\D/g, '');
+                      if (digits.length > 0 && digits.length < 11) {
+                        return (
+                          <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            CPF incompleto
+                          </p>
+                        );
+                      }
+                      if (digits.length > 11 && digits.length < 14) {
+                        return (
+                          <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            CNPJ incompleto
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Chave PIX</Label>
+                    <Input
+                      value={formData.pix_key}
+                      onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
+                      placeholder="CPF, CNPJ, Email, Telefone ou Chave Aleatória"
+                    />
+                    {formData.pix_key && (() => {
+                      const validation = validatePixKey(formData.pix_key);
+                      if (validation.type === 'invalid') {
+                        return (
+                          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                            <XCircle className="h-3 w-3" />
+                            {validation.message}
+                          </p>
+                        );
+                      }
+                      if (validation.type !== 'empty') {
+                        return (
+                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            {validation.message}
+                          </p>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            {/* Aba Cupons */}
+            <TabsContent value="cupons" className="flex-1 overflow-auto mt-4">
+              <div className="space-y-4">
+                <div>
+                  <Label>Cupons Vinculados *</Label>
+                  <div className="flex gap-2 mt-2">
+                    <div className="flex-1 border rounded-md p-3 max-h-48 overflow-y-auto">
+                      {availableCoupons.length === 0 ? (
+                        <div className="py-2 text-sm text-muted-foreground text-center">
+                          Nenhum cupom disponível
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                      ) : (
+                        <div className="space-y-2">
+                          {availableCoupons.map((coupon) => {
+                            const isSelected = formData.coupon_ids.includes(coupon.id);
+                            return (
+                              <div key={coupon.id} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`coupon-${coupon.id}`}
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setFormData({
+                                        ...formData,
+                                        coupon_ids: [...formData.coupon_ids, coupon.id],
+                                      });
+                                    } else {
+                                      setFormData({
+                                        ...formData,
+                                        coupon_ids: formData.coupon_ids.filter(id => id !== coupon.id),
+                                      });
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`coupon-${coupon.id}`} className="text-sm flex-1 cursor-pointer">
+                                  <span className="font-medium">{coupon.code}</span>
+                                  <span className="text-muted-foreground ml-1">
+                                    ({coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : formatCurrency(coupon.discount_value)})
+                                  </span>
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <Dialog open={newCouponDialogOpen} onOpenChange={setNewCouponDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button type="button" size="icon" variant="outline">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Novo Cupom</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
                           <div>
-                            <Label>Tipo de Desconto</Label>
+                            <Label>Código do Cupom</Label>
+                            <Input
+                              value={newCouponData.code}
+                              onChange={(e) => setNewCouponData({ ...newCouponData, code: e.target.value.toUpperCase() })}
+                              placeholder="Ex: AFILIADO10"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Tipo de Desconto</Label>
+                              <Select
+                                value={newCouponData.discount_type}
+                                onValueChange={(value: 'percentage' | 'fixed') => setNewCouponData({ ...newCouponData, discount_type: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="percentage">Porcentagem (%)</SelectItem>
+                                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Valor do Desconto</Label>
+                              <Input
+                                type="number"
+                                value={newCouponData.discount_value}
+                                onChange={(e) => setNewCouponData({ ...newCouponData, discount_value: Number(e.target.value) })}
+                                min={0}
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Pedido Mínimo (R$)</Label>
+                              <Input
+                                type="number"
+                                value={newCouponData.min_order_value}
+                                onChange={(e) => setNewCouponData({ ...newCouponData, min_order_value: Number(e.target.value) })}
+                                min={0}
+                              />
+                            </div>
+                            <div>
+                              <Label>Máximo de Usos</Label>
+                              <Input
+                                type="number"
+                                value={newCouponData.max_uses || ''}
+                                onChange={(e) => setNewCouponData({ ...newCouponData, max_uses: e.target.value ? Number(e.target.value) : null })}
+                                placeholder="Ilimitado"
+                                min={1}
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label>Válido a partir de</Label>
+                              <Input
+                                type="date"
+                                value={newCouponData.valid_from}
+                                onChange={(e) => setNewCouponData({ ...newCouponData, valid_from: e.target.value })}
+                              />
+                            </div>
+                            <div>
+                              <Label>Válido até</Label>
+                              <Input
+                                type="date"
+                                value={newCouponData.valid_until}
+                                onChange={(e) => setNewCouponData({ ...newCouponData, valid_until: e.target.value })}
+                                placeholder="Sem limite"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Cupom aplica-se a</Label>
                             <Select
-                              value={newCouponData.discount_type}
-                              onValueChange={(value: 'percentage' | 'fixed') => setNewCouponData({ ...newCouponData, discount_type: value })}
+                              value={newCouponData.applies_to}
+                              onValueChange={(value: 'all' | 'category' | 'product') => setNewCouponData({ 
+                                ...newCouponData, 
+                                applies_to: value,
+                                category_names: [],
+                                product_ids: []
+                              })}
                             >
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="percentage">Porcentagem (%)</SelectItem>
-                                <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                                <SelectItem value="all">Todos os produtos</SelectItem>
+                                <SelectItem value="category">Por Categoria</SelectItem>
+                                <SelectItem value="product">Por Produto</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
-                          <div>
-                            <Label>Valor do Desconto</Label>
-                            <Input
-                              type="number"
-                              value={newCouponData.discount_value}
-                              onChange={(e) => setNewCouponData({ ...newCouponData, discount_value: Number(e.target.value) })}
-                              min={0}
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Pedido Mínimo (R$)</Label>
-                            <Input
-                              type="number"
-                              value={newCouponData.min_order_value}
-                              onChange={(e) => setNewCouponData({ ...newCouponData, min_order_value: Number(e.target.value) })}
-                              min={0}
-                            />
-                          </div>
-                          <div>
-                            <Label>Máximo de Usos</Label>
-                            <Input
-                              type="number"
-                              value={newCouponData.max_uses || ''}
-                              onChange={(e) => setNewCouponData({ ...newCouponData, max_uses: e.target.value ? Number(e.target.value) : null })}
-                              placeholder="Ilimitado"
-                              min={1}
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Válido a partir de</Label>
-                            <Input
-                              type="date"
-                              value={newCouponData.valid_from}
-                              onChange={(e) => setNewCouponData({ ...newCouponData, valid_from: e.target.value })}
-                            />
-                          </div>
-                          <div>
-                            <Label>Válido até</Label>
-                            <Input
-                              type="date"
-                              value={newCouponData.valid_until}
-                              onChange={(e) => setNewCouponData({ ...newCouponData, valid_until: e.target.value })}
-                              placeholder="Sem limite"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label>Cupom aplica-se a</Label>
-                          <Select
-                            value={newCouponData.applies_to}
-                            onValueChange={(value: 'all' | 'category' | 'product') => setNewCouponData({ 
-                              ...newCouponData, 
-                              applies_to: value,
-                              category_names: [],
-                              product_ids: []
-                            })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">Todos os produtos</SelectItem>
-                              <SelectItem value="category">Por Categoria</SelectItem>
-                              <SelectItem value="product">Por Produto</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {newCouponData.applies_to === 'category' && (
-                          <div className="space-y-2">
-                            <Label>Categorias ({newCouponData.category_names.length} selecionadas)</Label>
-                            {newCouponData.category_names.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {newCouponData.category_names.map((categoryName) => (
-                                  <Badge key={categoryName} variant="secondary" className="flex items-center gap-1">
-                                    {categoryName}
-                                    <XCircle 
-                                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                      onClick={() => setNewCouponData({
-                                        ...newCouponData,
-                                        category_names: newCouponData.category_names.filter(c => c !== categoryName)
-                                      })}
-                                    />
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                            <div className="relative">
-                              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                placeholder="Buscar categoria..."
-                                value={couponCategorySearch}
-                                onChange={(e) => setCouponCategorySearch(e.target.value)}
-                                className="pl-8"
-                              />
-                            </div>
-                            <ScrollArea className="h-32 border rounded-md p-2">
-                              <div className="space-y-2">
-                                {filteredCouponCategories.map((category) => (
-                                  <div key={category.id} className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`coupon-cat-${category.id}`}
-                                      checked={newCouponData.category_names.includes(category.name)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setNewCouponData({
-                                            ...newCouponData,
-                                            category_names: [...newCouponData.category_names, category.name]
-                                          });
-                                        } else {
-                                          setNewCouponData({
-                                            ...newCouponData,
-                                            category_names: newCouponData.category_names.filter(c => c !== category.name)
-                                          });
-                                        }
-                                      }}
-                                      className="rounded border-input"
-                                    />
-                                    <Label htmlFor={`coupon-cat-${category.id}`} className="text-sm font-normal cursor-pointer">
-                                      {category.name}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                            </ScrollArea>
-                          </div>
-                        )}
-                        {newCouponData.applies_to === 'product' && (
-                          <div className="space-y-2">
-                            <Label>Produtos ({newCouponData.product_ids.length} selecionados)</Label>
-                            {newCouponData.product_ids.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {newCouponData.product_ids.map((productId) => {
-                                  const product = products.find(p => p.id === productId);
-                                  return (
-                                    <Badge key={productId} variant="secondary" className="flex items-center gap-1">
-                                      {product?.name || productId}
+                          {newCouponData.applies_to === 'category' && (
+                            <div className="space-y-2">
+                              <Label>Categorias ({newCouponData.category_names.length} selecionadas)</Label>
+                              {newCouponData.category_names.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {newCouponData.category_names.map((categoryName) => (
+                                    <Badge key={categoryName} variant="secondary" className="flex items-center gap-1">
+                                      {categoryName}
                                       <XCircle 
                                         className="h-3 w-3 cursor-pointer hover:text-destructive" 
                                         onClick={() => setNewCouponData({
                                           ...newCouponData,
-                                          product_ids: newCouponData.product_ids.filter(p => p !== productId)
+                                          category_names: newCouponData.category_names.filter(c => c !== categoryName)
                                         })}
                                       />
                                     </Badge>
-                                  );
-                                })}
+                                  ))}
+                                </div>
+                              )}
+                              <div className="relative">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  placeholder="Buscar categoria..."
+                                  value={couponCategorySearch}
+                                  onChange={(e) => setCouponCategorySearch(e.target.value)}
+                                  className="pl-8"
+                                />
                               </div>
-                            )}
-                            <div className="relative">
-                              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                              <Input
-                                placeholder="Buscar produto..."
-                                value={couponProductSearch}
-                                onChange={(e) => setCouponProductSearch(e.target.value)}
-                                className="pl-8"
-                              />
+                              <ScrollArea className="h-32 border rounded-md p-2">
+                                <div className="space-y-2">
+                                  {filteredCouponCategories.map((category) => (
+                                    <div key={category.id} className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`coupon-cat-${category.id}`}
+                                        checked={newCouponData.category_names.includes(category.name)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setNewCouponData({
+                                              ...newCouponData,
+                                              category_names: [...newCouponData.category_names, category.name]
+                                            });
+                                          } else {
+                                            setNewCouponData({
+                                              ...newCouponData,
+                                              category_names: newCouponData.category_names.filter(c => c !== category.name)
+                                            });
+                                          }
+                                        }}
+                                        className="rounded border-input"
+                                      />
+                                      <Label htmlFor={`coupon-cat-${category.id}`} className="text-sm font-normal cursor-pointer">
+                                        {category.name}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
                             </div>
-                            <ScrollArea className="h-32 border rounded-md p-2">
-                              <div className="space-y-2">
-                                {filteredCouponProducts.map((product) => (
-                                  <div key={product.id} className="flex items-center space-x-2">
-                                    <input
-                                      type="checkbox"
-                                      id={`coupon-prod-${product.id}`}
-                                      checked={newCouponData.product_ids.includes(product.id)}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setNewCouponData({
+                          )}
+                          {newCouponData.applies_to === 'product' && (
+                            <div className="space-y-2">
+                              <Label>Produtos ({newCouponData.product_ids.length} selecionados)</Label>
+                              {newCouponData.product_ids.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {newCouponData.product_ids.map((productId) => {
+                                    const product = products.find(p => p.id === productId);
+                                    return (
+                                      <Badge key={productId} variant="secondary" className="flex items-center gap-1">
+                                        {product?.name || productId}
+                                        <XCircle 
+                                          className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                          onClick={() => setNewCouponData({
                                             ...newCouponData,
-                                            product_ids: [...newCouponData.product_ids, product.id]
-                                          });
-                                        } else {
-                                          setNewCouponData({
-                                            ...newCouponData,
-                                            product_ids: newCouponData.product_ids.filter(p => p !== product.id)
-                                          });
-                                        }
-                                      }}
-                                      className="rounded border-input"
-                                    />
-                                    <Label htmlFor={`coupon-prod-${product.id}`} className="text-sm font-normal cursor-pointer">
-                                      {product.name}
-                                    </Label>
-                                  </div>
-                                ))}
+                                            product_ids: newCouponData.product_ids.filter(p => p !== productId)
+                                          })}
+                                        />
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              <div className="relative">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  placeholder="Buscar produto..."
+                                  value={couponProductSearch}
+                                  onChange={(e) => setCouponProductSearch(e.target.value)}
+                                  className="pl-8"
+                                />
                               </div>
-                            </ScrollArea>
-                          </div>
+                              <ScrollArea className="h-32 border rounded-md p-2">
+                                <div className="space-y-2">
+                                  {filteredCouponProducts.map((product) => (
+                                    <div key={product.id} className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        id={`coupon-prod-${product.id}`}
+                                        checked={newCouponData.product_ids.includes(product.id)}
+                                        onChange={(e) => {
+                                          if (e.target.checked) {
+                                            setNewCouponData({
+                                              ...newCouponData,
+                                              product_ids: [...newCouponData.product_ids, product.id]
+                                            });
+                                          } else {
+                                            setNewCouponData({
+                                              ...newCouponData,
+                                              product_ids: newCouponData.product_ids.filter(p => p !== product.id)
+                                            });
+                                          }
+                                        }}
+                                        className="rounded border-input"
+                                      />
+                                      <Label htmlFor={`coupon-prod-${product.id}`} className="text-sm font-normal cursor-pointer">
+                                        {product.name}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </ScrollArea>
+                            </div>
+                          )}
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setNewCouponDialogOpen(false)}>
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleCreateNewCoupon}>
+                            Criar Cupom
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            {/* Aba Comissões */}
+            <TabsContent value="comissoes" className="flex-1 overflow-auto mt-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <Label>Comissão Ativa</Label>
+                    <p className="text-xs text-muted-foreground">O afiliado receberá comissão das vendas</p>
+                  </div>
+                  <Switch
+                    checked={formData.commission_enabled}
+                    onCheckedChange={(checked) => setFormData({ ...formData, commission_enabled: checked })}
+                  />
+                </div>
+                {formData.commission_enabled && (
+                  <div>
+                    <Label>Produtos e Comissões</Label>
+                    <div className="mt-2 flex items-center gap-3">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setProductsModalOpen(true)}
+                        className="w-full justify-start"
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Selecionar Produtos ({formData.commission_products.length} selecionados)
+                      </Button>
+                    </div>
+                    {formData.commission_products.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {formData.commission_products.slice(0, 5).map((p) => {
+                          const product = products.find(pr => pr.id === p.id);
+                          return (
+                            <Badge key={p.id} variant="secondary" className="text-xs">
+                              {product?.name || 'Produto'} - {p.type === 'percentage' ? `${p.value}%` : `R$ ${p.value}`}
+                            </Badge>
+                          );
+                        })}
+                        {formData.commission_products.length > 5 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{formData.commission_products.length - 5} mais
+                          </Badge>
                         )}
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setNewCouponDialogOpen(false)}>
-                          Cancelar
-                        </Button>
-                        <Button onClick={handleCreateNewCoupon}>
-                          Criar Cupom
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-              <div className="col-span-2 flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div>
-                  <Label>Comissão Ativa</Label>
-                  <p className="text-xs text-muted-foreground">O afiliado receberá comissão das vendas</p>
-                </div>
-                <Switch
-                  checked={formData.commission_enabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, commission_enabled: checked })}
-                />
-              </div>
-              {formData.commission_enabled && (
-                <div className="col-span-2">
-                  <Label>Produtos e Comissões</Label>
-                  <div className="mt-2 flex items-center gap-3">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setProductsModalOpen(true)}
-                      className="w-full justify-start"
-                    >
-                      <Package className="h-4 w-4 mr-2" />
-                      Selecionar Produtos ({formData.commission_products.length} selecionados)
-                    </Button>
+                    )}
                   </div>
-                  {formData.commission_products.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {formData.commission_products.slice(0, 3).map((p) => {
-                        const product = products.find(pr => pr.id === p.id);
-                        return (
-                          <Badge key={p.id} variant="secondary" className="text-xs">
-                            {product?.name || 'Produto'} - {p.type === 'percentage' ? `${p.value}%` : `R$ ${p.value}`}
-                          </Badge>
-                        );
-                      })}
-                      {formData.commission_products.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{formData.commission_products.length - 3} mais
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
