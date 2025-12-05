@@ -21,7 +21,7 @@ import { useDeliveryZones } from "@/hooks/useDeliveryZones";
 import { usePickupLocations } from "@/hooks/usePickupLocations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
-import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin, Eye, EyeOff, CheckCircle, Percent } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Clock, Store, Pencil, ArrowLeft, Package, Tag, X, Loader2, Search, MapPin, Eye, EyeOff, CheckCircle, Percent, AlertTriangle } from "lucide-react";
 import { calculateItemDiscount, calculateItemSubtotal } from "@/lib/couponUtils";
 import { toast } from "@/hooks/use-toast";
 import { isStoreOpen, getStoreStatusText } from "@/lib/storeUtils";
@@ -305,7 +305,8 @@ export default function Cart() {
             result.category_names,
             result.product_ids,
             result.discount_type as 'percentage' | 'fixed',
-            result.discount_value
+            result.discount_value,
+            result.has_no_eligible_items
           );
           setCouponInput("");
           
@@ -315,6 +316,25 @@ export default function Cart() {
           toast({
             title: "Cupom aplicado automaticamente!",
             description: `Desconto de R$ ${result.discount_amount.toFixed(2)} aplicado ao seu pedido.`,
+          });
+        } else if (result.is_valid && result.has_no_eligible_items) {
+          // Cupom válido mas sem itens elegíveis
+          applyCoupon(
+            affiliateCoupon, 
+            0,
+            result.applies_to as 'all' | 'category' | 'product',
+            result.category_names,
+            result.product_ids,
+            result.discount_type as 'percentage' | 'fixed',
+            result.discount_value,
+            true
+          );
+          setCouponInput("");
+          localStorage.removeItem(couponKey);
+          
+          toast({
+            title: "Cupom aplicado",
+            description: "Nenhum item elegível para desconto no momento.",
           });
         } else {
           console.warn('⚠️ Cupom de afiliado inválido:', result);
@@ -364,12 +384,16 @@ export default function Cart() {
       try {
         const result = await validateCouponWithScope(cart.couponCode, cart.items);
         
-        if (result.is_valid && result.discount_amount > 0) {
-          // Só atualizar se o desconto mudou
-          if (Math.abs(result.discount_amount - (cart.couponDiscount || 0)) > 0.01) {
+        if (result.is_valid) {
+          // Só atualizar se o desconto mudou ou flag mudou
+          const discountChanged = Math.abs(result.discount_amount - (cart.couponDiscount || 0)) > 0.01;
+          const flagChanged = result.has_no_eligible_items !== cart.couponHasNoEligibleItems;
+          
+          if (discountChanged || flagChanged) {
             console.log('✅ Desconto atualizado:', {
               antigo: cart.couponDiscount,
-              novo: result.discount_amount
+              novo: result.discount_amount,
+              hasNoEligibleItems: result.has_no_eligible_items
             });
             applyCoupon(
               cart.couponCode, 
@@ -378,12 +402,16 @@ export default function Cart() {
               result.category_names,
               result.product_ids,
               result.discount_type as 'percentage' | 'fixed',
-              result.discount_value
+              result.discount_value,
+              result.has_no_eligible_items
             );
-            toast({
-              title: "Desconto atualizado",
-              description: `Novo desconto: R$ ${result.discount_amount.toFixed(2)}`,
-            });
+            
+            if (result.discount_amount > 0 && discountChanged) {
+              toast({
+                title: "Desconto atualizado",
+                description: `Novo desconto: R$ ${result.discount_amount.toFixed(2)}`,
+              });
+            }
           }
         } else {
           // Cupom não é mais válido
@@ -403,7 +431,7 @@ export default function Cart() {
     // Usar debounce para evitar múltiplas chamadas
     const timer = setTimeout(recalculateCouponDiscount, 500);
     return () => clearTimeout(timer);
-  }, [cart.items, cart.couponCode, cart.couponDiscount, validateCouponWithScope, applyCoupon, removeCoupon]);
+  }, [cart.items, cart.couponCode, cart.couponDiscount, cart.couponHasNoEligibleItems, validateCouponWithScope, applyCoupon, removeCoupon]);
 
   const handleApplyCoupon = async () => {
     if (!couponInput.trim()) {
@@ -421,7 +449,7 @@ export default function Cart() {
       // Usar validação com escopo que considera categoria/produto
       const result = await validateCouponWithScope(couponInput.trim().toUpperCase(), cart.items);
       
-      if (result.is_valid && result.discount_amount > 0) {
+      if (result.is_valid) {
         applyCoupon(
           couponInput.trim().toUpperCase(), 
           result.discount_amount,
@@ -429,13 +457,22 @@ export default function Cart() {
           result.category_names,
           result.product_ids,
           result.discount_type as 'percentage' | 'fixed',
-          result.discount_value
+          result.discount_value,
+          result.has_no_eligible_items
         );
         setCouponInput("");
-        toast({
-          title: "Cupom aplicado!",
-          description: `Você ganhou R$ ${result.discount_amount.toFixed(2)} de desconto`,
-        });
+        
+        if (result.has_no_eligible_items) {
+          toast({
+            title: "Cupom aplicado",
+            description: "Nenhum item elegível para desconto. Verifique os produtos participantes.",
+          });
+        } else {
+          toast({
+            title: "Cupom aplicado!",
+            description: `Você ganhou R$ ${result.discount_amount.toFixed(2)} de desconto`,
+          });
+        }
       }
     } catch (error) {
       console.error('Erro ao validar cupom:', error);
@@ -1042,7 +1079,7 @@ export default function Cart() {
                         </p>
                         
                         {/* Mostrar desconto do cupom para este item */}
-                        {cart.couponCode && cart.couponDiscountType && cart.couponDiscountValue && (() => {
+                        {cart.couponCode && cart.couponDiscountType && cart.couponDiscountValue !== undefined && (() => {
                           const itemDiscountInfo = calculateItemDiscount(
                             item,
                             cart.couponDiscount || 0,
@@ -1054,8 +1091,27 @@ export default function Cart() {
                             cart.items
                           );
                           
-                          if (!itemDiscountInfo.isEligible || itemDiscountInfo.discount <= 0) return null;
+                          // Se não é elegível, mostrar badge cinza
+                          if (!itemDiscountInfo.isEligible) {
+                            return (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2 bg-muted/50 px-2 py-1 rounded-md w-fit">
+                                <Tag className="w-3 h-3" />
+                                <span>Não elegível para o cupom</span>
+                              </div>
+                            );
+                          }
                           
+                          // Se é elegível mas desconto é zero ou negativo
+                          if (itemDiscountInfo.discount <= 0) {
+                            return (
+                              <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 mb-2 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-md w-fit">
+                                <Tag className="w-3 h-3" />
+                                <span>R$ 0,00</span>
+                              </div>
+                            );
+                          }
+                          
+                          // Desconto normal
                           return (
                             <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 mb-2 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md w-fit">
                               <Tag className="w-3 h-3" />
@@ -1679,23 +1735,52 @@ export default function Cart() {
                       <div>
                         <Label htmlFor="coupon">Cupom de Desconto (opcional)</Label>
                         {cart.couponCode ? (
-                          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                            <Tag className="w-4 h-4 text-green-600 dark:text-green-400" />
-                            <span className="font-mono font-semibold text-green-700 dark:text-green-300">
-                              {cart.couponCode}
-                            </span>
-                            <Badge variant="secondary" className="ml-auto">
-                              -R$ {cart.couponDiscount.toFixed(2)}
-                            </Badge>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={handleRemoveCoupon}
-                              className="h-6 w-6 p-0"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          <>
+                            <div className={`flex items-center gap-2 p-3 border rounded-lg ${
+                              cart.couponHasNoEligibleItems 
+                                ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' 
+                                : 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+                            }`}>
+                              <Tag className={`w-4 h-4 ${
+                                cart.couponHasNoEligibleItems 
+                                  ? 'text-amber-600 dark:text-amber-400' 
+                                  : 'text-green-600 dark:text-green-400'
+                              }`} />
+                              <span className={`font-mono font-semibold ${
+                                cart.couponHasNoEligibleItems 
+                                  ? 'text-amber-700 dark:text-amber-300' 
+                                  : 'text-green-700 dark:text-green-300'
+                              }`}>
+                                {cart.couponCode}
+                              </span>
+                              <Badge variant="secondary" className="ml-auto">
+                                -R$ {cart.couponDiscount.toFixed(2)}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleRemoveCoupon}
+                                className="h-6 w-6 p-0"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            
+                            {/* Aviso de cupom sem itens elegíveis */}
+                            {cart.couponHasNoEligibleItems && (
+                              <div className="flex items-start gap-3 p-3 mt-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                                <div className="text-sm text-amber-800 dark:text-amber-200">
+                                  <p className="font-medium mb-1">Cupom não aplicável</p>
+                                  <p className="text-xs">
+                                    O desconto do cupom <strong>{cart.couponCode}</strong> não pode ser aplicado, 
+                                    pois nenhum dos itens no seu carrinho é elegível para esta promoção. 
+                                    Por favor, verifique os produtos participantes.
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="flex gap-2">
                             <Input

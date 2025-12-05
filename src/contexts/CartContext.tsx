@@ -89,6 +89,7 @@ export interface Cart {
   couponProductIds?: string[];
   couponDiscountType?: 'percentage' | 'fixed';
   couponDiscountValue?: number;
+  couponHasNoEligibleItems?: boolean;
 }
 
 export interface MultiStoreCart {
@@ -125,7 +126,7 @@ interface CartContextType {
   clearCart: () => Promise<void>;
   getTotal: () => number;
   getItemCount: () => number;
-  applyCoupon: (code: string, discount: number, appliesTo?: 'all' | 'category' | 'product', categoryNames?: string[], productIds?: string[], discountType?: 'percentage' | 'fixed', discountValue?: number) => void;
+  applyCoupon: (code: string, discount: number, appliesTo?: 'all' | 'category' | 'product', categoryNames?: string[], productIds?: string[], discountType?: 'percentage' | 'fixed', discountValue?: number, hasNoEligibleItems?: boolean) => void;
   removeCoupon: () => void;
   validateAndSyncCart: (targetStoreId?: string) => Promise<void>;
 }
@@ -650,7 +651,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     categoryNames?: string[],
     productIds?: string[],
     discountType?: 'percentage' | 'fixed',
-    discountValue?: number
+    discountValue?: number,
+    hasNoEligibleItems?: boolean
   ) => {
     if (!multiCart.activeStoreId) return;
 
@@ -670,7 +672,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             couponCategoryNames: categoryNames,
             couponProductIds: productIds,
             couponDiscountType: discountType,
-            couponDiscountValue: discountValue
+            couponDiscountValue: discountValue,
+            couponHasNoEligibleItems: hasNoEligibleItems
           }
         }
       };
@@ -696,7 +699,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             couponCategoryNames: undefined,
             couponProductIds: undefined,
             couponDiscountType: undefined,
-            couponDiscountValue: undefined
+            couponDiscountValue: undefined,
+            couponHasNoEligibleItems: undefined
           }
         }
       };

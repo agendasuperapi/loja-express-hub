@@ -34,6 +34,7 @@ export interface CouponValidation {
   applies_to?: 'all' | 'category' | 'product';
   category_names?: string[];
   product_ids?: string[];
+  has_no_eligible_items?: boolean;
 }
 
 export const useCoupons = (storeId: string | undefined) => {
@@ -257,17 +258,17 @@ export const useCoupons = (storeId: string | undefined) => {
       }, 0).toFixed(2)}`);
 
       if (eligibleSubtotal === 0) {
-        toast({
-          title: 'Cupom não aplicável',
-          description: 'Nenhum item no carrinho é elegível para este cupom',
-          variant: 'destructive',
-        });
+        // Cupom é válido mas nenhum item é elegível - retornar com flag
         return {
-          is_valid: false,
-          discount_type: null,
-          discount_value: null,
+          is_valid: true,
+          discount_type: coupon.discount_type as DiscountType,
+          discount_value: coupon.discount_value,
           discount_amount: 0,
-          error_message: 'Nenhum item no carrinho é elegível para este cupom',
+          error_message: null,
+          applies_to: appliesTo,
+          category_names: coupon.category_names || [],
+          product_ids: coupon.product_ids || [],
+          has_no_eligible_items: true
         };
       }
 
