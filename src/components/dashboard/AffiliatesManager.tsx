@@ -20,7 +20,7 @@ import { InviteAffiliateDialog } from './InviteAffiliateDialog';
 import { 
   Users, Plus, Edit, Trash2, DollarSign, TrendingUp, 
   Copy, Check, Tag, Percent, Settings, Eye, 
-  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2
+  Clock, CheckCircle, XCircle, CreditCard, Loader2, AlertCircle, Search, Mail, Link2, Package
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -87,6 +87,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [inviteLinkDialogOpen, setInviteLinkDialogOpen] = useState(false);
+  const [productsModalOpen, setProductsModalOpen] = useState(false);
   const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
   const [createdAffiliateName, setCreatedAffiliateName] = useState<string>('');
   const [newCouponDialogOpen, setNewCouponDialogOpen] = useState(false);
@@ -1414,109 +1415,37 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                 />
               </div>
               {formData.commission_enabled && (
-                <>
-                  <div className="col-span-2 space-y-3">
-                    <Label>Produtos e Comissões ({formData.commission_products.length} selecionados)</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        value={productSearch}
-                        onChange={(e) => setProductSearch(e.target.value)}
-                        placeholder="Buscar por nome, código interno ou externo..."
-                        className="pl-9"
-                      />
-                      </div>
-                      <ScrollArea className="h-[250px] border rounded-md p-2">
-                        {filteredProducts.length === 0 ? (
-                          <div className="py-4 text-sm text-muted-foreground text-center">
-                            Nenhum produto encontrado
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {filteredProducts.map((product) => {
-                              const productConfig = formData.commission_products.find(p => p.id === product.id);
-                              const isSelected = !!productConfig;
-                              return (
-                                <div
-                                  key={product.id}
-                                  className={`p-3 rounded-md border ${isSelected ? 'bg-primary/5 border-primary/30' : 'border-border hover:bg-muted/50'}`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <Checkbox
-                                      checked={isSelected}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setFormData({
-                                            ...formData,
-                                            commission_products: [
-                                              ...formData.commission_products,
-                                              { id: product.id, type: 'percentage', value: 10 }
-                                            ]
-                                          });
-                                        } else {
-                                          setFormData({
-                                            ...formData,
-                                            commission_products: formData.commission_products.filter(p => p.id !== product.id)
-                                          });
-                                        }
-                                      }}
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium truncate">{product.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {product.external_code && `Cód: ${product.external_code}`}
-                                        {product.external_code && product.short_id && ' • '}
-                                        {product.short_id && `ID: ${product.short_id}`}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {isSelected && productConfig && (
-                                    <div className="mt-3 ml-7 flex items-center gap-2">
-                                      <Select
-                                        value={productConfig.type}
-                                        onValueChange={(value: 'percentage' | 'fixed') => {
-                                          setFormData({
-                                            ...formData,
-                                            commission_products: formData.commission_products.map(p =>
-                                              p.id === product.id ? { ...p, type: value } : p
-                                            )
-                                          });
-                                        }}
-                                      >
-                                        <SelectTrigger className="w-[120px] h-8">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="percentage">%</SelectItem>
-                                          <SelectItem value="fixed">R$</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      <Input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={productConfig.value}
-                                        onChange={(e) => {
-                                          setFormData({
-                                            ...formData,
-                                            commission_products: formData.commission_products.map(p =>
-                                              p.id === product.id ? { ...p, value: Number(e.target.value) } : p
-                                            )
-                                          });
-                                        }}
-                                        className="w-[100px] h-8"
-                                        placeholder="Valor"
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </ScrollArea>
+                <div className="col-span-2">
+                  <Label>Produtos e Comissões</Label>
+                  <div className="mt-2 flex items-center gap-3">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setProductsModalOpen(true)}
+                      className="w-full justify-start"
+                    >
+                      <Package className="h-4 w-4 mr-2" />
+                      Selecionar Produtos ({formData.commission_products.length} selecionados)
+                    </Button>
+                  </div>
+                  {formData.commission_products.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {formData.commission_products.slice(0, 3).map((p) => {
+                        const product = products.find(pr => pr.id === p.id);
+                        return (
+                          <Badge key={p.id} variant="secondary" className="text-xs">
+                            {product?.name || 'Produto'} - {p.type === 'percentage' ? `${p.value}%` : `R$ ${p.value}`}
+                          </Badge>
+                        );
+                      })}
+                      {formData.commission_products.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{formData.commission_products.length - 3} mais
+                        </Badge>
+                      )}
                     </div>
-                </>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -1761,6 +1690,123 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
               setCreatedAffiliateName('');
             }} className="w-full">
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Selecionar Produtos */}
+      <Dialog open={productsModalOpen} onOpenChange={setProductsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Selecionar Produtos e Comissões</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                placeholder="Buscar por nome, código interno ou externo..."
+                className="pl-9"
+              />
+            </div>
+            <ScrollArea className="h-[400px] border rounded-md p-2">
+              {filteredProducts.length === 0 ? (
+                <div className="py-4 text-sm text-muted-foreground text-center">
+                  Nenhum produto encontrado
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredProducts.map((product) => {
+                    const productConfig = formData.commission_products.find(p => p.id === product.id);
+                    const isSelected = !!productConfig;
+                    return (
+                      <div
+                        key={product.id}
+                        className={`p-3 rounded-md border ${isSelected ? 'bg-primary/5 border-primary/30' : 'border-border hover:bg-muted/50'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  commission_products: [
+                                    ...formData.commission_products,
+                                    { id: product.id, type: 'percentage', value: 10 }
+                                  ]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  commission_products: formData.commission_products.filter(p => p.id !== product.id)
+                                });
+                              }
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.external_code && `Cód: ${product.external_code}`}
+                              {product.external_code && product.short_id && ' • '}
+                              {product.short_id && `ID: ${product.short_id}`}
+                            </p>
+                          </div>
+                        </div>
+                        {isSelected && productConfig && (
+                          <div className="mt-3 ml-7 flex items-center gap-2">
+                            <Select
+                              value={productConfig.type}
+                              onValueChange={(value: 'percentage' | 'fixed') => {
+                                setFormData({
+                                  ...formData,
+                                  commission_products: formData.commission_products.map(p =>
+                                    p.id === product.id ? { ...p, type: value } : p
+                                  )
+                                });
+                              }}
+                            >
+                              <SelectTrigger className="w-[120px] h-8">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="fixed">R$</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={productConfig.value}
+                              onChange={(e) => {
+                                setFormData({
+                                  ...formData,
+                                  commission_products: formData.commission_products.map(p =>
+                                    p.id === product.id ? { ...p, value: Number(e.target.value) } : p
+                                  )
+                                });
+                              }}
+                              className="w-[100px] h-8"
+                              placeholder="Valor"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProductsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setProductsModalOpen(false)}>
+              Confirmar ({formData.commission_products.length} selecionados)
             </Button>
           </DialogFooter>
         </DialogContent>
