@@ -1924,7 +1924,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
           setRuleProductSearch('');
         }
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md h-[70vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova Regra de Comissão</DialogTitle>
             <DialogDescription>
