@@ -1338,16 +1338,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             {/* Aba Comissões */}
             <TabsContent value="comissoes" className="flex-1 overflow-auto mt-4">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div>
-                    <Label>Comissão Ativa</Label>
-                    <p className="text-xs text-muted-foreground">O afiliado receberá comissão das vendas</p>
-                  </div>
-                  <Switch
-                    checked={formData.commission_enabled}
-                    onCheckedChange={(checked) => setFormData({ ...formData, commission_enabled: checked })}
-                  />
-                </div>
                 {formData.commission_enabled && (
                   <div>
                     <Label>Produtos e Comissões</Label>
@@ -1627,12 +1617,31 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Detalhes do Afiliado</DialogTitle>
-            {selectedAffiliate && (
-              <DialogDescription>
-                {selectedAffiliate.name} - {selectedAffiliate.email}
-              </DialogDescription>
-            )}
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Detalhes do Afiliado</DialogTitle>
+                {selectedAffiliate && (
+                  <DialogDescription>
+                    {selectedAffiliate.name} - {selectedAffiliate.email}
+                  </DialogDescription>
+                )}
+              </div>
+              {selectedAffiliate && (
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="text-right">
+                    <Label className="text-sm font-medium">Comissão Ativa</Label>
+                    <p className="text-xs text-muted-foreground">O afiliado receberá comissão</p>
+                  </div>
+                  <Switch
+                    checked={selectedAffiliate.commission_enabled}
+                    onCheckedChange={async (checked) => {
+                      await updateAffiliate(selectedAffiliate.id, { commission_enabled: checked });
+                      setSelectedAffiliate({ ...selectedAffiliate, commission_enabled: checked });
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </DialogHeader>
           
           {selectedAffiliate && (
