@@ -82,6 +82,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { CouponsManager } from "./CouponsManager";
 import { EmployeesManager } from "./EmployeesManager";
 import { AffiliatesManager } from "./AffiliatesManager";
+import { AffiliatesReportsTab } from "./AffiliatesReportsTab";
 import { useEmployeeAccess } from "@/hooks/useEmployeeAccess";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -3192,31 +3193,17 @@ export const StoreOwnerDashboard = ({
 
         {/* Afiliados Relatórios Tab */}
         {myStore?.id && <div className={cn("p-3 sm:p-4 md:p-6 lg:p-8", activeTab !== 'afiliados-relatorios' && 'hidden')}>
-            <motion.div initial={{
-              opacity: 0,
-              y: 20
-            }} animate={{
-              opacity: 1,
-              y: 0
-            }} transition={{
-              duration: 0.5
-            }}>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5" />
-                    Relatórios de Afiliados
-                  </CardTitle>
-                  <CardDescription>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <div className="flex items-center gap-3 mb-6">
+                <Users className="h-6 w-6 text-primary" />
+                <div>
+                  <h2 className="text-xl font-semibold">Relatórios de Afiliados</h2>
+                  <p className="text-sm text-muted-foreground">
                     Acompanhe o desempenho dos seus afiliados e comissões geradas
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground text-center py-8">
-                    Relatórios de afiliados em desenvolvimento...
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+              <AffiliatesReportsTab storeId={myStore.id} />
             </motion.div>
           </div>}
 

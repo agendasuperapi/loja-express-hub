@@ -728,187 +728,122 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="gerenciar">Gerenciar</TabsTrigger>
-          <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
-        </TabsList>
-
-        {/* Tab: Gerenciar */}
-        <TabsContent value="gerenciar" className="space-y-4">
-          {affiliates.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Nenhum afiliado cadastrado</h3>
-                <p className="text-muted-foreground mb-4">
-                  Cadastre seu primeiro afiliado para começar a gerar comissões.
-                </p>
-                <Button onClick={() => handleOpenDialog()}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Cadastrar Afiliado
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {affiliates.map((affiliate) => (
-                <Card key={affiliate.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-lg font-bold text-primary">
-                            {affiliate.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold truncate">{affiliate.name}</h3>
-                            <Badge variant={affiliate.is_active ? 'default' : 'secondary'}>
-                              {affiliate.is_active ? 'Ativo' : 'Inativo'}
-                            </Badge>
-                            {affiliate.commission_enabled && (
-                              <Badge variant="outline" className="text-green-600 border-green-600">
-                                <DollarSign className="h-3 w-3 mr-1" />
-                                Comissão Ativa
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{affiliate.email}</p>
-                          {(() => {
-                            // Filter out deleted coupons (null references)
-                            const affiliateCoupons = (affiliate.affiliate_coupons
-                              ?.map(ac => ac.coupon)
-                              .filter(coupon => coupon !== null && coupon !== undefined) || [])
-                              .concat(affiliate.coupon && !affiliate.affiliate_coupons?.some(ac => ac.coupon?.id === affiliate.coupon?.id) 
-                                ? [affiliate.coupon] 
-                                : [])
-                              .filter(coupon => coupon !== null && coupon !== undefined);
-                            if (affiliateCoupons.length === 0) return null;
-                            return (
-                              <div className="flex flex-wrap items-center gap-2 mt-1">
-                                <Tag className="h-3 w-3 text-muted-foreground" />
-                                {affiliateCoupons.map((coupon) => (
-                                  <div key={coupon.id} className="flex items-center gap-1">
-                                    <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
-                                      {coupon.code}
-                                    </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5"
-                                      onClick={() => handleCopyCode(coupon.code)}
-                                    >
-                                      {copiedCode === coupon.code ? (
-                                        <Check className="h-3 w-3 text-green-600" />
-                                      ) : (
-                                        <Copy className="h-3 w-3" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(affiliate)}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Detalhes
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleOpenDialog(affiliate)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Excluir afiliado?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser desfeita. Todos os dados do afiliado serão removidos.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => deleteAffiliate(affiliate.id)}>
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-
-        {/* Tab: Relatórios */}
-        <TabsContent value="relatorios" className="space-y-4">
+      {/* Lista de Afiliados */}
+      <div className="space-y-4">
+        {affiliates.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Todas as Comissões</CardTitle>
-              <CardDescription>Histórico completo de comissões de todos os afiliados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Afiliado</TableHead>
-                      <TableHead>Pedido</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Valor Venda</TableHead>
-                      <TableHead>Comissão</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {allEarnings.map((earning) => (
-                      <TableRow key={earning.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{earning.affiliate?.name}</p>
-                            <p className="text-xs text-muted-foreground">{earning.affiliate?.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          #{earning.order?.order_number || '-'}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {format(new Date(earning.created_at), 'dd/MM/yyyy', { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>{formatCurrency(earning.order_total)}</TableCell>
-                        <TableCell className="font-semibold text-green-600">
-                          {formatCurrency(earning.commission_amount)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(earning.status)}</TableCell>
-                      </TableRow>
-                    ))}
-                    {allEarnings.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          Nenhuma comissão registrada
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhum afiliado cadastrado</h3>
+              <p className="text-muted-foreground mb-4">
+                Cadastre seu primeiro afiliado para começar a gerar comissões.
+              </p>
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Cadastrar Afiliado
+              </Button>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        ) : (
+          <div className="grid gap-4">
+            {affiliates.map((affiliate) => (
+              <Card key={affiliate.id} className="overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg font-bold text-primary">
+                          {affiliate.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold truncate">{affiliate.name}</h3>
+                          <Badge variant={affiliate.is_active ? 'default' : 'secondary'}>
+                            {affiliate.is_active ? 'Ativo' : 'Inativo'}
+                          </Badge>
+                          {affiliate.commission_enabled && (
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              <DollarSign className="h-3 w-3 mr-1" />
+                              Comissão Ativa
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{affiliate.email}</p>
+                        {(() => {
+                          // Filter out deleted coupons (null references)
+                          const affiliateCoupons = (affiliate.affiliate_coupons
+                            ?.map(ac => ac.coupon)
+                            .filter(coupon => coupon !== null && coupon !== undefined) || [])
+                            .concat(affiliate.coupon && !affiliate.affiliate_coupons?.some(ac => ac.coupon?.id === affiliate.coupon?.id) 
+                              ? [affiliate.coupon] 
+                              : [])
+                            .filter(coupon => coupon !== null && coupon !== undefined);
+                          if (affiliateCoupons.length === 0) return null;
+                          return (
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <Tag className="h-3 w-3 text-muted-foreground" />
+                              {affiliateCoupons.map((coupon) => (
+                                <div key={coupon.id} className="flex items-center gap-1">
+                                  <span className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
+                                    {coupon.code}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-5 w-5"
+                                    onClick={() => handleCopyCode(coupon.code)}
+                                  >
+                                    {copiedCode === coupon.code ? (
+                                      <Check className="h-3 w-3 text-green-600" />
+                                    ) : (
+                                      <Copy className="h-3 w-3" />
+                                    )}
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(affiliate)}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        Detalhes
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleOpenDialog(affiliate)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Excluir afiliado?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação não pode ser desfeita. Todos os dados do afiliado serão removidos.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteAffiliate(affiliate.id)}>
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Dialog: Criar/Editar Afiliado */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
