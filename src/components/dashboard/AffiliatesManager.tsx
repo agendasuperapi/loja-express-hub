@@ -114,7 +114,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     commission_enabled: true,
     default_commission_type: 'percentage' as 'percentage' | 'fixed',
     default_commission_value: 0,
-    commission_scope: 'all' as 'all' | 'category' | 'product',
+    commission_scope: 'product' as 'category' | 'product',
     commission_categories: [] as { name: string; type: 'percentage' | 'fixed'; value: number }[],
     commission_products: [] as { id: string; type: 'percentage' | 'fixed'; value: number }[],
   });
@@ -196,7 +196,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
       commission_enabled: true,
       default_commission_type: 'percentage',
       default_commission_value: 0,
-      commission_scope: 'all',
+      commission_scope: 'product',
       commission_categories: [],
       commission_products: [],
     });
@@ -232,7 +232,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
         }));
       
       // Determine scope based on existing rules
-      let scope: 'all' | 'category' | 'product' = 'all';
+      let scope: 'category' | 'product' = 'product';
       if (categoryRules.length > 0) scope = 'category';
       else if (productRules.length > 0) scope = 'product';
       
@@ -304,7 +304,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
       coupon_ids: formData.coupon_ids,
       commission_enabled: formData.commission_enabled,
       default_commission_type: formData.default_commission_type,
-      default_commission_value: formData.commission_scope === 'all' ? formData.default_commission_value : 0,
+      default_commission_value: 0,
     };
 
     let result;
@@ -316,7 +316,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
     }
 
     // Se a comissão é por categoria ou produto, criar regra específica
-    if (result && formData.commission_enabled && formData.commission_scope !== 'all') {
+    if (result && formData.commission_enabled) {
       // Delete existing rules first when editing
       if (editingAffiliate) {
         const existingRules = await getCommissionRules(editingAffiliate.id);
@@ -507,7 +507,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
         setFormData({ 
           ...formData, 
           coupon_ids: [...formData.coupon_ids, couponResult.id],
-          commission_scope: newCouponData.applies_to,
+          commission_scope: newCouponData.applies_to === 'category' ? 'category' : 'product',
           commission_categories: categoryConfigs,
           commission_products: productConfigs,
         });
@@ -854,19 +854,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Padrão</Badge>
-                          <span className="text-sm">Todas as vendas</span>
-                        </div>
-                        <span className="font-semibold">
-                          {selectedAffiliate.default_commission_type === 'percentage'
-                            ? `${selectedAffiliate.default_commission_value}%`
-                            : formatCurrency(selectedAffiliate.default_commission_value)}
-                        </span>
-                      </div>
-                    </div>
                     {commissionRules.map((rule) => (
                       <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center justify-between">
@@ -1468,7 +1455,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                     <Label>Comissão aplica-se a</Label>
                     <Select
                       value={formData.commission_scope}
-                      onValueChange={(value: 'all' | 'category' | 'product') => setFormData({ 
+                      onValueChange={(value: 'category' | 'product') => setFormData({ 
                         ...formData, 
                         commission_scope: value,
                         commission_categories: [],
@@ -1479,7 +1466,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todas as vendas (Geral)</SelectItem>
                         <SelectItem value="category">Por Categoria</SelectItem>
                         <SelectItem value="product">Por Produto</SelectItem>
                       </SelectContent>
@@ -1668,36 +1654,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
                         )}
                       </ScrollArea>
                     </div>
-                  )}
-                  {formData.commission_scope === 'all' && (
-                    <>
-                      <div>
-                        <Label>Tipo de Comissão</Label>
-                        <Select
-                          value={formData.default_commission_type}
-                          onValueChange={(value: 'percentage' | 'fixed') => setFormData({ ...formData, default_commission_type: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="percentage">Percentual (%)</SelectItem>
-                            <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Valor da Comissão</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formData.default_commission_value}
-                          onChange={(e) => setFormData({ ...formData, default_commission_value: Number(e.target.value) })}
-                          placeholder={formData.default_commission_type === 'percentage' ? '5' : '10.00'}
-                        />
-                      </div>
-                    </>
                   )}
                 </>
               )}
