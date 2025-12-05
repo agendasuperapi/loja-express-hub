@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -88,6 +88,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [inviteLinkDialogOpen, setInviteLinkDialogOpen] = useState(false);
   const [productsModalOpen, setProductsModalOpen] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
   const [createdAffiliateName, setCreatedAffiliateName] = useState<string>('');
   const [newCouponDialogOpen, setNewCouponDialogOpen] = useState(false);
@@ -354,7 +355,7 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
 
   const handleViewDetails = async (affiliate: Affiliate) => {
     setSelectedAffiliate(affiliate);
-    setActiveTab('comissoes');
+    setDetailsModalOpen(true);
     const [rules, earnings, stats] = await Promise.all([
       getCommissionRules(affiliate.id),
       getAffiliateEarnings(affiliate.id),
@@ -1826,6 +1827,188 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             </Button>
             <Button onClick={() => setProductsModalOpen(false)}>
               Confirmar ({formData.commission_products.length} selecionados)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Detalhes do Afiliado */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Afiliado</DialogTitle>
+            {selectedAffiliate && (
+              <DialogDescription>
+                {selectedAffiliate.name} - {selectedAffiliate.email}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          
+          {selectedAffiliate && (
+            <div className="flex-1 overflow-auto space-y-4">
+              {/* Stats do afiliado */}
+              {affiliateStats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-muted-foreground">Total Vendas</p>
+                      <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalSales)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-muted-foreground">Total Comissões</p>
+                      <p className="text-xl font-bold">{formatCurrency(affiliateStats.totalEarnings)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-muted-foreground">Pendente</p>
+                      <p className="text-xl font-bold text-amber-600">{formatCurrency(affiliateStats.pendingEarnings)}</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-muted-foreground">Pedidos</p>
+                      <p className="text-xl font-bold">{affiliateStats.totalOrders}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Regras de comissão */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Regras de Comissão</CardTitle>
+                    <CardDescription>Comissões específicas por categoria ou produto</CardDescription>
+                  </div>
+                  <Button size="sm" onClick={() => setRuleDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar Regra
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {commissionRules.map((rule) => (
+                      <div key={rule.id} className="p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge>
+                              {rule.applies_to === 'category' ? 'Categoria' : 'Produto'}
+                            </Badge>
+                            <span className="text-sm">
+                              {rule.applies_to === 'category' 
+                                ? rule.category_name 
+                                : rule.product?.name || 'Produto'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">
+                              {rule.commission_type === 'percentage'
+                                ? `${rule.commission_value}%`
+                                : formatCurrency(rule.commission_value)}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => handleDeleteRule(rule.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {commissionRules.length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        Nenhuma regra de comissão específica configurada
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Histórico de comissões */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Histórico de Comissões</CardTitle>
+                    <CardDescription>Todas as comissões geradas</CardDescription>
+                  </div>
+                  <Button size="sm" onClick={() => setPaymentDialogOpen(true)}>
+                    <CreditCard className="h-4 w-4 mr-1" />
+                    Registrar Pagamento
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[250px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Pedido</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Valor Venda</TableHead>
+                          <TableHead>Comissão</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {affiliateEarnings.map((earning) => (
+                          <TableRow key={earning.id}>
+                            <TableCell className="font-mono text-sm">
+                              #{earning.order?.order_number || '-'}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {format(new Date(earning.created_at), 'dd/MM/yyyy', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell>{formatCurrency(earning.order_total)}</TableCell>
+                            <TableCell className="font-semibold text-green-600">
+                              {formatCurrency(earning.commission_amount)}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(earning.status)}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={earning.status}
+                                onValueChange={(value) => updateEarningStatus(earning.id, value as any)}
+                              >
+                                <SelectTrigger className="w-[120px] h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pendente</SelectItem>
+                                  <SelectItem value="approved">Aprovada</SelectItem>
+                                  <SelectItem value="paid">Paga</SelectItem>
+                                  <SelectItem value="cancelled">Cancelada</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {affiliateEarnings.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                              Nenhuma comissão registrada
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleShowInviteLink(selectedAffiliate!)}>
+              <Link2 className="h-4 w-4 mr-1" />
+              Link de Convite
+            </Button>
+            <Button onClick={() => setDetailsModalOpen(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
