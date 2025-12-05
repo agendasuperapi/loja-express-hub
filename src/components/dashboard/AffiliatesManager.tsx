@@ -1474,93 +1474,6 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Dialog: Adicionar Regra de Comissão */}
-      <Dialog open={ruleDialogOpen} onOpenChange={setRuleDialogOpen}>
-        <DialogContent className="max-w-md h-[70vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Nova Regra de Comissão</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 flex-1 overflow-auto">
-            <div className="space-y-2">
-              <Label>Produto</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  value={ruleProductSearch}
-                  onChange={(e) => setRuleProductSearch(e.target.value)}
-                  placeholder="Buscar por nome, código interno ou externo..."
-                  className="pl-9"
-                />
-              </div>
-              <Select
-                value={ruleFormData.product_id}
-                onValueChange={(value) => setRuleFormData({ ...ruleFormData, product_id: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o produto" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {filteredRuleProducts.length === 0 ? (
-                    <div className="py-2 px-3 text-sm text-muted-foreground text-center">
-                      Nenhum produto encontrado
-                    </div>
-                  ) : (
-                    filteredRuleProducts.map((product) => (
-                      <SelectItem key={product.id} value={product.id}>
-                        <div className="flex flex-col">
-                          <span>{product.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {product.external_code && `Cód: ${product.external_code}`}
-                            {product.external_code && product.short_id && ' • '}
-                            {product.short_id && `ID: ${product.short_id}`}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Tipo</Label>
-                <Select
-                  value={ruleFormData.commission_type}
-                  onValueChange={(value: 'percentage' | 'fixed') => setRuleFormData({ ...ruleFormData, commission_type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="percentage">Percentual (%)</SelectItem>
-                    <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Valor</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={ruleFormData.commission_value}
-                  onChange={(e) => setRuleFormData({ ...ruleFormData, commission_value: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRuleDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddRule}>
-              Adicionar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Dialog: Registrar Pagamento */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
         <DialogContent className="max-w-md">
@@ -1975,6 +1888,92 @@ export const AffiliatesManager = ({ storeId, storeName = 'Loja' }: AffiliatesMan
             </Button>
             <Button onClick={() => setDetailsModalOpen(false)}>
               Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Adicionar Regra de Comissão - Movido para o final para ficar acima do modal de detalhes */}
+      <Dialog open={ruleDialogOpen} onOpenChange={setRuleDialogOpen}>
+        <DialogContent className="max-w-md h-[70vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Nova Regra de Comissão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 flex-1 overflow-auto">
+            <div className="space-y-2">
+              <Label>Produto</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={ruleProductSearch}
+                  onChange={(e) => setRuleProductSearch(e.target.value)}
+                  placeholder="Buscar por nome, código interno ou externo..."
+                  className="pl-9"
+                />
+              </div>
+              <Select
+                value={ruleFormData.product_id}
+                onValueChange={(value) => setRuleFormData({ ...ruleFormData, product_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o produto" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {filteredRuleProducts.length === 0 ? (
+                    <div className="py-2 px-3 text-sm text-muted-foreground text-center">
+                      Nenhum produto encontrado
+                    </div>
+                  ) : (
+                    filteredRuleProducts.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        <div className="flex flex-col">
+                          <span>{product.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {product.external_code && `Cód: ${product.external_code}`}
+                            {product.external_code && product.short_id && ' • '}
+                            {product.short_id && `ID: ${product.short_id}`}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo</Label>
+                <Select
+                  value={ruleFormData.commission_type}
+                  onValueChange={(value: 'percentage' | 'fixed') => setRuleFormData({ ...ruleFormData, commission_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percentage">Percentual (%)</SelectItem>
+                    <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={ruleFormData.commission_value}
+                  onChange={(e) => setRuleFormData({ ...ruleFormData, commission_value: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRuleDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddRule}>
+              Adicionar
             </Button>
           </DialogFooter>
         </DialogContent>
